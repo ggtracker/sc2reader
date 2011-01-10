@@ -3,8 +3,8 @@ from collections import defaultdict
 
 from mpyq import MPQArchive
 
-from parsers import parserLookup
-from objects.bytestream import ByteStream
+import parsers
+from objects import ByteStream
 
 
 class Replay(object):
@@ -55,16 +55,16 @@ class Replay(object):
         attributesFile = files['replay.attributes.events']
         
         #Load the details file first to get player information
-        parserLookup.getDetailParser(self.build).load(self,detailsFile)
+        parsers.getDetailParser(self.build).load(self,detailsFile)
         
         #Next load the attributes file to fill out players and get team information
-        parserLookup.getAttributeParser(self.build).load(self,attributesFile)
+        parsers.getAttributeParser(self.build).load(self,attributesFile)
         
         #Finally load the events file to get gameplay data and APM
-        parserLookup.getEventParser(self.build).load(self,eventsFile)
+        parsers.getEventParser(self.build).load(self,eventsFile)
         
         #We'll also load up the messages for a peak at what was going on
-        parserLookup.getMessageParser(self.build).load(self,messageFile)
+        parsers.getMessageParser(self.build).load(self,messageFile)
         
     def setDerivedValues(self):
         self.teams = defaultdict(list)

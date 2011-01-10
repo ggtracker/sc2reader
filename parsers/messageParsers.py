@@ -1,5 +1,4 @@
-from objects.bytestream import ByteStream
-from objects.message import Message
+from objects import ByteStream,Message
 
 class MessageParser(object):
     def load(self,replay,filecontents):

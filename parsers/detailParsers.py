@@ -1,8 +1,6 @@
 from time import ctime
 
-from objects.player import Player
-from objects.bytestream import ByteStream
-
+from objects import ByteStream,Player
 
 class DetailParser(object):
     def load(self,replay,filecontents):
