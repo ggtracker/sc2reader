@@ -4,7 +4,7 @@ from collections import defaultdict
 from mpyq import MPQArchive
 
 from parsers import parserLookup
-from utils.bytestream import ByteStream
+from objects.bytestream import ByteStream
 
 
 class Replay(object):
@@ -114,3 +114,12 @@ class Replay(object):
                 
         for player in self.players[1:]:
             player.result = self.results[player.team]
+
+if __name__ == '__main__':
+	from pprint import PrettyPrinter
+	pprint = PrettyPrinter(indent=2).pprint
+
+	replay = Replay(r'C:\Users\graylinkim\Documents\StarCraft II\Accounts\55711209\1-S2-1-2358439\Replays\Unsaved\Arid Wastes.SC2Replay')
+	print "%s on %s - played: %s" % (replay.type,replay.map,replay.date)
+	for player in replay.players[1:]:
+		print "%s: %s" % (player,player.result)
