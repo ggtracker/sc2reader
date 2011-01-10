@@ -1,5 +1,5 @@
-from .objects.message import Message
-from .utils.bytestream import ByteStream
+from objects.message import Message
+from utils.bytestream import ByteStream
 
 
 class MessageParser(object):

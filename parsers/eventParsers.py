@@ -1,5 +1,5 @@
-from .objects.event import *
-from .utils.bytestream import ByteStream
+from objects.event import *
+from utils.bytestream import ByteStream
 
 
 class EventParser(object):

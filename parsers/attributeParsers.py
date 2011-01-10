@@ -1,8 +1,8 @@
 from collections import defaultdict
 
-from .objects.attribute import Attribute
+from objects.attribute import Attribute
 
-from .utils.bytestream import ByteStream
+from utils.bytestream import ByteStream
 
 class AttributeParser(object):
     def load(self,replay,filecontents):

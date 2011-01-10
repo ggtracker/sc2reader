@@ -1,4 +1,4 @@
-from .utils.abilities import abilities
+from utils.abilities import abilities
 
 class Event(object):
     def __call__(self,elapsedTime,eventType,globalFlag,playerId,eventCode,bytes):

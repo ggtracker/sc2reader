@@ -3,8 +3,8 @@ from collections import defaultdict
 
 from mpyq import MPQArchive
 
-from .parsers import parserLookup
-from .utils.bytestream import ByteStream
+from parsers import parserLookup
+from utils.bytestream import ByteStream
 
 
 class Replay(object):

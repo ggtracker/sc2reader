@@ -1,7 +1,7 @@
 from time import ctime
 
-from .objects.player import Player
-from .utils.bytestream import ByteStream
+from objects.player import Player
+from utils.bytestream import ByteStream
 
 
 class DetailParser(object):
