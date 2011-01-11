@@ -1,10 +1,8 @@
-from distutils import setup
-
-import sc2reader
+from setuptools import setup, find_packages
 
 setup(
 	name="sc2reader",
-	version=sc2reader.__version__,
+	version="0.1.0",
 	license="MIT",
 	
 	author="Graylin Kim",
@@ -31,6 +29,6 @@ setup(
 	
 	requires=['mpyq'],
     install_requires=['mpyq'],
-	packages=["sc2reader","sc2reader.data","sc2reader.objects","sc2reader.parsers"],
-	scripts=[],
+	packages=['sc2reader'],
+	scripts=['scripts/sc2printer'],
 )

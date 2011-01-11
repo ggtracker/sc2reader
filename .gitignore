@@ -1,2 +1,4 @@
 *~
 *.pyc
+dist
+sc2reader.egg-info

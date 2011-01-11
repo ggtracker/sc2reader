@@ -90,3 +90,83 @@ class Attribute(object):
         
     def __str__(self):
         return str(self.value)
+
+
+		
+		
+class Event(object):
+	def __init__(self,elapsedTime,eventType,eventCode,globalFlag,playerId,
+					location=None,bytes=""):
+					
+        self.time,seconds = (elapsedTime,elapsedTime/16)
+        self.timestr = "%s:%s" % (seconds/60,str(seconds%60).rjust(2,"0"))
+        self.type = eventType
+        self.code = eventCode
+        self.local = (globalFlag == 0x0)
+        self.player = playerId
+		self.location = location
+        self.bytes = bytes
+		
+    def __call__(self,elapsedTime,eventType,globalFlag,playerId,eventCode,bytes):
+        self.time,seconds = (elapsedTime,elapsedTime/16)
+        self.timestr = "%s:%s" % (seconds/60,str(seconds%60).rjust(2,"0"))
+        self.type = eventType
+        self.code = eventCode
+        self.local = (globalFlag == 0x0)
+        self.player = playerId
+        self.bytes = ""
+        self.parse(bytes)
+        return self
+	
+
+
+
+	
+class Message(object):
+    
+    def __init__(self,time,player,flags,bytes):
+        self.time,self.player = time,player
+        self.target = flags & 0x03
+        length = bytes.getBigInt(1)
+        
+        if flags & 0x08:
+            length += 64
+            
+        if flags & 0x10:
+            length += 128
+            
+        self.text = bytes.getString(length)
+        
+    def __str__(self):
+        time = ((self.time/16)/60,(self.time/16)%60)
+        return "%s - Player %s - %s" % (time,self.player,self.text)
+        
+    def __repr__(self):
+        return str(self)
+
+
+		
+class Player(object):
+    
+    def __init__(self,pid, data):
+        self.pid = pid
+        self.name = data[0].decode("hex")
+        self.uid = data[1][4]
+        self.uidIndex = data[1][2]
+        self.url = "http://us.battle.net/sc2/en/profile/%s/%s/%s/" % (self.uid,self.uidIndex,self.name)
+        self.race = data[2].decode("hex")
+        self.rgba = dict([
+                ['r',data[3][1]],
+                ['g',data[3][2]],
+                ['b',data[3][3]],
+                ['a',data[3][0]],
+            ])
+        self.recorder = True
+        self.handicap = data[6]
+        
+    def __str__(self):
+        return "Player %s - %s (%s)" % (self.pid,self.name,self.race)
+        
+    def __repr__(self):
+        return str(self)
+

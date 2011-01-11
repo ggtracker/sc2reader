@@ -8,11 +8,26 @@ from the awesome `phpsc2replay`_ project.
 Example Usage
 --------------
 
-	>>>from sc2reader import Replay
-	>>>replay = Replay('path/to/replay.sc2replay')
+::
+
+	>>> replay = Replay(filename)
+	>>> print "\n%s on %s played on %s" % (replay.type,replay.map,replay.date)
+	>>>
+	>>> #Player[0] is None so that players can be indexed by ID
+	>>> for team,players in replay.teams.iteritems():
+	>>>		print "\n\tTeam %s: %s" % (team,replay.results[team])
+	>>>		for player in players:
+	>>>			print "\t\t%s" % player
 	
-	#TODO: more work to be done here
-	
+	2v2 on Zwietracht IV played on Mon Dec 27 22:51:59 2010
+		
+		Team 1: Won
+			Player 1 - Pille (Zerg)
+			Player 2 - Mort (Zerg)
+			
+		Team 2: Lost
+			Player 3 - HaRib0 (Protoss)
+			Player 4 - neosmatrix (Zerg)
 
 See the sc2replay `wiki`_ for additional usage details. 
 
@@ -49,6 +64,7 @@ Basic Install
 ::
 
 	$ easy_install sc2reader
+	$ sc2printer 'path/to/replay.sc2replay'
 	
 Advanced Install
 ~~~~~~~~~~~~~~~~~
@@ -58,6 +74,7 @@ Advanced Install
 	$ git clone https://github.com/GraylinKim/sc2reader.git
 	$ cd sc2reader
 	$ python setup.py install
+	$ sc2printer 'path/to/replay.sc2replay'
 
 Issues and Support
 -------------------

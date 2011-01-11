@@ -1,0 +1,15 @@
+#!c:\\Python27\python.exe
+
+import sys
+from sc2reader import Replay
+
+assert len(sys.argv)>1, "A path to atleast 1 sc2replay file is required"
+for filename in sys.argv[1:]:
+	replay = Replay(filename)
+	print "\n%s on %s played on %s" % (replay.type,replay.map,replay.date)
+	
+	#Player[0] is None so that players can be indexed by ID
+	for team,players in replay.teams.iteritems():
+		print "\n\tTeam %s: %s" % (team,replay.results[team])
+		for player in players:
+			print "\t\t%s" % player

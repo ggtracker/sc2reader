@@ -3,8 +3,8 @@ from collections import defaultdict
 
 from mpyq import MPQArchive
 
-import parsers
-from objects import ByteStream
+from sc2reader import parsers
+from sc2reader.objects import ByteStream
 
 
 class Replay(object):
@@ -116,6 +116,7 @@ class Replay(object):
             player.result = self.results[player.team]
 
 if __name__ == '__main__':
+	
 	from pprint import PrettyPrinter
 	pprint = PrettyPrinter(indent=2).pprint
 
