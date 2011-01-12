@@ -1,4 +1,5 @@
 *~
 *.pyc
 dist
+build
 sc2reader.egg-info

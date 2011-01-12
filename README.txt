@@ -29,6 +29,11 @@ Example Usage
 			Player 3 - HaRib0 (Protoss)
 			Player 4 - neosmatrix (Zerg)
 
+The same results can be found using the sc2printer utility script which simply
+wraps up the above code as a (simple) demonstration of the libraries utility::
+
+    $ sc2printer game1.sc2replay game2.sc2replay
+ 
 See the sc2replay `wiki`_ for additional usage details. 
 
 Current Status

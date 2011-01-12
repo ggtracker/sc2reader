@@ -3,8 +3,8 @@ from collections import defaultdict
 
 from mpyq import MPQArchive
 
-from sc2reader import parsers
-from sc2reader.objects import ByteStream
+import parsers
+from utils import ByteStream
 
 
 class Replay(object):
@@ -37,7 +37,7 @@ class Replay(object):
         max_data_size = source.getLittleInt(4) #possibly data max size
         header_offset = source.getLittleInt(4) #Offset of the second header
         data_size = source.getLittleInt(4)     #possibly data size
-
+        
         #Extract replay attributes from the mpq
         data = source.parseSerializedData()
         self.build = data[1][4]

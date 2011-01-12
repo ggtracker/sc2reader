@@ -95,16 +95,15 @@ class Attribute(object):
 		
 		
 class Event(object):
-	def __init__(self,elapsedTime,eventType,eventCode,globalFlag,playerId,
-					location=None,bytes=""):
-					
+    def __init__(self,elapsedTime,eventType,eventCode,globalFlag,playerId,
+                    location=None,bytes=""):
         self.time,seconds = (elapsedTime,elapsedTime/16)
         self.timestr = "%s:%s" % (seconds/60,str(seconds%60).rjust(2,"0"))
         self.type = eventType
         self.code = eventCode
         self.local = (globalFlag == 0x0)
         self.player = playerId
-		self.location = location
+        self.location = location
         self.bytes = bytes
 		
     def __call__(self,elapsedTime,eventType,globalFlag,playerId,eventCode,bytes):
@@ -119,9 +118,6 @@ class Event(object):
         return self
 	
 
-
-
-	
 class Message(object):
     
     def __init__(self,time,player,flags,bytes):
@@ -169,4 +165,3 @@ class Player(object):
         
     def __repr__(self):
         return str(self)
-

@@ -1,6 +1,7 @@
 #!c:\\Python27\python.exe
 
 import sys
+#sys.path.append("c:\\Users\\graylinkim\\sc2reader")
 from sc2reader import Replay
 
 assert len(sys.argv)>1, "A path to atleast 1 sc2replay file is required"
