@@ -40,6 +40,7 @@ class Replay(object):
         
         #Extract replay attributes from the mpq
         data = source.parseSerializedData()
+        
         self.build = data[1][4]
         self.versions = (data[1][1],data[1][2],data[1][3],self.build)
         self.releaseString = "%s.%s.%s.%s" % self.versions
@@ -116,11 +117,18 @@ class Replay(object):
             player.result = self.results[player.team]
 
 if __name__ == '__main__':
-	
-	from pprint import PrettyPrinter
-	pprint = PrettyPrinter(indent=2).pprint
-
+    from pprint import PrettyPrinter
+    pprint = PrettyPrinter(indent=2).pprint
+    
+    #replay = Replay(r'C:\Users\graylinkim\sc2reader\tests\test1-2.sc2replay')
+    #replay = Replay(r'C:\Users\graylinkim\Documents\StarCraft II\Accounts\55711209\1-S2-1-2358439\Replays\VersusAI\Agria Valley.sc2replay')
+    replay = Replay(r'C:\Users\graylinkim\Documents\StarCraft II\Accounts\55711209\1-S2-1-2358439\Replays\VersusAI\hotkeys_selection_change.sc2replay')
+    for event in replay.events:
+        print "%s: %s" % (event.name,' '.join(event.bytes[i*2:(i+1)*2] for i in range(0,len(event.bytes)/2)))
+        raw_input('')
+	"""
 	replay = Replay(r'C:\Users\graylinkim\Documents\StarCraft II\Accounts\55711209\1-S2-1-2358439\Replays\Unsaved\Arid Wastes.SC2Replay')
 	print "%s on %s - played: %s" % (replay.type,replay.map,replay.date)
 	for player in replay.players[1:]:
 		print "%s: %s" % (player,player.result)
+	"""

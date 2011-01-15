@@ -89,7 +89,7 @@ class Attribute(object):
         return str(self)
         
     def __str__(self):
-        return str(self.value)
+        return "%s: %s" % (self.name,self.value)
 
 
 		
@@ -117,21 +117,16 @@ class Event(object):
         self.parse(bytes)
         return self
 	
+    def __str__(self):
+        return "%s - %s" % (self.timestr,self.name)
+        
+    def __repr__(self):
+        return str(self)
 
 class Message(object):
     
-    def __init__(self,time,player,flags,bytes):
-        self.time,self.player = time,player
-        self.target = flags & 0x03
-        length = bytes.getBigInt(1)
-        
-        if flags & 0x08:
-            length += 64
-            
-        if flags & 0x10:
-            length += 128
-            
-        self.text = bytes.getString(length)
+    def __init__(self,time,player,target,text):
+        self.time,self.player,self.target,self.text = time,player,target,text
         
     def __str__(self):
         time = ((self.time/16)/60,(self.time/16)%60)

@@ -17,7 +17,7 @@ class ByteStream(object):
         
         #Move the ByteStream forward
         self.stream = self.stream[number*2:]
-        self.cprursor = self.cursor + number
+        self.cursor = self.cursor + number
         
         if byteCode:
             return result,result
@@ -87,7 +87,7 @@ class ByteStream(object):
         
     def getVLF(self,byteCode=False):
         result,count,byteString = 0,0,""
-        
+            
         #Loop through bytes until the first bit is zero
         #build the result by adding new bits to the right
         while(True):

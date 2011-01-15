@@ -1,13 +1,14 @@
 #!c:\\Python27\python.exe
 
 import sys
-#sys.path.append("c:\\Users\\graylinkim\\sc2reader")
+sys.path.append("c:\\Users\\graylinkim\\sc2reader")
 from sc2reader import Replay
 
-assert len(sys.argv)>1, "A path to atleast 1 sc2replay file is required"
+assert len(sys.argv)>1, "A path to at least 1 sc2replay file is required"
 for filename in sys.argv[1:]:
 	replay = Replay(filename)
-	print "\n%s on %s played on %s" % (replay.type,replay.map,replay.date)
+	print "\nStarcraft II Version %s" % replay.releaseString
+	print "%s on %s played on %s" % (replay.type,replay.map,replay.date)
 	
 	#Player[0] is None so that players can be indexed by ID
 	for team,players in replay.teams.iteritems():

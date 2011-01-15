@@ -79,7 +79,7 @@ abilities = {
     0x021b00: 'Warp in Zealot',
     0x030510: 'Warp in Zealot (warp gate)',
     0x021b01: 'Warp in Stalker',
-    0x030511: 'Wrap in Stalker (warp gate)',
+    0x030511: 'Warp in Stalker (warp gate)',
     0x021b05: 'Warp in Sentry',
     0x030515: 'Warp in Sentry (warp gate)',
     0x030513: 'Warp in High Templar (warp gate)',

@@ -1,9 +1,18 @@
 What is sc2reader?
 -------------------
 
-sc2reader is a library for extracting game information from Starcraft II
-replay files into a replay object. It is based heavily on documentation
-from the awesome `phpsc2replay`_ project. 
+1. sc2reader is a library for extracting game information from Starcraft II
+replay files into a replay object. Please join the `mailing list`_ to be
+notified of updates and participate in discussion around the replay format.
+
+2. sc2reader is also a format documentation project, documentation is always in
+progress and the latest and greatest can be found on the `github wiki`.
+
+Contributions, bugs, and suggestions are always welcome. Please direct them
+to the `issue tracker`_ or the `mailing list`_ as appropriate.
+
+*Special thanks to the people of the awesome `phpsc2replay` project whose
+public documentation and source code made this library possible.*
 
 Example Usage
 --------------
@@ -34,7 +43,7 @@ wraps up the above code as a (simple) demonstration of the libraries utility::
 
     $ sc2printer game1.sc2replay game2.sc2replay
  
-See the sc2replay `wiki`_ for additional usage details. 
+See the sc2replay `wiki`_ for additional usage details (coming soon).
 
 Current Status
 ---------------
@@ -47,12 +56,12 @@ that the following information can be extracted:
 - Message details (text, time, player, target, ...)
 - Game details (winners, losers, unit abilities,unit selections, ...)
 
-For ``version < 16561``: replay, player, and message details can still be
+For 1.1 release replays: replay, player, and message details can still be
 extracted because their formats do not seem to have changed as far as testing
 shows.
 
-Support for older builds may be patched in future releases as development is
-on going.
+Very experimental support for 1.0 and 1.2 replays has been added. 1.0 support
+is completely untested as I don't have any 1.0 replays (I'll find some soon).
 
 Installation
 -------------
@@ -86,12 +95,12 @@ Issues and Support
 
 Until some further infrastructure is set up:
 
-- Please refer to the `wiki`_ for documentation
+- Refer to the `wiki`_ for replay format documentation
 - Visit `issue tracker`_ to report bugs and request features
-- `email me`_ for technical support issues.
+- Join the `mailing list`_ to request support and contribute to the effort
 
 
-.. _email me: mailto:graylin.kim@gmail.com
+.. _mailing list: http://groups.google.com/group/sc2reader
 .. _mpyq: http://pypi.python.org/pypi/mpyq
 .. _wiki: https://github.com/GraylinKim/sc2reader/wiki
 .. _phpsc2replay: http://code.google.com/p/phpsc2replay/
