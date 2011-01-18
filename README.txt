@@ -48,20 +48,19 @@ See the sc2replay `wiki`_ for additional usage details (coming soon).
 Current Status
 ---------------
 
-sc2reader is written to parse replays where build ``version >= 16561``. This means
-that the following information can be extracted:
+sc2reader is written to parse replays where ``buidl >= 16561`` (generally
+version 1.1 replays). This means that the following information can be
+extracted:
 
 - Replay details (map, length, version, game type, game speed, ...)
 - Player details (name, race, team, color, ...)
 - Message details (text, time, player, target, ...)
 - Game details (winners, losers, unit abilities,unit selections, ...)
 
-For 1.1 release replays: replay, player, and message details can still be
-extracted because their formats do not seem to have changed as far as testing
-shows.
-
-Very experimental support for 1.0 and 1.2 replays has been added. 1.0 support
-is completely untested as I don't have any 1.0 replays (I'll find some soon).
+Support for version 1.2 replays has been added and appears to work correctly
+on all replays tested. 1.0 support has been added by implementing methods from
+the `phpsc2replay`_ project but is completely untested as I don't have any 1.0
+replays to test with right now (I'll find some soon).
 
 Installation
 -------------
