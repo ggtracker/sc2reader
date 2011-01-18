@@ -9,31 +9,37 @@ from utils import ByteStream
 
 class Replay(object):
     
-    def __init__(self,replay):
+    def __init__(self,replay,partialParse=True,fullParse=True):
         #Make sure the file exists and is readable
         if not os.access(replay,os.F_OK):
             raise ValueError("File at '%s' cannot be found" % replay)
         elif not os.access(replay,os.R_OK):
             raise ValueError("File at '%s' cannot be read" % replay)
-            
+        
+        self.file = replay
+        self._parseHeader()
+        self.files = MPQArchive(replay).extract()
+        self.parsed = dict(details=False,attributes=False,messages=False,events=False)
+        
+        #These are quickly parsed files that contain most of the game information
+        #The order is important, I need some way to reinforce it in the future
+        if partialParse or fullparse:
+            self._parseDetails()
+            self._parseAttributes()
+            self._parseMessages()
+        
+        if fullParse:
+            self._parseEvents()
+    
+    def _parseHeader(self):
         #Open up a ByteStream for its contents
-        source = ByteStream(open(replay).read())
+        source = ByteStream(open(self.file).read())
         
         #Check the file type for the MPQ header bytes
         if source.getBig(4) != "4D50511B":
-            raise TypeError("File '%s' is not an MPQ file" % replay)
+            raise TypeError("File '%s' is not an MPQ file" % self.file)
         
         #Extract replay header data
-        self.parseMPQHeader(source)
-        
-        #Parse the rest of the archive
-        self.parseMPQArchive(MPQArchive(replay))
-        
-        #Use the parsed information to reorganize the data
-        self.setDerivedValues()
-    
-    def parseMPQHeader(self,source):
-        #Read the MPQ file header
         max_data_size = source.getLittleInt(4) #possibly data max size
         header_offset = source.getLittleInt(4) #Offset of the second header
         data_size = source.getLittleInt(4)     #possibly data size
@@ -41,49 +47,66 @@ class Replay(object):
         #Extract replay attributes from the mpq
         data = source.parseSerializedData()
         
+        #Assign all the relevant information to the replay object
         self.build = data[1][4]
         self.versions = (data[1][1],data[1][2],data[1][3],self.build)
         self.releaseString = "%s.%s.%s.%s" % self.versions
         self.frames,self.seconds = (data[3],data[3]/16)
         self.length = (self.seconds/60,self.seconds%60)
         
-    def parseMPQArchive(self,archive):
-        #Extract the archive files
-        files = archive.extract()
-        eventsFile = files['replay.game.events']
-        detailsFile = files['replay.details']
-        messageFile = files['replay.message.events']
-        attributesFile = files['replay.attributes.events']
+    def _parseDetails(self):
+        #Get player and map information
+        parsers.getDetailParser(self.build).load(self,self.files['replay.details'])
+        self.parsed['details'] = True
         
-        #Load the details file first to get player information
-        parsers.getDetailParser(self.build).load(self,detailsFile)
+    def _parseAttributes(self):
+        #The details file data is required for parsing
+        if not self.parsed['details']:
+            raise ValueError("The replay details must be parsed before parsing attributes")
+            
+        parsers.getAttributeParser(self.build).load(self,self.files['replay.attributes.events'])
+        self.parsed['attributes'] = True
         
-        #Next load the attributes file to fill out players and get team information
-        parsers.getAttributeParser(self.build).load(self,attributesFile)
-        
-        #Finally load the events file to get gameplay data and APM
-        parsers.getEventParser(self.build).load(self,eventsFile)
-        
-        #We'll also load up the messages for a peak at what was going on
-        parsers.getMessageParser(self.build).load(self,messageFile)
-        
-    def setDerivedValues(self):
+        #We can now create teams
         self.teams = defaultdict(list)
         for player in self.players[1:]: #Skip the 'None' player 0
             self.teams[player.team].append(player)
-
+        
+    def _parseMessages(self):
+        #The details file data is required for parsing
+        if not self.parsed['details']:
+            raise ValueError("The replay details must be parsed before parsing messages")
+            
+        parsers.getMessageParser(self.build).load(self,self.files['replay.message.events'])
+        self.parsed['messages'] = True
+        
+    def _parseEvents(self):
+        #The details file data is required for parsing
+        if not self.parsed['details']:
+            raise ValueError("The replay details must be parsed before parsing events")
+            
+        parsers.getEventParser(self.build).load(self,self.files['replay.game.events'])
+        self.parsed['events'] = True
+        
+        #We can now sort events by type and get results
         self.eventsByType = defaultdict(list)
         for event in self.events:
             self.eventsByType[event.name].append(event)
+            
+        self._processResults()
         
-        self.processResults()
-        
-    def processResults(self):
+    def _processResults(self):
+        #The details,attributes, and events are required
+        if not (self.parsed['details'] and self.parsed['attributes'] and self.parsed['events']):
+            raise ValueError("The replay details must be parsed before parsing attributes")
+            
         #Remove players from the teams as they drop out of the game   
         self.results = dict([team,len(players)] for team,players in self.teams.iteritems())
         for event in self.eventsByType['leave']:
-            team = self.players[event.player].team
-            self.results[team] -= 1 
+            #Some spectator actions seem to be recorded, they aren't on teams anyway
+            if event.player < len(self.players):
+                team = self.players[event.player].team
+                self.results[team] -= 1 
                 
         #mark all teams with no players left as losing, save the rest of the teams
         remaining = set()
@@ -96,7 +119,7 @@ class Replay(object):
         #If, at the end, only one team remains then that team has won
         if len(remaining) == 1:
             self.results[remaining.pop()] = "Won"
-        else:    
+        elif self.recorder:    
             #The other results are unknown except in the (common) case that the
             #recorder is the last one on his team to leave. In this case, the
             #result for his team can be known

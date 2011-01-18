@@ -4,6 +4,10 @@ from collections import defaultdict
 from objects import Attribute,Message,Player,Event
 from eventparsers import *
 from utils import ByteStream
+from exceptions import ParseError
+
+from pprint import PrettyPrinter
+pprint = PrettyPrinter(indent=2).pprint
 
 #################################################
 # Parser Dispatch Functions
@@ -148,9 +152,13 @@ class MessageParser(object):
                 replay.messages.append(Message(time,playerId,target,text))
             
         recorders = [player for player in replay.players if player and player.recorder==True]
-        if len(recorders) != 1:
+        if len(recorders) >1:
             raise ValueError("There should be 1 and only 1 recorder; %s were found" % len(recorders))
-        replay.recorder = recorders[0]
+        elif len(recorders) == 0:
+            #If there are no recorders, then the recorder must not be a player, spectator or referee then
+            replay.recorder = None
+        else:
+            replay.recorder = recorders[0]
 
 ####################################################
 # replay.game.events parsing classes
@@ -179,7 +187,7 @@ class EventParser(object):
             (UnknownEventParser_04X2(), lambda e: e.code & 0x0F == 2 ),
             (UnknownEventParser_0416(), lambda e: e.code == 0x16 ),
             (UnknownEventParser_04C6(), lambda e: e.code == 0xC6 ),
-            (UnknownEventParser_0418or87(), lambda e: e.code == 0x18 or e.code == 0x87 ),
+            (UnknownEventParser_0487(), lambda e: e.code == 0x87 ),
             (UnknownEventParser_0400(), lambda e: e.code == 0x00 ),],
         0x05: [
             (UnknownEventParser_0589(), lambda e: e.code == 0x89 ),],
@@ -203,20 +211,24 @@ class EventParser(object):
             #The following byte completes the unique eventObjectidentifier
             first,eventCode = bytes.getBigInt(1),bytes.getBigInt(1)
             eventType,globalFlag,playerId = first >> 5,first & 0x10,first & 0xF
-            
+
             #Create a barebones event from the gathered information
             event = Event(elapsedTime,eventType,eventCode,
                         globalFlag,playerId,location,eventBytes)
             
-            #Get the parser and load the data into the event
-            replay.events.append(self.getParser(event).load(event,bytes))
+            try:
+                #Get the parser and load the data into the event
+                replay.events.append(self.getParser(event).load(event,bytes))
+            except TypeError as e:
+                raise ParseError(e.message,replay,event,bytes)
             
     def getParser(self,event):
         if event.type not in self.parserMap.keys():
             raise TypeError("Unknown eventType: %s at location %s" % (hex(event.type),event.location))
 		
         for parser,accept in self.parserMap[event.type]:
-            if accept(event): return parser
+            if accept(event):
+                return parser
         
         raise TypeError("Unknown event: %s - %s at %s" % (hex(event.type),hex(event.code),event.location))
 
@@ -241,14 +253,24 @@ class EventParser_16561(EventParser):
             (CameraMovementEventParser_18(), lambda e: e.code == 0x18 ),
             (CameraMovementEventParser_X1(), lambda e: e.code & 0x0F == 1 ),],
         0x04: [
-            (UnknownEventParser_04X2(), lambda e: e.code & 0x0F == 2 ),
-            (UnknownEventParser_0416(), lambda e: e.code == 0x16 ),
+            (UnknownEventParser_0487(), lambda e: e.code == 0x87 ),
             (UnknownEventParser_04C6(), lambda e: e.code == 0xC6 ),
-            (UnknownEventParser_0418or87(), lambda e: e.code == 0x18 or e.code == 0x87 ),
-            (UnknownEventParser_0400(), lambda e: e.code == 0x00 ),],
+            (UnknownEventParser_04XC(), lambda e: e.code & 0x0F == 0x0C and e.code >> 4 <= 0x04 ),],
         0x05: [
             (UnknownEventParser_0589(), lambda e: e.code == 0x89 ),],
     }
+
+"""
+            (UnknownEventParser_04X2(), lambda e: e.code & 0x0F == 2 ),
+            (UnknownEventParser_0416(), lambda e: e.code == 0x16 ),
+            (UnknownEventParser_0400(), lambda e: e.code == 0x00 ),
+
+
+
+            (UnknownEventParser_04X2(), lambda e: e.code & 0x0F == 2 ),
+            (UnknownEventParser_0416(), lambda e: e.code == 0x16 ),
+            (UnknownEventParser_0400(), lambda e: e.code == 0x00 ),
+"""
 
 class EventParser_17326(EventParser):
 	parserMap = {
@@ -271,12 +293,9 @@ class EventParser_17326(EventParser):
             (CameraMovementEventParser_18(), lambda e: e.code == 0x18 ),
             (CameraMovementEventParser_X1(), lambda e: e.code & 0x0F == 1 ),],
         0x04: [
-            (UnknownEventParser_04X2(), lambda e: e.code & 0x0F == 2 ),
-            (UnknownEventParser_0416(), lambda e: e.code == 0x16 ),
+            (UnknownEventParser_0487(), lambda e: e.code == 0x87 ),
             (UnknownEventParser_04C6(), lambda e: e.code == 0xC6 ),
-            (UnknownEventParser_0418or87(), lambda e: e.code == 0x18 or e.code == 0x87 ),
-            (UnknownEventParser_0400(), lambda e: e.code == 0x00 ),
-            (UnknownEventParser_041C(), lambda e: e.code == 0x1C ),],
+            (UnknownEventParser_04XC(), lambda e: e.code & 0x0F == 0x0C and e.code >> 4 <= 0x04 ),],
         0x05: [
             (UnknownEventParser_0589(), lambda e: e.code == 0x89 ),],
     }

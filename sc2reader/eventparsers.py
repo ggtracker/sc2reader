@@ -448,7 +448,11 @@ class UnknownEventParser_0416(object):
 class UnknownEventParser_04C6(object):
     def load(self,event,bytes):
         event.name = 'unknown04C6'
-        event.bytes += bytes.skip(16,byteCode=True)
+        event.bytes += bytes.peek(16)
+        block1 = bytes.getBig(4)
+        block2 = bytes.getBig(4)
+        block3 = bytes.getBig(4)
+        block4 = bytes.getBig(4)
         return event
 
 class UnknownEventParser_041C(object):
@@ -457,10 +461,11 @@ class UnknownEventParser_041C(object):
         event.bytes += bytes.skip(15,byteCode=True)
         return event
         
-class UnknownEventParser_0418or87(object):
+class UnknownEventParser_0487(object):
     def load(self,event,bytes):
         event.name = 'unknown0418-87'
-        event.bytes += bytes.skip(4,byteCode=True)
+        event.data, databytes = bytes.getBig(4,byteCode=True) #Always 00 00 00 01??
+        event.bytes += databytes
         return event
         
 class UnknownEventParser_0400(object):
@@ -469,9 +474,10 @@ class UnknownEventParser_0400(object):
         event.bytes += bytes.skip(10,byteCode=True)
         return event
 
-class UnknownEventParser_043C(object):
+class UnknownEventParser_04XC(object):
     def load(self,event,bytes):
-        event.name = 'unknown043C'
+        event.name = 'unknown04XC'
+        print bytes.peek(20)
         return event
         
 #####################################################
