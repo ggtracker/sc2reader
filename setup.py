@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
 	name="sc2reader",
-	version="0.1.0",
+	version="0.2.0",
 	license="MIT",
 	
 	author="Graylin Kim",
