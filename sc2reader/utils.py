@@ -30,6 +30,9 @@ class ByteStream(object):
             return self.getBig(number)
         self.getBig(number)
         
+    def peek(self,number):
+        return self.stream[:number*2]
+        
     def getLittle(self,number,byteCode=False):
         #Get a list of the next 'number' of bytes from the stream
         bytes = [self.getBig(1) for i in range(0,number)]
@@ -161,9 +164,6 @@ class ByteStream(object):
         if byteCode:
             return data,typeCode+bytes
         return data
-        
-    def peek(self,number):
-        return self.stream[:number*2]
         
     @property
     def length(self):
