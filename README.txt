@@ -70,6 +70,7 @@ Requirements
 
 - Python 2.6+, Python 3.0 untested
 - The `mpyq`_ MPQ exraction library
+- pytest testing library (optional)
 
 Basic Install
 ~~~~~~~~~~~~~~
@@ -92,10 +93,9 @@ Advanced Install
 Contributors
 ~~~~~~~~~~~~~
 
-Running the tests requires pytest. To install it:
+::
+
   $ easy_install pytest
-  
-To run the tests:
   $ py.test
 
 Issues and Support
