@@ -93,10 +93,13 @@ Advanced Install
 Contributors
 ~~~~~~~~~~~~~
 
+::
+
   $ easy_install pytest
 
-In order to run the tests, you need to be in the root directory of sc2reader.
-To run the tests:
+In order to run the tests, you need to be in the root directory of sc2reader. Then:
+
+::
 
   $ py.test
 
