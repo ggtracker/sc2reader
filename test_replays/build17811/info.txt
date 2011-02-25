@@ -1,0 +1,67 @@
+1.sc2replay
+Date played		20 Feb 2011 22:44:48
+Duration 			32:47
+Region/Realm 	EU
+Type					1v1 Melee Quick Match
+Map					  Lost Temple
+Gamespeed		  Faster
+Winner				Emperor (Team 1) .. reason: Boom quits
+Recorder      Boom
+Players (no observers)
+	Team 1
+	  Emperor Protoss
+	Team 2
+	  Boom Terran
+Messages (count=12):
+	Emperor [All]: hf
+	Boom [All]: HEYA
+	Boom [All]: gl hf
+	Boom [All]: sry for caps
+	Emperor [All]: ^^
+	Emperor [All]: noppe
+	Boom [All]: you greedy bastard
+	Boom [All]: ggg
+	Emperor [All]: WG
+	Boom [All]: wg? :)
+	Emperor [All]: wipe
+	Boom [All]: huh?
+
+	
+2.sc2replay
+Date played		21 Feb 2011 00:42:13
+Duration 			9:09
+Region/Realm 	EU
+Type					1v1 Custom
+Map					  Lost Temple
+Gamespeed		  Faster
+Winner				Boom (Team 1) .. reason: Laquendi quits
+Players (no observers)
+	Team 1
+	  Laquendi Protoss
+	Team 2
+		Boom Terran
+
+Messages (count=1):
+	Laquendi [All]: gg
+	
+	
+3.sc2replay
+Date played		25 Feb 2011 16:36:28
+Duration 			10:29
+Region/Realm 	EU
+Type					3v3 Melee Random Quick Match
+Map					  Monsoon
+Gamespeed		  Faster
+Winner				Team1, reason: all members of other team quit
+Players (no observers)
+	Team 1
+		Boom 			    Terran
+		Aspirates 		Terran
+		loropendejo 	Terran
+	Team 2
+		SNIPER 		Terran
+		Gogeta 		Random Terran
+		Foco			Terran
+Messages (count=25):
+	First msg:		loropendejo [Allies]: hi
+	Last msg:		  Aspirates [Allies]: all team goo
