@@ -88,6 +88,15 @@ Advanced Install
 	$ cd sc2reader
 	$ python setup.py install
 	$ sc2printer 'path/to/replay.sc2replay'
+	
+Contributors
+~~~~~~~~~~~~~
+
+Running the tests requires pytest. To install it:
+  $ easy_install pytest
+  
+To run the tests:
+  $ py.test
 
 Issues and Support
 -------------------
