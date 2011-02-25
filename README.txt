@@ -93,9 +93,10 @@ Advanced Install
 Contributors
 ~~~~~~~~~~~~~
 
-::
-
   $ easy_install pytest
+
+In order to run the tests, you need to be in the root directory of sc2reader.
+To run the tests:
   $ py.test
 
 Issues and Support
@@ -112,4 +113,5 @@ Until some further infrastructure is set up:
 .. _mpyq: http://pypi.python.org/pypi/mpyq
 .. _wiki: https://github.com/GraylinKim/sc2reader/wiki
 .. _phpsc2replay: http://code.google.com/p/phpsc2replay/
+.. _pytest: http://pytest.org/
 .. _issue tracker: https://github.com/GraylinKim/sc2reader/issues
