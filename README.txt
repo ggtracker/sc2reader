@@ -70,7 +70,7 @@ Requirements
 
 - Python 2.6+, Python 3.0 untested
 - The `mpyq`_ MPQ exraction library
-- pytest testing library (optional)
+- `pytest`_ testing library (optional)
 
 Basic Install
 ~~~~~~~~~~~~~~
@@ -97,6 +97,7 @@ Contributors
 
 In order to run the tests, you need to be in the root directory of sc2reader.
 To run the tests:
+
   $ py.test
 
 Issues and Support
