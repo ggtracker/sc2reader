@@ -1,9 +1,9 @@
 class Attribute(object):
     
-    def __init__(self,data):
+    def __init__(self, data):
         #Unpack the data values and add a default name of unknown to be
         #overridden by known attributes; acts as a flag for exclusion
-        self.header,self.id,self.player,self.value,self.name = tuple(data+["Unknown"])
+        self.header, self.id, self.player, self.value, self.name = tuple(data+["Unknown"])
         
         #Clean the value of leading null bytes and decode it for easier and more
         #readable comparisons in the decoding logic to follow
@@ -66,7 +66,7 @@ class Attribute(object):
         elif self.id == 0x07D3:
             self.name = "Teams2v2"
             #Get the raw team number
-            self.value = int(self.value[1:],16)
+            self.value = int(self.value[1:], 16)
             
         elif self.id == 0x07D4:
             self.name = "Teams3v3"
@@ -83,54 +83,54 @@ class Attribute(object):
             #Get the raw team number
             self.value = int(self.value[1:])
             
-        #print "%s (%s) - %s - %s" % (self.name,self.id,self.player,self.value)
+        #print "%s (%s) - %s - %s" % (self.name, self.id, self.player, self.value)
     
     def __repr__(self):
         return str(self)
         
     def __str__(self):
-        return "%s: %s" % (self.name,self.value)
+        return "%s: %s" % (self.name, self.value)
 
 
 		
 		
 class Event(object):
-    def __init__(self,elapsedTime,eventType,eventCode,globalFlag,playerId,
-                    location=None,bytes=""):
-        self.time,seconds = (elapsedTime,elapsedTime/16)
-        self.timestr = "%s:%s" % (seconds/60,str(seconds%60).rjust(2,"0"))
-        self.type = eventType
-        self.code = eventCode
-        self.local = (globalFlag == 0x0)
-        self.player = playerId
+    def __init__(self, elapsed_time, event_type, event_code, global_flag, player_id, 
+                    location=None, bytes=""):
+        self.time, seconds = (elapsed_time, elapsed_time/16)
+        self.timestr = "%s:%s" % (seconds/60, str(seconds%60).rjust(2, "0"))
+        self.type = event_type
+        self.code = event_code
+        self.local = (global_flag == 0x0)
+        self.player = player_id
         self.location = location
         self.bytes = bytes
 		
-    def __call__(self,elapsedTime,eventType,globalFlag,playerId,eventCode,bytes):
-        self.time,seconds = (elapsedTime,elapsedTime/16)
-        self.timestr = "%s:%s" % (seconds/60,str(seconds%60).rjust(2,"0"))
-        self.type = eventType
-        self.code = eventCode
-        self.local = (globalFlag == 0x0)
-        self.player = playerId
+    def __call__(self, elapsed_time, event_type, global_flag, player_id, event_code, bytes):
+        self.time, seconds = (elapsed_time, elapsed_time/16)
+        self.timestr = "%s:%s" % (seconds/60, str(seconds%60).rjust(2, "0"))
+        self.type = event_type
+        self.code = event_code
+        self.local = (global_flag == 0x0)
+        self.player = player_id
         self.bytes = ""
         self.parse(bytes)
         return self
 	
     def __str__(self):
-        return "%s - %s" % (self.timestr,self.name)
+        return "%s - %s" % (self.timestr, self.name)
         
     def __repr__(self):
         return str(self)
 
 class Message(object):
     
-    def __init__(self,time,player,target,text):
-        self.time,self.player,self.target,self.text = time,player,target,text
+    def __init__(self, time, player, target, text):
+        self.time, self.player, self.target, self.text = time, player, target, text
         
     def __str__(self):
-        time = ((self.time/16)/60,(self.time/16)%60)
-        return "%s - Player %s - %s" % (time,self.player,self.text)
+        time = ((self.time/16)/60, (self.time/16)%60)
+        return "%s - Player %s - %s" % (time, self.player, self.text)
         
     def __repr__(self):
         return str(self)
@@ -139,24 +139,24 @@ class Message(object):
 		
 class Player(object):
     
-    def __init__(self,pid, data):
+    def __init__(self, pid,  data):
         self.pid = pid
         self.name = data[0].decode("hex")
         self.uid = data[1][4]
         self.uidIndex = data[1][2]
-        self.url = "http://us.battle.net/sc2/en/profile/%s/%s/%s/" % (self.uid,self.uidIndex,self.name)
+        self.url = "http://us.battle.net/sc2/en/profile/%s/%s/%s/" % (self.uid, self.uidIndex, self.name)
         self.race = data[2].decode("hex")
         self.rgba = dict([
-                ['r',data[3][1]],
-                ['g',data[3][2]],
-                ['b',data[3][3]],
-                ['a',data[3][0]],
+                ['r', data[3][1]], 
+                ['g', data[3][2]], 
+                ['b', data[3][3]], 
+                ['a', data[3][0]], 
             ])
         self.recorder = True
         self.handicap = data[6]
         
     def __str__(self):
-        return "Player %s - %s (%s)" % (self.pid,self.name,self.race)
+        return "Player %s - %s (%s)" % (self.pid, self.name, self.race)
         
     def __repr__(self):
         return str(self)

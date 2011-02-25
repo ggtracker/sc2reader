@@ -1,19 +1,19 @@
 #!c:\\Python27\python.exe
 
-import os,sys
+import os, sys
 from sc2reader import Replay
 from sc2reader.exceptions import ParseError
 
-def doFile(filename):
+def do_file(filename):
     
     try:
         replay = Replay(filename)
-        print "\nStarcraft II Version %s" % replay.releaseString
-        print "%s on %s played on %s" % (replay.type,replay.map,replay.date)
+        print "\nStarcraft II Version %s" % replay.release_string
+        print "%s on %s played on %s" % (replay.type, replay.map, replay.date)
         
         #Player[0] is None so that players can be indexed by ID
         for team,players in replay.teams.iteritems():
-            print "\n\tTeam %s: %s" % (team,replay.results[team])
+            print "\n\tTeam %s: %s" % (team, replay.results[team])
             for player in players:
                 print "\t\t%s" % player
         
@@ -21,26 +21,26 @@ def doFile(filename):
         prev = e.replay.events[-1]
         event = e.event
         bytes = e.event.bytes+e.bytes.peek(30)
-        print "\nVersion %s replay:\n\t%s" % (e.replay.releaseString,e.replay.file)
-        print "\tError parsing event Type=%s, Code=%s" % (hex(e.event.type),hex(e.event.code))
+        print "\nVersion %s replay:\n\t%s" % (e.replay.release_string, e.replay.file)
+        print "\tError parsing event Type=%s, Code=%s" % (hex(e.event.type), hex(e.event.code))
         print "\tPrevious Event: %s" % prev.name
         print "\t\t"+prev.bytes
         print "\tFollowing Bytes:"
         print "\t\t"+bytes
     
 
-def doDir(dirname):
+def do_dir(dirname):
     for name in os.listdir(dirname):
-        replaypath = os.path.join(dirname,name)
+        replaypath = os.path.join(dirname, name)
         
         if os.path.isfile(replaypath):
-            doFile(replaypath)
+            do_file(replaypath)
         elif os.path.isdir(replaypath):
-            doDir(replaypath)
+            do_dir(replaypath)
 
 assert len(sys.argv)>1, "A path to at least 1 sc2replay file is required"
 for filename in sys.argv[1:]:
     if os.path.isfile(filename):
-        doFile(filename)
+        do_file(filename)
     elif os.path.isdir(filename):
-        doDir(filename)
+        do_dir(filename)
