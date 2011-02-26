@@ -1,101 +1,101 @@
 class ByteStream(object):
     """Track and return the bytes for investigative and debugging purposes"""
-    """Most functions will return the byteCode as well when requested"""
+    """Most functions will return the byte_code as well when requested"""
     
-    def __init__(self,stream):
+    def __init__(self, stream):
         self.cursor = -1 #First element is 0
         self.stream = stream.encode("hex").upper()
         
-    def getBig(self,number,byteCode=False):
+    def get_big(self, number, byte_code=False):
         #Do a sanity check, if streams are parsed right this won't ever happen
         if len(self.stream) < number*2:
             msg = "Stream is only %s bytes long; %s bytes requested"
-            raise ValueError(msg % (self.length,number) )
+            raise ValueError(msg % (self.length, number) )
         
-        #For big endian, the byteString is the result
+        #For big endian, the byte_string is the result
         result = self.stream[:number*2]
         
         #Move the ByteStream forward
         self.stream = self.stream[number*2:]
         self.cursor = self.cursor + number
         
-        if byteCode:
-            return result,result
+        if byte_code:
+            return result, result
         return result
         
-    def skip(self,number,byteCode=False):
-        #This is just an alias for getBig really, still return the byteString
+    def skip(self, number, byte_code=False):
+        #This is just an alias for get_big really, still return the byte_string
         #so that it can be recorded for event analysis
-        if byteCode:
-            return self.getBig(number)
-        self.getBig(number)
+        if byte_code:
+            return self.get_big(number)
+        self.get_big(number)
         
-    def peek(self,number):
+    def peek(self, number):
         return self.stream[:number*2]
         
-    def getLittle(self,number,byteCode=False):
+    def get_little(self, number, byte_code=False):
         #Get a list of the next 'number' of bytes from the stream
-        bytes = [self.getBig(1) for i in range(0,number)]
+        bytes = [self.get_big(1) for i in range(0,number)]
         
         #Little endian is just the bytes in reverse order
         result = "".join(reversed(bytes))
         
-        #But the byteString must match original
-        byteString = "".join(bytes)
+        #But the byte_string must match original
+        byte_string = "".join(bytes)
         
-        if byteCode:
-            return result,byteString 
+        if byte_code:
+            return result, byte_string 
         return result
     
-    def getString(self,length,byteCode=False):
-        string, bytes = self.getBig(length,byteCode=True)
-        if byteCode:
-            return string.decode("hex"),bytes
+    def getString(self, length, byte_code=False):
+        string, bytes = self.get_big(length, byte_code=True)
+        if byte_code:
+            return string.decode("hex"), bytes
         return string.decode("hex")
         
-    def getBigInt(self,number,byteCode=False):
-        result, byteString = self.getBig(number,byteCode=True)
-        if byteCode:
-            return int(result,16),byteString
-        return int(result,16)
+    def get_big_int(self, number, byte_code=False):
+        result, byte_string = self.get_big(number, byte_code=True)
+        if byte_code:
+            return int(result, 16), byte_string
+        return int(result, 16)
         
-    def getLittleInt(self,number,byteCode=False):
-        result, byteString = self.getLittle(number,byteCode=True)
-        if byteCode:
-            return int(result,16),byteString
-        return int(result,16)
+    def get_little_int(self, number, byte_code=False):
+        result, byte_string = self.get_little(number, byte_code=True)
+        if byte_code:
+            return int(result, 16), byte_string
+        return int(result, 16)
 
-    def getCount(self,byteCode=False):
+    def get_count(self, byte_code=False):
         #Counts are always single byte, doubled values in replay files
-        num,byteString = self.getBigInt(1,byteCode=True)
-        if byteCode:
-            return num/2,byteString
+        num, byte_string = self.get_big_int(1, byte_code=True)
+        if byte_code:
+            return num/2, byte_string
         return num/2
         
-    def getTimestamp(self,byteCode=False):
+    def getTimestamp(self, byte_code=False):
         #Get the first byte
-        byte,byteString = self.getBigInt(1,byteCode=True)
+        byte, byte_string = self.get_big_int(1, byte_code=True)
         
         #The 7-8 bits of the byte indicate the byte length of the
         #timestamp, shift them off the time and loop through them
         time = byte >> 2
         for i in range(0,byte & 0x03):
-            more,byte = self.getBigInt(1,byteCode=True)
+            more, byte = self.get_big_int(1, byte_code=True)
             time = (time << 8) | more
-            byteString += byte
+            byte_string += byte
         
-        if byteCode:
-            return time,byteString
+        if byte_code:
+            return time, byte_string
         return time
         
-    def getVLF(self,byteCode=False):
-        result,count,byteString = 0,0,""
+    def get_vlf(self, byte_code=False):
+        result, count, byte_string = 0, 0, ""
             
         #Loop through bytes until the first bit is zero
         #build the result by adding new bits to the right
         while(True):
-            num,byte = self.getBigInt(1,byteCode=True)
-            byteString += byte
+            num, byte = self.get_big_int(1,byte_code=True)
+            byte_string += byte
             if num & 0x80 > 0:
                 result += (num & 0x7F) << (7*count)
                 count = count + 1
@@ -104,65 +104,65 @@ class ByteStream(object):
                 break
         
         #The last bit of the result is a sign flag
-        result = pow(-1,result & 0x1) * (result >> 1)
+        result = pow(-1, result & 0x1) * (result >> 1)
         
-        if byteCode:
-            return result,byteString
+        if byte_code:
+            return result, byte_string
         return result
         
-    def parseSerializedData(self,byteCode=False):
+    def parse_serialized_data(self, byte_code=False):
         #The first byte serves as a flag for the type of data to follow
-        datatype,typeCode = self.getBigInt(1,byteCode=True)
+        datatype, type_code = self.get_big_int(1, byte_code=True)
         
         if datatype == 0x02:
             #0x02 is a byte string with the first byte indicating the length of
             #the byte string to follow
-            length,byte = self.getCount(byteCode=True)
+            length, byte = self.get_count(byte_code=True)
             
-            data,bytes = self.getBig(length,byteCode=True)
+            data, bytes = self.get_big(length, byte_code=True)
             bytes = byte + bytes
             
         elif datatype == 0x04:
             #0x04 is an serialized data list with first two bytes always 01 00
             #and the next byte indicating the number of elements in the list
-            bytes = self.skip(2,byteCode=True)    #01 00
-            count,byte = self.getCount(byteCode=True)
+            bytes = self.skip(2, byte_code=True)    #01 00
+            count, byte = self.get_count(byte_code=True)
             bytes += byte
             
             #Return a parsed list of the indicated elements
             data = list()
-            for i in range(0,count):
-                ret, retBytes = self.parseSerializedData(byteCode=True)
+            for i in range(0, count):
+                ret, ret_bytes = self.parse_serialized_data(byte_code=True)
                 data.append(ret)
-                bytes += retBytes
+                bytes += ret_bytes
             
         elif datatype == 0x05:
             #0x05 is a serialized key,value structure with the first byte
             #indicating the number of key,value pairs to follow
-            data,(count,bytes) = dict(),self.getCount(byteCode=True)
+            data, (count, bytes) = dict(), self.get_count(byte_code=True)
             
             #When looping through the pairs, the first byte is the key,
             #followed by the serialized data object value
             for i in range(0,count):
-                index,byte = self.getCount(byteCode=True)
-                ret, retBytes = self.parseSerializedData(byteCode=True)
+                index, byte = self.get_count(byte_code=True)
+                ret, ret_bytes = self.parse_serialized_data(byte_code=True)
                 data[index] = ret
-                bytes += byte + retBytes
+                bytes += byte + ret_bytes
             
         elif datatype == 0x06:
-            data,bytes = self.getBigInt(1,byteCode=True)
+            data, bytes = self.get_big_int(1, byte_code=True)
             
         elif datatype == 0x07:
-            data,bytes = self.getBigInt(4,byteCode=True)
+            data, bytes = self.get_big_int(4, byte_code=True)
             
         elif datatype == 0x09:
-            data,bytes = self.getVLF(byteCode=True)
+            data, bytes = self.get_vlf(byte_code=True)
             
         else:
             raise TypeError("Uknown Data Type: '%s'" % datatype)
         
-        if byteCode:
-            return data,typeCode+bytes
+        if byte_code:
+            return data, type_code+bytes
         return data
         
     @property

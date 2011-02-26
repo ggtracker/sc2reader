@@ -1,8 +1,8 @@
 from time import ctime
 from collections import defaultdict
 
-from objects import Attribute,Message,Player,Event
-from eventparsers import *
+from objects import attribute, Message, Player, Event
+from EventParsers import *
 from utils import ByteStream
 from exceptions import ParseError
 
@@ -12,18 +12,18 @@ pprint = PrettyPrinter(indent=2).pprint
 #################################################
 # Parser Dispatch Functions
 #################################################
-def getDetailParser(build):
+def get_detail_parser(build):
     #This file format appears to have never changed
-    return DetailParser()
+    return detail_parser()
     
-def getAttributeParser(build):
+def get_attribute_parser(build):
     if build >= 17326:
         return AttributeParser_17326()
     
     #All versions prior to 17326 have been the same
     return AttributeParser()
     
-def getEventParser(build):
+def get_event_parser(build):
     if build >= 17326:
         return EventParser_17326()
     if build >= 16561:
@@ -32,7 +32,7 @@ def getEventParser(build):
     #All versions prior to 16561 appear to be the same
     return EventParser()
     
-def getMessageParser(build):
+def get_message_parser(build):
     #format appears to have not changed
     return MessageParser()
 
@@ -40,35 +40,35 @@ def getMessageParser(build):
 # replay.attributes.events Parsing classes
 #################################################
 class AttributeParser(object):
-    def loadHeader(self,replay,bytes):
-        bytes.skip(4,byteCode=True)              #Always start with 4 nulls
-        self.count = bytes.getLittleInt(4)       #get total attribute count
+    def load_header(self, replay, bytes):
+        bytes.skip(4, byte_code=True)              #Always start with 4 nulls
+        self.count = bytes.get_little_int(4)       #get total attribute count
     
-    def loadAttribute(self,replay,bytes):
+    def load_attribute(self, replay, bytes):
         #Get the attribute data elements
         attr_data = [
-                bytes.getBig(4),        #Header
-                bytes.getLittleInt(4),  #Attr Id
-                bytes.getBigInt(1),      #Player
-                bytes.getLittle(4)      #Value
+                bytes.get_big(4),         #Header
+                bytes.get_little_int(4),   #Attr Id
+                bytes.get_big_int(1),       #Player
+                bytes.get_little(4)      #Value
             ]
 
         #Complete the decoding in the attribute object
-        return Attribute(attr_data)
+        return attribute(attr_data)
         
-    def load(self,replay,filecontents):
+    def load(self, replay, filecontents):
         bytes = ByteStream(filecontents)
 		
-        self.loadHeader(replay,bytes)
+        self.load_header(replay, bytes)
         
         replay.attributes = list()
         data = defaultdict(dict)
-        for i in range(0,self.count):
-            attr = self.loadAttribute(replay,bytes)
+        for i in range(0, self.count):
+            attr = self.load_attribute(replay, bytes)
             replay.attributes.append(attr)
 
             #Uknown attributes get named as such and are not stored
-            #Index by player, then name for ease of access later on
+            #Index by player,  then name for ease of access later on
             if attr.name != "Unknown":
                 data[attr.player][attr.name] = attr.value
             
@@ -77,8 +77,8 @@ class AttributeParser(object):
         replay.category = data[16]['Category']
         replay.type = data[16]['Game Type']
 
-        #Set player attributes as available, requires already populated player list
-        for pid,attributes in data.iteritems():
+        #Set player attributes as available,  requires already populated player list
+        for pid, attributes in data.iteritems():
             if pid == 16: continue
             player = replay.players[pid]
             player.color = attributes['Color']
@@ -91,21 +91,21 @@ class AttributeParser(object):
             if player.type == "Computer":
                 player.recorder = False
 
-class AttributeParser_17326(AttributeParser):
-	def loadHeader(self,replay,bytes):
-		bytes.skip(5,byteCode=True)              #Always start with 4 nulls
-		self.count = bytes.getLittleInt(4)       #get total attribute count
+class attribute_parser_17326(attribute_parser):
+	def load_header(self, replay, bytes):
+		bytes.skip(5, byte_code=True)              #Always start with 4 nulls
+		self.count = bytes.get_little_int(4)       #get total attribute count
 
 ##################################################
 # replay.details parsing classes
 ##################################################
 class DetailParser(object):
-    def load(self,replay,filecontents):
-        data =  ByteStream(filecontents).parseSerializedData()
+    def load(self, replay, filecontents):
+        data =  ByteStream(filecontents).parse_serialized_data()
         
         replay.players = [None] #Pad the front for proper IDs
-        for pid,pdata in enumerate(data[0]):
-            replay.players.append(Player(pid+1,pdata)) #shift the id to start @ 1
+        for pid, pdata in enumerate(data[0]):
+            replay.players.append(Player(pid+1, pdata)) #shift the id to start @ 1
             
         replay.map = data[1].decode("hex")
         replay.file_time = data[5]
@@ -115,14 +115,14 @@ class DetailParser(object):
 # replay.message.events parsing classes
 ##################################################
 class MessageParser(object):
-    def load(self,replay,filecontents):
+    def load(self, replay, filecontents):
         replay.messages = list()
-        bytes,time = ByteStream(filecontents),0
+        bytes, time = ByteStream(filecontents), 0
 
         while(bytes.length!=0):
-            time += bytes.getTimestamp()
-            playerId = bytes.getBigInt(1) & 0x0F
-            flags = bytes.getBigInt(1)
+            time += bytes.get_timestamp()
+            player_id = bytes.get_big_int(1) & 0x0F
+            flags = bytes.get_big_int(1)
             
             if flags & 0xF0 == 0x80:
             
@@ -133,14 +133,14 @@ class MessageParser(object):
                 #some sort of header code
                 elif flags & 0x0F == 0:
                     bytes.skip(4)
-                    if playerId < len(replay.players):
-                        replay.players[playerId].recorder = False
+                    if player_id < len(replay.players):
+                        replay.players[player_id].recorder = False
                     else:
                         pass #This "player" is an observer or something
             
             elif flags & 0x80 == 0:
                 target = flags & 0x03
-                length = bytes.getBigInt(1)
+                length = bytes.get_big_int(1)
                 
                 if flags & 0x08:
                     length += 64
@@ -148,14 +148,14 @@ class MessageParser(object):
                 if flags & 0x10:
                     length += 128
                     
-                text = bytes.getString(length)
-                replay.messages.append(Message(time,playerId,target,text))
+                text = bytes.get_string(length)
+                replay.messages.append(Message(time, player_id, target, text))
             
         recorders = [player for player in replay.players if player and player.recorder==True]
-        if len(recorders) >1:
+        if len(recorders) > 1:
             raise ValueError("There should be 1 and only 1 recorder; %s were found" % len(recorders))
         elif len(recorders) == 0:
-            #If there are no recorders, then the recorder must not be a player, spectator or referee then
+            #If there are no recorders,  then the recorder must not be a player,  spectator or referee then
             replay.recorder = None
         else:
             replay.recorder = recorders[0]
@@ -164,7 +164,7 @@ class MessageParser(object):
 # replay.game.events parsing classes
 ####################################################
 class EventParser(object):
-    parserMap = {
+    parser_map = {
         0x00: [
             (PlayerJoinEventParser(), lambda e: e.code == 0x0B ),
             (GameStartEventParser(), lambda e: e.code == 0x05 ),
@@ -193,47 +193,47 @@ class EventParser(object):
             (UnknownEventParser_0589(), lambda e: e.code == 0x89 ),],
     }
 
-    def load(self,replay,filecontents):
-        #set up an event list, start the timer, and process the file contents
-        replay.events,elapsedTime,bytes = list(),0,ByteStream(filecontents)
+    def load(self, replay, filecontents):
+        #set up an event list,  start the timer,  and process the file contents
+        replay.events, elapsed_time, bytes = list(), 0, ByteStream(filecontents)
         
         while bytes.length > 0:
             #First section is always a timestamp marking the elapsed time
             #since the last eventObjectlisted
             location = hex(bytes.cursor)
-            timeDiff,eventBytes = bytes.getTimestamp(byteCode=True)
-            elapsedTime += timeDiff
+            time_diff, event_bytes = bytes.get_timestamp(byte_code=True)
+            elapsed_time += time_diff
             
-            eventBytes += bytes.peek(2)
+            event_bytes += bytes.peek(2)
             #Next is a compound byte where the first 3 bits XXX00000 mark the
-            #eventType, the 4th bit 000X0000 marks the eventObjectas local or global,
+            #event_type,  the 4th bit 000X0000 marks the eventObjectas local or global, 
             #and the remaining bits 0000XXXX mark the player id number.
             #The following byte completes the unique eventObjectidentifier
-            first,eventCode = bytes.getBigInt(1),bytes.getBigInt(1)
-            eventType,globalFlag,playerId = first >> 5,first & 0x10,first & 0xF
+            first, event_code = bytes.get_big_int(1), bytes.get_big_int(1)
+            event_type, global_flag, player_id = first >> 5, first & 0x10, first & 0xF
 
             #Create a barebones event from the gathered information
-            event = Event(elapsedTime,eventType,eventCode,
-                        globalFlag,playerId,location,eventBytes)
+            event = Event(elapsed_time, event_type, event_code, 
+                        global_flag, player_id, location, event_bytes)
             
             try:
                 #Get the parser and load the data into the event
-                replay.events.append(self.getParser(event).load(event,bytes))
+                replay.events.append(self.get_parser(event).load(event, bytes))
             except TypeError as e:
-                raise ParseError(e.message,replay,event,bytes)
+                raise ParseError(e.message, replay, event, bytes)
             
-    def getParser(self,event):
-        if event.type not in self.parserMap.keys():
-            raise TypeError("Unknown eventType: %s at location %s" % (hex(event.type),event.location))
+    def get_parser(self, event):
+        if event.type not in self.parser_map.keys():
+            raise TypeError("Unknown event_type: %s at location %s" % (hex(event.type), event.location))
 		
-        for parser,accept in self.parserMap[event.type]:
+        for parser, accept in self.parser_map[event.type]:
             if accept(event):
                 return parser
         
-        raise TypeError("Unknown event: %s - %s at %s" % (hex(event.type),hex(event.code),event.location))
+        raise TypeError("Unknown event: %s - %s at %s" % (hex(event.type), hex(event.code), event.location))
 
 class EventParser_16561(EventParser):
-    parserMap = {
+    parser_map = {
         0x00: [
             (PlayerJoinEventParser(), lambda e: e.code == 0x0B ),
             (GameStartEventParser(), lambda e: e.code == 0x05 ),
@@ -273,7 +273,7 @@ class EventParser_16561(EventParser):
 """
 
 class EventParser_17326(EventParser):
-	parserMap = {
+	parser_map = {
         0x00: [
             (PlayerJoinEventParser(), lambda e: e.code == 0x0C or e.code == 0x2C ),
             (GameStartEventParser(), lambda e: e.code == 0x05 ),
