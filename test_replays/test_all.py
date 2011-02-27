@@ -108,7 +108,7 @@ def test_3v3():
     
     assert replay.type == "3v3"
     
-    # Team 1 is the winner because all members of the other team quit
+    # Because it's a 3v3 and all of the members of Team 2 quit, we should know the winner.
     assert replay.results[1] == "Won"
     assert replay.results[2] == "Lost"
 
