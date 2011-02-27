@@ -6,7 +6,7 @@
 import os,sys
 import pytest
 
-sys.path.append(r"C:\Users\graylinkim\sc2reader")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from sc2reader import Replay
 from sc2reader.exceptions import ParseError
 
@@ -39,7 +39,7 @@ def test_1():
     assert replay.length == (32, 47)
     assert replay.map == "Lost Temple"
     assert replay.build == 17811
-    assert replay.releaseString == "1.2.2.17811"
+    assert replay.release_string == "1.2.2.17811"
     assert replay.speed == "Faster"
     assert replay.type == "1v1"
     assert replay.category == "Ladder"
