@@ -139,12 +139,13 @@ class Message(object):
 		
 class Player(object):
     
-    def __init__(self, pid,  data):
+    def __init__(self, pid, data, realm="us"):
         self.pid = pid
+        self.realm = realm
         self.name = data[0].decode("hex")
         self.uid = data[1][4]
         self.uidIndex = data[1][2]
-        self.url = "http://us.battle.net/sc2/en/profile/%s/%s/%s/" % (self.uid, self.uidIndex, self.name)
+        self.url = "http://%s.battle.net/sc2/en/profile/%s/%s/%s/" % (self.realm, self.uid, self.uidIndex, self.name)
         self.race = data[2].decode("hex")
         self.rgba = dict([
                 ['r', data[3][1]], 
@@ -154,6 +155,8 @@ class Player(object):
             ])
         self.recorder = True
         self.handicap = data[6]
+        self.team = None # A number to be supplied later
+        self.type = "" # Human or Computer
         
     def __str__(self):
         return "Player %s - %s (%s)" % (self.pid, self.name, self.race)

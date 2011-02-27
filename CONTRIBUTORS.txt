@@ -1,0 +1,5 @@
+Author and Maintainer:
+	Graylin Kim - graylinkim @ github
+
+Contributors:
+	Alexander Hanhikoski - alexhanh @ github

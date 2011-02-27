@@ -10,17 +10,19 @@ from utils import ByteStream
 class Replay(object):
     
     def __init__(self, replay, partial_parse=True, full_parse=True):
-        self.file = ""
+        self.filename = replay
         self.speed = ""
         self.release_string = ""
         self.build = ""
         self.type = ""
         self.category = ""
         self.map = ""
+        self.realm = ""
         self.events = list()
         self.results = dict()
-        self.teams = dict()
-        self.players = list()
+        self.teams = defaultdict(list)
+        self.players = list() #Unordered list of Player
+        self.player = dict() #Maps pid to Player
         self.events_by_type = dict()
         self.attributes = list()
         self.length = None # (minutes, seconds) tuple
@@ -29,6 +31,14 @@ class Replay(object):
         self.versions = None # (number,number,number,number) tuple
         self.recorder = None # Player object
         self.frames = None # Integer representing FPS
+
+        # Set in parsers.DetailParser.load, should we hide this?
+        self.file_time = None # Probably number milliseconds since EPOCH
+        # Marked as private in case people want raw file access
+        self._files = dict() # Files extracted from mpyq
+
+         #Used internally to ensure parse ordering
+        self.__parsed = dict(details=False, attributes=False, messages=False, events=False, initdata=False)
         
         # TODO: Change to something better
         # http://en.wikipedia.org/wiki/Epoch_(reference_date)
@@ -36,42 +46,41 @@ class Replay(object):
         # this is different depending on the OS on which the replay was played.
         self.date = "" # Date when the game was played
         
-        
-        # TODO: hide this?
-        self.files = dict() # From the mpq lib
-        # TODO: investigate where this gets set
-        self.file_time # Probably number of seconds or milliseconds since EPOCH (the 1970 date)
-        # TODO: This is used for internal purposes, better hide it!
-        self.parsed = dict()
-        
-        #Make sure the file exists and is readable
-        if not os.access(replay, os.F_OK):
-            raise ValueError("File at '%s' cannot be found" % replay)
-        elif not os.access(replay, os.R_OK):
-            raise ValueError("File at '%s' cannot be read" % replay)
-        
-        self.file = replay
+        #Make sure the file exists and is readable, first and foremost
+        if not os.access(self.filename, os.F_OK):
+            raise ValueError("File at '%s' cannot be found" % self.filename)
+        elif not os.access(self.filename, os.R_OK):
+            raise ValueError("File at '%s' cannot be read" % self.filename)
+            
+        #Always parse the header first, the extract the files
         self._parse_header()
-        self.files = MPQArchive(replay).extract()
-        self.parsed = dict(details=False, attributes=False, messages=False, events=False)
+        #Extract the available file from the MPQArchive
+        self._files = MPQArchive(replay).extract()
         
         #These are quickly parsed files that contain most of the game information
         #The order is important, I need some way to reinforce it in the future
         if partial_parse or full_parse:
+            self._parse_initdata()
             self._parse_details()
             self._parse_attributes()
             self._parse_messages()
         
+        #Parsing events takes forever, so only do this on request
         if full_parse:
             self._parse_events()
     
+    
+    def add_player(self,player):
+        self.players.append(player)
+        self.player[player.pid] = player
+        
     def _parse_header(self):
         #Open up a ByteStream for its contents
-        source = ByteStream(open(self.file).read())
+        source = ByteStream(open(self.filename).read())
         
         #Check the file type for the MPQ header bytes
-        if source.getBig(4) != "4D50511B":
-            raise TypeError("File '%s' is not an MPQ file" % self.file)
+        if source.get_big(4) != "4D50511B":
+            raise TypeError("File '%s' is not an MPQ file" % self.filename)
         
         #Extract replay header data
         max_data_size = source.get_little_int(4) #possibly data max size
@@ -88,39 +97,45 @@ class Replay(object):
         self.frames, self.seconds = (data[3], data[3]/16)
         self.length = (self.seconds/60, self.seconds%60)
         
+    def _parse_initdata(self):
+        parsers.get_initdata_parser(self.build).load(self, self._files['replay.initData'])
+        self.__parsed['initdata'] = True
+        
     def _parse_details(self):
+        if not self.__parsed['initdata']:
+            raise ValueError("The replay initdata must be parsed before parsing details")
+            
         #Get player and map information
-        parsers.get_detail_parser(self.build).load(self, self.files['replay.details'])
-        self.parsed['details'] = True
+        parsers.get_detail_parser(self.build).load(self, self._files['replay.details'])
+        self.__parsed['details'] = True
         
     def _parse_attributes(self):
         #The details file data is required for parsing
-        if not self.parsed['details']:
+        if not self.__parsed['details']:
             raise ValueError("The replay details must be parsed before parsing attributes")
             
-        parsers.get_attribute_parser(self.build).load(self, self.files['replay.attributes.events'])
-        self.parsed['attributes'] = True
+        parsers.get_attribute_parser(self.build).load(self, self._files['replay.attributes.events'])
+        self.__parsed['attributes'] = True
         
         #We can now create teams
-        self.teams = defaultdict(list)
-        for player in self.players[1:]: #Skip the 'None' player 0
+        for player in self.players: #Skip the 'None' player 0
             self.teams[player.team].append(player)
         
     def _parse_messages(self):
         #The details file data is required for parsing
-        if not self.parsed['details']:
+        if not self.__parsed['details']:
             raise ValueError("The replay details must be parsed before parsing messages")
             
-        parsers.get_message_parser(self.build).load(self, self.files['replay.message.events'])
-        self.parsed['messages'] = True
+        parsers.get_message_parser(self.build).load(self, self._files['replay.message.events'])
+        self.__parsed['messages'] = True
         
     def _parse_events(self):
         #The details file data is required for parsing
-        if not self.parsed['details']:
+        if not self.__parsed['details']:
             raise ValueError("The replay details must be parsed before parsing events")
             
-        parsers.get_event_parser(self.build).load(self, self.files['replay.game.events'])
-        self.parsed['events'] = True
+        parsers.get_event_parser(self.build).load(self, self._files['replay.game.events'])
+        self.__parsed['events'] = True
         
         #We can now sort events by type and get results
         self.events_by_type = defaultdict(list)
@@ -131,7 +146,7 @@ class Replay(object):
         
     def _process_results(self):
         #The details,attributes, and events are required
-        if not (self.parsed['details'] and self.parsed['attributes'] and self.parsed['events']):
+        if not (self.__parsed['details'] and self.__parsed['attributes'] and self.__parsed['events']):
             raise ValueError("The replay details must be parsed before parsing attributes")
             
         #Remove players from the teams as they drop out of the game   
@@ -139,7 +154,7 @@ class Replay(object):
         for event in self.events_by_type['leave']:
             #Some spectator actions seem to be recorded, they aren't on teams anyway
             if event.player < len(self.players):
-                team = self.players[event.player].team
+                team = self.player[event.player].team
                 self.results[team] -= 1 
                 
         #mark all teams with no players left as losing, save the rest of the teams
@@ -170,7 +185,7 @@ class Replay(object):
             if len(remaining) == 1:
                 self.results[remaining.pop()] = "Won"
                 
-        for player in self.players[1:]:
+        for player in self.players:
             player.result = self.results[player.team]
 
 if __name__ == '__main__':

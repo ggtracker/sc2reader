@@ -3,9 +3,10 @@
 
 # TODO:
 #   - Performance tests to measure the effect of optimizations
-import os
+import os,sys
 import pytest
 
+sys.path.append(r"C:\Users\graylinkim\sc2reader")
 from sc2reader import Replay
 from sc2reader.exceptions import ParseError
 
@@ -31,7 +32,6 @@ def test_empty():
 
 # Tests for build 17811 replays
 
-# TODO: Realm/region functionality is missing!
 def test_1():
     replay = Replay("test_replays/build17811/1.sc2replay")
 
@@ -44,7 +44,9 @@ def test_1():
     assert replay.type == "1v1"
     assert replay.category == "Ladder"
 
-#    assert len(replay.players) == 2
+    assert len(replay.players) == 2
+    assert replay.player[1].name == "Emperor"
+    assert replay.player[2].name == "Boom"
     emperor = find(lambda player: player.name == "Emperor", replay.players)
     assert emperor.team == 1
     assert emperor.race == "Protoss"
@@ -55,15 +57,15 @@ def test_1():
     assert boom.race == "Terran"
     assert boom.recorder == True
 
-    # for player in replay.players:
-    #     assert player.type == "Human"
+    for player in replay.players:
+        assert player.type == "Human"
         
     # Because it is a 1v1 and the recording player quit, we should know the winner.
     assert emperor.result == "Won"
     assert boom.result == "Lost"
 
-    # assert emperor.url == "http://eu.battle.net/sc2/en/profile/520049/1/Emperor/"
-    # assert boom.url == "http://eu.battle.net/sc2/en/profile/1694745/1/Boom/"
+    assert emperor.url == "http://eu.battle.net/sc2/en/profile/520049/1/Emperor/"
+    assert boom.url == "http://eu.battle.net/sc2/en/profile/1694745/1/Boom/"
 
     assert len(replay.messages) == 12
     assert find(lambda player: player.pid == replay.messages[0].player, replay.players).name == "Emperor"

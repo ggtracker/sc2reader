@@ -90,14 +90,17 @@ Advanced Install
 	$ python setup.py install
 	$ sc2printer 'path/to/replay.sc2replay'
 	
-Contributors
+Testing
 ~~~~~~~~~~~~~
+
+sc2reader is tested using the `pytest`_ module. This module can be installed 
+using ``pip`` or ``easy_install``.
 
 ::
 
   $ easy_install pytest
 
-In order to run the tests, you need to be in the root directory of sc2reader. Then:
+In order to run the tests, you need to be in the root directory of sc2reader.
 
 ::
 

@@ -1,6 +1,7 @@
 #!c:\\Python27\python.exe
 
 import os, sys
+sys.path.append(r'C:\Users\graylinkim\sc2reader')
 from sc2reader import Replay
 from sc2reader.exceptions import ParseError
 
