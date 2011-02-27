@@ -1,12 +1,10 @@
 # Run tests with "py.test" in the project root dir
-
-# TODO:
-#   - Performance tests to measure the effect of optimizations
 import os, sys
-from timeit import Timer
 import pytest
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),"../"))
+#sys.path.append(os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),"../")))
+sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),"../")))
+
 from sc2reader import Replay
 from sc2reader.exceptions import ParseError
 
@@ -42,6 +40,7 @@ def test_1():
     assert replay.release_string == "1.2.2.17811"
     assert replay.speed == "Faster"
     assert replay.type == "1v1"
+    # TODO: library should probably provide helper functions and/or constants to check this
     assert replay.category == "Ladder"
 
     assert len(replay.players) == 2
@@ -97,3 +96,17 @@ def test_1():
     
     for msg in replay.messages:
         assert sent_to_all(msg) == True
+        
+def test_2():
+    replay = Replay("test_replays/build17811/2.sc2replay")
+    
+    # TODO: library should probably provide helper functions and/or constants to check this
+    assert replay.category == "Private"
+    
+def test_3():
+    replay = Replay("test_replays/build17811/3.sc2replay")
+    
+    assert replay.type == "3v3"
+    assert len(replay.messages) == 25
+    
+# TODO: Test 2v2, 4v4 and FFA
