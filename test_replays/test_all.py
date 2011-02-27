@@ -1,9 +1,9 @@
-# Note: Chose pytest over unittest(2) because of cleaner and more lightweight syntax.
-# Run tests with "py.test"
+# Run tests with "py.test" in the project root dir
 
 # TODO:
 #   - Performance tests to measure the effect of optimizations
-import os,sys
+import os, sys
+from timeit import Timer
 import pytest
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),"../"))
@@ -87,3 +87,37 @@ def test_1():
     
     for msg in replay.messages:
         assert sent_to_all(msg) == True
+
+# Uncathegorized tests
+
+def proxy():
+    file_list = []
+    rootdir = "test_replays/"
+    for root, sub_folders, files in os.walk(rootdir):
+        for file in files:
+            if (os.path.splitext(file)[1].lower() == ".sc2replay"):
+                file_list.append(os.path.join(root,file))
+
+    for file in file_list:
+        try:
+            replay = Replay(file)
+        except ValueError as e:
+            print e
+        except ParseError as e:
+            print e
+
+# Is there a way to print things out when a test passes? pytest seems to ignore
+# Stdout when tests are passing.
+
+# Do we need to use a proxy function to use timeit? Also, timeit doesn't seem to
+# find proxy() for some reason.
+
+# timeit over other python time functions, because it should provide more consistent results
+# across different platforms.
+# http://docs.python.org/library/timeit.html
+def test_performace():
+
+    t = Timer("proxy()")
+    print t.timeit()
+    
+    assert 1 == 0
