@@ -49,12 +49,14 @@ def test_1():
     assert replay.player[2].name == "Boom"
     emperor = find(lambda player: player.name == "Emperor", replay.players)
     assert emperor.team == 1
-    assert emperor.race == "Protoss"
+    assert emperor.choosen_race == "Protoss"
+    assert emperor.actual_race == "Protoss"
     assert emperor.recorder == False
 
     boom = find(lambda player: player.name == "Boom", replay.players)
     assert boom.team == 2
-    assert boom.race == "Terran"
+    assert boom.choosen_race == "Terran"
+    assert boom.actual_race == "Terran"
     assert boom.recorder == True
 
     for player in replay.players:

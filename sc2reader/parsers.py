@@ -106,7 +106,7 @@ class AttributeParser(object):
             player = replay.player[pid]
             player.color = attributes['Color']
             player.team = attributes['Teams'+replay.type]
-            player.race2 = attributes['Race']
+            player.choosen_race = attributes['Race']
             player.difficulty = attributes['Difficulty']
             #Computer players can't record games
             player.type = attributes['Player Type']
