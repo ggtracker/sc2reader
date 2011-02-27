@@ -477,7 +477,6 @@ class UnknownEventParser_0400(object):
 class UnknownEventParser_04XC(object):
     def load(self, event, bytes):
         event.name = 'unknown04XC'
-        print bytes.peek(20)
         return event
         
 #####################################################

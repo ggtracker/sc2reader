@@ -319,7 +319,7 @@ class EventParser_17326(EventParser):
         0x04: [
             (UnknownEventParser_0487(), lambda e: e.code == 0x87 ),
             (UnknownEventParser_04C6(), lambda e: e.code == 0xC6 ),
-            (UnknownEventParser_04XC(), lambda e: e.code & 0x0F == 0x0C and e.code >> 4 <= 0x04 ),],
+            (UnknownEventParser_04XC(), lambda e: e.code & 0x0F == 0x0C and e.code >> 4 <= 0x6 ),],
         0x05: [
             (UnknownEventParser_0589(), lambda e: e.code == 0x89 ),],
     }
