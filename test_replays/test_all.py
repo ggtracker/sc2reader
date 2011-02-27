@@ -103,12 +103,23 @@ def test_private_category():
     # TODO: library should probably provide helper functions and/or constants to check this
     assert replay.category == "Private"
     
-def test_3v3_type():
+def test_3v3():
     replay = Replay("test_replays/build17811/3.sc2replay")
     
     assert replay.type == "3v3"
-    assert len(replay.messages) == 25
+    
+    # Team 1 is the winner because all members of the other team quit
+    assert replay.results[1] == "Won"
+    assert replay.results[2] == "Lost"
 
+
+def test_random_player():
+    replay = Replay("test_replays/build17811/3.sc2replay")
+
+    gogeta = find(lambda player: player.name == "Gogeta", replay.players)
+    assert gogeta.choosen_race == "Random"
+    assert gogeta.actual_race == "Terran"
+    
 def test_us_realm():
     replay = Replay("test_replays/build17811/4.sc2replay")
     lalush = find(lambda player: player.name == "lalush", replay.players)
@@ -116,4 +127,5 @@ def test_us_realm():
 
     assert lalush.url == "http://us.battle.net/sc2/en/profile/2396588/1/lalush/"
     assert avilo.url == "http://us.battle.net/sc2/en/profile/327563/1/avilo/"
-# TODO: Test 2v2, 4v4 and FFA
+
+#TODO: Test 2v2, 4v4 and FFA
