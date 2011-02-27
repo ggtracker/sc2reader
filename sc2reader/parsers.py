@@ -173,7 +173,7 @@ class MessageParser(object):
                     length += 128
                     
                 text = bytes.get_string(length)
-                replay.messages.append(Message(time, player_id, target, text))
+                replay.messages.append(Message(time, replay.player[player_id], target, text))
             
         recorders = [player for player in replay.players if player and player.recorder==True]
         if len(recorders) > 1:

@@ -130,7 +130,7 @@ class Message(object):
         
     def __str__(self):
         time = ((self.time/16)/60, (self.time/16)%60)
-        return "%s - Player %s - %s" % (time, self.player, self.text)
+        return "%s - Player %s - %s" % (time, self.player.pid, self.text)
         
     def __repr__(self):
         return str(self)

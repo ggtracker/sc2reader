@@ -70,20 +70,30 @@ def test_1():
     assert boom.url == "http://eu.battle.net/sc2/en/profile/1694745/1/Boom/"
 
     assert len(replay.messages) == 12
-    assert find(lambda player: player.pid == replay.messages[0].player, replay.players).name == "Emperor"
     assert replay.messages[0].text == "hf"
+    assert replay.messages[0].player.name == "Emperor"
     assert replay.messages[1].text == "HEYA"
+    assert replay.messages[1].player.name == "Boom"
     assert replay.messages[2].text == "gl hf"
+    assert replay.messages[2].player.name == "Boom"
     assert replay.messages[3].text == "sry for caps"
+    assert replay.messages[3].player.name == "Boom"
     assert replay.messages[4].text == "^^"
+    assert replay.messages[4].player.name == "Emperor"
     assert replay.messages[5].text == "noppe"
+    assert replay.messages[5].player.name == "Emperor"
     assert replay.messages[6].text == "you greedy bastard"
+    assert replay.messages[6].player.name == "Boom"
     assert replay.messages[7].text == "ggg"
+    assert replay.messages[7].player.name == "Boom"
     assert replay.messages[8].text == "WG"
+    assert replay.messages[8].player.name == "Emperor"
     assert replay.messages[9].text == "wg? :)"
+    assert replay.messages[9].player.name == "Boom"
     assert replay.messages[10].text == "wipe"
+    assert replay.messages[10].player.name == "Emperor"
     assert replay.messages[11].text == "huh?"
-    assert find(lambda player: player.pid == replay.messages[11].player, replay.players).name == "Boom"
+    assert replay.messages[11].player.name == "Boom"
     
     for msg in replay.messages:
         assert sent_to_all(msg) == True
