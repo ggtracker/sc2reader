@@ -32,7 +32,6 @@ def test_empty():
 
 # Tests for build 17811 replays
 
-# TODO: Realm/region functionality is missing!
 def test_1():
     replay = Replay("test_replays/build17811/1.sc2replay")
 
