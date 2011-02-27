@@ -6,7 +6,7 @@
 import os,sys
 import pytest
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)),"../"))
 from sc2reader import Replay
 from sc2reader.exceptions import ParseError
 
