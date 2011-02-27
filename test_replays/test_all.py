@@ -97,16 +97,23 @@ def test_1():
     for msg in replay.messages:
         assert sent_to_all(msg) == True
         
-def test_2():
+def test_private_category():
     replay = Replay("test_replays/build17811/2.sc2replay")
     
     # TODO: library should probably provide helper functions and/or constants to check this
     assert replay.category == "Private"
     
-def test_3():
+def test_3v3_type():
     replay = Replay("test_replays/build17811/3.sc2replay")
     
     assert replay.type == "3v3"
     assert len(replay.messages) == 25
-    
+
+def test_us_realm():
+    replay = Replay("test_replays/4.sc2replay")
+    lalush = find(lambda player: player.name == "lalush", replay.players)
+    avilo = find(lambda player: player.name == "avilo", replay.players)
+
+    assert lalush.url == "http://us.battle.net/sc2/en/profile/2396588/1/lalush/"
+    assert avilo.url == "http://us.battle.net/sc2/en/profile/327563/1/avilo/"
 # TODO: Test 2v2, 4v4 and FFA
