@@ -3,4 +3,5 @@
 dist
 build
 sc2reader.egg-info
+replay_profile
 PKG-INFO.txt

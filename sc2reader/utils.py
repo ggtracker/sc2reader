@@ -3,20 +3,21 @@ class ByteStream(object):
     """Most functions will return the byte_code as well when requested"""
     
     def __init__(self, stream):
+        self.__cbyte = 0
         self.cursor = -1 #First element is 0
         self.stream = stream.encode("hex").upper()
         
     def get_big(self, number, byte_code=False):
         #Do a sanity check, if streams are parsed right this won't ever happen
-        if len(self.stream) < number*2:
-            msg = "Stream is only %s bytes long; %s bytes requested"
-            raise ValueError(msg % (self.length, number) )
+        if len(self.stream)-self.__cbyte < number*2:
+            msg = "Stream only has %s bytes left; %s bytes requested"
+            raise ValueError(msg % (self.remaining, number) )
         
         #For big endian, the byte_string is the result
-        result = self.stream[:number*2]
+        result = self.stream[self.__cbyte:self.__cbyte+number*2]
         
         #Move the ByteStream forward
-        self.stream = self.stream[number*2:]
+        self.__cbyte = self.__cbyte + number*2
         self.cursor = self.cursor + number
         
         if byte_code:
@@ -31,7 +32,7 @@ class ByteStream(object):
         self.get_big(number)
         
     def peek(self, number):
-        return self.stream[:number*2]
+        return self.stream[self.__cbyte:self.__cbyte + number*2]
         
     def get_little(self, number, byte_code=False):
         #Get a list of the next 'number' of bytes from the stream
@@ -166,5 +167,5 @@ class ByteStream(object):
         return data
         
     @property
-    def length(self):
-        return len(self.stream)
+    def remaining(self):
+        return len(self.stream)-self.__cbyte

@@ -143,7 +143,7 @@ class MessageParser(object):
         replay.messages = list()
         bytes, time = ByteStream(filecontents), 0
 
-        while(bytes.length!=0):
+        while(bytes.remaining!=0):
             time += bytes.get_timestamp()
             player_id = bytes.get_big_int(1) & 0x0F
             flags = bytes.get_big_int(1)
@@ -221,7 +221,7 @@ class EventParser(object):
         #set up an event list,  start the timer,  and process the file contents
         replay.events, elapsed_time, bytes = list(), 0, ByteStream(filecontents)
         
-        while bytes.length > 0:
+        while bytes.remaining > 0:
             #First section is always a timestamp marking the elapsed time
             #since the last eventObjectlisted
             location = hex(bytes.cursor)
