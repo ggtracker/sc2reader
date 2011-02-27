@@ -99,6 +99,8 @@ def test_1():
         assert sent_to_all(msg) == True
 
 # Uncathegorized tests
+"""
+# I don't think we need this code anymore - see the profile.py tool
 
 def proxy():
     file_list = []
@@ -131,3 +133,4 @@ def test_performace():
     print t.timeit()
     
     assert 1 == 0
+"""
