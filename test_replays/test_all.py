@@ -110,7 +110,7 @@ def test_3v3_type():
     assert len(replay.messages) == 25
 
 def test_us_realm():
-    replay = Replay("test_replays/4.sc2replay")
+    replay = Replay("test_replays/build17811/4.sc2replay")
     lalush = find(lambda player: player.name == "lalush", replay.players)
     avilo = find(lambda player: player.name == "avilo", replay.players)
 
