@@ -47,7 +47,7 @@ class ByteStream(object):
             return result, byte_string 
         return result
     
-    def getString(self, length, byte_code=False):
+    def get_string(self, length, byte_code=False):
         string, bytes = self.get_big(length, byte_code=True)
         if byte_code:
             return string.decode("hex"), bytes

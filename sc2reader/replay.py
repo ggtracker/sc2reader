@@ -31,7 +31,12 @@ class Replay(object):
         self.frames = None # Integer representing FPS
         
         # TODO: Change to something better
+        # http://en.wikipedia.org/wiki/Epoch_(reference_date)
+        # Notice that Windows and Mac have different EPOCHs, I wonder whether
+        # this is different depending on the OS on which the replay was played.
         self.date = "" # Date when the game was played
+        
+        
         # TODO: hide this?
         self.files = dict() # From the mpq lib
         # TODO: investigate where this gets set
@@ -79,8 +84,8 @@ class Replay(object):
         #Assign all the relevant information to the replay object
         self.build = data[1][4]
         self.versions = (data[1][1], data[1][2], data[1][3], self.build)
-        self.releaseString = "%s.%s.%s.%s" % self.versions
-        self.frames,self.seconds = (data[3], data[3]/16)
+        self.release_string = "%s.%s.%s.%s" % self.versions
+        self.frames, self.seconds = (data[3], data[3]/16)
         self.length = (self.seconds/60, self.seconds%60)
         
     def _parse_details(self):

@@ -91,7 +91,7 @@ class AttributeParser(object):
             if player.type == "Computer":
                 player.recorder = False
 
-class attribute_parser_17326(attribute_parser):
+class AttributeParser_17326(attribute_parser):
 	def load_header(self, replay, bytes):
 		bytes.skip(5, byte_code=True)              #Always start with 4 nulls
 		self.count = bytes.get_little_int(4)       #get total attribute count

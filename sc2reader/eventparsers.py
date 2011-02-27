@@ -112,8 +112,8 @@ class SelectionEventParser(object):
             for i in range(0, totalUnits):
                 unit_id, use_count = bytes.get_big_int(2), bytes.get_big_int(2)
         else:
-            #We're not byte aligned,  so need do so some bit shifting
-            #This seems like 1000% wrong to me,  but its what the people
+            #We're not byte aligned, so need do so some bit shifting
+            #This seems like 1000% wrong to me, but its what the people
             #at phpsc2replay think it is so I'll deal for now
             tail_mask = 0xFF >> (8-extras)
             head_mask = ~tail_mask & 0xFF
@@ -185,11 +185,11 @@ class SelectionEventParser_16561(SelectionEventParser):
                 
             #Because we went bit by bit the mask is different so we
             #take the deselect bits used on the last_byte,  add the two
-            #bits left bits we've carried down,  we need a mask that long
+            #bits left bits we've carried down, we need a mask that long
             else:
                 mask = (1 << (deselect_count+2)) - 1
             
-        #deselect by byte,  I think (deselect_type & 3 == 3) is deselect all
+        #deselect by byte,I think (deselect_type & 3 == 3) is deselect all
         #and as such probably has a deselect_count always == 0,  not sure though
         else:
             #use the 6 left bits on top and the 2 right bits on bottom
@@ -228,7 +228,7 @@ class SelectionEventParser_16561(SelectionEventParser):
             #Build the unit_type_id over the next 3 bytes
             byte_list = list()
             for i in range(0, 3):
-                #Swap the bytes,  grab another,  and combine w/ the mask
+                #Swap the bytes, grab another, and combine w/ the mask
                 last_byte, next_byte = next_byte, bytes.get_big_int(1)
                 byte_list.append( combine(last_byte, next_byte) )
             unit_type_id = byte_list[0] << 16 | byte_list[1] << 8 | byte_list[2]
