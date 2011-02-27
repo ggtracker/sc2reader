@@ -1,8 +1,8 @@
 from time import ctime
 from collections import defaultdict
 
-from objects import attribute, Message, Player, Event
-from EventParsers import *
+from objects import Attribute, Message, Player, Event
+from eventparsers import *
 from utils import ByteStream
 from exceptions import ParseError
 
@@ -14,7 +14,7 @@ pprint = PrettyPrinter(indent=2).pprint
 #################################################
 def get_detail_parser(build):
     #This file format appears to have never changed
-    return detail_parser()
+    return DetailParser()
     
 def get_attribute_parser(build):
     if build >= 17326:
@@ -36,6 +36,29 @@ def get_message_parser(build):
     #format appears to have not changed
     return MessageParser()
 
+def get_initdata_parser(build):
+    return InitdataParser()
+    
+class InitdataParser(object):
+    def load(self,replay,filecontents):
+        bytes = ByteStream(filecontents)
+        num_players = bytes.get_big_int(1)
+        for p in range(0,num_players):
+            name_length = bytes.get_big_int(1)
+            name = bytes.get_string(name_length)
+            bytes.skip(5)
+        
+        bytes.skip(5) # Unknown
+        bytes.get_string(4) # Always Dflt
+        bytes.skip(15) #Unknown
+        id_length = bytes.get_big_int(1)
+        sc_account_id = bytes.get_string(id_length)
+        bytes.skip(684) # Fixed Length data for unknown purpose
+        while( bytes.get_string(4).lower() == 's2ma' ):
+            bytes.skip(2)
+            replay.realm = bytes.get_string(2).lower()
+            unknown_map_hash = bytes.get_big(32)
+            
 #################################################
 # replay.attributes.events Parsing classes
 #################################################
@@ -54,7 +77,7 @@ class AttributeParser(object):
             ]
 
         #Complete the decoding in the attribute object
-        return attribute(attr_data)
+        return Attribute(attr_data)
         
     def load(self, replay, filecontents):
         bytes = ByteStream(filecontents)
@@ -80,18 +103,17 @@ class AttributeParser(object):
         #Set player attributes as available,  requires already populated player list
         for pid, attributes in data.iteritems():
             if pid == 16: continue
-            player = replay.players[pid]
+            player = replay.player[pid]
             player.color = attributes['Color']
             player.team = attributes['Teams'+replay.type]
             player.race2 = attributes['Race']
             player.difficulty = attributes['Difficulty']
-
             #Computer players can't record games
             player.type = attributes['Player Type']
             if player.type == "Computer":
                 player.recorder = False
 
-class attribute_parser_17326(attribute_parser):
+class AttributeParser_17326(AttributeParser):
 	def load_header(self, replay, bytes):
 		bytes.skip(5, byte_code=True)              #Always start with 4 nulls
 		self.count = bytes.get_little_int(4)       #get total attribute count
@@ -103,13 +125,14 @@ class DetailParser(object):
     def load(self, replay, filecontents):
         data =  ByteStream(filecontents).parse_serialized_data()
         
-        replay.players = [None] #Pad the front for proper IDs
         for pid, pdata in enumerate(data[0]):
-            replay.players.append(Player(pid+1, pdata)) #shift the id to start @ 1
+            replay.add_player(Player(pid+1, pdata, replay.realm)) #shift the id to start @ 1
             
         replay.map = data[1].decode("hex")
         replay.file_time = data[5]
         replay.date = ctime( (data[5]-116444735995904000)/10000000 )
+        
+        replay.details_data = data
 
 ##################################################
 # replay.message.events parsing classes
@@ -134,7 +157,7 @@ class MessageParser(object):
                 elif flags & 0x0F == 0:
                     bytes.skip(4)
                     if player_id < len(replay.players):
-                        replay.players[player_id].recorder = False
+                        replay.player[player_id].recorder = False
                     else:
                         pass #This "player" is an observer or something
             

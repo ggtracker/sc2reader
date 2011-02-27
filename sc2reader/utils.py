@@ -47,7 +47,7 @@ class ByteStream(object):
             return result, byte_string 
         return result
     
-    def getString(self, length, byte_code=False):
+    def get_string(self, length, byte_code=False):
         string, bytes = self.get_big(length, byte_code=True)
         if byte_code:
             return string.decode("hex"), bytes
@@ -72,7 +72,7 @@ class ByteStream(object):
             return num/2, byte_string
         return num/2
         
-    def getTimestamp(self, byte_code=False):
+    def get_timestamp(self, byte_code=False):
         #Get the first byte
         byte, byte_string = self.get_big_int(1, byte_code=True)
         
