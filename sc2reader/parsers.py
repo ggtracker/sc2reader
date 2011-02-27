@@ -90,8 +90,9 @@ class AttributeParser(object):
             attr = self.load_attribute(replay, bytes)
             replay.attributes.append(attr)
 
-            #Uknown attributes get named as such and are not stored
-            #Index by player,  then name for ease of access later on
+            # Uknown attributes get named as such and are not stored
+            # because we don't know what they are
+            # Index by player,  then name for ease of access later on
             if attr.name != "Unknown":
                 data[attr.player][attr.name] = attr.value
             
@@ -156,7 +157,7 @@ class MessageParser(object):
                 #some sort of header code
                 elif flags & 0x0F == 0:
                     bytes.skip(4)
-                    if player_id < len(replay.players):
+                    if player_id <= len(replay.players):
                         replay.player[player_id].recorder = False
                     else:
                         pass #This "player" is an observer or something
