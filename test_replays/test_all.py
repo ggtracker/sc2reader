@@ -94,7 +94,7 @@ def test_private_category():
 
 def test_2v2():
     # Source: http://drop.sc/82
-    replay = Replay("test_replays/build17811/3.sc2replay")
+    replay = Replay("test_replays/build17811/7.sc2replay")
     assert replay.type == "2v2"
 
 def test_3v3():
