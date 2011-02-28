@@ -121,11 +121,15 @@ def test_random_player():
     assert gogeta.actual_race == "Terran"
     
 def test_us_realm():
+    replay = Replay("test_replays/build17811/5.sc2replay")
+    shades = find(lambda player: player.name == "ShadesofGray", replay.players)
+    dawn = find(lambda player: player.name == "reddawn", replay.players)
+
+    assert shades.url == "http://us.battle.net/sc2/en/profile/2358439/1/ShadesofGray/"
+    assert dawn.url == "http://us.battle.net/sc2/en/profile/2198663/1/reddawn/"
+
+    
+def test_encrypted():
     replay = Replay("test_replays/build17811/4.sc2replay")
-    lalush = find(lambda player: player.name == "lalush", replay.players)
-    avilo = find(lambda player: player.name == "avilo", replay.players)
-
-    assert lalush.url == "http://us.battle.net/sc2/en/profile/2396588/1/lalush/"
-    assert avilo.url == "http://us.battle.net/sc2/en/profile/327563/1/avilo/"
-
+    
 #TODO: Test 2v2, 4v4 and FFA
