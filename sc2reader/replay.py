@@ -153,7 +153,7 @@ class Replay(object):
         self.results = dict([team, len(players)] for team, players in self.teams.iteritems())
         for event in self.events_by_type['leave']:
             #Some spectator actions seem to be recorded, they aren't on teams anyway
-            if event.player < len(self.players):
+            if event.player <= len(self.players):
                 team = self.player[event.player].team
                 self.results[team] -= 1 
                 

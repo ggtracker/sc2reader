@@ -162,7 +162,7 @@ class Player(object):
         self.type = "" # Human or Computer
         
     def __str__(self):
-        return "Player %s - %s (%s)" % (self.pid, self.name, self.race)
+        return "Player %s - %s (%s)" % (self.pid, self.name, self.actual_race)
         
     def __repr__(self):
         return str(self)
