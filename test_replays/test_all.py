@@ -115,7 +115,7 @@ def test_ffa():
     # Source: http://drop.sc/83
     replay = Replay("test_replays/build17811/8.sc2replay")
     assert replay.type == "FFA"
-    assert replay.player['Boom'].result = "Won"
+    assert replay.player['Boom'].result == "Won"
 
 def test_random_player():
     replay = Replay("test_replays/build17811/3.sc2replay")

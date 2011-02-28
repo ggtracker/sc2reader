@@ -98,12 +98,7 @@ class AttributeParser(object):
             
         #Get global settings first
         replay.speed = data[16]['Game Speed']
-        
-        #TODO: Do we need the category variable at this point?
         replay.category = data[16]['Category']
-        replay.is_ladder = (replay.category == "Ladder")
-        replay.is_private = (replay.category == "Private")
-        
         replay.type = data[16]['Game Type']
 
         #Set player attributes as available,  requires already populated player list

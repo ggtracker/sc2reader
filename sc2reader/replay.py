@@ -2,6 +2,8 @@ import os
 from collections import defaultdict
 
 from mpyq import MPQArchive
+from mpyq import __version__ as version
+print version
 
 import parsers
 from utils import ByteStream,PlayerDict
@@ -57,12 +59,12 @@ class Replay(object):
         self._parse_header()
 
         #Manually extract the contents of SC2Replay file (bypass the listfile)
-        archive = MPQArchive(replay, False)
-        self._files['replay.initData'] = archive.read('replay.initData')
-        self._files['replay.details'] = archive.read('replay.details')
-        self._files['replay.attributes.events'] = archive.read('replay.attributes.events')
-        self._files['replay.message.events'] = archive.read('replay.message.events')
-        self._files['replay.game.events'] = archive.read('replay.game.events')
+        archive = MPQArchive(replay, listfile=False)
+        self._files['replay.initData'] = archive.read_file('replay.initData')
+        self._files['replay.details'] = archive.read_file('replay.details')
+        self._files['replay.attributes.events'] = archive.read_file('replay.attributes.events')
+        self._files['replay.message.events'] = archive.read_file('replay.message.events')
+        self._files['replay.game.events'] = archive.read_file('replay.game.events')
                 
         #These are quickly parsed files that contain most of the game information
         #The order is important, I need some way to reinforce it in the future
