@@ -18,7 +18,7 @@ def test_empty():
 
 # Tests for build 17811 replays
 
-def test_1():
+def test_standard_1v1():
     replay = Replay("test_replays/build17811/1.sc2replay")
 
 #    assert replay.date == "20 Feb 2011 22:44:48"
@@ -106,6 +106,16 @@ def test_3v3():
     assert replay.results[1] == "Won"
     assert replay.results[2] == "Lost"
 
+def test_4v4():
+    # Source: http://drop.sc/32
+    replay = Replay("test_replays/build17811/9.sc2replay")
+    assert replay.type == "4v4"
+
+def test_ffa():
+    # Source: http://drop.sc/83
+    replay = Replay("test_replays/build17811/8.sc2replay")
+    assert replay.type == "FFA"
+    assert replay.player['Boom'].result = "Won"
 
 def test_random_player():
     replay = Replay("test_replays/build17811/3.sc2replay")
@@ -113,9 +123,7 @@ def test_random_player():
     gogeta = replay.player['Gogeta']
     assert gogeta.choosen_race == "Random"
     assert gogeta.actual_race == "Terran"
-    
-# Ha! This was actually failing with phpsc2replay! (Didn't produce the right Random race)
-# Hooray, major milestone as phpsc2replay isn't a superset of sc2readera anymore!
+
 def test_random_player2():
     replay = Replay("test_replays/build17811/6.sc2replay")
     permafrost = replay.player["Permafrost"]
@@ -132,4 +140,4 @@ def test_us_realm():
 def test_encrypted():
     replay = Replay("test_replays/build17811/4.sc2replay")
     
-#TODO: Test 2v2, 4v4 and FFA
+# TODO: Test with a 2v2, 3v3 or 4v4 replay, where the recording player quits first (should be marked as unknown)

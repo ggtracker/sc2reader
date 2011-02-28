@@ -55,9 +55,15 @@ class Replay(object):
             
         #Always parse the header first, the extract the files
         self._parse_header()
-        #Extract the available file from the MPQArchive
-        self._files = MPQArchive(replay).extract()
-        
+
+        #Manually extract the contents of SC2Replay file (bypass the listfile)
+        archive = MPQArchive(replay, False)
+        self._files['replay.initData'] = archive.read('replay.initData')
+        self._files['replay.details'] = archive.read('replay.details')
+        self._files['replay.attributes.events'] = archive.read('replay.attributes.events')
+        self._files['replay.message.events'] = archive.read('replay.message.events')
+        self._files['replay.game.events'] = archive.read('replay.game.events')
+                
         #These are quickly parsed files that contain most of the game information
         #The order is important, I need some way to reinforce it in the future
         if partial_parse or full_parse:
