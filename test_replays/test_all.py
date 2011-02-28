@@ -8,18 +8,6 @@ sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(os.path.abspath
 from sc2reader import Replay
 from sc2reader.exceptions import ParseError
 
-# Helper functions
-def sent_to_all(msg):
-    return msg.target == 0
-    
-def find(f, seq):
-    for item in seq:
-        if item is None:
-            continue
-        if f(item): 
-            return item
-
-
 # Parsing should fail for an empty file.
 def test_empty():
     # Todo: Are we happy with it raising a ValueError? Should it be rather ParseError or something else?
@@ -96,7 +84,7 @@ def test_1():
     assert replay.messages[11].player.name == "Boom"
     
     for msg in replay.messages:
-        assert sent_to_all(msg) == True
+        assert msg.sent_to_all == True
         
 def test_private_category():
     replay = Replay("test_replays/build17811/2.sc2replay")

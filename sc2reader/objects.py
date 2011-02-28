@@ -127,6 +127,8 @@ class Message(object):
     
     def __init__(self, time, player, target, text):
         self.time, self.player, self.target, self.text = time, player, target, text
+        self.sent_to_all = (self.target == 0)
+        self.sent_to_allies = (self.target == 2)
         
     def __str__(self):
         time = ((self.time/16)/60, (self.time/16)%60)
