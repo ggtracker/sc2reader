@@ -144,12 +144,13 @@ class Player(object):
     url_template = "http://%s.battle.net/sc2/en/profile/%s/%s/%s/"
     
     def __init__(self, pid, data, realm="us"):
+        # TODO: get a map of realm,subregion => region in here
         self.pid = pid
         self.realm = realm
         self.name = data[0].decode("hex")
         self.uid = data[1][4]
-        self.uidIndex = data[1][2]
-        self.url = self.url_template % (self.realm, self.uid, self.uidIndex, self.name)
+        self.subregion = data[1][2]
+        self.url = self.url_template % (self.realm, self.uid, self.subregion, self.name)
         self.actual_race = data[2].decode("hex")
         self.choosen_race = "" # Populated from the replay.attribute.events file
         self.rgba = dict([
