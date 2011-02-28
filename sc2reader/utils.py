@@ -1,3 +1,37 @@
+class PlayerDict(dict):
+    def __init__(self,*args,**kwargs):
+        self._key_map = dict()
+        
+        if args:
+            print args
+            for arg in args[0]:
+                self[arg[0]] = arg[1]
+                
+        if kwargs:
+            print kwargs
+            for key,value in kwargs.iteritems():
+                self[key] = value
+        
+    def __getitem__(self,key):
+        if isinstance(key,str):
+            key = self._key_map[key]
+
+        return super(PlayerDict,self).__getitem__(key)
+
+    def __setitem__(self,key,value):
+        #if not isinstance(value,Player):
+        #    raise TypeError("Values must be of the Player class")
+            
+        if isinstance(key,str):
+            self._key_map[key] = value.pid
+            key = value.pid
+        elif isinstance(key,int):
+            self._key_map[value.name] = key
+            
+        super(PlayerDict,self).__setitem__(value.pid,value)
+        
+        
+        
 class ByteStream(object):
     """Track and return the bytes for investigative and debugging purposes"""
     """Most functions will return the byte_code as well when requested"""

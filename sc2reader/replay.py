@@ -4,9 +4,8 @@ from collections import defaultdict
 from mpyq import MPQArchive
 
 import parsers
-from utils import ByteStream
-
-
+from utils import ByteStream,PlayerDict
+        
 class Replay(object):
     
     def __init__(self, replay, partial_parse=True, full_parse=True):
@@ -22,7 +21,7 @@ class Replay(object):
         self.results = dict()
         self.teams = defaultdict(list)
         self.players = list() #Unordered list of Player
-        self.player = dict() #Maps pid to Player
+        self.player = PlayerDict() #Maps pid to Player
         self.events_by_type = dict()
         self.attributes = list()
         self.length = None # (minutes, seconds) tuple

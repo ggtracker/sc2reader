@@ -46,13 +46,13 @@ def test_1():
     assert len(replay.players) == 2
     assert replay.player[1].name == "Emperor"
     assert replay.player[2].name == "Boom"
-    emperor = find(lambda player: player.name == "Emperor", replay.players)
+    emperor = replay.player['Emperor']
     assert emperor.team == 1
     assert emperor.choosen_race == "Protoss"
     assert emperor.actual_race == "Protoss"
     assert emperor.recorder == False
 
-    boom = find(lambda player: player.name == "Boom", replay.players)
+    boom = replay.player['Boom']
     assert boom.team == 2
     assert boom.choosen_race == "Terran"
     assert boom.actual_race == "Terran"
@@ -116,17 +116,15 @@ def test_3v3():
 def test_random_player():
     replay = Replay("test_replays/build17811/3.sc2replay")
 
-    gogeta = find(lambda player: player.name == "Gogeta", replay.players)
+    gogeta = replay.player['Gogeta']
     assert gogeta.choosen_race == "Random"
     assert gogeta.actual_race == "Terran"
     
 def test_us_realm():
     replay = Replay("test_replays/build17811/5.sc2replay")
-    shades = find(lambda player: player.name == "ShadesofGray", replay.players)
-    dawn = find(lambda player: player.name == "reddawn", replay.players)
-
-    assert shades.url == "http://us.battle.net/sc2/en/profile/2358439/1/ShadesofGray/"
-    assert dawn.url == "http://us.battle.net/sc2/en/profile/2198663/1/reddawn/"
+    
+    assert replay.player['ShadesofGray'].url == "http://us.battle.net/sc2/en/profile/2358439/1/ShadesofGray/"
+    assert replay.player['reddawn'].url == "http://us.battle.net/sc2/en/profile/2198663/1/reddawn/"
 
     
 def test_encrypted():
