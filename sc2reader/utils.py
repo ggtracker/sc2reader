@@ -1,5 +1,5 @@
 class PlayerDict(dict):
-    """Delete is supported on the pid index only"
+    """Delete is supported on the pid index only"""
     def __init__(self,*args,**kwargs):
         self._key_map = dict()
         
