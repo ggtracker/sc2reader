@@ -20,9 +20,6 @@ class PlayerDict(dict):
         return super(PlayerDict,self).__getitem__(key)
 
     def __setitem__(self,key,value):
-        #if not isinstance(value,Player):
-        #    raise TypeError("Values must be of the Player class")
-            
         if isinstance(key,str):
             self._key_map[key] = value.pid
             key = value.pid
