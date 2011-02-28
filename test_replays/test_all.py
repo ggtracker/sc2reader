@@ -40,8 +40,9 @@ def test_1():
     assert replay.release_string == "1.2.2.17811"
     assert replay.speed == "Faster"
     assert replay.type == "1v1"
-    # TODO: library should probably provide helper functions and/or constants to check this
-    assert replay.category == "Ladder"
+
+    assert replay.is_ladder == True
+    assert replay.is_private == False
 
     assert len(replay.players) == 2
     assert replay.player[1].name == "Emperor"
@@ -100,8 +101,8 @@ def test_1():
 def test_private_category():
     replay = Replay("test_replays/build17811/2.sc2replay")
     
-    # TODO: library should probably provide helper functions and/or constants to check this
-    assert replay.category == "Private"
+    assert replay.is_private == True
+    assert replay.is_ladder == False
     
 def test_3v3():
     replay = Replay("test_replays/build17811/3.sc2replay")

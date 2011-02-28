@@ -15,6 +15,8 @@ class Replay(object):
         self.build = ""
         self.type = ""
         self.category = ""
+        self.is_ladder = False
+        self.is_private = False
         self.map = ""
         self.realm = ""
         self.events = list()
