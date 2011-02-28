@@ -91,7 +91,12 @@ def test_private_category():
     
     assert replay.is_private == True
     assert replay.is_ladder == False
-    
+
+def test_2v2():
+    # Source: http://drop.sc/82
+    replay = Replay("test_replays/build17811/3.sc2replay")
+    assert replay.type == "2v2"
+
 def test_3v3():
     replay = Replay("test_replays/build17811/3.sc2replay")
     
@@ -108,6 +113,14 @@ def test_random_player():
     gogeta = replay.player['Gogeta']
     assert gogeta.choosen_race == "Random"
     assert gogeta.actual_race == "Terran"
+    
+# Ha! This was actually failing with phpsc2replay! (Didn't produce the right Random race)
+# Hooray, major milestone as phpsc2replay isn't a superset of sc2readera anymore!
+def test_random_player2():
+    replay = Replay("test_replays/build17811/6.sc2replay")
+    permafrost = replay.player["Permafrost"]
+    assert permafrost.choosen_race == "Random"
+    assert permafrost.actual_race == "Protoss"
     
 def test_us_realm():
     replay = Replay("test_replays/build17811/5.sc2replay")
