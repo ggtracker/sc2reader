@@ -111,6 +111,10 @@ def test_ffa():
     replay = Replay("test_replays/build17811/8.sc2replay")
     assert replay.type == "FFA"
     
+    # TODO: Remove me when done!
+    for player in replay.players:
+        print player.name + " " + player.result
+    
     # Player 'Boom' won because the last building of the last player was destroyed,
     # but the winner cannot be parsed because "Player has left" event isn't generated.
     # Unknown result is the best we can do.
