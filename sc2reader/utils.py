@@ -30,7 +30,7 @@ class PlayerDict(dict):
         
         
 from cStringIO import StringIO
-from os import SEEK_CUR,SEEK_END
+from os import SEEK_CUR, SEEK_END
 from struct import unpack
 
 class ByteStream(object):
