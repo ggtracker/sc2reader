@@ -23,7 +23,7 @@ def parse_replays():
 # Problem with the profiler is that it adds conciderable amount of overhead
 cProfile.run("parse_replays()","replay_profile")
 stats = Stats("replay_profile")
-stats.strip_dirs().sort_stats("time").print_stats(15)
+stats.strip_dirs().sort_stats("time").print_stats(30)
 
 # start = time.time()
 # for run in range(1,4):

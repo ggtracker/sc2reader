@@ -220,7 +220,7 @@ class ByteStream(object):
         
         
 '''
-class ByteStream(object):
+class ByteStreamOld(object):
     """Track and return the bytes for investigative and debugging purposes"""
     """Most functions will return the byte_code as well when requested"""
     
