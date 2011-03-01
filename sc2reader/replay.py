@@ -177,7 +177,7 @@ class Replay(object):
             self.results[remaining.pop()] = "Won"
         
         #Because you can also end the game by destroying all buildings, FFA can't be known
-        elif self.type != 'FFA':
+        elif self.type != 'FFA' and self.type != '1v1':
             #The other results are unknown except in the (common) case that the
             #recorder is the last one on his team to leave. In this case, the
             #result for his team can be known
