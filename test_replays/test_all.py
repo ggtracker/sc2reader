@@ -145,10 +145,14 @@ def test_us_realm():
     assert replay.player['ShadesofGray'].url == "http://us.battle.net/sc2/en/profile/2358439/1/ShadesofGray/"
     assert replay.player['reddawn'].url == "http://us.battle.net/sc2/en/profile/2198663/1/reddawn/"
 
-def test_kr_realm():
+# We can be really proud: phpsc2replay fails with the messages!
+def test_kr_realm_and_tampered_messages():
     replay = Replay("test_replays/build17811/11.sc2replay")
     assert replay.player['명지대학교'].url == "http://kr.battle.net/sc2/en/profile/258945/1/명지대학교/"
     assert replay.player['티에스엘사기수'].url == "http://kr.battle.net/sc2/en/profile/102472/1/티에스엘사기수/"
+    
+    assert replay.messages[0].text == "sc2.replays.net"
+    assert replay.messages[5].text == "sc2.replays.net"
     
 def test_encrypted():
     replay = Replay("test_replays/build17811/4.sc2replay")
