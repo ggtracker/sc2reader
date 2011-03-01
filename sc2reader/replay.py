@@ -175,7 +175,9 @@ class Replay(object):
         #If, at the end, only one team remains then that team has won
         if len(remaining) == 1:
             self.results[remaining.pop()] = "Won"
-        elif self.recorder:    
+        
+        #Because you can also end the game by destroying all buildings, FFA can't be known
+        elif self.type != 'FFA':
             #The other results are unknown except in the (common) case that the
             #recorder is the last one on his team to leave. In this case, the
             #result for his team can be known
@@ -191,11 +193,17 @@ class Replay(object):
             #If, at the end, only one team remains then that team has won
             if len(remaining) == 1:
                 self.results[remaining.pop()] = "Won"
-                
+                self.winner_known = True
+        
+        #If the winner can't be known mark all remaining player.result as unknown
+        else:
+            for team in remaining:
+                self.results[team] = "Unknown"
+        
+        #Knowing the team results, map results to the players as well
         for player in self.players:
             player.result = self.results[player.team]
-            if player.result == "Won":
-                self.winner_known = True
+                
 
 if __name__ == '__main__':
     from pprint import PrettyPrinter
