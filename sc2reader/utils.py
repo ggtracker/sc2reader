@@ -29,7 +29,9 @@ class PlayerDict(dict):
         super(PlayerDict,self).__setitem__(value.pid,value)
         
         
-        
+from StringIO import StringIO
+from os import SEEK_CUR,SEEK_END
+
 class ByteStream(object):
     """Track and return the bytes for investigative and debugging purposes"""
     """Most functions will return the byte_code as well when requested"""
@@ -37,34 +39,25 @@ class ByteStream(object):
     def __init__(self, stream):
         self.__cbyte = 0
         self.cursor = -1 #First element is 0
-        self.stream = stream.encode("hex").upper()
+        self.stream = StringIO(stream)
         
     def get_big(self, number, byte_code=False):
-        #Do a sanity check, if streams are parsed right this won't ever happen
-        if len(self.stream)-self.__cbyte < number*2:
-            msg = "Stream only has %s bytes left; %s bytes requested"
-            raise ValueError(msg % (self.remaining, number) )
-        
-        #For big endian, the byte_string is the result
-        result = self.stream[self.__cbyte:self.__cbyte+number*2]
-        
-        #Move the ByteStream forward
-        self.__cbyte = self.__cbyte + number*2
-        self.cursor = self.cursor + number
-        
+        result = self.stream.read(number)
         if byte_code:
             return result, result
         return result
         
     def skip(self, number, byte_code=False):
-        #This is just an alias for get_big really, still return the byte_string
+        #This is just an alias for get_big, return the byte_string if asked
         #so that it can be recorded for event analysis
         if byte_code:
             return self.get_big(number)
         self.get_big(number)
         
     def peek(self, number):
-        return self.stream[self.__cbyte:self.__cbyte + number*2]
+        ret = self.stream.read(number)
+        self.stream.seek(-number,SEEK_CUR)
+        return ret
         
     def get_little(self, number, byte_code=False):
         #Get a list of the next 'number' of bytes from the stream
@@ -83,8 +76,9 @@ class ByteStream(object):
     def get_string(self, length, byte_code=False):
         string, bytes = self.get_big(length, byte_code=True)
         if byte_code:
-            return string.decode("hex"), bytes
-        return string.decode("hex")
+            #This would be easier if I knew what the original encoding was
+            return string.endcode("hex").decode("hex"), bytes
+        return string.encode("hex").decode("hex")
         
     def get_big_int(self, number, byte_code=False):
         result, byte_string = self.get_big(number, byte_code=True)

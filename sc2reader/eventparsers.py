@@ -283,7 +283,7 @@ class HotkeyEventParser(object):
         
         extras = first >> 3
         event.bytes += bytes.peek(extras+1)
-        second = bytes.get_big(1)
+        second = bytes.get_big_int(1)
         bytes.skip(extras)
         
         if first & 0x04: 

@@ -70,9 +70,9 @@ class AttributeParser(object):
     def load_attribute(self, replay, bytes):
         #Get the attribute data elements
         attr_data = [
-                bytes.get_big(4),         #Header
+                bytes.get_little_int(4),         #Header
                 bytes.get_little_int(4),   #Attr Id
-                bytes.get_big_int(1),       #Player
+                bytes.get_little_int(1),       #Player
                 bytes.get_little(4)      #Value
             ]
 

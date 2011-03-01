@@ -86,8 +86,8 @@ class Replay(object):
         source = ByteStream(open(self.filename).read())
         
         #Check the file type for the MPQ header bytes
-        if source.get_big(4) != "4D50511B":
-            raise TypeError("File '%s' is not an MPQ file" % self.filename)
+        #if source.get_big(4) != "4D50511B":
+        #    raise TypeError("File '%s' is not an MPQ file" % self.filename)
         
         #Extract replay header data
         max_data_size = source.get_little_int(4) #possibly data max size
