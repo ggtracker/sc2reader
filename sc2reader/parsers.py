@@ -42,38 +42,38 @@ def get_initdata_parser(build):
 class InitdataParser(object):
     def load(self,replay,filecontents):
         bytes = ByteStream(filecontents)
-        num_players = bytes.get_big_int(1)
+        num_players = bytes.get_big_8()
         for p in range(0,num_players):
-            name_length = bytes.get_big_int(1)
+            name_length = bytes.get_big_8()
             name = bytes.get_string(name_length)
             bytes.skip(5)
         
         bytes.skip(5) # Unknown
         bytes.get_string(4) # Always Dflt
         bytes.skip(15) #Unknown
-        id_length = bytes.get_big_int(1)
+        id_length = bytes.get_big_8()
         sc_account_id = bytes.get_string(id_length)
         bytes.skip(684) # Fixed Length data for unknown purpose
         while( bytes.get_string(4).lower() == 's2ma' ):
             bytes.skip(2)
             replay.realm = bytes.get_string(2).lower()
-            unknown_map_hash = bytes.get_big(32)
+            unknown_map_hash = bytes.get_bytes(32)
             
 #################################################
 # replay.attributes.events Parsing classes
 #################################################
 class AttributeParser(object):
     def load_header(self, replay, bytes):
-        bytes.skip(4, byte_code=True)              #Always start with 4 nulls
-        self.count = bytes.get_little_int(4)       #get total attribute count
+        bytes.skip(4)              #Always start with 4 nulls
+        self.count = bytes.get_little_32()       #get total attribute count
     
     def load_attribute(self, replay, bytes):
         #Get the attribute data elements
         attr_data = [
-                bytes.get_big(4),         #Header
-                bytes.get_little_int(4),   #Attr Id
-                bytes.get_big_int(1),       #Player
-                bytes.get_little(4)      #Value
+                bytes.get_little_32(),                  #Header
+                bytes.get_little_32(),                  #Attr Id
+                bytes.get_little_8(),                   #Player
+                bytes.get_little_bytes(4).encode("hex")  #Value
             ]
 
         #Complete the decoding in the attribute object
@@ -121,8 +121,8 @@ class AttributeParser(object):
 
 class AttributeParser_17326(AttributeParser):
 	def load_header(self, replay, bytes):
-		bytes.skip(5, byte_code=True)              #Always start with 4 nulls
-		self.count = bytes.get_little_int(4)       #get total attribute count
+		bytes.skip(5)              #Always start with 4 nulls
+		self.count = bytes.get_little_32()       #get total attribute count
 
 ##################################################
 # replay.details parsing classes
@@ -150,8 +150,8 @@ class MessageParser(object):
 
         while(bytes.remaining!=0):
             time += bytes.get_timestamp()
-            player_id = bytes.get_big_int(1) & 0x0F
-            flags = bytes.get_big_int(1)
+            player_id = bytes.get_big_8() & 0x0F
+            flags = bytes.get_big_8()
             
             if flags & 0xF0 == 0x80:
             
@@ -169,7 +169,7 @@ class MessageParser(object):
             
             elif flags & 0x80 == 0:
                 target = flags & 0x03
-                length = bytes.get_big_int(1)
+                length = bytes.get_big_8()
                 
                 if flags & 0x08:
                     length += 64
@@ -238,7 +238,7 @@ class EventParser(object):
             #event_type,  the 4th bit 000X0000 marks the eventObjectas local or global, 
             #and the remaining bits 0000XXXX mark the player id number.
             #The following byte completes the unique eventObjectidentifier
-            first, event_code = bytes.get_big_int(1), bytes.get_big_int(1)
+            first, event_code = bytes.get_big_8(), bytes.get_big_8()
             event_type, global_flag, player_id = first >> 5, first & 0x10, first & 0xF
 
             #Create a barebones event from the gathered information

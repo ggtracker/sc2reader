@@ -37,8 +37,8 @@ class AbilityEventParser(object):
     def load(self, event, bytes):
         event.bytes += bytes.skip(4, byte_code=True)
         event.bytes += bytes.peek(4)
-        event.ability = bytes.get_big_int(1) << 16 | bytes.get_big_int(1) << 8 | bytes.get_big_int(1)
-        req_target = bytes.get_big_int(1)
+        event.ability = bytes.get_big_8() << 16 | bytes.get_big_8() << 8 | bytes.get_big_8()
+        req_target = bytes.get_big_8()
         
         #In certain cases we need an extra byte
         if req_target == 0x30 or req_target == 0x05:
@@ -49,8 +49,8 @@ class AbilityEventParser(object):
 class AbilityEventParser_16561(AbilityEventParser):
     def load(self, event, bytes):
         event.bytes += bytes.peek(5)
-        first, atype = (bytes.get_big_int(1), bytes.get_big_int(1))
-        event.ability = bytes.get_big_int(1) << 16 | bytes.get_big_int(1) << 8 | (bytes.get_big_int(1) & 0x3F)
+        first, atype = (bytes.get_big_8(), bytes.get_big_8())
+        event.ability = bytes.get_big_8() << 16 | bytes.get_big_8() << 8 | (bytes.get_big_8() & 0x3F)
         
         if event.ability in abilities:
             event.abilitystr = abilities[event.ability]
@@ -90,7 +90,7 @@ class SelectionEventParser(object):
     def load(self, event, bytes):
         event.name = 'selection'
         event.bytes += bytes.peek(2)
-        select_flags, deselect_count = bytes.get_big_int(1), bytes.get_big_int(1)
+        select_flags, deselect_count = bytes.get_big_8(), bytes.get_big_8()
         
         if deselect_count > 0:
             #Skip over the deselection bytes
@@ -100,17 +100,18 @@ class SelectionEventParser(object):
         extras = deselect_count & 0x07
         if extras == 0:
             #This is easy when we are byte aligned
-            unit_type_count, byte = bytes.get_big_int(1, byte_code=True)
+            unit_type_count, byte = bytes.get_big_8(byte_code=True)
             event.bytes += byte
             
             event.bytes += bytes.peek(unit_type_count*4+1)
             for i in range(0, unit_type_count):
-                unit_type, unit_count = bytes.get_big_int(3), bytes.get_big_int(1)
-            totalUnits = bytes.get_big_int(1)
+                unit_type_block = bytes.get_big_32()
+                unit_type, unit_count = unit_type_block >> 8, unit_type_block & 0xFF
+            totalUnits = bytes.get_big_8()
             
             event.bytes += bytes.peek(totalUnits*4)
             for i in range(0, totalUnits):
-                unit_id, use_count = bytes.get_big_int(2), bytes.get_big_int(2)
+                unit_id, use_count = bytes.get_big_16(), bytes.get_big_16()
         else:
             #We're not byte aligned, so need do so some bit shifting
             #This seems like 1000% wrong to me, but its what the people
@@ -121,40 +122,40 @@ class SelectionEventParser(object):
             w_head_mask = ~w_tail_mask & 0xFF
             
             event.bytes += bytes.peek(2)
-            prev_byte, next_byte = bytes.get_big_int(1),  bytes.get_big_int(1)
+            prev_byte, next_byte = bytes.get_big_8(),  bytes.get_big_8()
             
             unit_type_count = prev_byte & head_mask | next_byte & tail_mask
             
             event.bytes += bytes.peek(unit_type_count*4+1)
             for i in range(0, unit_type_count):
-                prev_byte, next_byte = next_byte, bytes.get_big_int(1)
+                prev_byte, next_byte = next_byte, bytes.get_big_8()
                 unit_type = prev_byte & head_mask | ((next_byte & w_head_mask) >> (8-extras))
-                prev_byte, next_byte = next_byte, bytes.get_big_int(1)
+                prev_byte, next_byte = next_byte, bytes.get_big_8()
                 unit_type = unit_type << 8 | (prev_byte & w_tail_mask) << extras | next_byte & tail_mask
-                prev_byte, next_byte = next_byte, bytes.get_big_int(1)
+                prev_byte, next_byte = next_byte, bytes.get_big_8()
                 unit_type = unit_type << 8 | (prev_byte & head_mask) << extras | next_byte & tail_mask
-                prev_byte, next_byte = next_byte, bytes.get_big_int(1)
+                prev_byte, next_byte = next_byte, bytes.get_big_8()
                 unit_count = prev_byte & head_mask | next_byte & tail_mask
                 
-            prev_byte, next_byte = next_byte, bytes.get_big_int(1)    
+            prev_byte, next_byte = next_byte, bytes.get_big_8()    
             totalUnits = prev_byte & head_mask | next_byte & tail_mask
             
             event.bytes = bytes.peek(totalUnits*4)
             for i in range(0, totalUnits):
-                prev_byte, next_byte = next_byte, bytes.get_big_int(1)
+                prev_byte, next_byte = next_byte, bytes.get_big_8()
                 unit_id = prev_byte & head_mask | ((next_byte & w_head_mask) >> (8-extras))
-                prev_byte, next_byte = next_byte, bytes.get_big_int(1)
+                prev_byte, next_byte = next_byte, bytes.get_big_8()
                 unit_id = unit_id << 8 | prev_byte & w_tail_mask << extras | ((next_byte & w_head_mask) >> (8-extras))
-                prev_byte, next_byte = next_byte, bytes.get_big_int(1)
+                prev_byte, next_byte = next_byte, bytes.get_big_8()
                 unit_id = unit_id << 8 | prev_byte & w_tail_mask << extras | ((next_byte & w_head_mask) >> (8-extras))
-                prev_byte, next_byte = next_byte, bytes.get_big_int(1)
+                prev_byte, next_byte = next_byte, bytes.get_big_8()
                 unit_id = unit_id << 8 | prev_byte & w_tail_mask << extras | next_byte & tail_mask
             
 class SelectionEventParser_16561(SelectionEventParser):
     def load(self, event, bytes):
         event.name = 'selection'
         event.bytes += bytes.peek(2)
-        select_flags, deselect_type = bytes.get_big_int(1), bytes.get_big_int(1)
+        select_flags, deselect_type = bytes.get_big_8(), bytes.get_big_8()
         
         #No deselection to do here
         if deselect_type & 3 == 0:
@@ -164,7 +165,7 @@ class SelectionEventParser_16561(SelectionEventParser):
         #deselection by bit counted indicators
         elif deselect_type & 3 == 1:
             #use the 6 left bits on top and the 2 right bits on bottom
-            count_byte, byte = bytes.get_big_int(1, byte_code=True)
+            count_byte, byte = bytes.get_big_8(byte_code=True)
             deselect_count = deselect_type & 0xFC | count_byte & 0x03
             event.bytes += byte
             
@@ -175,7 +176,7 @@ class SelectionEventParser_16561(SelectionEventParser):
                 #while count > 6 we need to eat into more bytes because
                 #we only have 6 bits left in our current byte
                 while deselect_count > 6:
-                    last_byte, byte = bytes.get_big_int(1, byte_code=True)
+                    last_byte, byte = bytes.get_big_8(byte_code=True)
                     deselect_count -= 8
                     event.bytes += byte
             
@@ -193,7 +194,7 @@ class SelectionEventParser_16561(SelectionEventParser):
         #and as such probably has a deselect_count always == 0,  not sure though
         else:
             #use the 6 left bits on top and the 2 right bits on bottom
-            count_byte, byte = bytes.get_big_int(1, byte_code=True)
+            count_byte, byte = bytes.get_big_8(byte_code=True)
             deselect_count = deselect_type & 0xFC | count_byte & 0x03
             event.bytes += byte
             
@@ -206,7 +207,7 @@ class SelectionEventParser_16561(SelectionEventParser):
             else:
                 event.bytes += bytes.peek(deselect_count)
                 bytes.skip(deselect_count-1)
-                last_byte = bytes.get_big_int(1)
+                last_byte = bytes.get_big_8()
             
             mask = 0x03 #default mask of '11' applies
         
@@ -217,7 +218,7 @@ class SelectionEventParser_16561(SelectionEventParser):
         
         #Get the number of selected unit types
         event.bytes += bytes.peek(1)
-        next_byte = bytes.get_big_int(1)
+        next_byte = bytes.get_big_8()
         numunit_types = combine(last_byte, next_byte)
         
         #Read them all into a dictionary for later
@@ -229,12 +230,12 @@ class SelectionEventParser_16561(SelectionEventParser):
             byte_list = list()
             for i in range(0, 3):
                 #Swap the bytes, grab another, and combine w/ the mask
-                last_byte, next_byte = next_byte, bytes.get_big_int(1)
+                last_byte, next_byte = next_byte, bytes.get_big_8()
                 byte_list.append( combine(last_byte, next_byte) )
             unit_type_id = byte_list[0] << 16 | byte_list[1] << 8 | byte_list[2]
             
             #Get the count for that type in the next byte
-            last_byte, next_byte = next_byte, bytes.get_big_int(1)
+            last_byte, next_byte = next_byte, bytes.get_big_8()
             unit_type_count = combine(last_byte, next_byte)
             
             #Store for later
@@ -242,7 +243,7 @@ class SelectionEventParser_16561(SelectionEventParser):
         
         #Get total unit count
         event.bytes += bytes.peek(1)
-        last_byte, next_byte = next_byte, bytes.get_big_int(1)
+        last_byte, next_byte = next_byte, bytes.get_big_8()
         unit_count = combine(last_byte, next_byte)
         
         #Pull all the unit_ids in for later
@@ -252,7 +253,7 @@ class SelectionEventParser_16561(SelectionEventParser):
             #build the unit_id over the next 4 bytes
             byte_list = list()
             for i in range(0, 4):
-                last_byte, next_byte = next_byte, bytes.get_big_int(1)
+                last_byte, next_byte = next_byte, bytes.get_big_8()
                 byte_list.append( combine(last_byte, next_byte) )
             
             #The first 2 bytes are unique and the last 2 mark reusage count
@@ -283,7 +284,7 @@ class HotkeyEventParser(object):
         
         extras = first >> 3
         event.bytes += bytes.peek(extras+1)
-        second = bytes.get_big(1)
+        second = bytes.get_big_8()
         bytes.skip(extras)
         
         if first & 0x04: 
@@ -295,7 +296,7 @@ class HotkeyEventParser(object):
         event.name = 'hotkey'
         event.hotkey = str(event.code >> 4)
         #print "Time %s - Player %s is using hotkey %s" % (self.timestr, self.player, eventCode >> 4)
-        first, byte = bytes.get_big_int(1, byte_code=True)
+        first, byte = bytes.get_big_8(byte_code=True)
         event.bytes += byte
         
         if   first == 0x00: self.load_set_hotkey(event, bytes, first)
@@ -308,7 +309,7 @@ class HotkeyEventParser(object):
 class HotkeyEventParser_16561(HotkeyEventParser):
     def load_get_hotkey_changed(self, event, bytes, first):
         name = 'get_hotkey_changed'
-        second, byte = bytes.get_big_int(1, byte_code=True)
+        second, byte = bytes.get_big_8(byte_code=True)
         event.bytes += byte
         
         if first & 0x08:
@@ -339,8 +340,8 @@ class ResourceTransferEventParser(object):
         
         #I might need to shift these two things to 19, 11, 3 for first 3 shifts
         event.bytes += bytes.peek(8)
-        event.minerals = bytes.get_big_int(1) << 20 | bytes.get_big_int(1) << 12 | bytes.get_big_int(1) << 4 | bytes.get_big_int(1) >> 4
-        event.gas = bytes.get_big_int(1) << 20 | bytes.get_big_int(1) << 12 | bytes.get_big_int(1) << 4 | bytes.get_big_int(1) >> 4
+        event.minerals = bytes.get_big_8() << 20 | bytes.get_big_8() << 12 | bytes.get_big_8() << 4 | bytes.get_big_8() >> 4
+        event.gas = bytes.get_big_8() << 20 | bytes.get_big_8() << 12 | bytes.get_big_8() << 4 | bytes.get_big_8() >> 4
         
         #unknown extra stuff
         event.bytes += bytes.skip(2, byte_code=True)
@@ -355,12 +356,14 @@ class ResourceTransferEventParser_16561(ResourceTransferEventParser):
         event.sender = event.player
         event.reciever = event.code >> 4
         
-        bytes.get_big_int(1) #Always 84
+        bytes.get_big_8() #Always 84
         
         #Minerals and Gas are encoded the same way
-        base, extension = bytes.get_big_int(3), bytes.get_big_int(1)
+        resource_block =  bytes.get_big_32()
+        base, extension = resource_block >> 8, resource_block & 0xFF
         event.minerals = base*(extension >> 4)+ (extension & 0x0F)
-        base, extension = bytes.get_big_int(3), bytes.get_big_int(1)
+        resource_block =  bytes.get_big_32()
+        base, extension = resource_block >> 8, resource_block & 0xFF
         event.gas = base*(extension >> 4)+ (extension & 0x0F)
         
         #Another 8 bytes that don't make sense
@@ -395,17 +398,17 @@ class CameraMovementEventParser_X1(object):
         event.name = 'cameramovement_X1'
         #Get the X and Y,  last byte is also a flag
         event.bytes += bytes.skip(3, byte_code=True)+bytes.peek(1)
-        flag = bytes.get_big_int(1)
+        flag = bytes.get_big_8()
         
         #Get the zoom,  last byte is a flag
         if flag & 0x10 != 0:
             event.bytes += bytes.skip(1, byte_code=True)+bytes.peek(1)
-            flag = bytes.get_big_int(1)
+            flag = bytes.get_big_8()
         
         #If we are currently zooming get more?? idk
         if flag & 0x20 != 0:
             event.bytes += bytes.skip(1, byte_code=True)+bytes.peek(1)
-            flag = bytes.get_big_int(1)
+            flag = bytes.get_big_8()
             
         #Do camera rotation as applies
         if flag & 0x40 != 0:
@@ -449,10 +452,10 @@ class UnknownEventParser_04C6(object):
     def load(self, event, bytes):
         event.name = 'unknown04C6'
         event.bytes += bytes.peek(16)
-        block1 = bytes.get_big(4)
-        block2 = bytes.get_big(4)
-        block3 = bytes.get_big(4)
-        block4 = bytes.get_big(4)
+        block1 = bytes.get_big_32()
+        block2 = bytes.get_big_32()
+        block3 = bytes.get_big_32()
+        block4 = bytes.get_big_32()
         return event
 
 class UnknownEventParser_041C(object):
@@ -464,7 +467,7 @@ class UnknownEventParser_041C(object):
 class UnknownEventParser_0487(object):
     def load(self, event, bytes):
         event.name = 'unknown0418-87'
-        event.data,  databytes = bytes.get_big(4, byte_code=True) #Always 00 00 00 01??
+        event.data,  databytes = bytes.get_big_32(byte_code=True) #Always 00 00 00 01??
         event.bytes += databytes
         return event
         
@@ -488,4 +491,3 @@ class UnknownEventParser_0589(object):
         event.name = 'unknown0589'
         event.bytes += bytes.skip(4, byte_code=True)
         return event
-        
