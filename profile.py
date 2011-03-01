@@ -28,8 +28,8 @@ stats.strip_dirs().sort_stats("time").print_stats(15)
 # start = time.time()
 # for run in range(1,4):
 #     parse_replays()
-# end = time.time() - start
-# print end
+# diff = time.time() - start
+# print diff
 
 # ========================================
 # Results for March 1 2011
