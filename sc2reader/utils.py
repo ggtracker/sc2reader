@@ -29,7 +29,7 @@ class PlayerDict(dict):
         super(PlayerDict,self).__setitem__(value.pid,value)
         
         
-from StringIO import StringIO
+from cStringIO import StringIO
 from os import SEEK_CUR,SEEK_END
 from struct import unpack
 
