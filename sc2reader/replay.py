@@ -32,6 +32,7 @@ class Replay(object):
         self.versions = None # (number,number,number,number) tuple
         self.recorder = None # Player object
         self.frames = None # Integer representing FPS
+        self.winner_known = False
 
         # Set in parsers.DetailParser.load, should we hide this?
         self.file_time = None # Probably number milliseconds since EPOCH
@@ -75,7 +76,6 @@ class Replay(object):
         #Parsing events takes forever, so only do this on request
         if full_parse:
             self._parse_events()
-    
     
     def add_player(self,player):
         self.players.append(player)
@@ -194,6 +194,8 @@ class Replay(object):
                 
         for player in self.players:
             player.result = self.results[player.team]
+            if player.result == "Won":
+                self.winner_known = True
 
 if __name__ == '__main__':
     from pprint import PrettyPrinter
