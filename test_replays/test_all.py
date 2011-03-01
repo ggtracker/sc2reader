@@ -1,4 +1,5 @@
 # Run tests with "py.test" in the project root dir
+#encoding:UTF-8
 import os, sys
 import pytest
 
@@ -123,7 +124,7 @@ def test_ffa():
 def test_unknown_winner():
     replay = Replay("test_replays/build17811/10.sc2replay")
     
-    # Recording player (Boom) left second, so the winner shouldn't be known
+    # Recording player (Boom) left second in a 4v4, so the winner shouldn't be known
     assert replay.winner_known == False
 
 def test_random_player():
@@ -144,6 +145,10 @@ def test_us_realm():
     assert replay.player['ShadesofGray'].url == "http://us.battle.net/sc2/en/profile/2358439/1/ShadesofGray/"
     assert replay.player['reddawn'].url == "http://us.battle.net/sc2/en/profile/2198663/1/reddawn/"
 
+def test_kr_realm():
+    replay = Replay("test_replays/build17811/11.sc2replay")
+    assert replay.player['명지대학교'].url == "http://kr.battle.net/sc2/en/profile/258945/1/명지대학교/"
+    assert replay.player['티에스엘사기수'].url == "http://kr.battle.net/sc2/en/profile/102472/1/티에스엘사기수/"
     
 def test_encrypted():
     replay = Replay("test_replays/build17811/4.sc2replay")
