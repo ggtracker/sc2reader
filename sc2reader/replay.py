@@ -2,11 +2,9 @@ import os
 from collections import defaultdict
 
 from mpyq import MPQArchive
-from mpyq import __version__ as version
-print version
 
 import parsers
-from utils import ByteStream,PlayerDict
+from utils import ByteStream, PlayerDict
         
 class Replay(object):
     

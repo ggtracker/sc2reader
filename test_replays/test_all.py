@@ -88,18 +88,15 @@ def test_standard_1v1():
         
 def test_private_category():
     replay = Replay("test_replays/build17811/2.sc2replay")
-    
     assert replay.is_private == True
     assert replay.is_ladder == False
 
 def test_2v2():
-    # Source: http://drop.sc/82
     replay = Replay("test_replays/build17811/7.sc2replay")
     assert replay.type == "2v2"
 
 def test_3v3():
     replay = Replay("test_replays/build17811/3.sc2replay")
-    
     assert replay.type == "3v3"
     
     # Because it's a 3v3 and all of the members of Team 2 quit, we should know the winner.
@@ -107,15 +104,23 @@ def test_3v3():
     assert replay.results[2] == "Lost"
 
 def test_4v4():
-    # Source: http://drop.sc/32
     replay = Replay("test_replays/build17811/9.sc2replay")
     assert replay.type == "4v4"
 
 def test_ffa():
-    # Source: http://drop.sc/83
     replay = Replay("test_replays/build17811/8.sc2replay")
     assert replay.type == "FFA"
-    assert replay.player['Boom'].result == "Won"
+    
+    # Player 'Boom' won because the last building of the last player was destroyed,
+    # but the winner cannot be parsed because "Player has left" event isn't generated.
+    # Unknown result is the best we can do.
+    assert replay.winner_known == False
+
+def test_unknown_winner():
+    replay = Replay("test_replays/build17811/10.sc2replay")
+    
+    # Recording player (Boom) left second, so the winner shouldn't be known
+    assert replay.winner_known == False
 
 def test_random_player():
     replay = Replay("test_replays/build17811/3.sc2replay")
@@ -132,7 +137,6 @@ def test_random_player2():
     
 def test_us_realm():
     replay = Replay("test_replays/build17811/5.sc2replay")
-    
     assert replay.player['ShadesofGray'].url == "http://us.battle.net/sc2/en/profile/2358439/1/ShadesofGray/"
     assert replay.player['reddawn'].url == "http://us.battle.net/sc2/en/profile/2198663/1/reddawn/"
 
