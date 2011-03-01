@@ -156,5 +156,3 @@ def test_kr_realm_and_tampered_messages():
     
 def test_encrypted():
     replay = Replay("test_replays/build17811/4.sc2replay")
-    
-# TODO: Test with a 2v2, 3v3 or 4v4 replay, where the recording player quits first (should be marked as unknown)
