@@ -3,3 +3,4 @@ Author and Maintainer:
 
 Contributors:
 	Alexander Hanhikoski - alexhanh @ github
+	Bas Peschier (fizzgig) - bpeschier @ github
