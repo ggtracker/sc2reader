@@ -1,6 +1,6 @@
 class PlayerDict(dict):
     """Delete is supported on the pid index only"""
-    def __init__(self,*args,**kwargs):
+    def __init__(self, *args, **kwargs):
         self._key_map = dict()
         
         if args:
@@ -10,27 +10,27 @@ class PlayerDict(dict):
                 
         if kwargs:
             print kwargs
-            for key,value in kwargs.iteritems():
+            for key, value in kwargs.iteritems():
                 self[key] = value
         
-    def __getitem__(self,key):
-        if isinstance(key,str):
+    def __getitem__(self, key):
+        if isinstance(key, str):
             key = self._key_map[key]
 
-        return super(PlayerDict,self).__getitem__(key)
+        return super(PlayerDict, self).__getitem__(key)
 
-    def __setitem__(self,key,value):
-        if isinstance(key,str):
+    def __setitem__(self, key, value):
+        if isinstance(key, str):
             self._key_map[key] = value.pid
             key = value.pid
-        elif isinstance(key,int):
+        elif isinstance(key, int):
             self._key_map[value.name] = key
             
-        super(PlayerDict,self).__setitem__(value.pid,value)
+        super(PlayerDict, self).__setitem__(value.pid, value)
         
         
 from cStringIO import StringIO
-from os import SEEK_CUR,SEEK_END
+from os import SEEK_CUR, SEEK_END
 from struct import unpack
 
 class ByteStream(object):
