@@ -281,7 +281,6 @@ class HotkeyEventParser(object):
     
     def load_get_hotkey_changed(self, event, bytes, first):
         event.name = 'get_hotkey_changed'
-        
         extras = first >> 3
         event.bytes += bytes.peek(extras+1)
         second = bytes.get_big_8()
@@ -291,6 +290,9 @@ class HotkeyEventParser(object):
             event.bytes += bytes.skip(1, byte_code=True)
             if second & 0x06 == 0x06:
                 event.bytes += bytes.skip(1, byte_code=True)
+    
+    def load_shift_set_hotkey(self, event, bytes, first):
+        event.name = 'shift_set_hotkey'
         
     def load(self, event, bytes):
         event.name = 'hotkey'
@@ -300,21 +302,22 @@ class HotkeyEventParser(object):
         event.bytes += byte
         
         if   first == 0x00: self.load_set_hotkey(event, bytes, first)
+        elif first == 0x01: self.load_shift_set_hotkey(event, bytes, first)
         elif first == 0x02: self.load_get_hotkey(event, bytes, first)
-        elif first  > 0x03: self.load_get_hotkey_changed(event, bytes, first)
+        elif first >= 0x03: self.load_get_hotkey_changed(event, bytes, first)
         else: pass
         
         return event
     
 class HotkeyEventParser_16561(HotkeyEventParser):
     def load_get_hotkey_changed(self, event, bytes, first):
-        name = 'get_hotkey_changed'
+        event.name = 'get_hotkey_changed'
         second, byte = bytes.get_big_8(byte_code=True)
         event.bytes += byte
         
         if first & 0x08:
             event.bytes += bytes.skip(second & 0x0F, byte_code=True)
-        else:  
+        else:
             extras = first >> 3
             event.bytes += bytes.skip(extras, byte_code=True)
             if extras == 0:
