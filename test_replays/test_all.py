@@ -1,9 +1,9 @@
+# Encoding: UTF-8
+
 # Run tests with "py.test" in the project root dir
-#encoding:UTF-8
 import os, sys
 import pytest
 
-#sys.path.append(os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),"../")))
 sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),"../")))
 
 from sc2reader import Replay
@@ -119,6 +119,8 @@ def test_ffa():
     # Player 'Boom' won because the last building of the last player was destroyed,
     # but the winner cannot be parsed because "Player has left" event isn't generated.
     # Unknown result is the best we can do.
+    print replay.length
+    print replay.events[-2]
     assert replay.winner_known == False
 
 def test_unknown_winner():
@@ -145,7 +147,7 @@ def test_us_realm():
     assert replay.player['ShadesofGray'].url == "http://us.battle.net/sc2/en/profile/2358439/1/ShadesofGray/"
     assert replay.player['reddawn'].url == "http://us.battle.net/sc2/en/profile/2198663/1/reddawn/"
 
-# We can be really proud: phpsc2replay fails with the messages!
+# TODO: Current problem.. both players are set as the recording players
 def test_kr_realm_and_tampered_messages():
     replay = Replay("test_replays/build17811/11.SC2Replay")
     assert replay.player['명지대학교'].url == "http://kr.battle.net/sc2/en/profile/258945/1/명지대학교/"

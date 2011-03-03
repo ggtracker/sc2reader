@@ -163,6 +163,7 @@ class Player(object):
         self.handicap = data[6]
         self.team = None # A number to be supplied later
         self.type = "" # Human or Computer
+        self.events = list()
         
     def __str__(self):
         return "Player %s - %s (%s)" % (self.pid, self.name, self.actual_race)
