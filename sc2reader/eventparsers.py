@@ -56,7 +56,7 @@ class AbilityEventParser_16561(AbilityEventParser):
             event.abilitystr = abilities[event.ability]
         else: 
             event.abilitystr = "0x"+str(hex(event.ability))[2:].rjust(6, "0")
-        
+                
         if atype == 0x20 or atype == 0x22:
             event.name = 'unitability'
             #print "Time %s - Player %s orders (%s) %s " % (self.timestr, self.player, hex(atype), event.abilitystr)

@@ -231,7 +231,7 @@ class EventParser(object):
     }
 
     def load(self, replay, filecontents):
-        #set up an event list,  start the timer,  and process the file contents
+        #set up an event list, start the timer, and process the file contents
         replay.events, elapsed_time, bytes = list(), 0, ByteStream(filecontents)
         
         while bytes.remaining > 0:
@@ -243,7 +243,7 @@ class EventParser(object):
             
             event_bytes += bytes.peek(2)
             #Next is a compound byte where the first 3 bits XXX00000 mark the
-            #event_type,  the 4th bit 000X0000 marks the eventObjectas local or global, 
+            #event_type, the 4th bit 000X0000 marks the eventObjectas local or global,
             #and the remaining bits 0000XXXX mark the player id number.
             #The following byte completes the unique eventObjectidentifier
             first, event_code = bytes.get_big_8(), bytes.get_big_8()

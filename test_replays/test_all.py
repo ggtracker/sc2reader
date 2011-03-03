@@ -86,6 +86,15 @@ def test_standard_1v1():
     
     for msg in replay.messages:
         assert msg.sent_to_all == True
+    
+    try:
+        for event in replay.events:
+            if (event.player_id != 1 and event.player_id != 2):
+                print event    
+    except AttributeError:
+        print event
+    
+    assert True == False
         
 def test_private_category():
     replay = Replay("test_replays/build17811/2.SC2Replay")
@@ -112,15 +121,9 @@ def test_ffa():
     replay = Replay("test_replays/build17811/8.SC2Replay")
     assert replay.type == "FFA"
     
-    # TODO: Remove me when done!
-    for player in replay.players:
-        print player.name + " " + player.result
-    
     # Player 'Boom' won because the last building of the last player was destroyed,
     # but the winner cannot be parsed because "Player has left" event isn't generated.
     # Unknown result is the best we can do.
-    print replay.length
-    print replay.events[-2]
     assert replay.winner_known == False
 
 def test_unknown_winner():
