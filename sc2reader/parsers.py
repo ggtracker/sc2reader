@@ -178,8 +178,16 @@ class MessageParser(object):
                     length += 128
                     
                 text = bytes.get_string(length)
-                replay.messages.append(Message(time, replay.player[player_id], target, text))
-            
+                try:
+                    replay.messages.append(Message(time, replay.player[player_id], target, text))
+                except KeyError:
+                    # This was added because some replay sites added their own tampered
+                    # messages to replays with non-existent player_id.
+                    #
+                    # This will simply ignore and fail silently if such message is 
+                    # found.
+                    pass
+                
         recorders = [player for player in replay.players if player and player.recorder==True]
         if len(recorders) > 1:
             raise ValueError("There should be 1 and only 1 recorder; %s were found" % len(recorders))
