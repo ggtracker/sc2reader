@@ -1,4 +1,4 @@
-1.sc2replay
+1.SC2Replay
 Date played		20 Feb 2011 22:44:48
 Duration 			32:47
 Region/Realm 	EU
@@ -27,7 +27,7 @@ Messages (count=12):
 	Boom [All]: huh?
 
 	
-2.sc2replay
+2.SC2Replay
 Date played		21 Feb 2011 00:42:13
 Duration 			9:09
 Region/Realm 	EU
@@ -45,7 +45,7 @@ Messages (count=1):
 	Laquendi [All]: gg
 	
 	
-3.sc2replay
+3.SC2Replay
 Date played		25 Feb 2011 16:36:28
 Duration 			10:29
 Region/Realm 	EU
