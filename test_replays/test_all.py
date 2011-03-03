@@ -4,7 +4,6 @@
 import os, sys
 import pytest
 
-#sys.path.append(os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),"../")))
 sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),"../")))
 
 from sc2reader import Replay
@@ -122,7 +121,7 @@ def test_ffa():
     # Unknown result is the best we can do.
     print replay.length
     print replay.events[-2]
-    assert replay.winner_known == True
+    assert replay.winner_known == False
 
 def test_unknown_winner():
     replay = Replay("test_replays/build17811/10.SC2Replay")
@@ -148,7 +147,6 @@ def test_us_realm():
     assert replay.player['ShadesofGray'].url == "http://us.battle.net/sc2/en/profile/2358439/1/ShadesofGray/"
     assert replay.player['reddawn'].url == "http://us.battle.net/sc2/en/profile/2198663/1/reddawn/"
 
-# We can be really proud: phpsc2replay fails with the messages!
 def test_kr_realm_and_tampered_messages():
     replay = Replay("test_replays/build17811/11.SC2Replay")
     assert replay.player['명지대학교'].url == "http://kr.battle.net/sc2/en/profile/258945/1/명지대학교/"
