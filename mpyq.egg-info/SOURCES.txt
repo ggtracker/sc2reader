@@ -1,0 +1,11 @@
+LICENSE
+MANIFEST.in
+README.md
+mpyq.py
+setup.py
+mpyq.egg-info/PKG-INFO
+mpyq.egg-info/SOURCES.txt
+mpyq.egg-info/dependency_links.txt
+mpyq.egg-info/entry_points.txt
+mpyq.egg-info/top_level.txt
+test/test_mpqarchive.py

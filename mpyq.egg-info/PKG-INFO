@@ -1,0 +1,22 @@
+Metadata-Version: 1.0
+Name: mpyq
+Version: 0.1.4
+Summary: A Python library for extracting MPQ (MoPaQ) files.
+Home-page: http://github.com/arkx/mpyq/
+Author: Aku Kotkavuo
+Author-email: aku@hibana.net
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: Console
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: POSIX
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Topic :: Games/Entertainment :: Real Time Strategy
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: System :: Archiving

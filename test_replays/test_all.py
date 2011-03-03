@@ -1,5 +1,6 @@
+# encoding: UTF-8
+
 # Run tests with "py.test" in the project root dir
-#encoding:UTF-8
 import os, sys
 import pytest
 
@@ -119,7 +120,9 @@ def test_ffa():
     # Player 'Boom' won because the last building of the last player was destroyed,
     # but the winner cannot be parsed because "Player has left" event isn't generated.
     # Unknown result is the best we can do.
-    assert replay.winner_known == False
+    print replay.length
+    print replay.events[-2]
+    assert replay.winner_known == True
 
 def test_unknown_winner():
     replay = Replay("test_replays/build17811/10.sc2replay")
