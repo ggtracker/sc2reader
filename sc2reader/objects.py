@@ -173,6 +173,7 @@ class Player(object):
                 ['b', data[3][3]], 
                 ['a', data[3][0]], 
             ])
+        self.hex_color = "%02X%02X%02X" % (data[3][1], data[3][2], data[3][3])
         self.recorder = True # Actual recorder will be determined using the replay.message.events file
         self.handicap = data[6]
         self.team = None # A number to be supplied later

@@ -5,12 +5,7 @@ from mpyq import MPQArchive
 from datetime import datetime
 from time import gmtime
 
-# replay = Replay("1.sc2replay")
-# 
-# print replay.player["Nexpacisor"].avg_apm
-# print replay.player["dblrainbow"].apm
-
-replay = Replay("f.sc2replay", True, False)
-print replay.date
-print datetime.utcfromtimestamp((replay.file_time-116444735995904000)/10000000)
-print datetime.fromtimestamp((replay.file_time-116444735995904000)/10000000)
+# replay = Replay("test_replays/build17811/1.sc2replay")
+# print replay.type
+# print replay.players[0].rgba
+# print "%02X%02X%02X" % (replay.players[0].rgba['r'], replay.players[0].rgba['g'], replay.players[0].rgba['b'])
