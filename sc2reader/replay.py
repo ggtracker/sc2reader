@@ -155,8 +155,6 @@ class Replay(object):
                 
                 if event.player_action:
                     player.avg_apm += 1
-                else:
-                    print event.name
 
         # Average the APM
         for player in self.players:
