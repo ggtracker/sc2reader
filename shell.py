@@ -6,4 +6,4 @@ from mpyq import MPQArchive
 # replay = Replay("1.sc2replay")
 # 
 # print replay.player["Nexpacisor"].avg_apm
-# print replay.player["dblrainbow"].avg_apm
+# print replay.player["dblrainbow"].aps

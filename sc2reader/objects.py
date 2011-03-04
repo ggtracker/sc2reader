@@ -179,6 +179,7 @@ class Player(object):
         self.type = "" # Human or Computer
         self.events = list()
         self.avg_apm = 0
+        self.aps = dict()
         
     def __str__(self):
         return "Player %s - %s (%s)" % (self.pid, self.name, self.actual_race)

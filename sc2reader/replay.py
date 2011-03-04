@@ -150,10 +150,16 @@ class Replay(object):
             self.events_by_type[event.name].append(event)
             
             if event.is_local:
+                # TODO: This will probably break with observers because events
+                # are recorded for observers but they are not added to self.players
                 player = self.player[event.player]
                 player.events.append(event)
                 
                 if event.is_player_action:
+                    if event.seconds in player.aps:
+                        player.aps[event.seconds] += 1
+                    else:
+                        player.aps[event.seconds] = 1
                     player.avg_apm += 1
 
         # Average the APM
