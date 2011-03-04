@@ -148,7 +148,19 @@ class Replay(object):
         self.events_by_type = defaultdict(list)
         for event in self.events:
             self.events_by_type[event.name].append(event)
-            # self.player[event.player_id].events.append(event)
+            
+            if event.local:
+                player = self.player[event.player]
+                player.events.append(event)
+                
+                if event.is_player_action:
+                    player.avg_apm += 1
+                else:
+                    print event.name
+
+        # Average the APM
+        for player in self.players:
+            player.avg_apm /= player.events[-1].seconds/60
             
         self._process_results()
         

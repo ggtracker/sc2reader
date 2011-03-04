@@ -97,25 +97,37 @@ class Attribute(object):
 class Event(object):
     def __init__(self, elapsed_time, event_type, event_code, global_flag, player_id, 
                     location=None, bytes=""):
-        self.time, seconds = (elapsed_time, elapsed_time/16)
-        self.timestr = "%s:%s" % (seconds/60, str(seconds%60).rjust(2, "0"))
+        self.time, self.seconds = (elapsed_time, elapsed_time/16)
+        self.timestr = "%s:%s" % (self.seconds/60, str(self.seconds%60).rjust(2, "0"))
         self.type = event_type
         self.code = event_code
         self.local = (global_flag == 0x0)
         self.player = player_id
         self.location = location
         self.bytes = bytes
-        self.abilitystr = ""
+
+        # Added for convenience
+        self.is_init = (event_type == 0x00)
+        self.is_player_action = (event_type == 0x01)
+        self.is_camera_movement = (event_type == 0x03)
+        self.is_unknown = (event_type == 0x02 or event_type == 0x04 or event_type == 0x05)
         		
     def __call__(self, elapsed_time, event_type, global_flag, player_id, event_code, bytes):
-        self.time, seconds = (elapsed_time, elapsed_time/16)
-        self.timestr = "%s:%s" % (seconds/60, str(seconds%60).rjust(2, "0"))
+        self.time, self.seconds = (elapsed_time, elapsed_time/16)
+        self.timestr = "%s:%s" % (self.seconds/60, str(self.seconds%60).rjust(2, "0"))
         self.type = event_type
         self.code = event_code
         self.local = (global_flag == 0x0)
         self.player = player_id
         self.bytes = ""
         self.abilitystr = ""
+        
+        # Added for convenience
+        self.is_init = (event_type == 0x00)
+        self.is_player_action = (event_type == 0x01)
+        self.is_camera_movement = (event_type == 0x03)
+        self.is_unknown = (event_type == 0x02 or event_type == 0x04 or event_type == 0x05)
+        
         self.parse(bytes)
         return self
 	
@@ -166,6 +178,7 @@ class Player(object):
         self.team = None # A number to be supplied later
         self.type = "" # Human or Computer
         self.events = list()
+        self.avg_apm = 0
         
     def __str__(self):
         return "Player %s - %s (%s)" % (self.pid, self.name, self.actual_race)
