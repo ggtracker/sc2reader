@@ -148,6 +148,7 @@ class Replay(object):
         self.events_by_type = defaultdict(list)
         for event in self.events:
             self.events_by_type[event.name].append(event)
+            # self.player[event.player_id].events.append(event)
             
         self._process_results()
         

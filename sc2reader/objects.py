@@ -105,7 +105,8 @@ class Event(object):
         self.player = player_id
         self.location = location
         self.bytes = bytes
-		
+        self.abilitystr = ""
+        		
     def __call__(self, elapsed_time, event_type, global_flag, player_id, event_code, bytes):
         self.time, seconds = (elapsed_time, elapsed_time/16)
         self.timestr = "%s:%s" % (seconds/60, str(seconds%60).rjust(2, "0"))
@@ -114,11 +115,12 @@ class Event(object):
         self.local = (global_flag == 0x0)
         self.player = player_id
         self.bytes = ""
+        self.abilitystr = ""
         self.parse(bytes)
         return self
 	
     def __str__(self):
-        return "%s - %s" % (self.timestr, self.name)
+        return "%s - %s - %s" % (self.timestr, self.name, self.abilitystr)
         
     def __repr__(self):
         return str(self)
