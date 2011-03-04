@@ -179,7 +179,8 @@ class Player(object):
         self.type = "" # Human or Computer
         self.events = list()
         self.avg_apm = 0
-        self.aps = dict()
+        self.aps = dict() # Doesn't contain seconds with zero actions
+        self.apm = dict() # Doesn't contain minutes with zero actions
         
     def __str__(self):
         return "Player %s - %s (%s)" % (self.pid, self.name, self.actual_race)

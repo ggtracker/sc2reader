@@ -155,11 +155,19 @@ class Replay(object):
                 player = self.player[event.player]
                 player.events.append(event)
                 
+                # Calculate APS, APM and average
                 if event.is_player_action:
                     if event.seconds in player.aps:
                         player.aps[event.seconds] += 1
                     else:
                         player.aps[event.seconds] = 1
+                        
+                    minute = event.seconds/60
+                    if minute in player.apm:
+                        player.apm[minute] += 1
+                    else:
+                        player.apm[minute] = 1
+                        
                     player.avg_apm += 1
 
         # Average the APM
