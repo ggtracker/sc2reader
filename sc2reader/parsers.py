@@ -1,4 +1,5 @@
-from time import ctime
+from math import ceil
+from datetime import datetime
 from collections import defaultdict
 
 from objects import Attribute, Message, Player, Event
@@ -136,7 +137,12 @@ class DetailParser(object):
             
         replay.map = data[1].decode("hex")
         replay.file_time = data[5]
-        replay.date = ctime( (data[5]-116444735995904000)/10000000 )
+
+        # TODO: This doesn't seem to produce exactly correct results.
+        # This might be due to wrong value of the magic constant 116444735995904000
+        # or rounding errors.
+        replay.date = datetime.fromtimestamp((replay.file_time-116444735995904000)/10000000)
+        replay.utc_date = datetime.utcfromtimestamp((replay.file_time-116444735995904000)/10000000)
         
         replay.details_data = data
 

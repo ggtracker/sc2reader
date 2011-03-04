@@ -1,3 +1,5 @@
+Note: All datetimes in UTC+2
+
 1.SC2Replay
 Date played		20 Feb 2011 22:44:48
 Duration 			32:47

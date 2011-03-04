@@ -42,11 +42,12 @@ class Replay(object):
          #Used internally to ensure parse ordering
         self.__parsed = dict(details=False, attributes=False, messages=False, events=False, initdata=False)
         
-        # TODO: Change to something better
+        # TODO: Test EPOCH differences between MacOsX and Windows
         # http://en.wikipedia.org/wiki/Epoch_(reference_date)
         # Notice that Windows and Mac have different EPOCHs, I wonder whether
         # this is different depending on the OS on which the replay was played.
-        self.date = "" # Date when the game was played
+        self.date = None # Date when the game was played in local time
+        self.utc_date = None # Date when the game was played in UTC
         
         #Make sure the file exists and is readable, first and foremost
         if not os.access(self.filename, os.F_OK):

@@ -3,6 +3,7 @@
 # Run tests with "py.test" in the project root dir
 import os, sys
 import pytest
+import datetime
 
 sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),"../")))
 
@@ -21,8 +22,7 @@ def test_empty():
 
 def test_standard_1v1():
     replay = Replay("test_replays/build17811/1.SC2Replay")
-
-#    assert replay.date == "20 Feb 2011 22:44:48"
+    
     assert replay.length == (32, 47)
     assert replay.map == "Lost Temple"
     assert replay.build == 17811
@@ -152,3 +152,19 @@ def test_kr_realm_and_tampered_messages():
     
 def test_encrypted():
     replay = Replay("test_replays/build17811/4.SC2Replay")
+
+def test_datetimes():
+    # Ignore seconds in comparisons, because they are off by one what is reported by Windows.
+    # This might be a little nuance worth investigating at some point.
+    
+    # Played at 20 Feb 2011 22:44:48 UTC+2
+    replay = Replay("test_replays/build17811/1.SC2Replay")
+    assert replay.utc_date == datetime.datetime(2011, 2, 20, 20, 44, 47)
+    
+    # Played at 21 Feb 2011 00:42:13 UTC+2
+    replay = Replay("test_replays/build17811/2.SC2Replay")
+    assert replay.utc_date == datetime.datetime(2011, 2, 20, 22, 42, 12)
+    
+    # Played at 25 Feb 2011 16:36:28 UTC+2
+    replay = Replay("test_replays/build17811/3.SC2Replay")
+    assert replay.utc_date == datetime.datetime(2011, 2, 25, 14, 36, 26)
