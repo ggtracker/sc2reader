@@ -149,7 +149,7 @@ class Replay(object):
         for event in self.events:
             self.events_by_type[event.name].append(event)
             
-            if event.local:
+            if event.is_local:
                 player = self.player[event.player]
                 player.events.append(event)
                 

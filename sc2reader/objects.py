@@ -101,7 +101,7 @@ class Event(object):
         self.timestr = "%s:%s" % (self.seconds/60, str(self.seconds%60).rjust(2, "0"))
         self.type = event_type
         self.code = event_code
-        self.local = (global_flag == 0x0)
+        self.is_local = (global_flag == 0x0)
         self.player = player_id
         self.location = location
         self.bytes = bytes
@@ -117,7 +117,7 @@ class Event(object):
         self.timestr = "%s:%s" % (self.seconds/60, str(self.seconds%60).rjust(2, "0"))
         self.type = event_type
         self.code = event_code
-        self.local = (global_flag == 0x0)
+        self.is_local = (global_flag == 0x0)
         self.player = player_id
         self.bytes = ""
         self.abilitystr = ""
