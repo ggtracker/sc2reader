@@ -138,9 +138,11 @@ class DetailParser(object):
         replay.map = data[1].decode("hex")
         replay.file_time = data[5]
 
-        # TODO: This doesn't seem to produce exactly correct results.
+        # TODO: This doesn't seem to produce exactly correct results, ie. often off by one
+        # second compared to file timestamps reported by Windows.
         # This might be due to wrong value of the magic constant 116444735995904000
-        # or rounding errors.
+        # or rounding errors. Ceiling or Rounding the result didn't produce consistent
+        # results either.
         replay.date = datetime.fromtimestamp((replay.file_time-116444735995904000)/10000000)
         replay.utc_date = datetime.utcfromtimestamp((replay.file_time-116444735995904000)/10000000)
         
