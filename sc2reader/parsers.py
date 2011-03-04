@@ -235,13 +235,15 @@ class EventParser(object):
         replay.events, elapsed_time, bytes = list(), 0, ByteStream(filecontents)
         
         while bytes.remaining > 0:
+            #Save the start so we can trace for debug purposes
+            start = bytes.cursor
+            
+            
             #First section is always a timestamp marking the elapsed time
             #since the last eventObjectlisted
-            location = hex(bytes.cursor)
-            time_diff, event_bytes = bytes.get_timestamp(byte_code=True)
+            time_diff = bytes.get_timestamp()
             elapsed_time += time_diff
             
-            event_bytes += bytes.peek(2)
             #Next is a compound byte where the first 3 bits XXX00000 mark the
             #event_type, the 4th bit 000X0000 marks the eventObjectas local or global,
             #and the remaining bits 0000XXXX mark the player id number.
@@ -251,13 +253,18 @@ class EventParser(object):
 
             #Create a barebones event from the gathered information
             event = Event(elapsed_time, event_type, event_code, 
-                        global_flag, player_id, location, event_bytes)
+                        global_flag, player_id, start)
             
             try:
                 #Get the parser and load the data into the event
                 replay.events.append(self.get_parser(event).load(event, bytes))
+                
+                #Retrace and save the bytes for debug purposes
+                end = bytes.cursor
+                bytes.stream.seek(start)
+                event.bytes = bytes.get_bytes(end-start)
             except TypeError as e:
-                raise ParseError(e.message, replay, event, bytes)
+                raise #ParseError(e.message, replay, event, bytes)
             
     def get_parser(self, event):
         if event.type not in self.parser_map.keys():
