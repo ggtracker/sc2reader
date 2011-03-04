@@ -153,7 +153,7 @@ class Replay(object):
                 player = self.player[event.player]
                 player.events.append(event)
                 
-                if event.player_action:
+                if event.is_player_action:
                     player.avg_apm += 1
 
         # Average the APM

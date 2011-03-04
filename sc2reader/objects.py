@@ -107,10 +107,10 @@ class Event(object):
         self.bytes = bytes
 
         # Added for convenience
-        self.init = (event_type == 0x00)
-        self.player_action = (event_type == 0x01)
-        self.camera_movement = (event_type == 0x03)
-        self.unknown = (event_type == 0x02 or event_type == 0x04 or event_type == 0x05)
+        self.is_init = (event_type == 0x00)
+        self.is_player_action = (event_type == 0x01)
+        self.is_camera_movement = (event_type == 0x03)
+        self.is_unknown = (event_type == 0x02 or event_type == 0x04 or event_type == 0x05)
         		
     def __call__(self, elapsed_time, event_type, global_flag, player_id, event_code, bytes):
         self.time, self.seconds = (elapsed_time, elapsed_time/16)
@@ -123,10 +123,10 @@ class Event(object):
         self.abilitystr = ""
         
         # Added for convenience
-        self.init = (event_type == 0x00)
-        self.player_action = (event_type == 0x01)
-        self.camera_movement = (event_type == 0x03)
-        self.unknown = (event_type == 0x02 or event_type == 0x04 or event_type == 0x05)
+        self.is_init = (event_type == 0x00)
+        self.is_player_action = (event_type == 0x01)
+        self.is_camera_movement = (event_type == 0x03)
+        self.is_unknown = (event_type == 0x02 or event_type == 0x04 or event_type == 0x05)
         
         self.parse(bytes)
         return self
