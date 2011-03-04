@@ -142,6 +142,7 @@ def test_us_realm():
     assert replay.player['reddawn'].url == "http://us.battle.net/sc2/en/profile/2198663/1/reddawn/"
 
 # TODO: Current problem.. both players are set as the recording players
+# Waiting for response https://github.com/arkx/mpyq/issues/closed#issue/7
 def test_kr_realm_and_tampered_messages():
     replay = Replay("test_replays/build17811/11.SC2Replay")
     assert replay.player['명지대학교'].url == "http://kr.battle.net/sc2/en/profile/258945/1/명지대학교/"
@@ -149,6 +150,11 @@ def test_kr_realm_and_tampered_messages():
     
     assert replay.messages[0].text == "sc2.replays.net"
     assert replay.messages[5].text == "sc2.replays.net"
+
+# TODO: This currently fails for unknown reasons
+# It errors: "TypeError: Unknown event: 0x2 - 0xe at 4240"
+def test_footmen():
+    replay = Replay("test_replays/build17811/12.SC2Replay")
     
 def test_encrypted():
     replay = Replay("test_replays/build17811/4.SC2Replay")
