@@ -158,6 +158,10 @@ def test_footmen():
     
 def test_encrypted():
     replay = Replay("test_replays/build17811/4.SC2Replay")
+    
+# TODO: Failing
+def test_observers():
+    replay = Replay("test_replays/build17811/13.SC2Replay")
 
 def test_datetimes():
     # Ignore seconds in comparisons, because they are off by one what is reported by Windows.
