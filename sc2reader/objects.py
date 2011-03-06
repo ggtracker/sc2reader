@@ -168,13 +168,14 @@ class Player(object):
         self.url = self.url_template % (self.realm, self.uid, self.subregion, self.name)
         self.actual_race = data[2].decode("hex")
         self.choosen_race = "" # Populated from the replay.attribute.events file
-        self.rgba = dict([
+        self.color_rgba = dict([
                 ['r', data[3][1]], 
                 ['g', data[3][2]], 
                 ['b', data[3][3]], 
                 ['a', data[3][0]], 
             ])
-        self.hex_color = "%02X%02X%02X" % (data[3][1], data[3][2], data[3][3])
+        self.color_hex = "%02X%02X%02X" % (data[3][1], data[3][2], data[3][3])
+        self.color_text = "" # The text of the player color (Red, Blue, etc) to be supplied later
         self.recorder = True # Actual recorder will be determined using the replay.message.events file
         self.handicap = data[6]
         self.team = None # A number to be supplied later

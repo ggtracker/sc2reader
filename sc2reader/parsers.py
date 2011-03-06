@@ -111,7 +111,7 @@ class AttributeParser(object):
         for pid, attributes in data.iteritems():
             if pid == 16: continue
             player = replay.player[pid]
-            player.color = attributes['Color']
+            player.color_text = attributes['Color']
             player.team = attributes['Teams'+replay.type]
             player.choosen_race = attributes['Race']
             player.difficulty = attributes['Difficulty']

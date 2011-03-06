@@ -10,4 +10,4 @@ from time import gmtime
 # print replay.players[0].rgba
 # print "%02X%02X%02X" % (replay.players[0].rgba['r'], replay.players[0].rgba['g'], replay.players[0].rgba['b'])
 
-replay = Replay("94.sc2replay")
+replay = Replay("1.sc2replay")
