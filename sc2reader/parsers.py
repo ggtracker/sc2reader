@@ -231,7 +231,8 @@ class EventParser(object):
             (ResourceTransferEventParser(), lambda e: e.code & 0x0F == 0xF and e.code >> 4 <= 0x9 ),],
         0x02: [
             (UnknownEventParser_0206(), lambda e: e.code == 0x06 ),
-            (UnknownEventParser_0207(), lambda e: e.code == 0x07 ),],
+            (UnknownEventParser_0207(), lambda e: e.code == 0x07 ),
+            (UnknownEventParser_020E(), lambda e: e.code == 0x0E ),],
         0x03: [
             (CameraMovementEventParser_87(), lambda e: e.code == 0x87 ),
             (CameraMovementEventParser_08(), lambda e: e.code == 0x08 ),
@@ -254,7 +255,6 @@ class EventParser(object):
         while bytes.remaining > 0:
             #Save the start so we can trace for debug purposes
             start = bytes.cursor
-            
             
             #First section is always a timestamp marking the elapsed time
             #since the last eventObjectlisted
@@ -280,6 +280,7 @@ class EventParser(object):
                 end = bytes.cursor
                 bytes.stream.seek(start)
                 event.bytes = bytes.get_bytes(end-start)
+
             except TypeError as e:
                 raise #ParseError(e.message, replay, event, bytes)
             
@@ -307,7 +308,8 @@ class EventParser_16561(EventParser):
             (ResourceTransferEventParser_16561(), lambda e: e.code & 0x0F == 0xF and e.code >> 4 <= 0x8 ),],
         0x02: [
             (UnknownEventParser_0206(), lambda e: e.code == 0x06 ),
-            (UnknownEventParser_0207(), lambda e: e.code == 0x07 ),],
+            (UnknownEventParser_0207(), lambda e: e.code == 0x07 ),
+            (UnknownEventParser_020E(), lambda e: e.code == 0x0E ),],
         0x03: [
             (CameraMovementEventParser_87(), lambda e: e.code == 0x87 ),
             (CameraMovementEventParser_08(), lambda e: e.code == 0x08 ),
@@ -347,7 +349,8 @@ class EventParser_17326(EventParser):
             (ResourceTransferEventParser_16561(), lambda e: e.code & 0x0F == 0xF and e.code >> 4 <= 0x9 ),],
         0x02: [
             (UnknownEventParser_0206(), lambda e: e.code == 0x06 ),
-            (UnknownEventParser_0207(), lambda e: e.code == 0x07 ),],
+            (UnknownEventParser_0207(), lambda e: e.code == 0x07 ),
+            (UnknownEventParser_020E(), lambda e: e.code == 0x0E ),],
         0x03: [
             (CameraMovementEventParser_87(), lambda e: e.code == 0x87 ),
             (CameraMovementEventParser_08(), lambda e: e.code == 0x08 ),

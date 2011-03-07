@@ -403,6 +403,12 @@ class UnknownEventParser_0207(object):
         bytes.skip(4)
         return event
 
+class UnknownEventParser_020E(object):
+    def load(self, event, bytes):
+        event.name = 'unknown020E'
+        bytes.skip(4)
+        return event
+
 #####################################################
 # Unknown Event Type 04 Parsers
 #####################################################
