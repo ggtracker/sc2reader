@@ -138,11 +138,10 @@ class Event(object):
     def __repr__(self):
         return str(self)
 
-# TODO: Refactor message.player to message.sender
 class Message(object):
     
     def __init__(self, time, player, target, text):
-        self.time, self.player, self.target, self.text = time, player, target, text
+        self.time, self.sender, self.target, self.text = time, player, target, text
         self.seconds = time/16
         self.sent_to_all = (self.target == 0)
         self.sent_to_allies = (self.target == 2)
@@ -159,7 +158,6 @@ class Actor(object):
     def __init__(self, is_obs):
         self.pid = None
         self.name = None
-        self.team = None
         self.is_obs = is_obs
         self.messages = list()
         self.events = list()
@@ -170,7 +168,6 @@ class Observer(Actor):
         Actor.__init__(self, True)
         self.pid = pid
         self.name = name
-        self.team = 0 # Observers share the fictitious team 0
 		
 class Player(Actor):
     
