@@ -2,7 +2,7 @@ from math import ceil
 from datetime import datetime
 from collections import defaultdict
 
-from objects import Attribute, Message, Player, Event
+from objects import Attribute, Message, Player, Observer, Event
 from eventparsers import *
 from utils import ByteStream
 from exceptions import ParseError
@@ -41,12 +41,17 @@ def get_initdata_parser(build):
     return InitdataParser()
     
 class InitdataParser(object):
-    def load(self,replay,filecontents):
+    def load(self, replay, filecontents):
         bytes = ByteStream(filecontents)
         num_players = bytes.get_big_8()
-        for p in range(0,num_players):
+        for p in range(0, num_players):
             name_length = bytes.get_big_8()
             name = bytes.get_string(name_length)
+            
+            # Add every player as observer for now
+            if name_length > 0:
+                replay.observers.append(Observer(p+1, name))
+                
             bytes.skip(5)
         
         bytes.skip(5) # Unknown
@@ -107,10 +112,10 @@ class AttributeParser(object):
         
         replay.type = data[16]['Game Type']
 
-        #Set player attributes as available,  requires already populated player list
+        #Set player attributes as available, requires already populated player list
         for pid, attributes in data.iteritems():
             if pid == 16: continue
-            player = replay.player[pid]
+            player = replay.actor[pid]
             player.color_text = attributes['Color']
             player.team = attributes['Teams'+replay.type]
             player.choosen_race = attributes['Race']
@@ -131,10 +136,17 @@ class AttributeParser_17326(AttributeParser):
 class DetailParser(object):
     def load(self, replay, filecontents):
         data =  ByteStream(filecontents).parse_serialized_data()
-        
+
+        pids = []
         for pid, pdata in enumerate(data[0]):
-            replay.add_player(Player(pid+1, pdata, replay.realm)) #shift the id to start @ 1
-            
+            pids.append(pid+1)
+            replay.add_actor(Player(pid+1, pdata, replay.realm)) #shift the id to start @ 1
+        
+        # Remove actual players from the observers we saved during parsing of initdata.
+        replay.observers = [obs for obs in replay.observers if not obs.pid in pids]
+        for observer in replay.observers:
+            replay.add_actor(observer)
+        
         replay.map = data[1].decode("hex")
         replay.file_time = data[5]
 
@@ -170,10 +182,7 @@ class MessageParser(object):
                 #some sort of header code
                 elif flags & 0x0F == 0:
                     bytes.skip(4)
-                    if player_id <= len(replay.players):
-                        replay.player[player_id].recorder = False
-                    else:
-                        pass #This "player" is an observer or something
+                    replay.actor[player_id].recorder = False
             
             elif flags & 0x80 == 0:
                 target = flags & 0x03
@@ -187,7 +196,7 @@ class MessageParser(object):
                     
                 text = bytes.get_string(length)
                 try:
-                    replay.messages.append(Message(time, replay.player[player_id], target, text))
+                    replay.messages.append(Message(time, replay.actor[player_id], target, text))
                 except KeyError:
                     # This was added because some replay sites added their own tampered
                     # messages to replays with non-existent player_id.
@@ -195,12 +204,12 @@ class MessageParser(object):
                     # This will simply ignore and fail silently if such message is 
                     # found.
                     pass
-                
-        recorders = [player for player in replay.players if player and player.recorder==True]
+        
+        recorders = [actor for actor in replay.actors if actor and actor.recorder==True]
         if len(recorders) > 1:
             raise ValueError("There should be 1 and only 1 recorder; %s were found" % len(recorders))
         elif len(recorders) == 0:
-            #If there are no recorders,  then the recorder must not be a player,  spectator or referee then
+            #If there are no recorders, then the recorder must not be a player, spectator or referee then
             replay.recorder = None
         else:
             replay.recorder = recorders[0]

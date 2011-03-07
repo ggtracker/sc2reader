@@ -4,7 +4,7 @@ from collections import defaultdict
 from mpyq import MPQArchive
 
 import parsers
-from utils import ByteStream, PlayerDict
+from utils import ByteStream, ActorDict
         
 class Replay(object):
     
@@ -22,8 +22,10 @@ class Replay(object):
         self.events = list()
         self.results = dict()
         self.teams = defaultdict(list)
+        self.observers = list() #Unordered list of Observer
         self.players = list() #Unordered list of Player
-        self.player = PlayerDict() #Maps pid to Player
+        self.actors = list() #Unordered list of Players+Observers
+        self.actor = ActorDict() #Maps pid to Player/Observer
         self.events_by_type = dict()
         self.attributes = list()
         self.length = None # (minutes, seconds) tuple
@@ -78,9 +80,14 @@ class Replay(object):
         if full_parse:
             self._parse_events()
     
-    def add_player(self,player):
-        self.players.append(player)
-        self.player[player.pid] = player
+    def add_actor(self, actor):
+        # Observers were added to self.observers already
+        
+        if not actor.is_obs:
+            self.players.append(actor)
+            
+        self.actor[actor.pid] = actor
+        self.actors.append(actor)
         
     def _parse_header(self):
         #Open up a ByteStream for its contents
@@ -151,27 +158,25 @@ class Replay(object):
             self.events_by_type[event.name].append(event)
             
             if event.is_local:
-                # TODO: This will probably break with observers because events
-                # are recorded for observers but they are not added to self.players
-                player = self.player[event.player]
-                player.events.append(event)
+                actor = self.actor[event.player]
+                actor.events.append(event)
                 
                 # Calculate APS, APM and average
-                if event.is_player_action:
-                    if event.seconds in player.aps:
-                        player.aps[event.seconds] += 1
+                if not actor.is_obs and event.is_player_action:
+                    if event.seconds in actor.aps:
+                        actor.aps[event.seconds] += 1
                     else:
-                        player.aps[event.seconds] = 1
+                        actor.aps[event.seconds] = 1
                         
                     minute = event.seconds/60
-                    if minute in player.apm:
-                        player.apm[minute] += 1
+                    if minute in actor.apm:
+                        actor.apm[minute] += 1
                     else:
-                        player.apm[minute] = 1
+                        actor.apm[minute] = 1
                         
-                    player.avg_apm += 1
+                    actor.avg_apm += 1
 
-        # Average the APM
+        # Average the APM for actual players
         for player in self.players:
             player.avg_apm /= player.events[-1].seconds/60.0
             
@@ -187,7 +192,7 @@ class Replay(object):
         for event in self.events_by_type['leave']:
             #Some spectator actions seem to be recorded, they aren't on teams anyway
             if event.player <= len(self.players):
-                team = self.player[event.player].team
+                team = self.actor[event.player].team
                 self.results[team] -= 1 
                 
         #mark all teams with no players left as losing, save the rest of the teams

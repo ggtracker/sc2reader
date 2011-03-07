@@ -1,4 +1,4 @@
-class PlayerDict(dict):
+class ActorDict(dict):
     """Delete is supported on the pid index only"""
     def __init__(self, *args, **kwargs):
         self._key_map = dict()
@@ -17,7 +17,7 @@ class PlayerDict(dict):
         if isinstance(key, str):
             key = self._key_map[key]
 
-        return super(PlayerDict, self).__getitem__(key)
+        return super(ActorDict, self).__getitem__(key)
 
     def __setitem__(self, key, value):
         if isinstance(key, str):
@@ -26,7 +26,7 @@ class PlayerDict(dict):
         elif isinstance(key, int):
             self._key_map[value.name] = key
             
-        super(PlayerDict, self).__setitem__(value.pid, value)
+        super(ActorDict, self).__setitem__(value.pid, value)
         
         
 from cStringIO import StringIO

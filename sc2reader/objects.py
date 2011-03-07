@@ -105,6 +105,7 @@ class Event(object):
         self.player = player_id
         self.location = location
         self.bytes = bytes
+        self.abilitystr = ""
 
         # Added for convenience
         self.is_init = (event_type == 0x00)
@@ -137,6 +138,7 @@ class Event(object):
     def __repr__(self):
         return str(self)
 
+# TODO: Refactor message.player to message.sender
 class Message(object):
     
     def __init__(self, time, player, target, text):
@@ -152,13 +154,30 @@ class Message(object):
     def __repr__(self):
         return str(self)
 
+# Actor is a base class for Observer and Player
+class Actor(object):
+    def __init__(self, is_obs):
+        self.pid = None
+        self.name = None
+        self.team = None
+        self.is_obs = is_obs
+        self.messages = list()
+        self.events = list()
+        self.recorder = True # Actual recorder will be determined using the replay.message.events file
 
+class Observer(Actor):
+    def __init__(self, pid, name):
+        Actor.__init__(self, True)
+        self.pid = pid
+        self.name = name
+        self.team = 0 # Observers share the fictitious team 0
 		
-class Player(object):
+class Player(Actor):
     
     url_template = "http://%s.battle.net/sc2/en/profile/%s/%s/%s/"
     
     def __init__(self, pid, data, realm="us"):
+        Actor.__init__(self, False)
         # TODO: get a map of realm,subregion => region in here
         self.pid = pid
         self.realm = realm
@@ -176,11 +195,9 @@ class Player(object):
             ])
         self.color_hex = "%02X%02X%02X" % (data[3][1], data[3][2], data[3][3])
         self.color_text = "" # The text of the player color (Red, Blue, etc) to be supplied later
-        self.recorder = True # Actual recorder will be determined using the replay.message.events file
         self.handicap = data[6]
         self.team = None # A number to be supplied later
         self.type = "" # Human or Computer
-        self.events = list()
         self.avg_apm = 0
         self.aps = dict() # Doesn't contain seconds with zero actions
         self.apm = dict() # Doesn't contain minutes with zero actions

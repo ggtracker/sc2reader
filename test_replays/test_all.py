@@ -34,15 +34,15 @@ def test_standard_1v1():
     assert replay.is_private == False
 
     assert len(replay.players) == 2
-    assert replay.player[1].name == "Emperor"
-    assert replay.player[2].name == "Boom"
-    emperor = replay.player['Emperor']
+    assert replay.actor[1].name == "Emperor"
+    assert replay.actor[2].name == "Boom"
+    emperor = replay.actor['Emperor']
     assert emperor.team == 1
     assert emperor.choosen_race == "Protoss"
     assert emperor.actual_race == "Protoss"
     assert emperor.recorder == False
 
-    boom = replay.player['Boom']
+    boom = replay.actor['Boom']
     assert boom.team == 2
     assert boom.choosen_race == "Terran"
     assert boom.actual_race == "Terran"
@@ -126,27 +126,27 @@ def test_unknown_winner():
 def test_random_player():
     replay = Replay("test_replays/build17811/3.SC2Replay")
 
-    gogeta = replay.player['Gogeta']
+    gogeta = replay.actor['Gogeta']
     assert gogeta.choosen_race == "Random"
     assert gogeta.actual_race == "Terran"
 
 def test_random_player2():
     replay = Replay("test_replays/build17811/6.SC2Replay")
-    permafrost = replay.player["Permafrost"]
+    permafrost = replay.actor["Permafrost"]
     assert permafrost.choosen_race == "Random"
     assert permafrost.actual_race == "Protoss"
     
 def test_us_realm():
     replay = Replay("test_replays/build17811/5.SC2Replay")
-    assert replay.player['ShadesofGray'].url == "http://us.battle.net/sc2/en/profile/2358439/1/ShadesofGray/"
-    assert replay.player['reddawn'].url == "http://us.battle.net/sc2/en/profile/2198663/1/reddawn/"
+    assert replay.actor['ShadesofGray'].url == "http://us.battle.net/sc2/en/profile/2358439/1/ShadesofGray/"
+    assert replay.actor['reddawn'].url == "http://us.battle.net/sc2/en/profile/2198663/1/reddawn/"
 
 # TODO: Current problem.. both players are set as the recording players
 # Waiting for response https://github.com/arkx/mpyq/issues/closed#issue/7
 def test_kr_realm_and_tampered_messages():
     replay = Replay("test_replays/build17811/11.SC2Replay")
-    assert replay.player['명지대학교'].url == "http://kr.battle.net/sc2/en/profile/258945/1/명지대학교/"
-    assert replay.player['티에스엘사기수'].url == "http://kr.battle.net/sc2/en/profile/102472/1/티에스엘사기수/"
+    assert replay.actor['명지대학교'].url == "http://kr.battle.net/sc2/en/profile/258945/1/명지대학교/"
+    assert replay.actor['티에스엘사기수'].url == "http://kr.battle.net/sc2/en/profile/102472/1/티에스엘사기수/"
     
     assert replay.messages[0].text == "sc2.replays.net"
     assert replay.messages[5].text == "sc2.replays.net"
@@ -159,7 +159,6 @@ def test_footmen():
 def test_encrypted():
     replay = Replay("test_replays/build17811/4.SC2Replay")
     
-# TODO: Failing
 def test_observers():
     replay = Replay("test_replays/build17811/13.SC2Replay")
 
