@@ -310,6 +310,9 @@ units = {
     0x022b01: 'Rich Mineral Field',
 }
 
+# These are found in fileset.{locale}#Mods#Core.SC2Mod#{locale}.SC2Data/LocalizedData/Editor/EditorCategoryStrings.txt
+# EDSTR_CATEGORY_Race
+# EDSTR_PLAYERPROPS_RACE
 # question mark means not confirmed data
 races = {
     # deDE
