@@ -312,7 +312,20 @@ units = {
 
 # question mark means not confirmed data
 races = {
-    # KR?
+    # deDE
+    # enUS
+    # esES
+    # esMX
+    # frFR
+    # itIT
+    
+    # koKR
     '프로토스': 'Protoss', #?
     '테란': 'Terran' #?
+    
+    # plPL
+    # ptBR
+    # ruRU
+    # zhCN
+    # zhTW
 }
