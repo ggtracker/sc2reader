@@ -1,3 +1,5 @@
+from data import races
+
 class Attribute(object):
     
     def __init__(self, data):
@@ -183,6 +185,10 @@ class Player(Actor):
         self.subregion = data[1][2]
         self.url = self.url_template % (self.realm, self.uid, self.subregion, self.name)
         self.actual_race = data[2].decode("hex")
+        
+        # Actual race seems to be localized, so try to convert to english if possible
+        if self.actual_race in races:
+            self.actual_race = races[self.actual_race]
         self.choosen_race = "" # Populated from the replay.attribute.events file
         self.color_rgba = dict([
                 ['r', data[3][1]], 

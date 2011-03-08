@@ -1,3 +1,5 @@
+# Encoding: UTF-8
+
 abilities = {
 
     #Zerg Create Unit
@@ -306,4 +308,11 @@ units = {
     0x032901: "Xel'Naga Tower",
     0x003d01: 'Mineral Field',
     0x022b01: 'Rich Mineral Field',
+}
+
+# question mark means not confirmed data
+races = {
+    # KR?
+    '프로토스': 'Protoss', #?
+    '테란': 'Terran' #?
 }
