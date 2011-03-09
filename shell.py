@@ -4,10 +4,27 @@ from sc2reader import Replay
 from mpyq import MPQArchive
 from datetime import datetime
 from time import gmtime
+from events import EventParser
+from utils import MemFile
+import cProfile
+from pstats import Stats
+import time
 
-# replay = Replay("test_replays/build17811/1.sc2replay")
-# print replay.type
-# print replay.players[0].rgba
-# print "%02X%02X%02X" % (replay.players[0].rgba['r'], replay.players[0].rgba['g'], replay.players[0].rgba['b'])
+def test_bp():
+    archive = MPQArchive("long.sc2replay", listfile=False)
+    events = EventParser(MemFile(archive.read_file('replay.game.events')), 17811)
 
-replay = Replay("13.sc2replay")
+    for event in list(events):
+        print event
+
+def test_sc2():
+    replay = Replay("long.sc2replay", False, True)
+    print len(replay.events)
+
+test_bp()
+
+#cProfile.run("test_bp()", "replay_profile")
+#cProfile.run("test_sc2()", "replay_profile")
+
+#stats = Stats("replay_profile")
+#stats.strip_dirs().sort_stats("time").print_stats(30)

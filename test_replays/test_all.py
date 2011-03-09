@@ -150,6 +150,22 @@ def test_kr_realm_and_tampered_messages():
     
     assert replay.messages[0].text == "sc2.replays.net"
     assert replay.messages[5].text == "sc2.replays.net"
+    
+    print replay.players[1].choosen_race
+    print replay.players[1].actual_race    
+    
+    print replay.players[0].choosen_race
+    print replay.players[0].actual_race    
+
+    print replay.map
+    
+    assert 1 == 0
+
+# TODO: Failing with
+# TypeError: Unknown event: 0x4 - 0xe3 at 16
+def test_referee():
+    replay = Replay("test_replays/build17811/14.SC2Replay")
+
 
 # TODO: This currently fails for unknown reasons
 # It errors: "TypeError: Unknown event: 0x2 - 0xe at 4240"
