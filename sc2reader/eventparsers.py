@@ -355,7 +355,7 @@ class CameraMovementEventParser_87(object):
 class CameraMovementEventParser_08(object):
     def load(self, event, bytes):
         event.name = 'cameramovement_08'
-        bytes.skip(10)
+        bytes.skip( (bytes.get_big_16() & 0xF) << 3)
         return event
         
 class CameraMovementEventParser_18(object):
