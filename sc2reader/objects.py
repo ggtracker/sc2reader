@@ -187,6 +187,16 @@ class Player(Actor):
         self.actual_race = data[2].decode("hex")
         
         # Actual race seems to be localized, so try to convert to english if possible
+        
+        # Some European language, like DE will have races written slightly differently (ie. Terraner).
+        # To avoid these differences, only examine the first letter, which seem to be consistent across languages.
+        if self.actual_race[0] == 'T':
+            self.actual_race = "Terran"
+        if self.actual_race[0] == 'P':
+            self.actual_race = "Protoss"
+        if self.actual_race[0] == 'Z':
+            self.actual_race = "Zerg"
+            
         if self.actual_race in races:
             self.actual_race = races[self.actual_race]
             
