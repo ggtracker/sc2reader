@@ -1,5 +1,53 @@
 from data import races
+from collections import defaultdict
+from sc2reader.utils import ByteStream, PersonDict
 
+class Replay(object):
+    
+    def __init__(self, filename, release, frames=0):
+        #Split and offset for matching indexes if they pass in the release string
+        if isinstance(release,basestring): release = [None]+release.split('.') 
+        
+        #Assign all the relevant information to the replay object
+        self.build = release[4]
+        self.versions = (release[1], release[2], release[3], release[4])
+        self.release_string = "%s.%s.%s.%s" % self.versions
+        self.frames, self.seconds = (frames, frames/16)
+        self.length = (self.seconds/60, self.seconds%60)
+        
+        self.player_names = list()
+        self.other_people = set()
+        self.filename = filename
+        self.speed = ""
+        self.type = ""
+        self.category = ""
+        self.is_ladder = False
+        self.is_private = False
+        self.map = ""
+        self.realm = ""
+        self.events = list()
+        self.results = dict()
+        self.teams = defaultdict(list)
+        self.observers = list() #Unordered list of Observer
+        self.players = list() #Unordered list of Player
+        self.people = list() #Unordered list of Players+Observers
+        self.person = PersonDict() #Maps pid to Player/Observer
+        self.events_by_type = dict()
+        self.attributes = list()
+        self.messages = list()
+        self.recorder = None # Player object
+        self.winner_known = False
+
+        # Set in parsers.DetailParser.load, should we hide this?
+        self.file_time = None # Probably number milliseconds since EPOCH
+        
+        # TODO: Test EPOCH differences between MacOsX and Windows
+        # http://en.wikipedia.org/wiki/Epoch_(reference_date)
+        # Notice that Windows and Mac have different EPOCHs, I wonder whether
+        # this is different depending on the OS on which the replay was played.
+        self.date = None # Date when the game was played in local time
+        self.utc_date = None # Date when the game was played in UTC
+        
 class Attribute(object):
     
     def __init__(self, data):
@@ -92,58 +140,11 @@ class Attribute(object):
         
     def __str__(self):
         return "%s: %s" % (self.name, self.value)
-
-
-		
-		
-class Event(object):
-    def __init__(self, elapsed_time, event_type, event_code, global_flag, player_id, 
-                    location=None, bytes=""):
-        self.time, self.seconds = (elapsed_time, elapsed_time/16)
-        self.timestr = "%s:%s" % (self.seconds/60, str(self.seconds%60).rjust(2, "0"))
-        self.type = event_type
-        self.code = event_code
-        self.is_local = (global_flag == 0x0)
-        self.player = player_id
-        self.location = location
-        self.bytes = bytes
-        self.abilitystr = ""
-
-        # Added for convenience
-        self.is_init = (event_type == 0x00)
-        self.is_player_action = (event_type == 0x01)
-        self.is_camera_movement = (event_type == 0x03)
-        self.is_unknown = (event_type == 0x02 or event_type == 0x04 or event_type == 0x05)
-        		
-    def __call__(self, elapsed_time, event_type, global_flag, player_id, event_code, bytes):
-        self.time, self.seconds = (elapsed_time, elapsed_time/16)
-        self.timestr = "%s:%s" % (self.seconds/60, str(self.seconds%60).rjust(2, "0"))
-        self.type = event_type
-        self.code = event_code
-        self.is_local = (global_flag == 0x0)
-        self.player = player_id
-        self.bytes = ""
-        self.abilitystr = ""
-        
-        # Added for convenience
-        self.is_init = (event_type == 0x00)
-        self.is_player_action = (event_type == 0x01)
-        self.is_camera_movement = (event_type == 0x03)
-        self.is_unknown = (event_type == 0x02 or event_type == 0x04 or event_type == 0x05)
-        
-        self.parse(bytes)
-        return self
-	
-    def __str__(self):
-        return "%s - %s - %s" % (self.timestr, self.name, self.abilitystr)
-        
-    def __repr__(self):
-        return str(self)
-
+    
 class Message(object):
     
-    def __init__(self, time, player, target, text):
-        self.time, self.sender, self.target, self.text = time, player, target, text
+    def __init__(self, time, pid, target, text):
+        self.time, self.sender_id, self.target, self.text = time, pid, target, text
         self.seconds = time/16
         self.sent_to_all = (self.target == 0)
         self.sent_to_allies = (self.target == 2)
@@ -156,31 +157,29 @@ class Message(object):
         return str(self)
 
 # Actor is a base class for Observer and Player
-class Actor(object):
-    def __init__(self, is_obs):
-        self.pid = None
-        self.name = None
-        self.is_obs = is_obs
-        self.messages = list()
-        self.events = list()
-        self.recorder = True # Actual recorder will be determined using the replay.message.events file
-
-class Observer(Actor):
+class Person(object):
     def __init__(self, pid, name):
-        Actor.__init__(self, True)
         self.pid = pid
         self.name = name
+        self.is_obs = None
+        self.messages = list()
+        self.events = list()
+        self.recorder = False # Actual recorder will be determined using the replay.message.events file
+
+class Observer(Person):
+    def __init__(self, pid, name):
+        super(Observer,self).__init__(pid,name)
+        self.is_obs = True
 		
-class Player(Actor):
+class Player(Person):
     
     url_template = "http://%s.battle.net/sc2/en/profile/%s/%s/%s/"
     
     def __init__(self, pid, data, realm="us"):
-        Actor.__init__(self, False)
         # TODO: get a map of realm,subregion => region in here
-        self.pid = pid
+        super(Player,self).__init__(pid,data[0].decode("hex"))
+        self.is_obs = False
         self.realm = realm
-        self.name = data[0].decode("hex")
         self.uid = data[1][4]
         self.subregion = data[1][2]
         self.url = self.url_template % (self.realm, self.uid, self.subregion, self.name)
@@ -197,6 +196,8 @@ class Player(Actor):
                 ['b', data[3][3]], 
                 ['a', data[3][0]], 
             ])
+            
+        self.result = None
         self.color_hex = "%02X%02X%02X" % (data[3][1], data[3][2], data[3][3])
         self.color_text = "" # The text of the player color (Red, Blue, etc) to be supplied later
         self.handicap = data[6]
@@ -211,3 +212,55 @@ class Player(Actor):
         
     def __repr__(self):
         return str(self)
+
+        
+        
+class Event(object):
+    def __init__(self, elapsed_time, event_type, event_code, player_id):
+        self.time, self.seconds = (elapsed_time, elapsed_time/16)
+        self.timestr = "%s:%s" % (self.seconds/60, str(self.seconds%60).rjust(2, "0"))
+        self.type = event_type
+        self.code = event_code
+        self.is_local = (player_id != 16)
+        self.player = player_id
+        self.bytes = bytes
+        self.abilitystr = ""
+
+        # Added for convenience
+        self.is_init = (event_type == 0x00)
+        self.is_player_action = (event_type == 0x01)
+        self.is_camera_movement = (event_type == 0x03)
+        self.is_unknown = (event_type == 0x02 or event_type == 0x04 or event_type == 0x05)
+	
+    def __str__(self):
+        return "%s - %s - %s" % (self.timestr, self.name, self.abilitystr)
+        
+    def __repr__(self):
+        return str(self)
+	
+class UnknownEvent(Event):
+	name = 'UnknownEvent'
+	
+class PlayerJoinEvent(Event):
+	name = 'PlayerJoin'
+	
+class GameStartEvent(Event):
+    name = 'GameStart'
+    
+class PlayerLeaveEvent(Event):
+	name = 'PlayerLeave'
+    
+class AbilityEvent(Event):
+    name = 'AbilityEvent'
+
+class ResourceTransferEvent(Event):
+    name = 'ResourceTransfer'
+
+class HotkeyEvent(Event):
+    name = 'HotkeyEvent'
+    
+class SelectionEvent(Event):
+    name = 'SelectionEvent'
+    
+class CameraMovementEvent(Event):
+    name = 'CameraMovement'

@@ -1,4 +1,4 @@
-class ActorDict(dict):
+class PersonDict(dict):
     """Delete is supported on the pid index only"""
     def __init__(self, *args, **kwargs):
         self._key_map = dict()
@@ -17,7 +17,7 @@ class ActorDict(dict):
         if isinstance(key, str):
             key = self._key_map[key]
 
-        return super(ActorDict, self).__getitem__(key)
+        return super(PersonDict, self).__getitem__(key)
 
     def __setitem__(self, key, value):
         if isinstance(key, str):
@@ -26,7 +26,7 @@ class ActorDict(dict):
         elif isinstance(key, int):
             self._key_map[value.name] = key
             
-        super(ActorDict, self).__setitem__(value.pid, value)
+        super(PersonDict, self).__setitem__(value.pid, value)
         
         
 from cStringIO import StringIO
@@ -50,6 +50,10 @@ class ByteStream(object):
         
     def get_bytes(self, number):
         return self.stream.read(number)
+        
+    def get_range(self, start, end):
+        self.stream.seek(start)
+        return self.get_bytes(end-start)
         
     def get_little_bytes(self, number):
         bytes = [self.stream.read(1) for i in range(0,number)]

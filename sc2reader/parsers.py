@@ -1,365 +1,470 @@
-from math import ceil
-from datetime import datetime
-from collections import defaultdict
+from sc2reader.objects import PlayerJoinEvent, GameStartEvent, UnknownEvent, PlayerLeaveEvent, AbilityEvent, SelectionEvent, ResourceTransferEvent, HotkeyEvent, CameraMovementEvent
 
-from objects import Attribute, Message, Player, Observer, Event
-from eventparsers import *
-from utils import ByteStream
-from exceptions import ParseError
 
-from pprint import PrettyPrinter
-pprint = PrettyPrinter(indent=2).pprint
+
+class Parser(object):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        raise NotYetImplemented("This should return a processed event!")
+
+################################################
+# Initialization Event Parsers
+################################################
+class PlayerJoinEventParser(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        return PlayerJoinEvent(frames, event_type, event_code, pid)
+    
+class GameStartEventParser(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        return GameStartEvent(frames, event_type, event_code, pid)
 
 #################################################
-# Parser Dispatch Functions
+# Player Action Parsers
 #################################################
-def get_detail_parser(build):
-    #This file format appears to have never changed
-    return DetailParser()
-    
-def get_attribute_parser(build):
-    if build >= 17326:
-        return AttributeParser_17326()
-    
-    #All versions prior to 17326 have been the same
-    return AttributeParser()
-    
-def get_event_parser(build):
-    if build >= 17326:
-        return EventParser_17326()
-    if build >= 16561:
-        return EventParser_16561()
-    
-    #All versions prior to 16561 appear to be the same
-    return EventParser()
-    
-def get_message_parser(build):
-    #format appears to have not changed
-    return MessageParser()
-
-def get_initdata_parser(build):
-    return InitdataParser()
-    
-class InitdataParser(object):
-    def load(self, replay, filecontents):
-        bytes = ByteStream(filecontents)
-        num_players = bytes.get_big_8()
-        for p in range(0, num_players):
-            name_length = bytes.get_big_8()
-            name = bytes.get_string(name_length)
+class PlayerLeaveEventParser(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        return PlayerLeaveEvent(frames, event_type, event_code, pid)
+        
+class AbilityEventParser(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = AbilityEvent(frames, event_type, event_code, pid)
+        bytes.skip(4)
+        event.ability = bytes.get_big_8() << 16 | bytes.get_big_8() << 8 | bytes.get_big_8()
+        req_target = bytes.get_big_8()
+        
+        bytes.skip(24)
+        
+        #In certain cases we need an extra byte
+        if req_target == 0x30 or req_target == 0x05:
+            bytes.skip(1)
             
-            # Add every player as observer for now
-            if name_length > 0:
-                replay.observers.append(Observer(p+1, name))
+        return event
+            
+class AbilityEventParser_16561(AbilityEventParser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = AbilityEvent(frames, event_type, event_code, pid)
+        
+        first, atype = (bytes.get_big_8(), bytes.get_big_8())
+        event.ability = bytes.get_big_8() << 16 | bytes.get_big_8() << 8 | (bytes.get_big_8() & 0x3F)
                 
-            bytes.skip(5)
-        
-        bytes.skip(5) # Unknown
-        bytes.get_string(4) # Always Dflt
-        bytes.skip(15) #Unknown
-        id_length = bytes.get_big_8()
-        sc_account_id = bytes.get_string(id_length)
-        bytes.skip(684) # Fixed Length data for unknown purpose
-        while( bytes.get_string(4).lower() == 's2ma' ):
-            bytes.skip(2)
-            replay.realm = bytes.get_string(2).lower()
-            unknown_map_hash = bytes.get_bytes(32)
-            
-#################################################
-# replay.attributes.events Parsing classes
-#################################################
-class AttributeParser(object):
-    def load_header(self, replay, bytes):
-        bytes.skip(4)              #Always start with 4 nulls
-        self.count = bytes.get_little_32()       #get total attribute count
-    
-    def load_attribute(self, replay, bytes):
-        #Get the attribute data elements
-        attr_data = [
-                bytes.get_little_32(),                  #Header
-                bytes.get_little_32(),                  #Attr Id
-                bytes.get_little_8(),                   #Player
-                bytes.get_little_bytes(4).encode("hex")  #Value
-            ]
-
-        #Complete the decoding in the attribute object
-        return Attribute(attr_data)
-        
-    def load(self, replay, filecontents):
-        bytes = ByteStream(filecontents)
-		
-        self.load_header(replay, bytes)
-        
-        replay.attributes = list()
-        data = defaultdict(dict)
-        for i in range(0, self.count):
-            attr = self.load_attribute(replay, bytes)
-            replay.attributes.append(attr)
-
-            # Uknown attributes get named as such and are not stored
-            # because we don't know what they are
-            # Index by player,  then name for ease of access later on
-            if attr.name != "Unknown":
-                data[attr.player][attr.name] = attr.value
-            
-        #Get global settings first
-        replay.speed = data[16]['Game Speed']
-        
-        #TODO: Do we need the category variable at this point?
-        replay.category = data[16]['Category']
-        replay.is_ladder = (replay.category == "Ladder")
-        replay.is_private = (replay.category == "Private")
-        
-        replay.type = data[16]['Game Type']
-
-        #Set player attributes as available, requires already populated player list
-        for pid, attributes in data.iteritems():
-            if pid == 16: continue
-            player = replay.actor[pid]
-            player.color_text = attributes['Color']
-            player.team = attributes['Teams'+replay.type]
-            player.choosen_race = attributes['Race']
-            player.difficulty = attributes['Difficulty']
-            #Computer players can't record games
-            player.type = attributes['Player Type']
-            if player.type == "Computer":
-                player.recorder = False
-
-class AttributeParser_17326(AttributeParser):
-	def load_header(self, replay, bytes):
-		bytes.skip(5)              #Always start with 4 nulls
-		self.count = bytes.get_little_32()       #get total attribute count
-
-##################################################
-# replay.details parsing classes
-##################################################
-class DetailParser(object):
-    def load(self, replay, filecontents):
-        data =  ByteStream(filecontents).parse_serialized_data()
-
-        pids = []
-        for pid, pdata in enumerate(data[0]):
-            pids.append(pid+1)
-            replay.add_actor(Player(pid+1, pdata, replay.realm)) #shift the id to start @ 1
-        
-        # Remove actual players from the observers we saved during parsing of initdata.
-        replay.observers = [obs for obs in replay.observers if not obs.pid in pids]
-        for observer in replay.observers:
-            replay.add_actor(observer)
-        
-        replay.map = data[1].decode("hex")
-        replay.file_time = data[5]
-
-        # TODO: This doesn't seem to produce exactly correct results, ie. often off by one
-        # second compared to file timestamps reported by Windows.
-        # This might be due to wrong value of the magic constant 116444735995904000
-        # or rounding errors. Ceiling or Rounding the result didn't produce consistent
-        # results either.
-        replay.date = datetime.fromtimestamp((replay.file_time-116444735995904000)/10000000)
-        replay.utc_date = datetime.utcfromtimestamp((replay.file_time-116444735995904000)/10000000)
-        
-        replay.details_data = data
-
-##################################################
-# replay.message.events parsing classes
-##################################################
-class MessageParser(object):
-    def load(self, replay, filecontents):
-        replay.messages = list()
-        bytes, time = ByteStream(filecontents), 0
-
-        while(bytes.remaining!=0):
-            time += bytes.get_timestamp()
-            player_id = bytes.get_big_8() & 0x0F
-            flags = bytes.get_big_8()
-            
-            if flags & 0xF0 == 0x80:
-            
-                #ping or something?
-                if flags & 0x0F == 3:
-                    bytes.skip(8)
-
-                #some sort of header code
-                elif flags & 0x0F == 0:
+        if atype == 0x20 or atype == 0x22:
+            event.name = 'unitability'
+            #print "Time %s - Player %s orders (%s) %s " % (self.timestr, self.player, hex(atype), event.abilitystr)
+            if event.ability & 0xFF > 0x07:
+                if first == 0x29 or first == 0x19:
                     bytes.skip(4)
-                    replay.actor[player_id].recorder = False
-            
-            elif flags & 0x80 == 0:
-                target = flags & 0x03
-                length = bytes.get_big_8()
-                
-                if flags & 0x08:
-                    length += 64
-                    
-                if flags & 0x10:
-                    length += 128
-                    
-                text = bytes.get_string(length)
-                try:
-                    replay.messages.append(Message(time, replay.actor[player_id], target, text))
-                except KeyError:
-                    # This was added because some replay sites added their own tampered
-                    # messages to replays with non-existent player_id.
-                    #
-                    # This will simply ignore and fail silently if such message is 
-                    # found.
-                    pass
+                else:
+                    bytes.skip(9)
+                    if event.ability & 0x20 != 0:
+                        bytes.skip(9)
+                        
+        elif atype == 0x48 or atype == 0x4A:
+            #identifies target point
+            event.name = 'targetlocation'
+            #print "Time %s - Player %s issues location target" % (self.timestr, self.player)
+            bytes.skip(7)
         
-        recorders = [actor for actor in replay.actors if actor and actor.recorder==True]
-        if len(recorders) > 1:
-            raise ValueError("There should be 1 and only 1 recorder; %s were found" % len(recorders))
-        elif len(recorders) == 0:
-            #If there are no recorders, then the recorder must not be a player, spectator or referee then
-            replay.recorder = None
+        elif atype == 0x88 or atype == 0x8A:
+            #identifies the target unit
+            event.name = 'targetunit'
+            #print "Time %s - Player %s orders (%s) %s " % (self.timestr, self.player, hex(atype), abilitystr)
+            bytes.skip(15)
+        
         else:
-            replay.recorder = recorders[0]
+            raise TypeError("Ability type %s is unknown at location %s" % (hex(atype), event.location))
+            
+        return event
+            
 
-####################################################
-# replay.game.events parsing classes
-####################################################
-class EventParser(object):
-    parser_map = {
-        0x00: [
-            (PlayerJoinEventParser(), lambda e: e.code == 0x0B ),
-            (GameStartEventParser(), lambda e: e.code == 0x05 ),
-            (WierdInitializationEventParser(), lambda e: e.code == 0x15 )],
-        0x01: [
-            (PlayerLeaveEventParser(), lambda e: e.code == 0x09 ),
-            (AbilityEventParser(), lambda e: e.code & 0x0F == 0xB and e.code >> 4 <= 0x9 ),
-            (SelectionEventParser(), lambda e: e.code & 0x0F == 0xC and e.code >> 4 <= 0xA ),
-            (HotkeyEventParser(), lambda e: e.code & 0x0F == 0xD and e.code >> 4 <= 0x9 ),
-            (ResourceTransferEventParser(), lambda e: e.code & 0x0F == 0xF and e.code >> 4 <= 0x9 ),],
-        0x02: [
-            (UnknownEventParser_0206(), lambda e: e.code == 0x06 ),
-            (UnknownEventParser_0207(), lambda e: e.code == 0x07 ),
-            (UnknownEventParser_020E(), lambda e: e.code == 0x0E ),],
-        0x03: [
-            (CameraMovementEventParser_87(), lambda e: e.code == 0x87 ),
-            (CameraMovementEventParser_08(), lambda e: e.code == 0x08 ),
-            (CameraMovementEventParser_18(), lambda e: e.code == 0x18 ),
-            (CameraMovementEventParser_X1(), lambda e: e.code & 0x0F == 1 ),],
-        0x04: [
-            (UnknownEventParser_04X2(), lambda e: e.code & 0x0F == 2 ),
-            (UnknownEventParser_0416(), lambda e: e.code == 0x16 ),
-            (UnknownEventParser_04C6(), lambda e: e.code == 0xC6 ),
-            (UnknownEventParser_0487(), lambda e: e.code == 0x87 ),
-            (UnknownEventParser_0400(), lambda e: e.code == 0x00 ),],
-        0x05: [
-            (UnknownEventParser_0589(), lambda e: e.code == 0x89 ),],
-    }
-
-    def load(self, replay, filecontents):
-        #set up an event list, start the timer, and process the file contents
-        replay.events, elapsed_time, bytes = list(), 0, ByteStream(filecontents)
+class SelectionEventParser(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = SelectionEvent(frames, event_type, event_code, pid)
+        select_flags, deselect_count = bytes.get_big_8(), bytes.get_big_8()
         
-        while bytes.remaining > 0:
-            #Save the start so we can trace for debug purposes
-            start = bytes.cursor
+        if deselect_count > 0:
+            #Skip over the deselection bytes
+            bytes.skip(deselect_count >> 3)
+        
+        #Find the bits left over
+        extras = deselect_count & 0x07
+        if extras == 0:
+            #This is easy when we are byte aligned
+            unit_type_count = bytes.get_big_8()
             
-            #First section is always a timestamp marking the elapsed time
-            #since the last eventObjectlisted
-            time_diff = bytes.get_timestamp()
-            elapsed_time += time_diff
+            for i in range(0, unit_type_count):
+                unit_type_block = bytes.get_big_32()
+                unit_type, unit_count = unit_type_block >> 8, unit_type_block & 0xFF
+            totalUnits = bytes.get_big_8()
             
-            #Next is a compound byte where the first 3 bits XXX00000 mark the
-            #event_type, the 4th bit 000X0000 marks the eventObjectas local or global,
-            #and the remaining bits 0000XXXX mark the player id number.
-            #The following byte completes the unique eventObjectidentifier
-            first, event_code = bytes.get_big_8(), bytes.get_big_8()
-            event_type, global_flag, player_id = first >> 5, first & 0x10, first & 0xF
-
-            #Create a barebones event from the gathered information
-            event = Event(elapsed_time, event_type, event_code, 
-                        global_flag, player_id, start)
+            for i in range(0, totalUnits):
+                unit_id, use_count = bytes.get_big_16(), bytes.get_big_16()
+        else:
+            #We're not byte aligned, so need do so some bit shifting
+            #This seems like 1000% wrong to me, but its what the people
+            #at phpsc2replay think it is so I'll deal for now
+            tail_mask = 0xFF >> (8-extras)
+            head_mask = ~tail_mask & 0xFF
+            w_tail_mask = 0xFF >> extras
+            w_head_mask = ~w_tail_mask & 0xFF
             
-            try:
-                #Get the parser and load the data into the event
-                replay.events.append(self.get_parser(event).load(event, bytes))
+            prev_byte, next_byte = bytes.get_big_8(),  bytes.get_big_8()
+            
+            unit_type_count = prev_byte & head_mask | next_byte & tail_mask
+            
+            for i in range(0, unit_type_count):
+                prev_byte, next_byte = next_byte, bytes.get_big_8()
+                unit_type = prev_byte & head_mask | ((next_byte & w_head_mask) >> (8-extras))
+                prev_byte, next_byte = next_byte, bytes.get_big_8()
+                unit_type = unit_type << 8 | (prev_byte & w_tail_mask) << extras | next_byte & tail_mask
+                prev_byte, next_byte = next_byte, bytes.get_big_8()
+                unit_type = unit_type << 8 | (prev_byte & head_mask) << extras | next_byte & tail_mask
+                prev_byte, next_byte = next_byte, bytes.get_big_8()
+                unit_count = prev_byte & head_mask | next_byte & tail_mask
                 
-                #Retrace and save the bytes for debug purposes
-                end = bytes.cursor
-                bytes.stream.seek(start)
-                event.bytes = bytes.get_bytes(end-start)
-
-            except TypeError as e:
-                raise #ParseError(e.message, replay, event, bytes)
+            prev_byte, next_byte = next_byte, bytes.get_big_8()
+            totalUnits = prev_byte & head_mask | next_byte & tail_mask
             
-    def get_parser(self, event):
-        if event.type not in self.parser_map.keys():
-            raise TypeError("Unknown event_type: %s at location %s" % (hex(event.type), event.location))
-		
-        for parser, accept in self.parser_map[event.type]:
-            if accept(event):
-                return parser
+            for i in range(0, totalUnits):
+                prev_byte, next_byte = next_byte, bytes.get_big_8()
+                unit_id = prev_byte & head_mask | ((next_byte & w_head_mask) >> (8-extras))
+                prev_byte, next_byte = next_byte, bytes.get_big_8()
+                unit_id = unit_id << 8 | prev_byte & w_tail_mask << extras | ((next_byte & w_head_mask) >> (8-extras))
+                prev_byte, next_byte = next_byte, bytes.get_big_8()
+                unit_id = unit_id << 8 | prev_byte & w_tail_mask << extras | ((next_byte & w_head_mask) >> (8-extras))
+                prev_byte, next_byte = next_byte, bytes.get_big_8()
+                unit_id = unit_id << 8 | prev_byte & w_tail_mask << extras | next_byte & tail_mask
+        return event
+            
+class SelectionEventParser_16561(SelectionEventParser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = SelectionEvent(frames, event_type, event_code, pid)
+        select_flags, deselect_type = bytes.get_big_8(), bytes.get_big_8()
         
-        raise TypeError("Unknown event: %s - %s at %s" % (hex(event.type), hex(event.code), event.location))
+        #No deselection to do here
+        if deselect_type & 3 == 0:
+            last_byte = deselect_type #This is the last byte
+            mask = 0x03 #default mask of '11' applies
+            
+        #deselection by bit counted indicators
+        elif deselect_type & 3 == 1:
+            #use the 6 left bits on top and the 2 right bits on bottom
+            count_byte = bytes.get_big_8()
+            deselect_count = deselect_type & 0xFC | count_byte & 0x03
+            
+            #If we don't need extra bytes then this is the last one
+            if deselect_count <= 6:
+                last_byte = count_byte
+            else:
+                #while count > 6 we need to eat into more bytes because
+                #we only have 6 bits left in our current byte
+                while deselect_count > 6:
+                    last_byte = bytes.get_big_8()
+                    deselect_count -= 8
+            
+            #If we exactly use the whole byte
+            if deselect_count == 6:
+                mask = 0xFF #no mask is needed since we are even
+                
+            #Because we went bit by bit the mask is different so we
+            #take the deselect bits used on the last_byte,  add the two
+            #bits left bits we've carried down, we need a mask that long
+            else:
+                mask = (1 << (deselect_count+2)) - 1
+            
+        #deselect by byte,I think (deselect_type & 3 == 3) is deselect all
+        #and as such probably has a deselect_count always == 0,  not sure though
+        else:
+            #use the 6 left bits on top and the 2 right bits on bottom
+            count_byte = bytes.get_big_8()
+            deselect_count = deselect_type & 0xFC | count_byte & 0x03
+            
+            #If the count is zero than that byte is the last one
+            if deselect_count == 0:
+                last_byte = count_byte
+                
+            #Because this count is in bytes we can just read that many bytes
+            #we need to save the last one though because we need the bits
+            else:
+                bytes.skip(deselect_count-1)
+                last_byte = bytes.get_big_8()
+            
+            mask = 0x03 #default mask of '11' applies
+        
+        combine = lambda last, next: last & (0xFF-mask) | next & mask
+        
+        unit_ids = list()    
+        unit_types = dict()
+        
+        #Get the number of selected unit types
+        next_byte = bytes.get_big_8()
+        numunit_types = combine(last_byte, next_byte)
+        
+        #Read them all into a dictionary for later
+        for i in range(0, numunit_types):
+            #Build the unit_type_id over the next 3 bytes
+            byte_list = list()
+            for i in range(0, 3):
+                #Swap the bytes, grab another, and combine w/ the mask
+                last_byte, next_byte = next_byte, bytes.get_big_8()
+                byte_list.append( combine(last_byte, next_byte) )
+            unit_type_id = byte_list[0] << 16 | byte_list[1] << 8 | byte_list[2]
+            
+            #Get the count for that type in the next byte
+            last_byte, next_byte = next_byte, bytes.get_big_8()
+            unit_type_count = combine(last_byte, next_byte)
+            
+            #Store for later
+            unit_types[unit_type_id] = unit_type_count
+        
+        #Get total unit count
+        last_byte, next_byte = next_byte, bytes.get_big_8()
+        unit_count = combine(last_byte, next_byte)
+        
+        #Pull all the unit_ids in for later
+        for i in range(0, unit_count):            
+            #build the unit_id over the next 4 bytes
+            byte_list = list()
+            for i in range(0, 4):
+                last_byte, next_byte = next_byte, bytes.get_big_8()
+                byte_list.append( combine(last_byte, next_byte) )
+            
+            #The first 2 bytes are unique and the last 2 mark reusage count
+            unit_id = byte_list[0] << 24 | byte_list[1] << 16 | byte_list[2] << 8 | byte_list[3]
+            unit_ids.append( unit_id )
+            
+        return event
+        
+class HotkeyEventParser(Parser):
+    def load_set_hotkey(self, event, bytes, first):
+        event.name = 'set_hotkey'
+    
+    def load_get_hotkey(self, event, bytes, first):
+        event.name = 'get_hotkey'
+    
+    def load_get_hotkey_changed(self, event, bytes, first):
+        event.name = 'get_hotkey_changed'
+        extras = first >> 3
+        second = bytes.get_big_8()
+        bytes.skip(extras)
+        
+        if first & 0x04: 
+            bytes.skip(1)
+            if second & 0x06 == 0x06:
+                bytes.skip(1)
+    
+    def load_shift_set_hotkey(self, event, bytes, first):
+        event.name = 'shift_set_hotkey'
+    
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = HotkeyEvent(frames, event_type, event_code, pid)
+        event.hotkey = str(event.code >> 4)
+        #print "Time %s - Player %s is using hotkey %s" % (self.timestr, self.player, eventCode >> 4)
+        first = bytes.get_big_8()
+        
+        if   first == 0x00: self.load_set_hotkey(event, bytes, first)
+        elif first == 0x01: self.load_shift_set_hotkey(event, bytes, first)
+        elif first == 0x02: self.load_get_hotkey(event, bytes, first)
+        elif first >= 0x03: self.load_get_hotkey_changed(event, bytes, first)
+        else: pass
+        
+        return event
+    
+class HotkeyEventParser_16561(HotkeyEventParser):
+    def load_get_hotkey_changed(self, event, bytes, first):
+        event.name = 'get_hotkey_changed'
+        second = bytes.get_big_8()
+        
+        if first & 0x08:
+            bytes.skip(second & 0x0F)
+        else:  
+            extras = first >> 3
+            bytes.skip(extras)
+            if extras == 0:
+                if second & 0x07 > 0x04:
+                    bytes.skip(1)
+                if second & 0x08 != 0:
+                    bytes.skip(1)
+            else:
+                if first & 0x04 != 0:
+                    if second & 0x07 > 0x04:
+                        bytes.skip(1)
+                    if second & 0x08 != 0:
+                        bytes.skip(1)
+                        
+class ResourceTransferEventParser(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = ResourceTransferEvent(frames, event_type, event_code, pid)
+        
+        bytes.skip(1)  # 84
+        event.sender = event.player
+        event.receiver = event.code >> 4
+        
+        #I might need to shift these two things to 19, 11, 3 for first 3 shifts
+        event.minerals = bytes.get_big_8() << 20 | bytes.get_big_8() << 12 | bytes.get_big_8() << 4 | bytes.get_big_8() >> 4
+        event.gas = bytes.get_big_8() << 20 | bytes.get_big_8() << 12 | bytes.get_big_8() << 4 | bytes.get_big_8() >> 4
+        
+        #unknown extra stuff
+        bytes.skip(2)
+        
+        return event
 
-class EventParser_16561(EventParser):
-    parser_map = {
-        0x00: [
-            (PlayerJoinEventParser(), lambda e: e.code == 0x0B ),
-            (GameStartEventParser(), lambda e: e.code == 0x05 ),
-            (WierdInitializationEventParser(), lambda e: e.code == 0x15 )],
-        0x01: [
-            (PlayerLeaveEventParser(), lambda e: e.code == 0x09 ),
-            (AbilityEventParser_16561(), lambda e: e.code & 0x0F == 0xB and e.code >> 4 <= 0x9 ),
-            (SelectionEventParser_16561(), lambda e: e.code & 0x0F == 0xC and e.code >> 4 <= 0xA ),
-            (HotkeyEventParser_16561(), lambda e: e.code & 0x0F == 0xD and e.code >> 4 <= 0x9 ),
-            (ResourceTransferEventParser_16561(), lambda e: e.code & 0x0F == 0xF and e.code >> 4 <= 0x8 ),],
-        0x02: [
-            (UnknownEventParser_0206(), lambda e: e.code == 0x06 ),
-            (UnknownEventParser_0207(), lambda e: e.code == 0x07 ),
-            (UnknownEventParser_020E(), lambda e: e.code == 0x0E ),],
-        0x03: [
-            (CameraMovementEventParser_87(), lambda e: e.code == 0x87 ),
-            (CameraMovementEventParser_08(), lambda e: e.code == 0x08 ),
-            (CameraMovementEventParser_18(), lambda e: e.code == 0x18 ),
-            (CameraMovementEventParser_X1(), lambda e: e.code & 0x0F == 1 ),],
-        0x04: [
-            (UnknownEventParser_0487(), lambda e: e.code == 0x87 ),
-            (UnknownEventParser_04C6(), lambda e: e.code == 0xC6 ),
-            (UnknownEventParser_04XC(), lambda e: e.code & 0x0F == 0x0C ),],
-        0x05: [
-            (UnknownEventParser_0589(), lambda e: e.code == 0x89 ),],
-    }
+class ResourceTransferEventParser_16561(ResourceTransferEventParser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = ResourceTransferEvent(frames, event_type, event_code, pid)
+        
+        #Always 17 bytes long
+        event.sender = event.player
+        event.reciever = event.code >> 4
+        
+        bytes.get_big_8() #Always 84
+        
+        #Minerals and Gas are encoded the same way
+        resource_block =  bytes.get_big_32()
+        base, extension = resource_block >> 8, resource_block & 0xFF
+        event.minerals = base*(extension >> 4)+ (extension & 0x0F)
+        resource_block =  bytes.get_big_32()
+        base, extension = resource_block >> 8, resource_block & 0xFF
+        event.gas = base*(extension >> 4)+ (extension & 0x0F)
+        
+        #Another 8 bytes that don't make sense
+        bytes.skip(8)
+        
+        return event
+        
+        
+#######################################################
+# Camera Movement Event Parsers
+#######################################################
+class CameraMovementEventParser_87(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = CameraMovementEvent(frames, event_type, event_code, pid)
+        event.name = 'cameramovement_87'
+        bytes.skip(8)
+        return event
 
-"""
-            (UnknownEventParser_04X2(), lambda e: e.code & 0x0F == 2 ),
-            (UnknownEventParser_0416(), lambda e: e.code == 0x16 ),
-            (UnknownEventParser_0400(), lambda e: e.code == 0x00 ),
+class CameraMovementEventParser_08(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = CameraMovementEvent(frames, event_type, event_code, pid)
+        event.name = 'cameramovement_08'
+        bytes.skip( (bytes.get_big_16() & 0x0F) << 3)
+        return event
+        
+class CameraMovementEventParser_18(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = CameraMovementEvent(frames, event_type, event_code, pid)
+        event.name = 'cameramovement_18'
+        bytes.skip(162)
+        return event
+        
+class CameraMovementEventParser_X1(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = CameraMovementEvent(frames, event_type, event_code, pid)
+        event.name = 'cameramovement_X1'
+        #Get the X and Y,  last byte is also a flag
+        bytes.skip(3)
+        flag = bytes.get_big_8()
+        
+        #Get the zoom,  last byte is a flag
+        if flag & 0x10 != 0:
+            bytes.skip(1)
+            flag = bytes.get_big_8()
+        
+        #If we are currently zooming get more?? idk
+        if flag & 0x20 != 0:
+            bytes.skip(1)
+            flag = bytes.get_big_8()
+            
+        #Do camera rotation as applies
+        if flag & 0x40 != 0:
+            bytes.skip(2)
+        
+        return event
+        
+#####################################################
+# Unknown Event Type 02 Parsers
+#####################################################
+class UnknownEventParser_0206(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = UnknownEvent(frames, event_type, event_code, pid)
+        event.name = 'unknown0206'
+        bytes.skip(8)
+        return event
+        
+class UnknownEventParser_0207(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = UnknownEvent(frames, event_type, event_code, pid)
+        event.name = 'unknown0207'
+        bytes.skip(4)
+        return event
 
+class UnknownEventParser_020E(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = UnknownEvent(frames, event_type, event_code, pid)
+        event.name = 'unknown020E'
+        bytes.skip(4)
+        return event
 
+#####################################################
+# Unknown Event Type 04 Parsers
+#####################################################
 
-            (UnknownEventParser_04X2(), lambda e: e.code & 0x0F == 2 ),
-            (UnknownEventParser_0416(), lambda e: e.code == 0x16 ),
-            (UnknownEventParser_0400(), lambda e: e.code == 0x00 ),
-"""
+class UnknownEventParser_04X2(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = UnknownEvent(frames, event_type, event_code, pid)
+        event.name = 'unknown04X2'
+        bytes.skip(2)
+        return event
+        
+class UnknownEventParser_0416(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = UnknownEvent(frames, event_type, event_code, pid)
+        event.name = 'unknown0416'
+        bytes.skip(24)
+        return event
+        
+class UnknownEventParser_04C6(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = UnknownEvent(frames, event_type, event_code, pid)
+        event.name = 'unknown04C6'
+        block1 = bytes.get_big_32()
+        block2 = bytes.get_big_32()
+        block3 = bytes.get_big_32()
+        block4 = bytes.get_big_32()
+        return event
 
-class EventParser_17326(EventParser):
-	parser_map = {
-        0x00: [
-            (PlayerJoinEventParser(), lambda e: e.code == 0x0C or e.code == 0x2C ),
-            (GameStartEventParser(), lambda e: e.code == 0x05 ),
-            (WierdInitializationEventParser(), lambda e: e.code == 0x15 )],
-        0x01: [
-            (PlayerLeaveEventParser(), lambda e: e.code == 0x09 ),
-            (AbilityEventParser_16561(), lambda e: e.code & 0x0F == 0xB and e.code >> 4 <= 0x9 ),
-            (SelectionEventParser_16561(), lambda e: e.code & 0x0F == 0xC and e.code >> 4 <= 0xA ),
-            (HotkeyEventParser_16561(), lambda e: e.code & 0x0F == 0xD and e.code >> 4 <= 0x9 ),
-            (ResourceTransferEventParser_16561(), lambda e: e.code & 0x0F == 0xF and e.code >> 4 <= 0x9 ),],
-        0x02: [
-            (UnknownEventParser_0206(), lambda e: e.code == 0x06 ),
-            (UnknownEventParser_0207(), lambda e: e.code == 0x07 ),
-            (UnknownEventParser_020E(), lambda e: e.code == 0x0E ),],
-        0x03: [
-            (CameraMovementEventParser_87(), lambda e: e.code == 0x87 ),
-            (CameraMovementEventParser_08(), lambda e: e.code == 0x08 ),
-            (CameraMovementEventParser_18(), lambda e: e.code == 0x18 ),
-            (CameraMovementEventParser_X1(), lambda e: e.code & 0x0F == 1 ),],
-        0x04: [
-            (UnknownEventParser_0487(), lambda e: e.code == 0x87 ),
-            (UnknownEventParser_04C6(), lambda e: e.code == 0xC6 ),
-            (UnknownEventParser_04XC(), lambda e: e.code & 0x0F == 0x0C ),],
-        0x05: [
-            (UnknownEventParser_0589(), lambda e: e.code == 0x89 ),],
-    }
+class UnknownEventParser_041C(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = UnknownEvent(frames, event_type, event_code, pid)
+        event.name = 'unknown041C'
+        bytes.skip(15)
+        return event
+        
+class UnknownEventParser_0487(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = UnknownEvent(frames, event_type, event_code, pid)
+        event.name = 'unknown0418-87'
+        event.data = bytes.get_big_32() #Always 00 00 00 01??
+        return event
+        
+class UnknownEventParser_0400(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = UnknownEvent(frames, event_type, event_code, pid)
+        event.name = 'unknown0400'
+        bytes.skip(10)
+        return event
+
+class UnknownEventParser_04XC(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = UnknownEvent(frames, event_type, event_code, pid)
+        event.name = 'unknown04XC'
+        return event
+        
+#####################################################
+# Unknown Event Type 05 Parsers
+#####################################################
+
+class UnknownEventParser_0589(Parser):
+    def load(self, bytes, frames, event_type, event_code, pid):
+        event = UnknownEvent(frames, event_type, event_code, pid)
+        event.name = 'unknown0589'
+        bytes.skip(4)
+        return event
