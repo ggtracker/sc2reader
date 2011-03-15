@@ -299,7 +299,7 @@ def test_two_player_game_without_winner():
     print replay.players[1].result
     print replay.actors[2].result
     print replay.actors[3].result
-    assert replay.players[0].result == 'Win' || replay.players[1].result == 'Win'
+    assert replay.players[0].result == 'Win' or replay.players[1].result == 'Win'
     
 def test_24():
     replay = sc2reader.read("test_replays/build17811/24.SC2Replay")
