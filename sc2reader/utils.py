@@ -1,3 +1,7 @@
+from cStringIO import StringIO
+from os import SEEK_CUR, SEEK_END
+from struct import unpack
+
 class PersonDict(dict):
     """Delete is supported on the pid index only"""
     def __init__(self, *args, **kwargs):
@@ -27,11 +31,6 @@ class PersonDict(dict):
             self._key_map[value.name] = key
             
         super(PersonDict, self).__setitem__(value.pid, value)
-        
-        
-from cStringIO import StringIO
-from os import SEEK_CUR, SEEK_END
-from struct import unpack
 
 class ByteStream(object):
     def __init__(self, stream):
@@ -178,3 +177,21 @@ class ByteStream(object):
             raise TypeError("Uknown Data Type: '%s'" % datatype)
         
         return data
+        
+def read_header(file):
+    source = ByteStream(file.read())
+    
+    #Check the file type for the MPQ header bytes
+    if source.get_hex(4).upper() != "4D50511B":
+        raise ValueError("File '%s' is not an MPQ file" % file.name)
+    
+    #Extract replay header data, we don't actually use this for anything
+    max_data_size = source.get_little_32() #possibly data max size
+    header_offset = source.get_little_32() #Offset of the second header
+    data_size = source.get_little_32()     #possibly data size
+    
+    #Extract replay attributes from the mpq
+    data = source.parse_serialized_data()
+    
+    #return the release and frames information
+    return data[1],data[3]
