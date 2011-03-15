@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from ordereddict import OrderedDict
 
 from sc2reader.objects import Replay
 from sc2reader.processors import *
