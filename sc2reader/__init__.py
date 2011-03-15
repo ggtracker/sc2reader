@@ -2,6 +2,7 @@ import os
 
 from mpyq import MPQArchive
 from config import DefaultConfig
+from utils import read_header
 
 def read(location,config=DefaultConfig()):
     if not os.path.exists(location):

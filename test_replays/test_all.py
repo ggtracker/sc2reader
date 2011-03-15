@@ -8,7 +8,6 @@ import datetime
 sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),"../")))
 
 import sc2reader
-from sc2reader import Replay
 from sc2reader.exceptions import ParseError
 
 # Parsing should fail for an empty file.
