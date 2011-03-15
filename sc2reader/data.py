@@ -310,7 +310,7 @@ units = {
     0x022b01: 'Rich Mineral Field',
 }
 
-# These are found in fileset.{locale}#Mods#Core.SC2Mod#{locale}.SC2Data/LocalizedData/Editor/EditorCategoryStrings.txt
+# These are found in Repack-MPQ/fileset.{locale}#Mods#Core.SC2Mod#{locale}.SC2Data/LocalizedData/Editor/EditorCategoryStrings.txt
 # EDSTR_CATEGORY_Race
 # EDSTR_PLAYERPROPS_RACE
 # question mark means not confirmed data
@@ -323,12 +323,21 @@ races = {
     # itIT
     
     # koKR
-    '프로토스': 'Protoss', #?
-    '테란': 'Terran' #?
+    '프로토스': 'Protoss',
+    '테란': 'Terran',
+    '저그': 'Zerg',
     
     # plPL
     # ptBR
     # ruRU
+    'Протосс': 'Protoss',
+    'Терран': 'Terran',
+    'Зерг': 'Zerg',
     # zhCN
     # zhTW
+    
+    # Uncategorized
+    '神族': 'Protoss',
+    '蟲族': 'Zerg',
+    '人類': 'Terran'
 }

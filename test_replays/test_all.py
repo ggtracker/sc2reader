@@ -195,3 +195,132 @@ def test_datetimes():
     # Played at 25 Feb 2011 16:36:28 UTC+2
     replay = sc2reader.read("test_replays/build17811/3.SC2Replay")
     assert replay.utc_date == datetime.datetime(2011, 2, 25, 14, 36, 26)
+    
+def test_15():
+    replay = sc2reader.read("test_replays/build17811/15.SC2Replay")
+    
+    print replay.realm
+    print len(replay.players)
+    print replay.players[0].actual_race
+    print replay.players[1].actual_race
+    assert 1==0
+
+def test_16():
+    replay = sc2reader.read("test_replays/build17811/16.SC2Replay")
+    print replay.realm
+    print len(replay.players)
+    print replay.players[0].actual_race
+    print replay.players[1].actual_race
+    assert 1==0
+    
+def test_17():
+    replay = sc2reader.read("test_replays/build17811/17.SC2Replay")
+    print replay.realm
+    print len(replay.players)
+    print replay.players[0].actual_race
+    print replay.players[1].actual_race
+    print replay.players[0].name
+    print replay.players[1].name
+    assert 1==0
+
+def test_18():
+    replay = sc2reader.read("test_replays/build17811/18.SC2Replay")
+    print replay.realm
+    print len(replay.players)
+    print replay.players[0].actual_race
+    print replay.players[1].actual_race
+    print replay.players[0].choosen_race
+    print replay.players[1].choosen_race
+    print replay.players[0].name
+    print replay.players[1].name
+    assert 1==0
+    
+def test_19():
+    replay = sc2reader.read("test_replays/build17811/19.SC2Replay")
+    print replay.realm
+    print len(replay.players)
+    print replay.players[0].actual_race
+    print replay.players[1].actual_race
+    print replay.players[0].choosen_race
+    print replay.players[1].choosen_race
+    print replay.players[0].name
+    print replay.players[1].name
+    assert 1==0
+    
+def test_20():
+    replay = sc2reader.read("test_replays/build17811/20.SC2Replay")
+    print replay.realm
+    print len(replay.players)
+    print replay.players[0].actual_race
+    print replay.players[1].actual_race
+    print replay.players[0].choosen_race
+    print replay.players[1].choosen_race
+    print replay.players[0].name
+    print replay.players[1].name
+    assert 1==0
+    
+def test_21():
+    replay = sc2reader.read("test_replays/build17811/21.SC2Replay")
+    print replay.realm
+    print len(replay.players)
+    print replay.players[0].actual_race
+    print replay.players[1].actual_race
+    print replay.players[0].choosen_race
+    print replay.players[1].choosen_race
+    print replay.players[0].name
+    print replay.players[1].name
+    assert 1==0
+    
+def test_22():
+    replay = sc2reader.read("test_replays/build17811/22.SC2Replay")
+    print replay.realm
+    print len(replay.players)
+    print replay.players[0].actual_race
+    print replay.players[1].actual_race
+    print replay.players[0].choosen_race
+    print replay.players[1].choosen_race
+    print replay.players[0].name
+    print replay.players[1].name
+    assert 1==0
+
+# TODO: No winner?
+def test_two_player_game_without_winner():
+    replay = sc2reader.read("test_replays/build17811/23.SC2Replay")
+    print replay.realm
+    print len(replay.players)
+    print replay.players[0].actual_race
+    print replay.players[1].actual_race
+    print replay.players[0].choosen_race
+    print replay.players[1].choosen_race
+    print replay.players[0].name
+    print replay.players[1].name
+    print len(replay.actors)
+    print replay.players[0].result
+    print replay.players[1].result
+    print replay.actors[2].result
+    print replay.actors[3].result
+    assert replay.players[0].result == 'Win' || replay.players[1].result == 'Win'
+    
+def test_24():
+    replay = sc2reader.read("test_replays/build17811/24.SC2Replay")
+    print replay.realm
+    print len(replay.players)
+    print replay.players[0].actual_race
+    print replay.players[1].actual_race
+    print replay.players[0].choosen_race
+    print replay.players[1].choosen_race
+    print replay.players[0].name
+    print replay.players[1].name
+    assert 1==0
+    
+def test_25():
+    replay = sc2reader.read("test_replays/build17811/25.SC2Replay")
+    print replay.realm
+    print len(replay.players)
+    print replay.players[0].actual_race
+    print replay.players[1].actual_race
+    print replay.players[0].choosen_race
+    print replay.players[1].choosen_race
+    print replay.players[0].name
+    print replay.players[1].name
+    assert 1==0
