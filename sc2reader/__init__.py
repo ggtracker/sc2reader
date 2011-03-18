@@ -35,8 +35,8 @@ def read_file(filename,config=DefaultConfig()):
                 raise NotYetImplementedError("No parser was found that accepted the replay file;check configuration")
 
         #Do cleanup and post processing
-        for process in config.processors:
-            replay = process(replay)
+        for processor in config.processors:
+            replay = processor.process(replay)
             
         return replay
         

@@ -3,15 +3,33 @@ from datetime import datetime
 from sc2reader.parsers import *
 from sc2reader.objects import *
 from sc2reader.utils import ByteStream
+from sc2reader.utils import key_in_bases
+
+#####################################################
+# Metaclass used to help enforce the usage contract
+#####################################################
+class MetaReader(type):
+    def __new__(meta, class_name, bases, class_dict):
+        if class_name != "Reader": #Parent class is exempt from checks
+            assert 'file' in class_dict or key_in_bases('file',bases), \
+                "%s must define the name of the file it reads" % class_name
+
+            assert 'reads' in class_dict or key_in_bases('reads',bases), \
+                "%s must define the 'boolean reads(self,build)' member" % class_name
+
+            assert 'read' in class_dict or key_in_bases('read',bases), \
+                "%s must define the 'void read(self, filecontents, replay)' member" % class_name
+
+        return type.__new__(meta, class_name, bases, class_dict)
 
 class Reader(object):
-    def reads(self, build):
-        raise NotYetImplemented("This should return true if it parses they key, false if it doesn't")
-    
-    def read(bytes,object):
-        raise NotYetImplemented("This should parse the bytes and return the populated object")
+    __metaclass__ = MetaReader
 		
+#################################################
+
 class ReplayInitDataReader(Reader):
+    file = 'replay.initData'
+
     def reads(self, build):
         return True
         
@@ -38,9 +56,9 @@ class ReplayInitDataReader(Reader):
             unknown_map_hash = bytes.get_bytes(32)
             
 #################################################
-# replay.attributes.events Parsing classes
-#################################################
-class AttributeEventsReader(object):
+
+class AttributeEventsReader(Reader):
+    file = 'replay.attributes.events'
     def reads(self, build):
         return build < 17326
         
@@ -77,9 +95,10 @@ class AttributeEventsReader_17326(AttributeEventsReader):
         bytes.get_little_bytes(5)
         
 ##################################################
-# replay.details parsing classes
-##################################################
+
 class ReplayDetailsReader(Reader):
+    file = 'replay.details'
+
     def reads(self, build):
         return True
     
@@ -103,9 +122,10 @@ class ReplayDetailsReader(Reader):
         replay.details_data = data
 
 ##################################################
-# replay.message.events parsing classes
-##################################################
+
 class MessageEventsReader(Reader):
+    file = 'replay.message.events'
+
     def reads(self, build):
         return True
     
@@ -143,9 +163,10 @@ class MessageEventsReader(Reader):
                 replay.messages.append(Message(time, player_id, target, text))
 
 ####################################################
-# replay.game.events parsing classes
-####################################################
-class GameEventsReader(object):
+
+class GameEventsReader(Reader):
+    file = 'replay.game.events'
+
     def reads(self, build):
         return build < 16561
 

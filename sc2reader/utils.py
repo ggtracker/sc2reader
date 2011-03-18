@@ -195,3 +195,13 @@ def read_header(file):
     
     #return the release and frames information
     return data[1],data[3]
+
+
+import inspect
+def key_in_bases(key,bases):
+    bases = list(bases)
+    for base in list(bases):
+        bases.extend(inspect.getmro(base))
+    for clazz in set(bases):
+        if key in clazz.__dict__: return True
+    return False
