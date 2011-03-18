@@ -2,6 +2,9 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
+except ImportError:
+    from sys import exit
+    exit("OrderedDict required: Upgrade to python2.7 or `pip install ordereddict`")
 
 from sc2reader.objects import Replay
 from sc2reader.processors import *
