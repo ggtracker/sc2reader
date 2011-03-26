@@ -1,6 +1,6 @@
-from setuptools import setup, find_packages
+import setuptools
 
-setup(
+setuptools.setup(
 	name="sc2reader",
 	version="0.2.0",
 	license="MIT",
@@ -28,7 +28,7 @@ setup(
 		],
 	
 	requires=['mpyq'],
-    install_requires=['mpyq>=0.1.4'],
+    install_requires=['mpyq=0.1.5'],
 	packages=['sc2reader'],
 	scripts=['scripts/sc2printer'],
 )
