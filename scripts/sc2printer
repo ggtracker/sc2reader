@@ -1,4 +1,5 @@
-#!c:\\Python27\python.exe
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import os, sys
 sys.path.append(r'C:\Users\graylinkim\sc2reader')
