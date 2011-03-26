@@ -3,7 +3,7 @@ from datetime import datetime
 from sc2reader.parsers import *
 from sc2reader.objects import *
 from sc2reader.utils import ByteStream
-from sc2reader.utils import key_in_bases
+from sc2reader.utils import key_in_bases, timestamp_from_windows_time
 
 #####################################################
 # Metaclass used to help enforce the usage contract
@@ -116,8 +116,9 @@ class ReplayDetailsReader(Reader):
         # This might be due to wrong value of the magic constant 116444735995904000
         # or rounding errors. Ceiling or Rounding the result didn't produce consistent
         # results either.
-        replay.date = datetime.fromtimestamp((replay.file_time-116444735995904000)/10000000)
-        replay.utc_date = datetime.utcfromtimestamp((replay.file_time-116444735995904000)/10000000)
+        unix_timestamp = timestamp_from_windows_time(replay.file_time)
+        replay.date = datetime.fromtimestamp(unix_timestamp)
+        replay.utc_date = datetime.utcfromtimestamp(unix_timestamp)
         
         replay.details_data = data
 

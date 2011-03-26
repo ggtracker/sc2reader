@@ -196,6 +196,11 @@ def read_header(file):
     #return the release and frames information
     return data[1],data[3]
 
+def timestamp_from_windows_time(windows_time):
+    # This windows timestamp measures the number of 100 nanosecond periods since
+    # January 1st, 1601. First we subtract the number of nanosecond periods from
+    # 1601-1970, then we divide by 10^7 to bring it back to seconds.
+    return (windows_time-116444735995904000)/10**7
 
 import inspect
 def key_in_bases(key,bases):
