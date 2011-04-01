@@ -28,7 +28,7 @@ setuptools.setup(
 		],
 	
 	requires=['mpyq'],
-    install_requires=['mpyq=0.1.5'],
+	install_requires=['mpyq==0.1.5'],
 	packages=['sc2reader'],
 	scripts=['scripts/sc2printer'],
 )
