@@ -95,7 +95,6 @@ class ReplayDetailsReader(Reader):
         return True
     
     def read(self, filecontents, replay):
-        print "STARTING DETAILS!!!!!!!!!!!!!"
         data =  ReplayBuffer(filecontents).read_data_struct()
 
         for pid, pdata in enumerate(data[0]):
@@ -184,9 +183,6 @@ class GameEventsBase(Reader):
                 event = parser(buffer, frames, type, code, pid)
                 buffer.align()
                 event.bytes = buffer.read_range(start,buffer.cursor)
-
-                print "%s - %s" % (event,event.bytes.encode("hex"))
-                print "Next: %s" % buffer.peek(10 if 10<buffer.left else buffer.left)
                 replay.events.append(event)
             else:
                 msg = "Unknown event: %s - %s at %s"
