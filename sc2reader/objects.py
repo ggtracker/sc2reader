@@ -63,7 +63,7 @@ class Attribute(object):
             self.name, self.value = "Player Type", PLAYER_TYPES[self.value]
             
         elif self.id == 0x07D1:
-            self.name = "Game Type"
+            self.name,self.value = "Game Type",''.join(reversed(self.value))
             
         elif self.id == 0x0BB8:
             self.name, self.value = "Game Speed", GAME_SPEEDS[self.value]
@@ -244,8 +244,8 @@ class CameraMovementEvent(Event):
     
 class ResourceTransferEvent(Event):
     name = 'ResourceTransfer'
-    def __init__(self, timestamp, player, type, code, target, minerals, vespene):
-        super(ResourceTransferEvent, self).__init__(timestamp, player, type, code)
+    def __init__(self, frames, pid, type, code, target, minerals, vespene):
+        super(ResourceTransferEvent, self).__init__(frames, pid, type, code)
         self.sender = pid
         self.reciever = target
         self.minerals = minerals

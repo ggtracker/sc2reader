@@ -1,6 +1,7 @@
 from itertools import chain
 
 from sc2reader.objects import *
+from sc2reader.utils import BIG_ENDIAN,LITTLE_ENDIAN
 
 class SetupParser(object):
     def parse_join_event(self, buffer, frames, type, code, pid):
@@ -120,17 +121,17 @@ class ActionParser(object):
             return GetHotkeyEvent(frames, pid, type, code, hotkey, overlay)
             
     def parse_transfer_event(self, buffer, frames, type, code, pid):
-        def read_resource_amount(buffer):
+        def read_resource(buffer):
             block = buffer.read_int(BIG_ENDIAN)
             base, multiplier, extension = block >> 8, block & 0xF0, block & 0x0F
             return base*multiplier+extension
             
-        target = event.code >> 4
-        bytes.skip(1)   #84
-        minerals,vespene = read_resource_amount(), read_resource_amount()
-        bytes.skip(8)
+        target = code >> 4
+        buffer.skip(1)   #84
+        minerals,vespene = read_resource(buffer), read_resource(buffer)
+        buffer.skip(8)
         
-        return ResourceTransferEvent(frames, pid, event_type, event_code, target, minerals, vespene)
+        return ResourceTransferEvent(frames, pid, type, code, target, minerals, vespene)
         
 class Unknown2Parser(object):
     def parse_0206_event(self, buffer, frames, type, code, pid):
@@ -193,4 +194,8 @@ class Unknown4Parser(object):
         
     def parse_04X2_event(self, buffer, frames, type, code, pid):
         buffer.skip(2)
+        return UnknownEvent(frames, pid, type, code)
+        
+    def parse_04XC_event(self, buffer, frames, type, code, pid):
+        #no body
         return UnknownEvent(frames, pid, type, code)

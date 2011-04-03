@@ -184,6 +184,9 @@ class GameEventsBase(Reader):
                 event = parser(buffer, frames, type, code, pid)
                 buffer.align()
                 event.bytes = buffer.read_range(start,buffer.cursor)
+
+                print "%s - %s" % (event,event.bytes.encode("hex"))
+                print "Next: %s" % buffer.peek(10 if 10<buffer.left else buffer.left)
                 replay.events.append(event)
             else:
                 msg = "Unknown event: %s - %s at %s"
@@ -216,7 +219,8 @@ class GameEventsBase(Reader):
         elif code == 0xC6: return self.parse_04C6_event
         elif code == 0x87: return self.parse_0487_event
         elif code == 0x00: return self.parse_0400_event
-        elif code & 0x0F == 2: return self.parse_04X2_event
+        elif code & 0x0F == 0x02: return self.parse_04X2_event
+        elif code & 0x0F == 0x0C: return self.parse_04XC_event
         
 class GameEventsReader(GameEventsBase,Unknown2Parser,Unknown4Parser,ActionParser,SetupParser,CameraParser):
     def reads(self, build):

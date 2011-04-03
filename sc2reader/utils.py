@@ -88,8 +88,9 @@ class ReplayBuffer(object):
             self.last_byte = ord(self.io.read(1))
             
     def peek(self, length):
-        start,ret = self.cursor,self.read_hex(length)
+        start,last,ret = self.cursor,self.last_byte,self.read_hex(length)
         self.seek(start, SEEK_SET)
+        self.last_byte = last
         return ret
        
     '''
