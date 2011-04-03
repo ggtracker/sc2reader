@@ -15,7 +15,7 @@ def test_empty():
     # Todo: Are we happy with it raising a ValueError? Should it be rather ParseError or something else?
     # Maybe a "production" mode would be nice to have, so that it simply returns a status of the parse without
     # raising an exception.
-    with pytest.raises(ValueError):
+    with pytest.raises(EOFError):
         sc2reader.read("test_replays/corrupted/empty.SC2Replay")
 
 # Tests for build 17811 replays

@@ -180,7 +180,6 @@ class GameEventsBase(Reader):
             type, code = buffer.shift(3), buffer.read_byte()
             
             parser = PARSERS[type](code)
-            print parser
             if parser:
                 event = parser(buffer, frames, type, code, pid)
                 buffer.align()
