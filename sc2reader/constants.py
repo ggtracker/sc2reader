@@ -54,7 +54,15 @@ TEAM_COLORS = {
     '50ct': "Yellow",
     '60ct': "Orange",
     '70ct': "Green",
-    '80ct': "Pink"
+    '80ct': "Pink",
+    '90ct': "??",
+    '01ct': "??",
+    '11ct': "??",
+    '21ct': "??",
+    '31ct': "??",
+    '41ct': "??",
+    '51ct': "??",
+    '61ct': "??",
 }
 DIFFICULTIES = {
     'yEyV': 'Very easy',
