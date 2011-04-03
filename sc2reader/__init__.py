@@ -2,8 +2,27 @@ import os
 
 from mpyq import MPQArchive
 from config import DefaultConfig
-from utils import read_header
+from utils import ReplayBuffer, LITTLE_ENDIAN
 
+def read_header(file):
+    buffer = ReplayBuffer(file)
+    
+    #Check the file type for the MPQ header bytes
+    if buffer.read_hex(4).upper() != "4D50511B":
+        print "Header Hex was: %s" % buffer.read_hex(4).upper()
+        raise ValueError("File '%s' is not an MPQ file" % file.name)
+    
+    #Extract replay header data, we don't actually use this for anything
+    max_data_size = buffer.read_int(LITTLE_ENDIAN) #possibly data max size
+    header_offset = buffer.read_int(LITTLE_ENDIAN) #Offset of the second header
+    data_size = buffer.read_int(LITTLE_ENDIAN)     #possibly data size
+    
+    #Extract replay attributes from the mpq
+    data = buffer.read_data_struct()
+    
+    #return the release and frames information
+    return data[1],data[3]
+    
 def read(location,config=DefaultConfig()):
     if not os.path.exists(location):
         raise ValueError("Location must exist")

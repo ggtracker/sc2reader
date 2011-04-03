@@ -116,9 +116,8 @@ class EventProcessor(Processor):
     def process(self, replay):
         replay.events_by_type = defaultdict(list)
         for event in replay.events:
+            #event.apply()
             replay.events_by_type[event.name].append(event)    
-
-        for event in replay.events:
             if event.is_local:
                 person = replay.person[event.player]
                 person.events.append(event)

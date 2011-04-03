@@ -44,7 +44,7 @@ class DefaultConfig(Config):
             ('replay.details', [ReplayDetailsReader()]),
             ('replay.attributes.events', [AttributeEventsReader_17326(), AttributeEventsReader()]),
             ('replay.message.events', [MessageEventsReader()]),
-            ('replay.game.events', [GameEventsReader_17326(), GameEventsReader_16561(), GameEventsReader()]),
+            ('replay.game.events', [GameEventsReader()]),
         ])
 
     processors = [
@@ -77,3 +77,16 @@ class NoEventsConfig(DefaultConfig):
             RecorderProcessor(),
         ]
 
+#########################################################
+
+class IntegrationConfig(Config):
+    ReplayClass = Replay
+    readers = OrderedDict([
+            ('replay.initData', [ReplayInitDataReader()]),
+            ('replay.details', [ReplayDetailsReader()]),
+            ('replay.attributes.events', [AttributeEventsReader_17326(), AttributeEventsReader()]),
+            ('replay.message.events', [MessageEventsReader()]),
+            ('replay.game.events', [GameEventsReader()]),
+        ])
+        
+    processors = []

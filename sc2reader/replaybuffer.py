@@ -1,10 +1,8 @@
 from cStringIO import StringIO
 from os import SEEK_CUR, SEEK_END, SEEK_SET
-import struct
-from itertools import groupby
 
 LITTLE_ENDIAN,BIG_ENDIAN = '<','>'
-    
+
 class ReplayBuffer(object):
     """ The ReplayBuffer is a wrapper over the cStringIO object and provides
         convenience functions for reading structured data from Stacraft II
@@ -28,16 +26,13 @@ class ReplayBuffer(object):
             read_object_id(self)
             read_coordinate(self)
             read_bitmask(self)
-            read_range(self, start, end)
         
         Basic Reading::
             read_byte(self)
-            read_int(self, endian=LITTLE_ENDIAN)
-            read_short(self, endian=LITTLE_ENDIAN)
+            read_int(self)
+            read_short(self)
             read_chars(self,length)
-            read_hex(self,length)
             
-        Core Reading::
             shift(self,bits)
             read(bytes,bits)
             
@@ -48,14 +43,10 @@ class ReplayBuffer(object):
     """
     
     def __init__(self, file):
-        #Accept file like objects and string objects
-        if hasattr(file,'read'):
-            self.io = StringIO(file.read())
-        else:
-            self.io = StringIO(file)
+        self.io = StringIO(file)
 
         # get length of stream
-        self.io.seek(0, SEEK_END)
+        self.io.seek(0, os.SEEK_END)
         self.length = self.io.tell()
         self.io.seek(0)
 
@@ -70,8 +61,6 @@ class ReplayBuffer(object):
     def left(self): return self.length - self.cursor
     
     @property
-    def empty(self): return self.left==0
-    @property
     def cursor(self): return self.tell()
     
     '''
@@ -85,13 +74,10 @@ class ReplayBuffer(object):
         self.io.seek(position, mode)
         if self.io.tell() and self.bit_shift:
             self.io.seek(-1, SEEK_CUR)
-            self.last_byte = ord(self.io.read(1))
-            
-    def peek(self, length):
-        start,ret = self.cursor,self.read_hex(length)
-        self.seek(start, SEEK_SET)
-        return ret
-       
+            self.shift(self,self.bit_shift)
+
+
+
     '''
         Read "basic" structures
     '''
@@ -107,14 +93,8 @@ class ReplayBuffer(object):
         """ short16 read """
         return struct.unpack(endian+'H', self.read_chars(2))[0]
         
-    def read_chars(self, length=0, endian=BIG_ENDIAN):
-        chars = [chr(byte) for byte in self.read(length)]
-        if endian == LITTLE_ENDIAN:
-            chars = reversed(chars)
-        return ''.join(chars)
-
-    def read_hex(self, length=0):
-        return self.read_chars(length).encode("hex")
+    def read_chars(self, length=0):
+        return ''.join(chr(byte) for byte in self.read(length))
         
     '''
         Read replay-specific structures
@@ -132,11 +112,11 @@ class ReplayBuffer(object):
             shift += 1
                 
         #The last bit of the result is a sign flag
-        return pow(-1, value & 0x1) * (value >> 1)
+        return pow(-1, result & 0x1) * (result >> 1)
 
-    def read_string(self, length=None):
+    def read_string(self, additional=0):
         """<length> ( <char>, .. ) as unicode"""
-        return self.read_chars(length if length!=None else self.read_byte())
+        return self.read_chars(self.read_byte() + additional).decode('utf-8')
 
     def read_timestamp(self):
         """
@@ -161,8 +141,7 @@ class ReplayBuffer(object):
         if datatype == 0x02:
             #0x02 is a byte string with the first byte indicating
             #the length of the byte string to follow
-            count = self.read_count()
-            return self.read_string(count)
+            return self.read_string(self.get_count())
             
         elif datatype == 0x04:
             #0x04 is an serialized data list with first two bytes always 01 00
@@ -178,20 +157,19 @@ class ReplayBuffer(object):
             #followed by the serialized data object value
             data = dict()
             for i in range(self.read_count()):
-                count = self.read_count()
-                key,value = count, self.read_data_struct()
+                key,value = self.read_count(), self.read_data_struct()
                 data[key] = value #Done like this to keep correct parse order
             return data
             
         elif datatype == 0x06:
-            return self.read_byte()
+            return self.read_byte()/2
         elif datatype == 0x07:
-            return self.read_int()
+            return self.read_int()/2
         elif datatype == 0x09:
-            return self.read_variable_int()
+            return self.read_variable_int()/2
             
         raise TypeError("Uknown Data Structure: '%s'" % datatype)
-    
+        
     def read_object_type(self, read_modifier=False):
         """ Object type is big-endian short16 """
         type = self.read_short(endian=BIG_ENDIAN)
@@ -226,13 +204,6 @@ class ReplayBuffer(object):
 
         return list(reversed(_make_mask(mask, length)))
 
-    def read_range(self, start, end):
-        current = self.cursor
-        self.io.seek(start)
-        ret = self.io.read(end-start)
-        self.io.seek(current)
-        return ret
-        
     '''
         Base read functions
     '''
@@ -277,7 +248,7 @@ class ReplayBuffer(object):
         if self.bit_shift == 0:
             base = [ord(self.io.read(1)) for byte in range(bytes)]
             if bits != 0:
-                return base+[self.shift(bits)]
+                return base+[ord(self.shift(bits))]
             return base
         
         # Calculated shifts
@@ -339,116 +310,3 @@ class ReplayBuffer(object):
         self.bit_shift = new_bit_shift
         
         return raw_bytes
-        
-
-class PersonDict(dict):
-    """Delete is supported on the pid index only"""
-    def __init__(self, *args, **kwargs):
-        self._key_map = dict()
-        
-        if args:
-            print args
-            for arg in args[0]:
-                self[arg[0]] = arg[1]
-                
-        if kwargs:
-            print kwargs
-            for key, value in kwargs.iteritems():
-                self[key] = value
-        
-    def __getitem__(self, key):
-        if isinstance(key, str):
-            key = self._key_map[key]
-
-        return super(PersonDict, self).__getitem__(key)
-
-    def __setitem__(self, key, value):
-        if isinstance(key, str):
-            self._key_map[key] = value.pid
-            key = value.pid
-        elif isinstance(key, int):
-            self._key_map[value.name] = key
-            
-        super(PersonDict, self).__setitem__(value.pid, value)
-
-
-
-class TimeDict(dict):
-    """ Dict with frames as key """
-
-    def __init__(self, *args, **kwargs):
-        dict.__init__(self, *args, **kwargs)
-        self.current = None
-        self.current_key = None
-
-    def __getitem__(self, key):
-        if key == self.current_key:
-            return self.current
-        try:
-            return dict.__getitem__(self, key)
-        except KeyError:
-            stamps = filter(lambda x: x<=key, sorted(self.keys()))
-            if stamps:
-                return dict.__getitem__(self, stamps[-1])
-            else:
-                return self.current
-
-    def __setitem__(self, key, value):
-        if self.current_key is not None and key < self.current_key:
-            raise ValueError("Cannot assign before last item (%s)" % (max(self.keys()),))
-        else:
-            self.current = value
-            self.current_key = key
-            dict.__setitem__(self, key, value)
-
-
-
-class Selection(TimeDict):
-    """ Buffer for tracking selections in-game """
-
-    def __init__(self):
-        super(Selection, self).__init__()
-        self[0] = []
-
-    @classmethod
-    def replace(cls, selection, indexes):
-        """ Deselect objects according to indexes """
-        return [ selection[i] for i in indexes ]
-
-    @classmethod
-    def deselect(cls, selection, indexes):
-        """ Deselect objects according to indexes """
-        return [ selection[i] for i in range(len(selection)) if i not in indexes ]
-
-    @classmethod
-    def mask(cls, selection, mask):
-        """ Deselect objects according to deselect mask """
-        if len(mask) < len(selection):
-            # pad to the right
-            mask = mask+[False,]*(len(selection)-len(mask)) 
-        return [ obj for (slct, obj) in filter(lambda (slct, obj): not slct, zip(mask, selection)) ]
-
-    def __setitem__(self, key, value):
-        # keep things sorted by id
-        super(Selection, self).__setitem__(key, list(sorted(value, key=lambda obj: obj.id)))
-
-    def __repr__(self):
-        return '<Selection %s>' % (', '.join([str(obj) for obj in self.current]),)
-
-    def get_types(self):
-        return ', '.join([ u'%s %sx' % (name.name, len(list(objs))) for (name, objs) in groupby(self.current, lambda obj: obj.__class__)])
-
-def timestamp_from_windows_time(windows_time):
-    # This windows timestamp measures the number of 100 nanosecond periods since
-    # January 1st, 1601. First we subtract the number of nanosecond periods from
-    # 1601-1970, then we divide by 10^7 to bring it back to seconds.
-    return (windows_time-116444735995904000)/10**7
-
-import inspect
-def key_in_bases(key,bases):
-    bases = list(bases)
-    for base in list(bases):
-        bases.extend(inspect.getmro(base))
-    for clazz in set(bases):
-        if key in clazz.__dict__: return True
-    return False

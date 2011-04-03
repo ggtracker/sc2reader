@@ -1,6 +1,7 @@
-from data import races
+from constants import races
 from collections import defaultdict
-from sc2reader.utils import ByteStream, PersonDict
+from sc2reader.utils import PersonDict
+from sc2reader.constants import *
 
 class Replay(object):
     
@@ -55,83 +56,57 @@ class Attribute(object):
         #overridden by known attributes; acts as a flag for exclusion
         self.header, self.id, self.player, self.value, self.name = tuple(data+["Unknown"])
         
-        #Clean the value of leading null bytes and decode it for easier and more
-        #readable comparisons in the decoding logic to follow
-        while(self.value[:2] == "00"):
-            self.value = self.value[2:]
-        self.value = self.value.decode("hex")
-        
-        
+        #Strip off the null bytes
+        while self.value[-1] == '\x00': self.value = self.value[:-1]
+   
         if self.id == 0x01F4:
-            self.name = "Player Type"
-            if   self.value == "Humn": self.value = "Human"
-            elif self.value == "Comp": self.value = "Computer"
+            self.name, self.value = "Player Type", PLAYER_TYPES[self.value]
             
         elif self.id == 0x07D1:
             self.name = "Game Type"
             
         elif self.id == 0x0BB8:
-            self.name = "Game Speed"
-            if   self.value == "Slor": self.value = "Slower"
-            elif self.value == "Norm": self.value = "Normal"
-            elif self.value == "Fasr": self.value = "Faster"
+            self.name, self.value = "Game Speed", GAME_SPEEDS[self.value]
             
         elif self.id == 0x0BB9:
-            self.name = "Race"
-            if   self.value.lower() == "prot": self.value = "Protoss"
-            elif self.value.lower() == "terr": self.value = "Terran"
-            elif self.value.lower() == "rand": self.value = "Random"
+            self.name, self.value = "Race", RACES[self.value]
             
         elif self.id == 0x0BBA:
-            self.name = "Color"
-            if   self.value == "tc01": self.value = "Red"
-            elif self.value == "tc02": self.value = "Blue"
-            elif self.value == "tc03": self.value = "Teal"
-            elif self.value == "tc04": self.value = "Purple"
-            elif self.value == "tc05": self.value = "Yellow"
-            elif self.value == "tc06": self.value = "Orange"
-            elif self.value == "tc07": self.value = "Green"
-            elif self.value == "tc08": self.value = "Pink"
+            self.name, self.value = "Color", TEAM_COLORS[self.value]
             
         elif self.id == 0x0BBB:
             self.name = "Handicap"
             
         elif self.id == 0x0BBC:
-            self.name = "Difficulty"
-            if   self.value == "VyEy": self.value = "Very Easy"
-            elif self.value == "Medi": self.value = "Medium"
-            elif self.value == "VyHd": self.value = "Very Hard"
-            elif self.value == "Insa": self.value = "Insane"
+            self.name, self.value = "Difficulty", DIFFICULTIES[self.value]
             
         elif self.id == 0x0BC1:
-            self.name = "Category"
-            if   self.value == "Priv": self.value = "Private"
-            elif self.value == "Amm": self.value = "Ladder"
+            self.name, self.value = "Category", GAME_TYPES[self.value]
             
         elif self.id == 0x07D2:
             self.name = "Teams1v1"
             #Get the raw team number
-            self.value = int(self.value[1:])
+            self.value = int(self.value[0])
             
         elif self.id == 0x07D3:
             self.name = "Teams2v2"
             #Get the raw team number
-            self.value = int(self.value[1:], 16)
+            self.value = int(self.value[0])
             
         elif self.id == 0x07D4:
             self.name = "Teams3v3"
             #Get the raw team number
-            self.value = int(self.value[1:])
+            self.value = int(self.value[0])
             
         elif self.id == 0x07D5:
             self.name = "Teams4v4"
             #Get the raw team number
-            self.value = int(self.value[1:])
+            self.value = int(self.value[0])
             
         elif self.id == 0x07D6:
             self.name = "TeamsFFA"
             #Get the raw team number
-            self.value = int(self.value[1:])
+            self.value = int(self.value[0])
             
         #print "%s (%s) - %s - %s" % (self.name, self.id, self.player, self.value)
     
@@ -151,7 +126,7 @@ class Message(object):
         
     def __str__(self):
         time = ((self.time/16)/60, (self.time/16)%60)
-        return "%s - Player %s - %s" % (time, self.player.pid, self.text)
+        return "%s - Player %s - %s" % (time, self.sender_id, self.text)
         
     def __repr__(self):
         return str(self)
@@ -177,13 +152,13 @@ class Player(Person):
     
     def __init__(self, pid, data, realm="us"):
         # TODO: get a map of realm,subregion => region in here
-        super(Player,self).__init__(pid,data[0].decode("hex"))
+        super(Player,self).__init__(pid,data[0])
         self.is_obs = False
         self.realm = realm
         self.uid = data[1][4]
         self.subregion = data[1][2]
         self.url = self.url_template % (self.realm, self.uid, self.subregion, self.name)
-        self.actual_race = data[2].decode("hex")
+        self.actual_race = data[2]
         
         # Actual race seems to be localized, so try to convert to english if possible
         
@@ -226,8 +201,12 @@ class Player(Person):
         
         
 class Event(object):
-    def __init__(self, elapsed_time, event_type, event_code, player_id):
-        self.time, self.seconds = (elapsed_time, elapsed_time/16)
+    name = 'BaseEvent'
+    def apply(self): pass
+    
+    """Abstract Event Type, should not be directly instanciated"""
+    def __init__(self, timestamp, player_id, event_type, event_code):
+        self.time, self.seconds = (timestamp, timestamp/16)
         self.timestr = "%s:%s" % (self.seconds/60, str(self.seconds%60).rjust(2, "0"))
         self.type = event_type
         self.code = event_code
@@ -243,14 +222,14 @@ class Event(object):
         self.is_unknown = (event_type == 0x02 or event_type == 0x04 or event_type == 0x05)
 	
     def __str__(self):
-        return "%s - %s - %s" % (self.timestr, self.name, self.abilitystr)
+        return "%s - %s - %s (%s,%s)" % (self.timestr, self.player, self.name, hex(self.type), hex(self.code))
         
     def __repr__(self):
         return str(self)
-	
+        
 class UnknownEvent(Event):
-	name = 'UnknownEvent'
-	
+    name = 'UnknownEvent'
+    
 class PlayerJoinEvent(Event):
 	name = 'PlayerJoin'
 	
@@ -260,17 +239,159 @@ class GameStartEvent(Event):
 class PlayerLeaveEvent(Event):
 	name = 'PlayerLeave'
     
-class AbilityEvent(Event):
-    name = 'AbilityEvent'
-
+class CameraMovementEvent(Event):
+    name = 'CameraMovement'
+    
 class ResourceTransferEvent(Event):
     name = 'ResourceTransfer'
+    def __init__(self, timestamp, player, type, code, target, minerals, vespene):
+        super(ResourceTransferEvent, self).__init__(timestamp, player, type, code)
+        self.sender = pid
+        self.reciever = target
+        self.minerals = minerals
+        self.vespene = vespene
+        
+class AbilityEvent(Event):
+    name = 'AbilityEvent'
+    def __init__(self, timestamp, player, type, code, ability):
+        super(AbilityEvent, self).__init__(timestamp, player, type, code)
+        self.ability = ability
+
+    def apply(self):
+        if self.ability:
+            if self.ability not in ABILITIES:
+                raise ValueError("Unknown ability (%s)" % (hex(self.ability)),)
+            self.ability = ABILITIES[self.ability]
+            able = self.get_able_selection()
+            if able:
+                object = able[0]
+                ability = getattr(object, self.ability)
+                ability(self.timestamp)
+
+        # claim units
+        for obj in self.player.get_selection().current:
+            obj.player = self.player
+
+    def get_able_selection(self):
+        return [obj for obj in self.player.get_selection().current if hasattr(obj, self.ability)]
+        
+class TargetAbilityEvent(AbilityEvent):
+    name = 'TargetAbilityEvent'
+    def __init__(self, timestamp, player, type, code, ability, target):
+        super(TargetAbilityEvent, self).__init__(timestamp, player, type, code, ability)
+        self.target = target
+
+    def apply(self):
+        obj_id, obj_type = self.target
+        if not obj_id:
+            # fog of war
+            pass
+        else:
+            obj_type = obj_type << 8 | 0x01
+
+            type_class = GameObject.get_type(obj_type)
+            # Could this be hallucinated?
+            create_obj = not GameObject.has_type(obj_type & 0xfffffc | 0x2)
+                
+            obj = None
+            if obj_id in self.player.game.objects:
+                obj = self.player.game.objects[obj_id]
+            elif create_obj:
+                obj = type_class(obj_id, self.timestamp)
+                self.player.game.objects[obj_id] = obj
+
+            if obj:
+                obj.visit(self.timestamp, self.player, type_class)
+            self.target = obj
+        
+        super(TargetAbilityEvent, self).apply()
+
+class LocationAbilityEvent(AbilityEvent):
+    name = 'LocationAbilityEvent'
+    def __init__(self, timestamp, player, type, code, ability, location):
+        super(LocationAbilityEvent, self).__init__(timestamp, player, type, code, ability)
+        self.location = location
 
 class HotkeyEvent(Event):
     name = 'HotkeyEvent'
-    
+    def __init__(self, timestamp, player, type, code, hotkey, overlay=None):
+        super(HotkeyEvent, self).__init__(timestamp, player, type, code)
+        self.hotkey = hotkey
+        self.overlay = overlay
+
+class SetToHotkeyEvent(HotkeyEvent):
+    name = 'SetToHotkeyEvent'
+    def apply(self):
+        hotkey = self.player.get_hotkey(self.hotkey)
+        selection = self.player.get_selection()
+        hotkey[self.timestamp] = selection.current
+
+        # They are alive!
+        for obj in selection[self.timestamp]:
+            obj.visit(self.timestamp, self.player)
+
+class AddToHotkeyEvent(HotkeyEvent):
+    name = 'AddToHotkeyEvent'
+    def apply(self):
+        hotkey = self.player.get_hotkey(self.hotkey)
+        hotkeyed = hotkey.current[:]
+
+        # Remove from hotkey if overlay
+        if self.overlay:
+            hotkeyed = self.overlay(hotkeyed)
+
+        hotkeyed.extend(self.player.get_selection()[self.timestamp])
+        hotkeyed = list(set(hotkeyed)) # remove dups
+        hotkey[self.timestamp] = hotkeyed
+
+        # They are alive!
+        for obj in hotkeyed:
+            obj.visit(self.timestamp, self.player)
+
+class GetHotkeyEvent(HotkeyEvent):
+    name = 'GetHotkeyEvent'
+    def apply(self):
+        hotkey = self.player.get_hotkey(self.hotkey)
+        hotkeyed = hotkey.current[:]
+
+        if self.overlay:
+            hotkeyed = self.overlay(hotkeyed)
+
+        selection = self.player.get_selection()
+        selection[self.timestamp] = hotkeyed
+
+        # selection is alive!
+        for obj in hotkeyed:
+            obj.visit(self.timestamp, self.player)
+            
 class SelectionEvent(Event):
     name = 'SelectionEvent'
     
-class CameraMovementEvent(Event):
-    name = 'CameraMovement'
+    def __init__(self, timestamp, player, type, code, bank, objects, deselect):
+        super(SelectionEvent, self).__init__(timestamp, player, type, code)
+        self.bank = bank
+        self.objects = objects
+        self.deselect = deselect
+
+    def apply(self):
+        selection = self.player.get_selection(self.bank)
+
+        selected = selection.current[:]
+        for obj in selected: # visit all old units
+            obj.visit(self.timestamp, self.player)
+
+        if self.deselect:
+            selected = self.deselect(selected)
+
+        # Add new selection
+        for (obj_id, obj_type) in self.objects:
+            type_class = GameObject.get_type(obj_type)
+            if obj_id not in self.player.game.objects:
+                obj = type_class(obj_id, self.timestamp)
+                self.player.game.objects[obj_id] = obj
+            else:
+                obj = self.player.game.objects[obj_id]
+            obj.visit(self.timestamp, self.player, type_class)
+            selected.append(obj)
+        
+        selection[self.timestamp] = selected
