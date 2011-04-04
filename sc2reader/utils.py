@@ -68,7 +68,8 @@ class ReplayBuffer(object):
         self.lo_masks_inv = [0x00, 0x80, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC, 0xFE, 0xFF]
         self.hi_masks = [0xFF ^ mask for mask in self.lo_masks]
         self.hi_masks_inv = [0xFF ^ mask for mask in self.lo_masks_inv]
-
+        
+        self.read_basic = self.io.read
     '''
         Additional Properties
     '''
@@ -88,9 +89,9 @@ class ReplayBuffer(object):
     def align(self): self.bit_shift=0
     def seek(self, position, mode=SEEK_SET):
         self.io.seek(position, mode)
-        if self.io.tell() and self.bit_shift:
+        if self.io.tell()!=0 and self.bit_shift!=0:
             self.io.seek(-1, SEEK_CUR)
-            self.last_byte = ord(self.io.read(1))
+            self.last_byte = ord(self.read_basic(1))
             
     def peek(self, length):
         start,last,ret = self.cursor,self.last_byte,self.read_hex(length)
@@ -104,23 +105,23 @@ class ReplayBuffer(object):
     def read_byte(self):
         """ Basic byte read """
         if self.bit_shift==0:
-            return ord(self.io.read(1))
+            return ord(self.read_basic(1))
         else:
             return self.read(1)[0]
 
     def read_int(self, endian=LITTLE_ENDIAN):
         """ int32 read """
-        chars = self.io.read(4) if self.bit_shift==0 else self.read_chars(4)
+        chars = self.read_basic(4) if self.bit_shift==0 else self.read_chars(4)
         return struct.unpack(endian+'I', chars)[0]
         
     def read_short(self, endian=LITTLE_ENDIAN):
         """ short16 read """
-        chars = self.io.read(2) if self.bit_shift==0 else self.read_chars(2)
+        chars = self.read_basic(2) if self.bit_shift==0 else self.read_chars(2)
         return struct.unpack(endian+'H', chars)[0]
         
     def read_chars(self, length=0):
         if self.bit_shift==0:
-            return self.io.read(length)
+            return self.read_basic(length)
         else:
             return ''.join(chr(byte) for byte in self.read(length))
 
@@ -240,7 +241,7 @@ class ReplayBuffer(object):
     def read_range(self, start, end):
         current = self.cursor
         self.io.seek(start)
-        ret = self.io.read(end-start)
+        ret = self.read_basic(end-start)
         self.io.seek(current)
         return ret
         
@@ -265,7 +266,7 @@ class ReplayBuffer(object):
             #make sure there are enough bits left in the byte
             if new_shift <= 8:
                 if not bit_shift:
-                    self.last_byte = ord(self.io.read(1))
+                    self.last_byte = ord(self.read_basic(1))
                 
                 #using a bit_mask_array tested out to be 20% faster, go figure
                 ret = (self.last_byte >> bit_shift) & self.lo_masks[bits]
@@ -294,7 +295,7 @@ class ReplayBuffer(object):
             
             #check special case of byte-aligned reads, performance booster
             if self.bit_shift == 0:
-                base = [ord(self.io.read(1)) for byte in range(bytes)]
+                base = [ord(self.read_basic(1)) for byte in range(bytes)]
                 if bits != 0:
                     return base+[self.shift(bits)]
                 return base
@@ -319,7 +320,7 @@ class ReplayBuffer(object):
             
             #Set up for the looping with a list, the bytes, and an initial part
             raw_bytes = list()
-            prev, next = self.last_byte, ord(self.io.read(1))
+            prev, next = self.last_byte, ord(self.read_basic(1))
             first = prev & hi_mask
             bit_count -= 8-old_bit_shift
             
@@ -351,7 +352,7 @@ class ReplayBuffer(object):
                     bit_count -= 8
                     
                     #Cycle down to the next byte
-                    prev,next = next,ord(self.io.read(1))
+                    prev,next = next,ord(self.read_basic(1))
             
             self.last_byte = next
             self.bit_shift = new_bit_shift

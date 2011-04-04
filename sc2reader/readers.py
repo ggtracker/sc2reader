@@ -172,21 +172,24 @@ class GameEventsBase(Reader):
         
         while not buffer.empty:
             #Save the start so we can trace for debug purposes
-            start = buffer.cursor
+            #start = buffer.cursor
 
             frames += buffer.read_timestamp()
             pid = buffer.shift(5)
             type, code = buffer.shift(3), buffer.read_byte()
             
+            
             parser = PARSERS[type](code)
-            if parser:
-                event = parser(buffer, frames, type, code, pid)
-                buffer.align()
-                event.bytes = buffer.read_range(start,buffer.cursor)
-                replay.events.append(event)
-            else:
+            
+            if parser == None:
                 msg = "Unknown event: %s - %s at %s"
                 raise TypeError(msg % (hex(type), hex(code), hex(start)))
+            
+            event = parser(buffer, frames, type, code, pid)
+            buffer.align()
+            #event.bytes = buffer.read_range(start,buffer.cursor)
+            replay.events.append(event)
+
 
     def get_setup_parser(self, code):
         if   code in (0x0B,0x0C): return self.parse_join_event

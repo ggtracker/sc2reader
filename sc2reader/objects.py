@@ -206,7 +206,7 @@ class Event(object):
     
     """Abstract Event Type, should not be directly instanciated"""
     def __init__(self, timestamp, player_id, event_type, event_code):
-        self.time, self.seconds = (timestamp, timestamp/16)
+        self.time, self.seconds = (timestamp, timestamp >> 4)
         self.timestr = "%s:%s" % (self.seconds/60, str(self.seconds%60).rjust(2, "0"))
         self.type = event_type
         self.code = event_code
@@ -214,7 +214,7 @@ class Event(object):
         self.player = player_id
         self.bytes = bytes
         self.abilitystr = ""
-
+        
         # Added for convenience
         self.is_init = (event_type == 0x00)
         self.is_player_action = (event_type == 0x01)
