@@ -85,7 +85,7 @@ class ReplayBuffer(object):
     def tell(self): return self.io.tell()
     def skip(self, amount): self.seek(amount, SEEK_CUR)
     def reset(self): self.io.seek(0); self.bit_shift = 0
-    def align(self): self.shift(8-self.bit_shift) if self.bit_shift else 0
+    def align(self): self.bit_shift=0
     def seek(self, position, mode=SEEK_SET):
         self.io.seek(position, mode)
         if self.io.tell() and self.bit_shift:
@@ -103,21 +103,26 @@ class ReplayBuffer(object):
     '''
     def read_byte(self):
         """ Basic byte read """
-        return self.read(1)[0]
+        if self.bit_shift==0:
+            return ord(self.io.read(1))
+        else:
+            return self.read(1)[0]
 
     def read_int(self, endian=LITTLE_ENDIAN):
         """ int32 read """
-        return struct.unpack(endian+'I', self.read_chars(4))[0]
+        chars = self.io.read(4) if self.bit_shift==0 else self.read_chars(4)
+        return struct.unpack(endian+'I', chars)[0]
         
     def read_short(self, endian=LITTLE_ENDIAN):
         """ short16 read """
-        return struct.unpack(endian+'H', self.read_chars(2))[0]
+        chars = self.io.read(2) if self.bit_shift==0 else self.read_chars(2)
+        return struct.unpack(endian+'H', chars)[0]
         
-    def read_chars(self, length=0, endian=BIG_ENDIAN):
-        chars = [chr(byte) for byte in self.read(length)]
-        if endian == LITTLE_ENDIAN:
-            chars = reversed(chars)
-        return ''.join(chars)
+    def read_chars(self, length=0):
+        if self.bit_shift==0:
+            return self.io.read(length)
+        else:
+            return ''.join(chr(byte) for byte in self.read(length))
 
     def read_hex(self, length=0):
         return self.read_chars(length).encode("hex")
@@ -274,7 +279,7 @@ class ReplayBuffer(object):
                 
         except TypeError:
             raise EOFError("Cannot shift requested bits. End of buffer reached")
-            
+
     def read(self, bytes=0, bits=0):
         try:
             bytes, bits = bytes+bits/8, bits%8
@@ -354,7 +359,7 @@ class ReplayBuffer(object):
             
         except TypeError:
             raise EOFError("Cannot read requested bits/bytes. End of buffer reached")
-
+            
 class PersonDict(dict):
     """Delete is supported on the pid index only"""
     def __init__(self, *args, **kwargs):

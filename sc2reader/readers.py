@@ -77,14 +77,14 @@ class AttributeEventsReader(Reader):
                 ]))
             
     def load_header(self, replay, buffer):
-        buffer.read_chars(4,LITTLE_ENDIAN)
+        buffer.read_chars(4)
 
 class AttributeEventsReader_17326(AttributeEventsReader):
     def reads(self, build):
         return build >= 17326
 
     def load_header(self, replay, buffer):
-        buffer.read_chars(5,LITTLE_ENDIAN)
+        buffer.read_chars(5)
         
 ##################################################
 
