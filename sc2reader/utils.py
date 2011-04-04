@@ -62,17 +62,22 @@ class ReplayBuffer(object):
         # setup shift defaults
         self.bit_shift = 0
         self.last_byte = None
+        
+        #Extra optimization stuff
+        self.lo_masks = [0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F, 0xFF]
+        self.lo_masks_inv = [0x00, 0x80, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC, 0xFE, 0xFF]
+        self.hi_masks = [0xFF ^ mask for mask in self.lo_masks]
+        self.hi_masks_inv = [0xFF ^ mask for mask in self.lo_masks_inv]
 
     '''
         Additional Properties
     '''
     @property
-    def left(self): return self.length - self.cursor
-    
+    def left(self): return self.length - self.io.tell()
     @property
     def empty(self): return self.left==0
     @property
-    def cursor(self): return self.tell()
+    def cursor(self): return self.io.tell()
     
     '''
         Stream manipulation functions
@@ -234,6 +239,7 @@ class ReplayBuffer(object):
         self.io.seek(current)
         return ret
         
+    
     '''
         Base read functions
     '''
@@ -247,25 +253,28 @@ class ReplayBuffer(object):
         byte-aligned byte.
         """
         try:
-            if bits == 0:
-                return 0
+            #declaring locals instead of accessing dict on multiple use seems faster
+            bit_shift = self.bit_shift
+            new_shift = bit_shift+bits
             
-            elif bits <= (8-self.bit_shift):
-                #Grab a new byte if the currently loaded one is exhausted
-                if self.bit_shift == 0:
+            #make sure there are enough bits left in the byte
+            if new_shift <= 8:
+                if not bit_shift:
                     self.last_byte = ord(self.io.read(1))
                 
-                #Get the requested bits from the byte, and adjust state
-                ret = (self.last_byte >> self.bit_shift) & (2**bits-1)
-                self.bit_shift = (self.bit_shift + bits) % 8
+                #using a bit_mask_array tested out to be 20% faster, go figure
+                ret = (self.last_byte >> bit_shift) & self.lo_masks[bits]
+                #using an if for the special case tested out to be faster, hrm
+                self.bit_shift = 0 if new_shift == 8 else new_shift
                 return ret
             
             else:
                 msg = "Cannot shift off %s bits. Only %s bits remaining."
                 raise ValueError(msg % (bits, 8-self.bit_shift))
+                
         except TypeError:
-            raise EOFError("Cannot shift new byte. End of buffer reached")
-    
+            raise EOFError("Cannot shift requested bits. End of buffer reached")
+            
     def read(self, bytes=0, bits=0):
         try:
             bytes, bits = bytes+bits/8, bits%8
@@ -345,7 +354,6 @@ class ReplayBuffer(object):
             
         except TypeError:
             raise EOFError("Cannot read requested bits/bytes. End of buffer reached")
-        
 
 class PersonDict(dict):
     """Delete is supported on the pid index only"""
