@@ -170,7 +170,7 @@ def test_referee():
 # Disabled for now, no plans on fixing
 """
 def test_footmen():
-    replay = sc2reader.read("test_replays/build17811/12.SC2Replay")
+    replay = sc2reader.read("test_replays/build17811/footman.SC2Replay")
 """
 
 def test_encrypted():
