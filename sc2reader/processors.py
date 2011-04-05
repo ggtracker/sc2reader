@@ -27,14 +27,13 @@ class Processor(object):
 #####################################################
 
 class PeopleProcessor(Processor):
-
     def process(self, replay):
         obs_players = list(replay.player_names)
         for player in replay.players:
             obs_players.remove(player.name)
         
         for pid,name in enumerate(obs_players):
-            replay.observers.append(Observer(pid+len(replay.players)+1,name))
+            replay.observers.append(Observer(pid+len(replay.players)+1,name,replay))
         
         for person in replay.observers+replay.players:
             replay.people.append(person)
@@ -116,12 +115,14 @@ class EventProcessor(Processor):
     def process(self, replay):
         replay.events_by_type = defaultdict(list)
         for event in replay.events:
-            #event.apply()
-            replay.events_by_type[event.name].append(event)    
             if event.is_local:
-                person = replay.person[event.player]
+                person = replay.person[event.pid]
+                event.player = person
                 person.events.append(event)
                 
+            event.apply()
+            replay.events_by_type[event.name].append(event)    
+
         return replay
 
 #####################################################
@@ -130,7 +131,7 @@ class ApmProcessor(Processor):
     def process(self, replay):
         for event in replay.events:
             if event.is_local and event.is_player_action:
-                person = replay.person[event.player]
+                person = event.player
                 if not person.is_obs:
                     # Calculate APS, APM and average
                     if event.seconds in person.aps:
@@ -157,15 +158,21 @@ class ApmProcessor(Processor):
 class ResultsProcessor(Processor):
     def process(self, replay):
         #Remove players from the teams as they drop out of the game   
+        print replay.teams
+        print replay.players
         replay.results = dict([team, len(players)] for team, players in replay.teams.iteritems())
+        
+        print replay.results
         
         for event in replay.events_by_type['PlayerLeave']:
             #Some observer actions seem to be recorded, they aren't on teams anyway
             #Their pid will always be higher than the players
-            if event.player <= len(replay.players):
-                team = replay.person[event.player].team
+            print "Player %s has left" % event.pid
+            if event.pid <= len(replay.players):
+                team = replay.person[event.pid].team
                 replay.results[team] -= 1 
                 
+        print replay.results
         #mark all teams with no players left as losing, save the rest of the teams
         remaining = set()
         for team, count in replay.results.iteritems():

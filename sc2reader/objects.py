@@ -1,7 +1,10 @@
 from constants import races
 from collections import defaultdict
-from sc2reader.utils import PersonDict
+
 from sc2reader.constants import *
+from sc2reader.data import GameObject, ABILITIES
+from sc2reader.utils import PersonDict,Selection
+
 
 class Replay(object):
     
@@ -38,7 +41,7 @@ class Replay(object):
         self.messages = list()
         self.recorder = None # Player object
         self.winner_known = False
-
+        
         # Set in parsers.DetailParser.load, should we hide this?
         self.file_time = None # Probably number milliseconds since EPOCH
         
@@ -48,6 +51,9 @@ class Replay(object):
         # this is different depending on the OS on which the replay was played.
         self.date = None # Date when the game was played in local time
         self.utc_date = None # Date when the game was played in UTC
+        
+        #from obslib
+        self.objects = {}
         
 class Attribute(object):
     
@@ -133,7 +139,7 @@ class Message(object):
 
 # Actor is a base class for Observer and Player
 class Person(object):
-    def __init__(self, pid, name):
+    def __init__(self, pid, name, replay):
         self.pid = pid
         self.name = name
         self.is_obs = None
@@ -141,20 +147,55 @@ class Person(object):
         self.events = list()
         self.recorder = False # Actual recorder will be determined using the replay.message.events file
 
+        #From obslib
+        self.selections = {}
+        self.hotkeys = {}
+        self.replay = replay
+        
+    def get_selection(self, number=10):
+        """ Get selection buffer by number """
+        if number < 10:
+            return self.get_hotkey(number)
+        else:
+            selection = self.selections.get(number, Selection())
+            self.selections[number] = selection
+            return selection
+
+    def get_hotkey(self, number):
+        """ Get hotkey buffer by number (does not load it) """
+        hotkey = self.hotkeys.get(number, Selection())
+        self.hotkeys[number] = hotkey
+        return hotkey
+
+    def load_hotkey(self, number, timestamp):
+        """ Push hotkey to current selection (10) """
+        hotkey = self.hotkeys.get(number, Selection())
+        self.hotkeys[number] = hotkey
+        selection = self.get_selection(10) # get user bank
+        selection.deselect_all(timestamp)
+        selection.select(hotkey.current(), timestamp)
+
+    def army_composition_at(self, frame):
+        return [object for object in self.game.objects.values() if object.alive_at(frame) and object.player == self and issubclass(object.object_types[frame], Army)]
+
+    def production_structures_at(self, frame):
+        return [object for object in self.game.objects.values() if object.alive_at(frame) and object.player == self and issubclass(object.object_types[frame], Production)]
+  
+  
 class Observer(Person):
-    def __init__(self, pid, name):
-        super(Observer,self).__init__(pid,name)
+    def __init__(self, pid, name, replay):
+        super(Observer,self).__init__(pid, name, replay)
         self.is_obs = True
 		
 class Player(Person):
     
     url_template = "http://%s.battle.net/sc2/en/profile/%s/%s/%s/"
     
-    def __init__(self, pid, data, realm="us"):
+    def __init__(self, pid, data, replay):
         # TODO: get a map of realm,subregion => region in here
-        super(Player,self).__init__(pid,data[0])
+        super(Player,self).__init__(pid, data[0], replay)
         self.is_obs = False
-        self.realm = realm
+        self.realm = replay.realm
         self.uid = data[1][4]
         self.subregion = data[1][2]
         self.url = self.url_template % (self.realm, self.uid, self.subregion, self.name)
@@ -176,10 +217,10 @@ class Player(Person):
             
         self.choosen_race = "" # Populated from the replay.attribute.events file
         self.color_rgba = dict([
-                ['r', data[3][1]], 
-                ['g', data[3][2]], 
-                ['b', data[3][3]], 
-                ['a', data[3][0]], 
+                ['r', data[3][1]],
+                ['g', data[3][2]],
+                ['b', data[3][3]],
+                ['a', data[3][0]],
             ])
             
         self.result = None
@@ -191,7 +232,7 @@ class Player(Person):
         self.avg_apm = 0
         self.aps = dict() # Doesn't contain seconds with zero actions
         self.apm = dict() # Doesn't contain minutes with zero actions
-        
+
     def __str__(self):
         return "Player %s - %s (%s)" % (self.pid, self.name, self.actual_race)
         
@@ -211,7 +252,7 @@ class Event(object):
         self.type = event_type
         self.code = event_code
         self.is_local = (player_id != 16)
-        self.player = player_id
+        self.pid = player_id
         self.bytes = bytes
         self.abilitystr = ""
         
@@ -258,15 +299,17 @@ class AbilityEvent(Event):
         self.ability = ability
 
     def apply(self):
+        
         if self.ability:
             if self.ability not in ABILITIES:
-                raise ValueError("Unknown ability (%s)" % (hex(self.ability)),)
+                print "Unknown ability (%s) in at %s" % (hex(self.ability),self.timestr)
+                #raise ValueError("Unknown ability (%s)" % (hex(self.ability)),)
             self.ability = ABILITIES[self.ability]
             able = self.get_able_selection()
             if able:
                 object = able[0]
                 ability = getattr(object, self.ability)
-                ability(self.timestamp)
+                ability(self.time)
 
         # claim units
         for obj in self.player.get_selection().current:
@@ -294,14 +337,14 @@ class TargetAbilityEvent(AbilityEvent):
             create_obj = not GameObject.has_type(obj_type & 0xfffffc | 0x2)
                 
             obj = None
-            if obj_id in self.player.game.objects:
-                obj = self.player.game.objects[obj_id]
+            if obj_id in self.player.replay.objects:
+                obj = self.player.replay.objects[obj_id]
             elif create_obj:
-                obj = type_class(obj_id, self.timestamp)
-                self.player.game.objects[obj_id] = obj
+                obj = type_class(obj_id, self.time)
+                self.player.replay.objects[obj_id] = obj
 
             if obj:
-                obj.visit(self.timestamp, self.player, type_class)
+                obj.visit(self.time, self.player, type_class)
             self.target = obj
         
         super(TargetAbilityEvent, self).apply()
@@ -324,11 +367,11 @@ class SetToHotkeyEvent(HotkeyEvent):
     def apply(self):
         hotkey = self.player.get_hotkey(self.hotkey)
         selection = self.player.get_selection()
-        hotkey[self.timestamp] = selection.current
+        hotkey[self.time] = selection.current
 
         # They are alive!
-        for obj in selection[self.timestamp]:
-            obj.visit(self.timestamp, self.player)
+        for obj in selection[self.time]:
+            obj.visit(self.time, self.player)
 
 class AddToHotkeyEvent(HotkeyEvent):
     name = 'AddToHotkeyEvent'
@@ -340,13 +383,13 @@ class AddToHotkeyEvent(HotkeyEvent):
         if self.overlay:
             hotkeyed = self.overlay(hotkeyed)
 
-        hotkeyed.extend(self.player.get_selection()[self.timestamp])
+        hotkeyed.extend(self.player.get_selection()[self.time])
         hotkeyed = list(set(hotkeyed)) # remove dups
-        hotkey[self.timestamp] = hotkeyed
+        hotkey[self.time] = hotkeyed
 
         # They are alive!
         for obj in hotkeyed:
-            obj.visit(self.timestamp, self.player)
+            obj.visit(self.time, self.player)
 
 class GetHotkeyEvent(HotkeyEvent):
     name = 'GetHotkeyEvent'
@@ -358,11 +401,11 @@ class GetHotkeyEvent(HotkeyEvent):
             hotkeyed = self.overlay(hotkeyed)
 
         selection = self.player.get_selection()
-        selection[self.timestamp] = hotkeyed
+        selection[self.time] = hotkeyed
 
         # selection is alive!
         for obj in hotkeyed:
-            obj.visit(self.timestamp, self.player)
+            obj.visit(self.time, self.player)
             
 class SelectionEvent(Event):
     name = 'SelectionEvent'
@@ -378,7 +421,7 @@ class SelectionEvent(Event):
 
         selected = selection.current[:]
         for obj in selected: # visit all old units
-            obj.visit(self.timestamp, self.player)
+            obj.visit(self.time, self.player)
 
         if self.deselect:
             selected = self.deselect(selected)
@@ -386,12 +429,12 @@ class SelectionEvent(Event):
         # Add new selection
         for (obj_id, obj_type) in self.objects:
             type_class = GameObject.get_type(obj_type)
-            if obj_id not in self.player.game.objects:
-                obj = type_class(obj_id, self.timestamp)
-                self.player.game.objects[obj_id] = obj
+            if obj_id not in self.player.replay.objects:
+                obj = type_class(obj_id, self.time)
+                self.player.replay.objects[obj_id] = obj
             else:
-                obj = self.player.game.objects[obj_id]
-            obj.visit(self.timestamp, self.player, type_class)
+                obj = self.player.replay.objects[obj_id]
+            obj.visit(self.time, self.player, type_class)
             selected.append(obj)
         
-        selection[self.timestamp] = selected
+        selection[self.time] = selected

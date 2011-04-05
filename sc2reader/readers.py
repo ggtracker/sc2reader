@@ -98,7 +98,7 @@ class ReplayDetailsReader(Reader):
         data =  ReplayBuffer(filecontents).read_data_struct()
 
         for pid, pdata in enumerate(data[0]):
-            replay.players.append(Player(pid+1, pdata, replay.realm)) #pid's start @ 1
+            replay.players.append(Player(pid+1, pdata, replay)) #pid's start @ 1
             
         replay.map = data[1]
         replay.file_time = data[5]
