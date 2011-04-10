@@ -4,7 +4,7 @@
 # EDSTR_CATEGORY_Race
 # EDSTR_PLAYERPROPS_RACE
 # question mark means not confirmed data
-races = {
+LOCALIZED_RACES = {
 
     # deDE
     # enUS
@@ -33,7 +33,11 @@ races = {
     '人類': 'Terran'
 }
 
-RACES = {
+#
+# Codes as found in bytestream
+#
+
+RACE_CODES = {
     'rreT': 'Terran',
     'greZ': 'Zerg',
     'torP': 'Protoss',
@@ -45,8 +49,7 @@ MESSAGE_CODES = {
     '128': 'Header',
     '125': 'Ping',
 }
-
-TEAM_COLORS = {
+TEAM_COLOR_CODES = {
     '10ct': "Red",
     '20ct': "Blue",
     '30ct': "Teal",
@@ -64,7 +67,7 @@ TEAM_COLORS = {
     '51ct': "??",
     '61ct': "??",
 }
-DIFFICULTIES = {
+DIFFICULTY_CODES = {
     'yEyV': 'Very easy',
     'ysaE': 'Easy',
     'ideM': 'Medium',
@@ -72,45 +75,39 @@ DIFFICULTIES = {
     'dHyV': 'Very hard',
     'asnI': 'Insane',
 }
-
-GAME_TYPES = {
+GAME_TYPE_CODES = {
     'virP': 'Private',
     'buP': 'Public',
     'mmA': 'Ladder',
     '': 'Single Player',
 }
-
 # (name, key for team ids)
-GAME_FORMATS = {
-    '1v1': ('1v1', 0x07d2,),
-    '2v2': ('2v2', 0x07d3,),
-    '3v3': ('3v3', 0x07d4,),
-    '4v4': ('4v4', 0x07d5,),
-    'AFF': ('FFA', 0x07d6,),
+GAME_FORMAT_CODES = {
+    '1v1': '1v1',
+    '2v2': '2v2',
+    '3v3': '3v3',
+    '4v4': '4v4',
+    'AFF': 'FFA',
 }
-
-GAME_SPEEDS = {
+GAME_SPEED_CODES = {
     'rolS': 'Slower',
     'wolS': 'Slow',
     'mroN': 'Normal',
     'tsaF': 'Fast',
     'rsaF': 'Faster',
 }
-
-PLAYER_TYPES = {
+PLAYER_TYPE_CODES = {
     'nmuH': 'Human',
     'pmoC': 'Computer',
 }
-
-GATEWAYS = {
+GATEWAY_CODES = {
     'US': 'Americas',
     'KR': 'Asia',
     'EU': 'Europe',
     'SG': 'South East Asia',
     'XX': 'Public Test',
 }
-
-COLOURS = {
+COLOR_CODES = {
     'B4141E': 'Red',
     '0042FF': 'Blue',
     '1CA7EA': 'Teal',

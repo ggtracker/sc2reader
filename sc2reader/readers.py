@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sc2reader.parsers import *
 from sc2reader.objects import *
-from sc2reader.utils import ReplayBuffer, LITTLE_ENDIAN, BIG_ENDIAN
+from sc2reader.utils import LITTLE_ENDIAN, BIG_ENDIAN
 from sc2reader.utils import key_in_bases, timestamp_from_windows_time
 
 #####################################################
@@ -15,10 +15,10 @@ class MetaReader(type):
                 "%s must define the name of the file it reads" % class_name
 
             assert 'reads' in class_dict or key_in_bases('reads',bases), \
-                "%s must define the 'boolean reads(self,build)' member" % class_name
+                "%s must define the 'boolean reads(self, build)' member" % class_name
 
             assert 'read' in class_dict or key_in_bases('read',bases), \
-                "%s must define the 'void read(self, filecontents, replay)' member" % class_name
+                "%s must define the 'void read(self, buffer, replay)' member" % class_name
 
         return type.__new__(meta, class_name, bases, class_dict)
 
@@ -33,16 +33,16 @@ class ReplayInitDataReader(Reader):
     def reads(self, build):
         return True
         
-    def read(self, filecontents, replay):
-        buffer = ReplayBuffer(filecontents)
+    def read(self, buffer, replay):
         
+        # Game clients
         for p in range(buffer.read_byte()):
             name = buffer.read_string()
             if len(name) > 0:
                 replay.player_names.append(name)
-                
-            buffer.skip(5) #Always all zeros
+            buffer.skip(5) #Always all zeros UNKNOWN
         
+        # UNKNOWN
         buffer.skip(5) # Unknown
         buffer.read_chars(4) # Always Dflt
         buffer.skip(15) #Unknown
@@ -62,9 +62,7 @@ class AttributeEventsReader(Reader):
     def reads(self, build):
         return build < 17326
         
-    def read(self, filecontents, replay):
-        buffer = ReplayBuffer(filecontents)
-		
+    def read(self, buffer, replay):
         self.load_header(replay, buffer)
         
         replay.attributes = list()
@@ -94,11 +92,42 @@ class ReplayDetailsReader(Reader):
     def reads(self, build):
         return True
     
-    def read(self, filecontents, replay):
-        data =  ReplayBuffer(filecontents).read_data_struct()
+    def read(self, buffer, replay):
+        data = buffer.read_data_struct()
 
         for pid, pdata in enumerate(data[0]):
-            replay.players.append(Player(pid+1, pdata, replay)) #pid's start @ 1
+            fields = ('name','battlenet','race','color','??','??','handicap','??','team',)
+            pdata = dict(zip(fields, [pdata[i] for i in sorted(pdata.keys())]))
+
+            # TODO?: get a map of realm,subregion => region in here
+            player = Player(pid+1, pdata['name'], replay)
+            player.uid = pdata['battlenet'][4]
+            player.subregion = pdata['battlenet'][2]
+            player.handicap = pdata['handicap']
+            player.realm = replay.realm
+
+            # Some European language, like DE will have races written slightly differently (ie. Terraner).
+            # To avoid these differences, only examine the first letter, which seem to be consistent across languages.
+            race = pdata['race']
+            if race[0] == 'T':
+                race = "Terran"
+            if race[0] == 'P':
+                race = "Protoss"
+            if race[0] == 'Z':
+                race = "Zerg"
+            # Check against non-western localised races
+            player.actual_race = LOCALIZED_RACES.get(race, race)
+
+            color = [pdata['color'][i] for i in sorted(pdata['color'].keys())]
+            color = dict(zip(('a','r','g','b',), color))
+            color_rgb = "%(r)02X%(g)02X%(b)02X" % color
+            player.color = COLOR_CODES.get(color_rgb, color_rgb)
+            player.color_rgba = color
+
+            player.team = pdata['team']
+
+            # Add player to replay
+            replay.players.append(player)
             
         replay.map = data[1]
         replay.file_time = data[5]
@@ -120,34 +149,32 @@ class MessageEventsReader(Reader):
     def reads(self, build):
         return True
     
-    def read(self, filecontents, replay):
-        replay.messages = list()
-        buffer, time = ReplayBuffer(filecontents), 0
+    def read(self, buffer, replay):
+        replay.messages, time = list(), 0
 
-        while(buffer.left!=0):
+        while(buffer.left != 0):
             time += buffer.read_timestamp()
             player_id = buffer.read_byte() & 0x0F
             flags = buffer.read_byte()
             
             if flags & 0xF0 == 0x80:
-            
-                #ping or something?
+                # Pings, TODO: save and use data somewhere
                 if flags & 0x0F == 3:
                     x = buffer.read_int(LITTLE_ENDIAN)
                     y = buffer.read_int(LITTLE_ENDIAN)
-
-                #some sort of header code
+                # Some sort of header code
                 elif flags & 0x0F == 0:
-                    buffer.skip(4)
+                    buffer.skip(4) # UNKNOWN
+                    # XXX why?
                     replay.other_people.add(player_id)
             
             elif flags & 0x80 == 0:
                 target = flags & 0x03
                 length = buffer.read_byte()
                 
+                # Flags for additional length in message
                 if flags & 0x08:
                     length += 64
-                    
                 if flags & 0x10:
                     length += 128
                     
@@ -155,12 +182,13 @@ class MessageEventsReader(Reader):
                 replay.messages.append(Message(time, player_id, target, text))
 
 ####################################################
+
 class GameEventsBase(Reader):
     file = 'replay.game.events'
     def reads(self, build): return False
     
-    def read(self, filecontents, replay):
-        replay.events, frames, buffer = list(), 0, ReplayBuffer(filecontents)
+    def read(self, buffer, replay):
+        replay.events, frames = list(), 0
         
         PARSERS = {
             0x00: self.get_setup_parser,
@@ -177,7 +205,6 @@ class GameEventsBase(Reader):
             frames += buffer.read_timestamp()
             pid = buffer.shift(5)
             type, code = buffer.shift(3), buffer.read_byte()
-            
             
             parser = PARSERS[type](code)
             
@@ -222,5 +249,6 @@ class GameEventsBase(Reader):
         elif code & 0x0F == 0x0C: return self.parse_04XC_event
         
 class GameEventsReader(GameEventsBase,Unknown2Parser,Unknown4Parser,ActionParser,SetupParser,CameraParser):
+
     def reads(self, build):
         return True

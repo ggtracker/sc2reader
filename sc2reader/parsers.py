@@ -15,7 +15,7 @@ class ActionParser(object):
         return PlayerLeaveEvent(frames, pid, type, code)
     
     def parse_ability_event(self, buffer, frames, type, code, pid):
-        """ Unit ability """
+        """ Unit ability"""
         flag = buffer.read_byte()
         atype = buffer.read_byte()
         
@@ -50,9 +50,6 @@ class ActionParser(object):
                     
                 elif ability_flags & 0x30 == 0x00:
                     return AbilityEvent(frames, pid, type, code, ability)
-                    
-                else:
-                    print "HELP"
 
         elif atype & 0x40: # location/move
             # coordinates (4), ?? (6)

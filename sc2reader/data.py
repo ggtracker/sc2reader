@@ -154,7 +154,7 @@ class GameObject(object):
             # TODO siege tanks should not auto-assign
             self.morph_to(object_type, timestamp)
 
-        if not player.is_obs and not self.player:
+        if not player.is_observer and not self.player:
             self.player = player
 
     def morph_to(self, cls, timestamp):

@@ -129,17 +129,23 @@ class EventProcessor(Processor):
 
 class ApmProcessor(Processor):
     def process(self, replay):
+        # Set up needed variables
+        for player in replay.players:
+            player.avg_apm = 0
+            player.aps = dict() # Doesn't contain seconds with zero actions
+            player.apm = dict() # Doesn't contain minutes with zero actions
+        # Gather data
         for event in replay.events:
             if event.is_local and event.is_player_action:
                 person = event.player
-                if not person.is_obs:
+                if not person.is_observer:
                     # Calculate APS, APM and average
-                    if event.seconds in person.aps:
-                        person.aps[event.seconds] += 1
+                    if event.second in person.aps:
+                        person.aps[event.second] += 1
                     else:
-                        person.aps[event.seconds] = 1
+                        person.aps[event.second] = 1
                         
-                    minute = event.seconds/60
+                    minute = event.second/60
                     if minute in person.apm:
                         person.apm[minute] += 1
                     else:
@@ -149,7 +155,7 @@ class ApmProcessor(Processor):
 
         # Average the APM for actual players
         for player in replay.players:
-            player.avg_apm /= player.events[-1].seconds/60.0
+            player.avg_apm /= player.events[-1].second/60.0
             
         return replay
 

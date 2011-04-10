@@ -1,4 +1,4 @@
-from constants import races
+from constants import LOCALIZED_RACES
 from collections import defaultdict
 
 from sc2reader.constants import *
@@ -52,7 +52,6 @@ class Replay(object):
         self.date = None # Date when the game was played in local time
         self.utc_date = None # Date when the game was played in UTC
         
-        #from obslib
         self.objects = {}
         
 class Attribute(object):
@@ -66,56 +65,49 @@ class Attribute(object):
         while self.value[-1] == '\x00': self.value = self.value[:-1]
    
         if self.id == 0x01F4:
-            self.name, self.value = "Player Type", PLAYER_TYPES[self.value]
+            self.name, self.value = "Player Type", PLAYER_TYPE_CODES[self.value]
             
         elif self.id == 0x07D1:
-            self.name,self.value = "Game Type",''.join(reversed(self.value))
+            self.name,self.value = "Game Type", GAME_FORMAT_CODES[self.value]
             
         elif self.id == 0x0BB8:
-            self.name, self.value = "Game Speed", GAME_SPEEDS[self.value]
+            self.name, self.value = "Game Speed", GAME_SPEED_CODES[self.value]
             
         elif self.id == 0x0BB9:
-            self.name, self.value = "Race", RACES[self.value]
+            self.name, self.value = "Race", RACE_CODES[self.value]
             
         elif self.id == 0x0BBA:
-            self.name, self.value = "Color", TEAM_COLORS[self.value]
+            self.name, self.value = "Color", TEAM_COLOR_CODES[self.value]
             
         elif self.id == 0x0BBB:
             self.name = "Handicap"
             
         elif self.id == 0x0BBC:
-            self.name, self.value = "Difficulty", DIFFICULTIES[self.value]
+            self.name, self.value = "Difficulty", DIFFICULTY_CODES[self.value]
             
         elif self.id == 0x0BC1:
-            self.name, self.value = "Category", GAME_TYPES[self.value]
+            self.name, self.value = "Category", GAME_TYPE_CODES[self.value]
             
         elif self.id == 0x07D2:
             self.name = "Teams1v1"
-            #Get the raw team number
             self.value = int(self.value[0])
             
         elif self.id == 0x07D3:
             self.name = "Teams2v2"
-            #Get the raw team number
             self.value = int(self.value[0])
             
         elif self.id == 0x07D4:
             self.name = "Teams3v3"
-            #Get the raw team number
             self.value = int(self.value[0])
             
         elif self.id == 0x07D5:
             self.name = "Teams4v4"
-            #Get the raw team number
             self.value = int(self.value[0])
             
         elif self.id == 0x07D6:
             self.name = "TeamsFFA"
-            #Get the raw team number
             self.value = int(self.value[0])
             
-        #print "%s (%s) - %s - %s" % (self.name, self.id, self.player, self.value)
-    
     def __repr__(self):
         return str(self)
         
@@ -142,12 +134,11 @@ class Person(object):
     def __init__(self, pid, name, replay):
         self.pid = pid
         self.name = name
-        self.is_obs = None
+        self.is_observer = None
         self.messages = list()
         self.events = list()
         self.recorder = False # Actual recorder will be determined using the replay.message.events file
 
-        #From obslib
         self.selections = {}
         self.hotkeys = {}
         self.replay = replay
@@ -174,72 +165,30 @@ class Person(object):
         selection = self.get_selection(10) # get user bank
         selection.deselect_all(timestamp)
         selection.select(hotkey.current(), timestamp)
-
-    def army_composition_at(self, frame):
-        return [object for object in self.game.objects.values() if object.alive_at(frame) and object.player == self and issubclass(object.object_types[frame], Army)]
-
-    def production_structures_at(self, frame):
-        return [object for object in self.game.objects.values() if object.alive_at(frame) and object.player == self and issubclass(object.object_types[frame], Production)]
-  
   
 class Observer(Person):
     def __init__(self, pid, name, replay):
         super(Observer,self).__init__(pid, name, replay)
-        self.is_obs = True
+        self.is_observer = True
 		
 class Player(Person):
     
-    url_template = "http://%s.battle.net/sc2/en/profile/%s/%s/%s/"
+    URL_TEMPLATE = "http://%s.battle.net/sc2/en/profile/%s/%s/%s/"
     
-    def __init__(self, pid, data, replay):
-        # TODO: get a map of realm,subregion => region in here
-        super(Player,self).__init__(pid, data[0], replay)
-        self.is_obs = False
-        self.realm = replay.realm
-        self.uid = data[1][4]
-        self.subregion = data[1][2]
-        self.url = self.url_template % (self.realm, self.uid, self.subregion, self.name)
-        self.actual_race = data[2]
-        
-        # Actual race seems to be localized, so try to convert to english if possible
-        
-        # Some European language, like DE will have races written slightly differently (ie. Terraner).
-        # To avoid these differences, only examine the first letter, which seem to be consistent across languages.
-        if self.actual_race[0] == 'T':
-            self.actual_race = "Terran"
-        if self.actual_race[0] == 'P':
-            self.actual_race = "Protoss"
-        if self.actual_race[0] == 'Z':
-            self.actual_race = "Zerg"
-            
-        if self.actual_race in races:
-            self.actual_race = races[self.actual_race]
-            
-        self.choosen_race = "" # Populated from the replay.attribute.events file
-        self.color_rgba = dict([
-                ['r', data[3][1]],
-                ['g', data[3][2]],
-                ['b', data[3][3]],
-                ['a', data[3][0]],
-            ])
-            
-        self.result = None
-        self.color_hex = "%02X%02X%02X" % (data[3][1], data[3][2], data[3][3])
-        self.color_text = "" # The text of the player color (Red, Blue, etc) to be supplied later
-        self.handicap = data[6]
-        self.team = None # A number to be supplied later
-        self.type = "" # Human or Computer
-        self.avg_apm = 0
-        self.aps = dict() # Doesn't contain seconds with zero actions
-        self.apm = dict() # Doesn't contain minutes with zero actions
+    def __init__(self, pid, name, replay):
+        super(Player,self).__init__(pid, name, replay)
+        self.is_observer = False
+        # TODO: set default external interface variables?
+
+    @property
+    def url(self):
+        return self.URL_TEMPLATE % (self.realm, self.uid, self.subregion, self.name)
 
     def __str__(self):
         return "Player %s - %s (%s)" % (self.pid, self.name, self.actual_race)
         
     def __repr__(self):
         return str(self)
-
-        
         
 class Event(object):
     name = 'BaseEvent'
@@ -247,26 +196,17 @@ class Event(object):
     
     """Abstract Event Type, should not be directly instanciated"""
     def __init__(self, timestamp, player_id, event_type, event_code):
-        self.time, self.seconds = (timestamp, timestamp >> 4)
-        self.timestr = "%s:%s" % (self.seconds/60, str(self.seconds%60).rjust(2, "0"))
+        self.frame = timestamp
+        self.second = timestamp >> 4
         self.type = event_type
         self.code = event_code
         self.is_local = (player_id != 16)
         self.pid = player_id
-        self.bytes = bytes
-        self.abilitystr = ""
-        
-        # Added for convenience
+
         self.is_init = (event_type == 0x00)
         self.is_player_action = (event_type == 0x01)
         self.is_camera_movement = (event_type == 0x03)
         self.is_unknown = (event_type == 0x02 or event_type == 0x04 or event_type == 0x05)
-	
-    def __str__(self):
-        return "%s - %s - %s (%s,%s)" % (self.timestr, self.player, self.name, hex(self.type), hex(self.code))
-        
-    def __repr__(self):
-        return str(self)
         
 class UnknownEvent(Event):
     name = 'UnknownEvent'
@@ -294,34 +234,34 @@ class ResourceTransferEvent(Event):
         
 class AbilityEvent(Event):
     name = 'AbilityEvent'
-    def __init__(self, timestamp, player, type, code, ability):
-        super(AbilityEvent, self).__init__(timestamp, player, type, code)
+    def __init__(self, framestamp, player, type, code, ability):
+        super(AbilityEvent, self).__init__(framestamp, player, type, code)
         self.ability = ability
 
     def apply(self):
         
         if self.ability:
             if self.ability not in ABILITIES:
-                print "Unknown ability (%s) in at %s" % (hex(self.ability),self.timestr)
+                print "Unknown ability (%s) in at %s" % (hex(self.ability),self.framestr)
                 #raise ValueError("Unknown ability (%s)" % (hex(self.ability)),)
-            self.ability = ABILITIES[self.ability]
-            able = self.get_able_selection()
+            ability = ABILITIES[self.ability]
+            able = self.get_able_selection(ability)
             if able:
                 object = able[0]
-                ability = getattr(object, self.ability)
-                ability(self.time)
+                ability = getattr(object, ability)
+                ability(self.frame)
 
         # claim units
         for obj in self.player.get_selection().current:
             obj.player = self.player
 
-    def get_able_selection(self):
-        return [obj for obj in self.player.get_selection().current if hasattr(obj, self.ability)]
+    def get_able_selection(self, ability):
+        return [obj for obj in self.player.get_selection().current if hasattr(obj, ability)]
         
 class TargetAbilityEvent(AbilityEvent):
     name = 'TargetAbilityEvent'
-    def __init__(self, timestamp, player, type, code, ability, target):
-        super(TargetAbilityEvent, self).__init__(timestamp, player, type, code, ability)
+    def __init__(self, framestamp, player, type, code, ability, target):
+        super(TargetAbilityEvent, self).__init__(framestamp, player, type, code, ability)
         self.target = target
 
     def apply(self):
@@ -340,25 +280,25 @@ class TargetAbilityEvent(AbilityEvent):
             if obj_id in self.player.replay.objects:
                 obj = self.player.replay.objects[obj_id]
             elif create_obj:
-                obj = type_class(obj_id, self.time)
+                obj = type_class(obj_id, self.frame)
                 self.player.replay.objects[obj_id] = obj
 
             if obj:
-                obj.visit(self.time, self.player, type_class)
+                obj.visit(self.frame, self.player, type_class)
             self.target = obj
         
         super(TargetAbilityEvent, self).apply()
 
 class LocationAbilityEvent(AbilityEvent):
     name = 'LocationAbilityEvent'
-    def __init__(self, timestamp, player, type, code, ability, location):
-        super(LocationAbilityEvent, self).__init__(timestamp, player, type, code, ability)
+    def __init__(self, framestamp, player, type, code, ability, location):
+        super(LocationAbilityEvent, self).__init__(framestamp, player, type, code, ability)
         self.location = location
 
 class HotkeyEvent(Event):
     name = 'HotkeyEvent'
-    def __init__(self, timestamp, player, type, code, hotkey, overlay=None):
-        super(HotkeyEvent, self).__init__(timestamp, player, type, code)
+    def __init__(self, framestamp, player, type, code, hotkey, overlay=None):
+        super(HotkeyEvent, self).__init__(framestamp, player, type, code)
         self.hotkey = hotkey
         self.overlay = overlay
 
@@ -367,11 +307,11 @@ class SetToHotkeyEvent(HotkeyEvent):
     def apply(self):
         hotkey = self.player.get_hotkey(self.hotkey)
         selection = self.player.get_selection()
-        hotkey[self.time] = selection.current
+        hotkey[self.frame] = selection.current
 
         # They are alive!
-        for obj in selection[self.time]:
-            obj.visit(self.time, self.player)
+        for obj in selection[self.frame]:
+            obj.visit(self.frame, self.player)
 
 class AddToHotkeyEvent(HotkeyEvent):
     name = 'AddToHotkeyEvent'
@@ -383,13 +323,13 @@ class AddToHotkeyEvent(HotkeyEvent):
         if self.overlay:
             hotkeyed = self.overlay(hotkeyed)
 
-        hotkeyed.extend(self.player.get_selection()[self.time])
+        hotkeyed.extend(self.player.get_selection()[self.frame])
         hotkeyed = list(set(hotkeyed)) # remove dups
-        hotkey[self.time] = hotkeyed
+        hotkey[self.frame] = hotkeyed
 
         # They are alive!
         for obj in hotkeyed:
-            obj.visit(self.time, self.player)
+            obj.visit(self.frame, self.player)
 
 class GetHotkeyEvent(HotkeyEvent):
     name = 'GetHotkeyEvent'
@@ -401,17 +341,17 @@ class GetHotkeyEvent(HotkeyEvent):
             hotkeyed = self.overlay(hotkeyed)
 
         selection = self.player.get_selection()
-        selection[self.time] = hotkeyed
+        selection[self.frame] = hotkeyed
 
         # selection is alive!
         for obj in hotkeyed:
-            obj.visit(self.time, self.player)
+            obj.visit(self.frame, self.player)
             
 class SelectionEvent(Event):
     name = 'SelectionEvent'
     
-    def __init__(self, timestamp, player, type, code, bank, objects, deselect):
-        super(SelectionEvent, self).__init__(timestamp, player, type, code)
+    def __init__(self, framestamp, player, type, code, bank, objects, deselect):
+        super(SelectionEvent, self).__init__(framestamp, player, type, code)
         self.bank = bank
         self.objects = objects
         self.deselect = deselect
@@ -421,7 +361,7 @@ class SelectionEvent(Event):
 
         selected = selection.current[:]
         for obj in selected: # visit all old units
-            obj.visit(self.time, self.player)
+            obj.visit(self.frame, self.player)
 
         if self.deselect:
             selected = self.deselect(selected)
@@ -430,11 +370,11 @@ class SelectionEvent(Event):
         for (obj_id, obj_type) in self.objects:
             type_class = GameObject.get_type(obj_type)
             if obj_id not in self.player.replay.objects:
-                obj = type_class(obj_id, self.time)
+                obj = type_class(obj_id, self.frame)
                 self.player.replay.objects[obj_id] = obj
             else:
                 obj = self.player.replay.objects[obj_id]
-            obj.visit(self.time, self.player, type_class)
+            obj.visit(self.frame, self.player, type_class)
             selected.append(obj)
         
-        selection[self.time] = selected
+        selection[self.frame] = selected

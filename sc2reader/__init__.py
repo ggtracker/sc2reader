@@ -48,7 +48,7 @@ def read_file(filename,config=DefaultConfig()):
         for file,readers in config.readers.iteritems():
             for reader in readers:
                 if reader.reads(replay.build):
-                    reader.read(archive.read_file(file),replay)
+                    reader.read(ReplayBuffer(archive.read_file(file)),replay)
                     break
             else:
                 raise NotYetImplementedError("No parser was found that accepted the replay file;check configuration")
