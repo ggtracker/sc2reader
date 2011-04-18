@@ -271,22 +271,23 @@ class TargetAbilityEvent(AbilityEvent):
             pass
         else:
             obj_type = obj_type << 8 | 0x01
+            try:
+                type_class = GameObject.get_type(obj_type)
+                # Could this be hallucinated?
+                create_obj = not GameObject.has_type(obj_type & 0xfffffc | 0x2)
+                    
+                obj = None
+                if obj_id in self.player.replay.objects:
+                    obj = self.player.replay.objects[obj_id]
+                elif create_obj:
+                    obj = type_class(obj_id, self.frame)
+                    self.player.replay.objects[obj_id] = obj
 
-            type_class = GameObject.get_type(obj_type)
-            # Could this be hallucinated?
-            create_obj = not GameObject.has_type(obj_type & 0xfffffc | 0x2)
-                
-            obj = None
-            if obj_id in self.player.replay.objects:
-                obj = self.player.replay.objects[obj_id]
-            elif create_obj:
-                obj = type_class(obj_id, self.frame)
-                self.player.replay.objects[obj_id] = obj
-
-            if obj:
-                obj.visit(self.frame, self.player, type_class)
-            self.target = obj
-        
+                if obj:
+                    obj.visit(self.frame, self.player, type_class)
+                self.target = obj
+            except KeyError:
+                print "Unknown object type (%s) at frame %s" % (hex(obj_type),self.frame)
         super(TargetAbilityEvent, self).apply()
 
 class LocationAbilityEvent(AbilityEvent):
@@ -368,13 +369,16 @@ class SelectionEvent(Event):
 
         # Add new selection
         for (obj_id, obj_type) in self.objects:
-            type_class = GameObject.get_type(obj_type)
-            if obj_id not in self.player.replay.objects:
-                obj = type_class(obj_id, self.frame)
-                self.player.replay.objects[obj_id] = obj
-            else:
-                obj = self.player.replay.objects[obj_id]
-            obj.visit(self.frame, self.player, type_class)
-            selected.append(obj)
+            try:
+                type_class = GameObject.get_type(obj_type)
+                if obj_id not in self.player.replay.objects:
+                    obj = type_class(obj_id, self.frame)
+                    self.player.replay.objects[obj_id] = obj
+                else:
+                    obj = self.player.replay.objects[obj_id]
+                obj.visit(self.frame, self.player, type_class)
+                selected.append(obj)
+            except KeyError:
+                print "Unknown object type (%s) at frame %s" % (hex(obj_type),self.frame)
         
         selection[self.frame] = selected
