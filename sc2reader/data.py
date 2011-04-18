@@ -1234,6 +1234,12 @@ class SpacePlatformGeyser(GameObject):
     full_name = "Space Platform Geyser"
 class RichVespeneGeyser(GameObject):
     code = 0xf401
+    
+# The following mineral field and vespene geyser codes were found on the 'Agria Valley' map
+class MineralField2(GameObject):
+    code = 0xf801
+class VespeneGeyser2(GameObject):
+    code = 0xf901
 
 class XelnagaTower(GameObject):
     code = 0xad01
