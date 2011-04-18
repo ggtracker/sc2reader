@@ -35,7 +35,7 @@ class ActionParser(object):
               
                 if ability_flags & 0x10:
                     # ability(3), coordinates (4), ?? (4)
-                    location = (buffer.read_coordinate(), buffer.read_coordinate())
+                    location = buffer.read_coordinate()
                     buffer.skip(4)
                     return LocationAbilityEvent(frames, pid, type, code, ability, location)
                     
@@ -53,7 +53,7 @@ class ActionParser(object):
 
         elif atype & 0x40: # location/move
             # coordinates (4), ?? (6)
-            location = (buffer.read_coordinate(), buffer.read_coordinate())
+            location = buffer.read_coordinate()
             buffer.skip(5)
             return LocationAbilityEvent(frames, pid, type, code, ability, location)
             
