@@ -1245,8 +1245,10 @@ class RichVespeneGeyser(GameObject):
 # The following mineral field and vespene geyser codes were found on the 'Agria Valley' map
 class MineralField2(GameObject):
     code = 0xf801
+    name = 'Mineral Field'
 class VespeneGeyser2(GameObject):
     code = 0xf901
+    name = 'Vespene Geyser'
 
 class XelnagaTower(GameObject):
     code = 0xad01
