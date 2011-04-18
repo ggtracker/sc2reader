@@ -478,7 +478,7 @@ class EngineeringBay(GameObject, Building, Terran):
         0x025300: 'Infantry Armor Level 3',
     }
 
-@Transport(0x020001, None, None, 0x020033)
+@Transport(0x020001, None, 0x020033, 0x20020)
 class Bunker(GameObject, Building, Terran):
     code = 0x3301
     abilities = {
