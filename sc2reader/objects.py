@@ -244,12 +244,13 @@ class AbilityEvent(Event):
             if self.ability not in ABILITIES:
                 print "Unknown ability (%s) in frame %s" % (hex(self.ability),self.frame)
                 #raise ValueError("Unknown ability (%s)" % (hex(self.ability)),)
-            ability = ABILITIES[self.ability]
-            able = self.get_able_selection(ability)
-            if able:
-                object = able[0]
-                ability = getattr(object, ability)
-                ability(self.frame)
+            else:
+                ability = ABILITIES[self.ability]
+                able = self.get_able_selection(ability)
+                if able:
+                    object = able[0]
+                    ability = getattr(object, ability)
+                    ability(self.frame)
 
         # claim units
         for obj in self.player.get_selection().current:
