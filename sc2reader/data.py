@@ -327,6 +327,7 @@ class Ghost(GameObject, Unit, Army, Terran):
     code = 0x4e01
     abilities = {
         0x003200: 'Hold fire',
+        0x003300: 'Weapons free',
         0x031f01: 'Cancel Tactical Nuclear Strike',
     }
     spells = {
@@ -362,6 +363,10 @@ class Viking(GameObject, Unit, Army, Terran):
 @Transport(0x013b12, 0x013b22, 0x013b33, 0x013b20)
 class Medivac(GameObject, Unit, Army, Terran):
     code = 0x5201
+    spells = {
+        0x013700: 'Toggle Auto-Heal',
+        0x020803: 'Heal'
+    }
 
 class Raven(GameObject, Unit, SpellCaster, Terran, Detector):
     code = 0x5401
@@ -485,6 +490,7 @@ class Bunker(GameObject, Building, Terran):
         0x032100: 'Salvage',
         0x032f20: 'Attack',
         0x033000: 'Stimpack',
+        0x033300: 'Stop'
     }
 class SensorTower(GameObject, Building, Terran):
     code = 0x3401
@@ -903,6 +909,7 @@ class Baneling(GameObject, Unit, Army):
     code = 0x2301
     abilities = {
         0x003500: 'Explode',
+        0x011D20: 'Attack Structure'
     }
     @Mode(0x023400, 0x023500)
     class Burrowed(object):
