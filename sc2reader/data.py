@@ -126,6 +126,10 @@ class GameObject(object):
     @classmethod
     def get_type(cls, code):
         return OBJECTTYPE_CODES[code]
+        
+    @classmethod
+    def get_ability(cls, code):
+        return ABILITIES[code]
 
     @classmethod
     def has_type(cls, code):
