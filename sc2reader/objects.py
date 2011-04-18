@@ -242,7 +242,7 @@ class AbilityEvent(Event):
         
         if self.ability:
             if self.ability not in ABILITIES:
-                print "Unknown ability (%s) in at %s" % (hex(self.ability),self.framestr)
+                print "Unknown ability (%s) in frame %s" % (hex(self.ability),self.frame)
                 #raise ValueError("Unknown ability (%s)" % (hex(self.ability)),)
             ability = ABILITIES[self.ability]
             able = self.get_able_selection(ability)
