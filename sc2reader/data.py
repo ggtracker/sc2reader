@@ -126,6 +126,10 @@ class GameObject(object):
     @classmethod
     def get_type(cls, code):
         return OBJECTTYPE_CODES[code]
+        
+    @classmethod
+    def get_ability(cls, code):
+        return ABILITIES[code]
 
     @classmethod
     def has_type(cls, code):
@@ -1245,8 +1249,10 @@ class RichVespeneGeyser(GameObject):
 # The following mineral field and vespene geyser codes were found on the 'Agria Valley' map
 class MineralField2(GameObject):
     code = 0xf801
+    name = 'Mineral Field'
 class VespeneGeyser2(GameObject):
     code = 0xf901
+    name = 'Vespene Geyser'
 
 class XelnagaTower(GameObject):
     code = 0xad01

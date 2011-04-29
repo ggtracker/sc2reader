@@ -68,6 +68,7 @@ class ReplayBuffer(object):
         self.lo_masks_inv = [0x00, 0x80, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC, 0xFE, 0xFF]
         self.hi_masks = [0xFF ^ mask for mask in self.lo_masks]
         self.hi_masks_inv = [0xFF ^ mask for mask in self.lo_masks_inv]
+        self.coord_convert = [(2**(12 - i),1.0/2**i) for i in range(1,13)]
         
         self.read_basic = self.io.read
     '''
@@ -215,9 +216,22 @@ class ReplayBuffer(object):
         """ Object ID is big-endian int32 """
         return self.read_int(endian=BIG_ENDIAN)
 
-    def read_coordinate(self):
-        coord = self.read(bits=20)
-        return [coord[0], coord[1] << 4 | coord[2],]
+    def read_coordinate(self):        
+        # Combine coordinate whole and fraction
+        def _coord_to_float(coord):
+            fraction = 0
+            for mask,quotient in self.coord_convert:
+                if (coord[1] & mask):
+                    fraction = fraction + quotient
+            return coord[0] + fraction
+        
+        # Read an x or y coordinate dimension
+        def _coord_dimension():
+            coord = self.read(bits=20)
+            return _coord_to_float([coord[0], coord[1] << 4 | coord[2],])
+        
+        # TODO?: Handle optional z dimension
+        return (_coord_dimension(), _coord_dimension())
 
     def read_bitmask(self):
         """ Reads a bitmask given the current bitoffset """
