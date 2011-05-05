@@ -96,7 +96,7 @@ class ReplayDetailsReader(Reader):
         data = buffer.read_data_struct()
 
         for pid, pdata in enumerate(data[0]):
-            fields = ('name','battlenet','race','color','??','??','handicap','??','team',)
+            fields = ('name','battlenet','race','color','??','??','handicap','??','outcome',)
             pdata = dict(zip(fields, [pdata[i] for i in sorted(pdata.keys())]))
 
             # TODO?: get a map of realm,subregion => region in here
@@ -124,7 +124,7 @@ class ReplayDetailsReader(Reader):
             player.color = COLOR_CODES.get(color_rgb, color_rgb)
             player.color_rgba = color
 
-            player.team = pdata['team']
+            player.outcome = pdata['outcome']
 
             # Add player to replay
             replay.players.append(player)
