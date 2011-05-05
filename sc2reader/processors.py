@@ -162,6 +162,11 @@ class ApmProcessor(Processor):
 #####################################################
 
 class ResultsProcessor(Processor):
+    def _process_results(self, replay):
+        #Knowing the team results, map results to the players as well
+        for player in replay.players:
+            player.result = replay.results[player.team]
+
     def process(self, replay):
         # Check if replay file has recorded the winner
         remaining = set()
@@ -173,8 +178,9 @@ class ResultsProcessor(Processor):
             else:
                 remaining.add(player.team)
         if len(remaining) == 0:
+            self._process_results(replay)
             return replay
-    
+        
         #Remove players from the teams as they drop out of the game   
         print replay.teams
         print replay.players
@@ -229,8 +235,6 @@ class ResultsProcessor(Processor):
             for team in remaining:
                 replay.results[team] = "Unknown"
         
-        #Knowing the team results, map results to the players as well
-        for player in replay.players:
-            player.result = replay.results[player.team]
+        self._process_results(replay)
             
         return replay
