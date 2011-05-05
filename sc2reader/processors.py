@@ -163,6 +163,18 @@ class ApmProcessor(Processor):
 
 class ResultsProcessor(Processor):
     def process(self, replay):
+        # Check if replay file has recorded the winner
+        remaining = set()
+        for player in replay.players:
+            if player.outcome == 1:
+                replay.results[player.team] = "Won"
+            elif player.outcome == 2:
+                replay.results[player.team] = "Lost"
+            else:
+                remaining.add(player.team)
+        if len(remaining) == 0:
+            return replay
+    
         #Remove players from the teams as they drop out of the game   
         print replay.teams
         print replay.players
