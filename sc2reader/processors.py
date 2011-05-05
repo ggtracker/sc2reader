@@ -182,21 +182,15 @@ class ResultsProcessor(Processor):
             return replay
         
         #Remove players from the teams as they drop out of the game   
-        print replay.teams
-        print replay.players
         replay.results = dict([team, len(players)] for team, players in replay.teams.iteritems())
-        
-        print replay.results
         
         for event in replay.events_by_type['PlayerLeave']:
             #Some observer actions seem to be recorded, they aren't on teams anyway
             #Their pid will always be higher than the players
-            print "Player %s has left" % event.pid
             if event.pid <= len(replay.players):
                 team = replay.person[event.pid].team
                 replay.results[team] -= 1 
                 
-        print replay.results
         #mark all teams with no players left as losing, save the rest of the teams
         remaining = set()
         for team, count in replay.results.iteritems():
