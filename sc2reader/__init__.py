@@ -46,14 +46,21 @@ class SC2Reader(object):
     
     def read(self, location):
         #account for the directory option
-        location = os.path.join(self.directory,location)
+        if self.directory: location = os.path.join(self.directory,location)
         
         if not os.path.exists(location):
             raise ValueError("Location must exist")
         
         #If its a directory, read each subfile/directory and combine the lists
         if os.path.isdir(location):
-            return sum(map(self.read, os.list_files(location)),[])
+            replays = list()
+            for filename in os.listdir(location):
+                replay = self.read(os.path.join(location,filename))
+                if isinstance(replay,list):
+                    replays.extend(replay)
+                else:
+                    replays.append(replay)
+            return replays
             
         #The primary replay reading routine
         else:
@@ -82,11 +89,14 @@ class SC2Reader(object):
                 
                 return replay
                 
+    def configure(self,**options):
+        self.__dict__.update(options)
+        
 #Prepare the lightweight interface
 __defaultSC2Reader = SC2Reader()
 
-def configure(parse=config.FULL, directory=None, processors=[], debug=False, files=None):
-    __defaultSC2Reader.__dict__.update(locals())
+def configure(**options):
+    __defaultSC2Reader.configure(options)
 
 def read(location):
     return __defaultSC2Reader.read(location)
