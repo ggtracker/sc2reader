@@ -10,7 +10,7 @@ from sc2reader.objects import Replay
 from sc2reader.processors import *
 from sc2reader.readers import *
 from sc2reader.utils import key_in_bases
-
+"""
 #####################################################
 # Metaclass used to help enforce the usage contract
 #####################################################
@@ -90,3 +90,37 @@ class IntegrationConfig(Config):
         ])
         
     processors = []
+"""
+    
+FULL = 1
+PARTIAL = 2
+CUSTOM = 3
+
+FILES_FULL = ['replay.initData','replay.details','replay.attributes.events','replay.message.events','replay.game.events']
+FILES_PARTIAL = ['replay.initData','replay.details','replay.attributes.events','replay.message.events']
+
+PROCESSORS_FULL = [
+            PeopleProcessor(),
+            AttributeProcessor(),
+            TeamsProcessor(),
+            MessageProcessor(),
+            RecorderProcessor(),
+            EventProcessor(),
+            ApmProcessor(),
+            ResultsProcessor()
+        ]
+        
+PROCESSORS_PARTIAL = [
+            PeopleProcessor(),
+            AttributeProcessor(),
+            TeamsProcessor(),
+            MessageProcessor(),
+            RecorderProcessor(),
+        ]
+READERS = OrderedDict([
+        ('replay.initData', [ReplayInitDataReader()]),
+        ('replay.details', [ReplayDetailsReader()]),
+        ('replay.attributes.events', [AttributeEventsReader_17326(), AttributeEventsReader()]),
+        ('replay.message.events', [MessageEventsReader()]),
+        ('replay.game.events', [GameEventsReader()]),
+    ])

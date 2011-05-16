@@ -3,42 +3,56 @@
 sc2reader
 ==================
 
-Use Patterns
----------------
+Basic Usage
+-------------
 
-There are two primary usage patterns for sc2reader as illustrated below::
+The sc2reader package itself can be configured and used to read replay files
+right out of the box! This lightweight approach to usage provides sane default
+options so no configuration is necessary for most normal usage. Read accepts
+either a file or a directory and returns either a single replay or a list of
+replays as the result.
+
+::
 
     import sc2reader
     
-    #method 1
-    replay = sc2reader.read(file,options)
+    #default configuration provided
+    sc2reader.configure(**options)
+    replay = sc2reader.read(file)
     
-    #method 2
-    reader = sc2reader.config(options)
+If you prefer a class based approach or want to have several different
+configurations on hand try the above approach. Just initialize the SC2Reader
+with the desired options (sane defaults provided) and use it just like you
+would the package! To better reflect the structure of the source code, the rest
+of the documentation will use this class based approach.
+
+::
+
+    from sc2reader import SC2Reader
+    
+    #sane defaults provided
+    reader = SC2Reader(**options)
     replay = reader.read(file)
 
-Each time read is called on the sc2reader package, the options are used to
-configure the parsing and processors. For application where this repeated
-configuration is either too slow or harmful, ``config`` will pass back a
-pre-configured reader which can give a performance improvement.
+These two top level interfaces should remain fairly stable in the near to mid
+future.
 
-The replay object passed back contains all the game information in a densely
-linked object hierarchy described more fully in the :doc:`objects <objects>` page.
 
 Options
 -----------
 
-sc2reader behavior can be configured with a number of options which can either
+SC2Reader behavior can be configured with a number of options which can either
 be specified individually by keyword argument or packaged into a dictionary::
 
+    from sc2reader import config
+    
     options = dict(
             'processors': [PostProcessor],
-            'parse': sc2reader.FULL,
-            'debug':True,
+            'parse': config.PARTIAL,
+            'directory':'C:\Users\Me\Documents...',
         )
     
-    sc2reader.config(processors=[PostProcessor],parse=sc2reader.FULL)
-    sc2reader.config(options=options)
+    reader = SC2Reader(processors=[PostProcessor],parse=config.PARTIAL)
     sc2reader.config(**options)
     
 Options currently available are described below:
@@ -64,8 +78,15 @@ Options currently available are described below:
     Specifies the directory in which the files to be read reside (defaults to
     None). Does a basic `os.path.join` with the file names as passed in.
     
-.. option:: debug
+.. option:: parse
 
-    Turns on debugging features of sc2reader. See :doc:`debug`.
+    Three parse levels are provided in the ``sc2reader.config`` package:
+    
+    *   ``FULL`` parse will parse through all available files and produce the
+        most comprehensive replay object. 
+    *   ``PARTIAL`` parse will skip the game events file, resulting in loss of
+        detailed game information but with significant time savings.
+    *   ``CUSTOM`` parse allows a user with intimate knowledge of sc2reader to
+        hand build their own parse style.
     
     
