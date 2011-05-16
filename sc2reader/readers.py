@@ -200,9 +200,10 @@ class GameEventsBase(Reader):
         
         while not buffer.empty:
             #Save the start so we can trace for debug purposes
-            #start = buffer.cursor
+            start = buffer.cursor
 
             frames += buffer.read_timestamp()
+            #print frames
             pid = buffer.shift(5)
             type, code = buffer.shift(3), buffer.read_byte()
             

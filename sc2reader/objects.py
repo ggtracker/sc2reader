@@ -297,6 +297,14 @@ class LocationAbilityEvent(AbilityEvent):
         super(LocationAbilityEvent, self).__init__(framestamp, player, type, code, ability)
         self.location = location
 
+class UnknownAbilityEvent(AbilityEvent):
+    name = 'UnknownAbilityEvent'
+    pass
+
+class UnknownLocationAbilityEvent(AbilityEvent):
+    name = 'UnknownLocationAbilityEvent'
+    pass
+    
 class HotkeyEvent(Event):
     name = 'HotkeyEvent'
     def __init__(self, framestamp, player, type, code, hotkey, overlay=None):

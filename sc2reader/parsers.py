@@ -2,7 +2,7 @@ from itertools import chain
 
 from sc2reader.objects import *
 from sc2reader.utils import BIG_ENDIAN,LITTLE_ENDIAN
-
+from collections import defaultdict
 class SetupParser(object):
     def parse_join_event(self, buffer, frames, type, code, pid):
         return PlayerJoinEvent(frames, pid, type, code)
@@ -10,19 +10,22 @@ class SetupParser(object):
     def parse_start_event(self, buffer, frames, type, code, pid):
         return GameStartEvent(frames, pid, type, code)
         
+counter = defaultdict(int)
+flag_counter = defaultdict(int)
+
 class ActionParser(object):
     def parse_leave_event(self, buffer, frames, type, code, pid):
         return PlayerLeaveEvent(frames, pid, type, code)
     
     def parse_ability_event(self, buffer, frames, type, code, pid):
-        """ Unit ability"""
         flag = buffer.read_byte()
         atype = buffer.read_byte()
         
-        ability = None
         if atype & 0x20: # command card
+            end = buffer.peek(35)
             ability = buffer.read_byte() << 8 | buffer.read_byte() 
-            if flag in (0x29, 0x19): # cancels
+            
+            if flag in (0x29, 0x19, 0x14): # cancels
                 # creation autoid number / object id
                 ability = ability << 8 | buffer.read_byte()
                 created_id = buffer.read_object_id() 
@@ -32,7 +35,7 @@ class ActionParser(object):
             else:
                 ability_flags = buffer.shift(6)
                 ability = ability << 8 | ability_flags
-              
+                
                 if ability_flags & 0x10:
                     # ability(3), coordinates (4), ?? (4)
                     location = buffer.read_coordinate()
@@ -45,18 +48,32 @@ class ActionParser(object):
                     obj_id = buffer.read_object_id()
                     obj_type = buffer.read_object_type()
                     target = (obj_id, obj_type,)
-                    buffer.skip(10)
+                    switch = buffer.read_byte()
+                    buffer.read_hex(9)
                     return TargetAbilityEvent(frames, pid, type, code, ability, target)
-                    
-                elif ability_flags & 0x30 == 0x00:
-                    return AbilityEvent(frames, pid, type, code, ability)
-
+                
+                else:
+                    return AbilityEvent(frames,pid,type,code,None)
+                
         elif atype & 0x40: # location/move
-            # coordinates (4), ?? (6)
-            location = buffer.read_coordinate()
-            buffer.skip(5)
-            return LocationAbilityEvent(frames, pid, type, code, ability, location)
+            if flag == 0x08:
+                # coordinates (4), ?? (6)
+                location = buffer.read_coordinate()
+                buffer.skip(5)
+                return LocationAbilityEvent(frames, pid, type, code, None, location)
             
+            elif flag in (0x04,0x07):
+                h = buffer.read_hex(2)
+                hinge = buffer.read_byte()
+                if hinge & 0x20:
+                    "\t%s - %s" % (hex(hinge),buffer.read_hex(9))
+                elif hinge & 0x40:
+                    "\t%s - %s" % (hex(hinge),buffer.read_hex(18))
+                elif hinge < 0x10:
+                    pass
+                    
+                return UnknownLocationAbilityEvent(frames, pid, type, code, None)
+
         elif atype & 0x80: # right-click on target?
             # ability (2), object id (4), object type (2), ?? (10)
             ability = buffer.read_byte() << 8 | buffer.read_byte() 
@@ -65,6 +82,17 @@ class ActionParser(object):
             target = (obj_id, obj_type,)
             buffer.skip(10)
             return TargetAbilityEvent(frames, pid, type, code, ability, target)
+            
+        elif atype < 0x10: #new to patch 1.3.3
+            buffer.skip(10)
+            return UnknownAbilityEvent(frames, pid, type, code, None)
+        
+        else:
+            print hex(buffer.cursor)
+            raise TypeError()
+        
+        print "%s - %s" % (hex(atype),hex(flag))
+        raise TypeError("Shouldn't be here EVER!")
         
     def parse_selection_event(self, buffer, frames, type, code, pid):
         bank = code >> 4
