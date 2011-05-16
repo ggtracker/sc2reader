@@ -1,10 +1,55 @@
 import os
 
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
+except ImportError:
+    from sys import exit
+    exit("OrderedDict required: Upgrade to python2.7 or `pip install ordereddict`")
+    
 from mpyq import MPQArchive
-import config
-from objects import Replay
 from utils import ReplayBuffer, LITTLE_ENDIAN
+from objects import Replay
+from processors import *
+from readers import *
 
+__version__ = "0.3.0"
+
+#Library configuration and constants
+FULL = 1
+PARTIAL = 2
+CUSTOM = 3
+
+FILES_FULL = ['replay.initData','replay.details','replay.attributes.events','replay.message.events','replay.game.events']
+FILES_PARTIAL = ['replay.initData','replay.details','replay.attributes.events','replay.message.events']
+
+PROCESSORS_FULL = [
+            PeopleProcessor(),
+            AttributeProcessor(),
+            TeamsProcessor(),
+            MessageProcessor(),
+            RecorderProcessor(),
+            EventProcessor(),
+            ApmProcessor(),
+            ResultsProcessor()
+        ]
+        
+PROCESSORS_PARTIAL = [
+            PeopleProcessor(),
+            AttributeProcessor(),
+            TeamsProcessor(),
+            MessageProcessor(),
+            RecorderProcessor(),
+        ]
+READERS = OrderedDict([
+        ('replay.initData', [ReplayInitDataReader()]),
+        ('replay.details', [ReplayDetailsReader()]),
+        ('replay.attributes.events', [AttributeEventsReader_17326(), AttributeEventsReader()]),
+        ('replay.message.events', [MessageEventsReader()]),
+        ('replay.game.events', [GameEventsReader()]),
+    ])
+    
 def read_header(file):
     buffer = ReplayBuffer(file)
     
@@ -25,17 +70,16 @@ def read_header(file):
     return data[1],data[3]
 
 class SC2Reader(object):
-
-    def __init__(self, parse=config.FULL, directory="", processors=[], debug=False, files=None):
+    def __init__(self, parse=FULL, directory="", processors=[], debug=False, files=None):
         #Check that arguments are consistent with expectations up front
         #Easier to debug issues this way
-        if parse == config.FULL: 
-            files = config.FILES_FULL
-            processors = config.PROCESSORS_FULL + processors
-        elif parse == config.PARTIAL:
-            files = config.FILES_PARTIAL
-            processors = config.PROCESSORS_PARTIAL + processors
-        elif parse == config.CUSTOM:
+        if parse == FULL: 
+            files = FILES_FULL
+            processors = PROCESSORS_FULL + processors
+        elif parse == PARTIAL:
+            files = FILES_PARTIAL
+            processors = PROCESSORS_PARTIAL + processors
+        elif parse == CUSTOM:
             if not files:
                 raise ValueError("Custom parsing requires specification the files arguments")
         else:
@@ -74,7 +118,7 @@ class SC2Reader(object):
                 archive = MPQArchive(location,listfile=False)
                 
                 #Extract and Parse the relevant files based on parse level
-                for file,readers in config.READERS.iteritems():
+                for file,readers in READERS.iteritems():
                     if file in self.files:
                         for reader in readers:
                             if reader.reads(replay.build):
@@ -92,6 +136,7 @@ class SC2Reader(object):
     def configure(self,**options):
         self.__dict__.update(options)
         
+        
 #Prepare the lightweight interface
 __defaultSC2Reader = SC2Reader()
 
@@ -100,6 +145,3 @@ def configure(**options):
 
 def read(location):
     return __defaultSC2Reader.read(location)
-        
-__all__ = [read,config,SC2Reader]
-__version__ = "0.3.0"
