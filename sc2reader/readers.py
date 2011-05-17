@@ -83,8 +83,8 @@ class ReplayDetailsReader(object):
 
             color = [pdata['color'][i] for i in sorted(pdata['color'].keys())]
             color = dict(zip(('a','r','g','b',), color))
-            color_rgb = "%(r)02X%(g)02X%(b)02X" % color
-            player.color = COLOR_CODES.get(color_rgb, color_rgb)
+            player.color_hex = "%(r)02X%(g)02X%(b)02X" % color
+            player.color = COLOR_CODES.get(player.color_hex, player.color_hex)
             player.color_rgba = color
 
             player.outcome = pdata['outcome']
