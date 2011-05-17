@@ -215,12 +215,12 @@ class GameEventsBase(Reader):
             
             event = parser(buffer, frames, type, code, pid)
             buffer.align()
-            #event.bytes = buffer.read_range(start,buffer.cursor)
+            event.bytes = buffer.read_range(start,buffer.cursor)
             replay.events.append(event)
 
 
     def get_setup_parser(self, code):
-        if   code in (0x0B,0x0C): return self.parse_join_event
+        if   code in (0x0B,0x0C,0x2C): return self.parse_join_event
         elif code == 0x05: return self.parse_start_event
         
     def get_action_parser(self, code):
