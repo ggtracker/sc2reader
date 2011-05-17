@@ -99,6 +99,7 @@ GAME_SPEED_CODES = {
 PLAYER_TYPE_CODES = {
     'nmuH': 'Human',
     'pmoC': 'Computer',
+    'nepO': 'Open',
 }
 GATEWAY_CODES = {
     'US': 'Americas',
