@@ -30,7 +30,10 @@ class PeopleProcessor(Processor):
     def process(self, replay):
         obs_players = list(replay.player_names)
         for player in replay.players:
-            obs_players.remove(player.name)
+            try:
+                obs_players.remove(player.name)
+            except ValueError:
+                pass #Must be a computer player!!
         
         for pid,name in enumerate(obs_players):
             replay.observers.append(Observer(pid+len(replay.players)+1,name,replay))
@@ -155,7 +158,10 @@ class ApmProcessor(Processor):
 
         # Average the APM for actual players
         for player in replay.players:
-            player.avg_apm /= player.events[-1].second/60.0
+            if player.type != "Computer":
+                player.avg_apm /= player.events[-1].second/60.0
+            else:
+                player.avg_amp = 0
             
         return replay
 
