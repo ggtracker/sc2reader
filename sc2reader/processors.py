@@ -161,7 +161,7 @@ class ApmProcessor(Processor):
             if player.type != "Computer":
                 player.avg_apm /= player.events[-1].second/60.0
             else:
-                player.avg_amp = 0
+                player.avg_apm = 0
             
         return replay
 
