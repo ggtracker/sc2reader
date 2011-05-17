@@ -84,8 +84,12 @@ class ActionParser(object):
             return TargetAbilityEvent(frames, pid, type, code, ability, target)
             
         elif atype < 0x10: #new to patch 1.3.3
-            buffer.skip(10)
-            return UnknownAbilityEvent(frames, pid, type, code, None)
+            #10 bytes total, coordinates have a different format?
+            #X coordinate definitely is the first byte, with (hopefully) y next
+            event = UnknownAbilityEvent(frames, pid, type, code, None)
+            event.location1 = buffer.read_coordinate()
+            buffer.skip(5)
+            return event
         
         else:
             print hex(buffer.cursor)
