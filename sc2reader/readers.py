@@ -3,36 +3,11 @@ from datetime import datetime
 from sc2reader.parsers import *
 from sc2reader.objects import *
 from sc2reader.utils import LITTLE_ENDIAN, BIG_ENDIAN
-from sc2reader.utils import key_in_bases, timestamp_from_windows_time
+from sc2reader.utils import timestamp_from_windows_time
 
-#####################################################
-# Metaclass used to help enforce the usage contract
-#####################################################
-class MetaReader(type):
-    def __new__(meta, class_name, bases, class_dict):
-        if class_name != "Reader": #Parent class is exempt from checks
-            assert 'file' in class_dict or key_in_bases('file',bases), \
-                "%s must define the name of the file it reads" % class_name
-
-            assert 'reads' in class_dict or key_in_bases('reads',bases), \
-                "%s must define the 'boolean reads(self, build)' member" % class_name
-
-            assert 'read' in class_dict or key_in_bases('read',bases), \
-                "%s must define the 'void read(self, buffer, replay)' member" % class_name
-
-        return type.__new__(meta, class_name, bases, class_dict)
-
-class Reader(object):
-    __metaclass__ = MetaReader
-		
 #################################################
 
-class ReplayInitDataReader(Reader):
-    file = 'replay.initData'
-
-    def reads(self, build):
-        return True
-        
+class ReplayInitDataReader(object):
     def read(self, buffer, replay):
         
         # Game clients
@@ -57,11 +32,7 @@ class ReplayInitDataReader(Reader):
             
 #################################################
 
-class AttributeEventsReader(Reader):
-    file = 'replay.attributes.events'
-    def reads(self, build):
-        return build < 17326
-        
+class AttributeEventsReader(object):
     def read(self, buffer, replay):
         self.load_header(replay, buffer)
         
@@ -78,20 +49,12 @@ class AttributeEventsReader(Reader):
         buffer.read_chars(4)
 
 class AttributeEventsReader_17326(AttributeEventsReader):
-    def reads(self, build):
-        return build >= 17326
-
     def load_header(self, replay, buffer):
         buffer.read_chars(5)
         
 ##################################################
 
-class ReplayDetailsReader(Reader):
-    file = 'replay.details'
-
-    def reads(self, build):
-        return True
-    
+class ReplayDetailsReader(object):
     def read(self, buffer, replay):
         data = buffer.read_data_struct()
 
@@ -143,12 +106,7 @@ class ReplayDetailsReader(Reader):
 
 ##################################################
 
-class MessageEventsReader(Reader):
-    file = 'replay.message.events'
-
-    def reads(self, build):
-        return True
-    
+class MessageEventsReader(object):
     def read(self, buffer, replay):
         replay.messages, time = list(), 0
 
@@ -183,10 +141,7 @@ class MessageEventsReader(Reader):
 
 ####################################################
 
-class GameEventsBase(Reader):
-    file = 'replay.game.events'
-    def reads(self, build): return False
-    
+class GameEventsBase(object):
     def read(self, buffer, replay):
         replay.events, frames = list(), 0
         
@@ -206,7 +161,7 @@ class GameEventsBase(Reader):
             #print frames
             pid = buffer.shift(5)
             type, code = buffer.shift(3), buffer.read_byte()
-            
+            #print "%s - %s" % (hex(type),hex(code))
             parser = PARSERS[type](code)
             
             if parser == None:
@@ -250,6 +205,10 @@ class GameEventsBase(Reader):
         elif code & 0x0F == 0x0C: return self.parse_04XC_event
         
 class GameEventsReader(GameEventsBase,Unknown2Parser,Unknown4Parser,ActionParser,SetupParser,CameraParser):
+    pass
 
-    def reads(self, build):
-        return True
+class GameEventsReader_16291(GameEventsBase,Unknown2Parser,Unknown4Parser,ActionParser_16291,SetupParser,CameraParser):
+    pass
+
+class GameEventsReader_18574(GameEventsBase,Unknown2Parser,Unknown4Parser,ActionParser_18574,SetupParser,CameraParser):
+    pass

@@ -1,13 +1,5 @@
 import os
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-except ImportError:
-    from sys import exit
-    exit("OrderedDict required: Upgrade to python2.7 or `pip install ordereddict`")
-    
 from mpyq import MPQArchive
 from utils import ReplayBuffer, LITTLE_ENDIAN
 from objects import Replay
@@ -42,13 +34,48 @@ PROCESSORS_PARTIAL = [
             MessageProcessor(),
             RecorderProcessor(),
         ]
-READERS = OrderedDict([
-        ('replay.initData', [ReplayInitDataReader()]),
-        ('replay.details', [ReplayDetailsReader()]),
-        ('replay.attributes.events', [AttributeEventsReader_17326(), AttributeEventsReader()]),
-        ('replay.message.events', [MessageEventsReader()]),
-        ('replay.game.events', [GameEventsReader()]),
-    ])
+
+class ReaderMap(object):
+    def __getitem__(self,key):
+        if int(key) in (16117,16195,16223,16291):
+            return {
+                'replay.initData': ReplayInitDataReader(),
+                'replay.details': ReplayDetailsReader(),
+                'replay.attributes.events': AttributeEventsReader(),
+                'replay.message.events': MessageEventsReader(),
+                'replay.game.events': GameEventsReader_16291(),
+            }
+
+        elif int(key) in (16561,16605,16755,16939):
+            return {
+                'replay.initData': ReplayInitDataReader(),
+                'replay.details': ReplayDetailsReader(),
+                'replay.attributes.events': AttributeEventsReader(),
+                'replay.message.events': MessageEventsReader(),
+                'replay.game.events': GameEventsReader(),
+            }
+
+        elif int(key) in (17326,17682,17811,18092,18221,18317):
+            return {
+                'replay.initData': ReplayInitDataReader(),
+                'replay.details': ReplayDetailsReader(),
+                'replay.attributes.events': AttributeEventsReader_17326(),
+                'replay.message.events': MessageEventsReader(),
+                'replay.game.events': GameEventsReader(),
+            }
+
+        elif int(key) in (18574,):
+            return {
+                'replay.initData': ReplayInitDataReader(),
+                'replay.details': ReplayDetailsReader(),
+                'replay.attributes.events': AttributeEventsReader_17326(),
+                'replay.message.events': MessageEventsReader(),
+                'replay.game.events': GameEventsReader_18574(),
+            }
+        else:
+            raise KeyError(key)
+
+READERS = ReaderMap()
     
 def read_header(file):
     buffer = ReplayBuffer(file)
@@ -91,20 +118,15 @@ class SC2Reader(object):
     def read(self, location):
         #account for the directory option
         if self.directory: location = os.path.join(self.directory,location)
-        
+
         if not os.path.exists(location):
             raise ValueError("Location must exist")
         
         #If its a directory, read each subfile/directory and combine the lists
         if os.path.isdir(location):
-            replays = list()
-            for filename in os.listdir(location):
-                replay = self.read(os.path.join(location,filename))
-                if isinstance(replay,list):
-                    replays.extend(replay)
-                else:
-                    replays.append(replay)
-            return replays
+            read = lambda file: self.read(os.path.join(location,file))
+            tolist = lambda x: [x] if isinstance(x,Replay) else x
+            return sum(map(tolist,(read(x) for x in os.listdir(location))),[])
             
         #The primary replay reading routine
         else:
@@ -118,14 +140,9 @@ class SC2Reader(object):
                 archive = MPQArchive(location,listfile=False)
                 
                 #Extract and Parse the relevant files based on parse level
-                for file,readers in READERS.iteritems():
-                    if file in self.files:
-                        for reader in readers:
-                            if reader.reads(replay.build):
-                                reader.read(ReplayBuffer(archive.read_file(file)),replay)
-                                break
-                        else:
-                            raise NotYetImplementedError("No parser was found that accepted the replay file;check configuration")
+                for file in self.files:
+                    reader = READERS[replay.build][file]
+                    reader.read(ReplayBuffer(archive.read_file(file)),replay)
                 
                 #Do cleanup and post processing
                 for processor in self.processors:
