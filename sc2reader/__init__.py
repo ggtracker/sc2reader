@@ -31,22 +31,22 @@ FILES = {
 
 PROCESSORS = {
     "FULL": [
-            PeopleProcessor(),
-            AttributeProcessor(),
-            TeamsProcessor(),
-            MessageProcessor(),
-            RecorderProcessor(),
-            EventProcessor(),
-            ApmProcessor(),
-            ResultsProcessor()
+            PeopleProcessor,
+            AttributeProcessor,
+            TeamsProcessor,
+            MessageProcessor,
+            RecorderProcessor,
+            EventProcessor,
+            ApmProcessor,
+            ResultsProcessor,
         ],
         
     "PARTIAL": [
-            PeopleProcessor(),
-            AttributeProcessor(),
-            TeamsProcessor(),
-            MessageProcessor(),
-            RecorderProcessor(),
+            PeopleProcessor,
+            AttributeProcessor,
+            TeamsProcessor,
+            MessageProcessor,
+            RecorderProcessor,
         ],
 }
 
@@ -153,8 +153,8 @@ class SC2Reader(object):
                     READERS[replay.build][file].read(buffer,replay)
                 
                 #Do cleanup and post processing
-                for processor in self.processors:
-                    replay = processor.process(replay)
+                for process in self.processors:
+                    replay = process(replay)
                 
                 return replay
                 
