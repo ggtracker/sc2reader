@@ -54,35 +54,35 @@ class ReaderMap(object):
     def __getitem__(self,key):
         if int(key) in (16117,16195,16223,16291):
             return {
-                'replay.initData': ReplayInitDataReader(),
-                'replay.details': ReplayDetailsReader(),
+                'replay.initData': InitDataReader(),
+                'replay.details': DetailsReader(),
                 'replay.attributes.events': AttributeEventsReader(),
                 'replay.message.events': MessageEventsReader(),
-                'replay.game.events': GameEventsReader_16291(),
+                'replay.game.events': GameEventsReader(),
             }
 
         elif int(key) in (16561,16605,16755,16939):
             return {
-                'replay.initData': ReplayInitDataReader(),
-                'replay.details': ReplayDetailsReader(),
+                'replay.initData': InitDataReader(),
+                'replay.details': DetailsReader(),
                 'replay.attributes.events': AttributeEventsReader(),
                 'replay.message.events': MessageEventsReader(),
-                'replay.game.events': GameEventsReader(),
+                'replay.game.events': GameEventsReader_16561(),
             }
 
         elif int(key) in (17326,17682,17811,18092,18221,18317):
             return {
-                'replay.initData': ReplayInitDataReader(),
-                'replay.details': ReplayDetailsReader(),
+                'replay.initData': InitDataReader(),
+                'replay.details': DetailsReader(),
                 'replay.attributes.events': AttributeEventsReader_17326(),
                 'replay.message.events': MessageEventsReader(),
-                'replay.game.events': GameEventsReader(),
+                'replay.game.events': GameEventsReader_16561(),
             }
 
         elif int(key) in (18574,):
             return {
-                'replay.initData': ReplayInitDataReader(),
-                'replay.details': ReplayDetailsReader(),
+                'replay.initData': InitDataReader(),
+                'replay.details': DetailsReader(),
                 'replay.attributes.events': AttributeEventsReader_17326(),
                 'replay.message.events': MessageEventsReader(),
                 'replay.game.events': GameEventsReader_18574(),
@@ -149,8 +149,8 @@ class SC2Reader(object):
                 
                 #Extract and Parse the relevant files based on parse level
                 for file in self.files:
-                    reader = READERS[replay.build][file]
-                    reader.read(ReplayBuffer(archive.read_file(file)),replay)
+                    buffer = ReplayBuffer(archive.read_file(file))
+                    READERS[replay.build][file].read(buffer,replay)
                 
                 #Do cleanup and post processing
                 for processor in self.processors:

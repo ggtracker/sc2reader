@@ -7,7 +7,7 @@ from sc2reader.utils import timestamp_from_windows_time
 
 #################################################
 
-class ReplayInitDataReader(object):
+class InitDataReader(object):
     def read(self, buffer, replay):
         
         # Game clients
@@ -39,22 +39,22 @@ class AttributeEventsReader(object):
         replay.attributes = list()
         for i in range(0, buffer.read_int(LITTLE_ENDIAN)):
             replay.attributes.append(Attribute([
-                    buffer.read_int(LITTLE_ENDIAN),                  #Header
-                    buffer.read_int(LITTLE_ENDIAN),                  #Attr Id
-                    buffer.read_byte(),                              #Player
-                    buffer.read_chars(4) #Value
+                    buffer.read_int(LITTLE_ENDIAN),     #Header
+                    buffer.read_int(LITTLE_ENDIAN),     #Attr Id
+                    buffer.read_byte(),                 #Player
+                    buffer.read_chars(4)                #Value
                 ]))
             
     def load_header(self, replay, buffer):
-        buffer.read_chars(4)
+        buffer.skip(4)
 
 class AttributeEventsReader_17326(AttributeEventsReader):
     def load_header(self, replay, buffer):
-        buffer.read_chars(5)
+        buffer.skip(5)
         
 ##################################################
 
-class ReplayDetailsReader(object):
+class DetailsReader(object):
     def read(self, buffer, replay):
         data = buffer.read_data_struct()
 
@@ -207,7 +207,7 @@ class GameEventsBase(object):
 class GameEventsReader(GameEventsBase,Unknown2Parser,Unknown4Parser,ActionParser,SetupParser,CameraParser):
     pass
 
-class GameEventsReader_16291(GameEventsBase,Unknown2Parser,Unknown4Parser,ActionParser_16291,SetupParser,CameraParser):
+class GameEventsReader_16561(GameEventsBase,Unknown2Parser,Unknown4Parser,ActionParser_16561,SetupParser,CameraParser):
     pass
 
 class GameEventsReader_18574(GameEventsBase,Unknown2Parser,Unknown4Parser,ActionParser_18574,SetupParser,CameraParser):

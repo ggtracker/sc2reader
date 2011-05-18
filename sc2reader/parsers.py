@@ -10,14 +10,73 @@ class SetupParser(object):
         
     def parse_start_event(self, buffer, frames, type, code, pid):
         return GameStartEvent(frames, pid, type, code)
-        
-counter = defaultdict(int)
-flag_counter = defaultdict(int)
 
 class ActionParser(object):
     def parse_leave_event(self, buffer, frames, type, code, pid):
         return PlayerLeaveEvent(frames, pid, type, code)
-    
+
+    def parse_ability_event(self, buffer, frames, type, code, pid):
+        buffer.skip(7)
+        switch = buffer.read_byte()
+        if switch in (0x30,0x50):
+            buffer.read_byte()
+        buffer.skip(24)
+        return AbilityEvent(frames, pid, type, code, None)
+
+    def parse_selection_event(self, buffer, frames, type, code, pid):
+        bank = code >> 4
+        selFlags = buffer.read_byte()
+        dsuCount = buffer.read_byte()
+        buffer.read(bits=dsuCount)
+
+        # <count> (<type_id>, <count>,)*
+        object_types = [ (buffer.read_object_type(read_modifier=True), buffer.read_byte(), ) for i in range(buffer.read_byte()) ]
+        # <count> (<object_id>,)*
+        object_ids = [ buffer.read_object_id() for i in range(buffer.read_byte()) ]
+
+        # repeat types count times
+        object_types = chain(*[[object_type,]*count for (object_type, count) in object_types])
+        objects = zip(object_ids, object_types)
+
+        return AbilityEvent(frames, pid, type, code, None)
+
+    def parse_hotkey_event(self, buffer, frames, type, code, pid):
+        hotkey = code >> 4
+        action, mode = buffer.shift(2), buffer.shift(2)
+
+        if mode == 1: # deselect overlay mask
+            mask = buffer.read_bitmask()
+            overlay = lambda a: Selection.mask(a, mask)
+        elif mode == 2: # deselect mask
+            indexes = [buffer.read_byte() for i in range(buffer.read_byte())]
+            overlay = lambda a: Selection.deselect(a, indexes)
+        elif mode == 3: # replace mask
+            indexes = [buffer.read_byte() for i in range(buffer.read_byte())]
+            overlay = lambda a: Selection.replace(a, indexes)
+        else:
+            overlay = None
+
+        if action == 0:
+            return SetToHotkeyEvent(frames, pid, type, code, hotkey, overlay)
+        elif action == 1:
+            return AddToHotkeyEvent(frames, pid, type, code, hotkey, overlay)
+        elif action == 2:
+            return GetHotkeyEvent(frames, pid, type, code, hotkey, overlay)
+
+    def parse_transfer_event(self, buffer, frames, type, code, pid):
+        def read_resource(buffer):
+            block = buffer.read_int(BIG_ENDIAN)
+            base, multiplier, extension = block >> 8, block & 0xF0, block & 0x0F
+            return base*multiplier+extension
+
+        target = code >> 4
+        buffer.skip(1) #Always 84
+        minerals,vespene = read_resource(buffer), read_resource(buffer)
+        buffer.skip(8)
+
+        return ResourceTransferEvent(frames, pid, type, code, target, minerals, vespene)
+
+class ActionParser_16561(ActionParser):
     def parse_ability_event(self, buffer, frames, type, code, pid):
         flag = buffer.read_byte()
         atype = buffer.read_byte()
@@ -129,44 +188,8 @@ class ActionParser(object):
         objects = zip(object_ids, object_types)
 
         return SelectionEvent(frames, pid, type, code, bank, objects, deselect)
-        
-    def parse_hotkey_event(self, buffer, frames, type, code, pid):
-        hotkey = code >> 4
-        action, mode = buffer.shift(2), buffer.shift(2)
-        
-        if mode == 1: # deselect overlay mask
-            mask = buffer.read_bitmask()
-            overlay = lambda a: Selection.mask(a, mask)
-        elif mode == 2: # deselect mask
-            indexes = [buffer.read_byte() for i in range(buffer.read_byte())]
-            overlay = lambda a: Selection.deselect(a, indexes)
-        elif mode == 3: # replace mask
-            indexes = [buffer.read_byte() for i in range(buffer.read_byte())]
-            overlay = lambda a: Selection.replace(a, indexes)
-        else:
-            overlay = None
-            
-        if action == 0:
-            return SetToHotkeyEvent(frames, pid, type, code, hotkey, overlay)
-        elif action == 1:
-            return AddToHotkeyEvent(frames, pid, type, code, hotkey, overlay)
-        elif action == 2:
-            return GetHotkeyEvent(frames, pid, type, code, hotkey, overlay)
-            
-    def parse_transfer_event(self, buffer, frames, type, code, pid):
-        def read_resource(buffer):
-            block = buffer.read_int(BIG_ENDIAN)
-            base, multiplier, extension = block >> 8, block & 0xF0, block & 0x0F
-            return base*multiplier+extension
-            
-        target = code >> 4
-        buffer.skip(1)   #84
-        minerals,vespene = read_resource(buffer), read_resource(buffer)
-        buffer.skip(8)
-        
-        return ResourceTransferEvent(frames, pid, type, code, target, minerals, vespene)
 
-class ActionParser_18574(ActionParser):
+class ActionParser_18574(ActionParser_16561):
     def parse_ability_event(self, buffer, frames, type, code, pid):
         flag = buffer.read_byte()
         atype = buffer.read_byte()
@@ -240,32 +263,6 @@ class ActionParser_18574(ActionParser):
 
         print "%s - %s" % (hex(atype),hex(flag))
         raise TypeError("Shouldn't be here EVER!")
-
-class ActionParser_16291(ActionParser):
-    def parse_ability_event(self, buffer, frames, type, code, pid):
-        buffer.skip(7)
-        switch = buffer.read_byte()
-        if switch in (0x30,0x50):
-            buffer.read_byte()
-        buffer.skip(24)
-        return AbilityEvent(frames, pid, type, code, None)
-
-    def parse_selection_event(self, buffer, frames, type, code, pid):
-        bank = code >> 4
-        selFlags = buffer.read_byte()
-        dsuCount = buffer.read_byte()
-        buffer.read(bits=dsuCount)
-
-        # <count> (<type_id>, <count>,)*
-        object_types = [ (buffer.read_object_type(read_modifier=True), buffer.read_byte(), ) for i in range(buffer.read_byte()) ]
-        # <count> (<object_id>,)*
-        object_ids = [ buffer.read_object_id() for i in range(buffer.read_byte()) ]
-
-        # repeat types count times
-        object_types = chain(*[[object_type,]*count for (object_type, count) in object_types])
-        objects = zip(object_ids, object_types)
-
-        return AbilityEvent(frames, pid, type, code, None)
 
 class Unknown2Parser(object):
     def parse_0206_event(self, buffer, frames, type, code, pid):
