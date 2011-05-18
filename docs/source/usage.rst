@@ -44,15 +44,15 @@ Options
 SC2Reader behavior can be configured with a number of options which can either
 be specified individually by keyword argument or packaged into a dictionary::
 
-    from sc2reader import config
+    import sc2reader 
     
     options = dict(
             'processors': [PostProcessor],
-            'parse': config.PARTIAL,
+            'parse': sc2reader.PARTIAL,
             'directory':'C:\Users\Me\Documents...',
         )
     
-    reader = SC2Reader(processors=[PostProcessor],parse=config.PARTIAL)
+    reader = SC2Reader(processors=[PostProcessor],parse=sc2reader.PARTIAL)
     sc2reader.config(**options)
     
 Options currently available are described below:
@@ -80,7 +80,7 @@ Options currently available are described below:
     
 .. option:: parse
 
-    Three parse levels are provided in the ``sc2reader.config`` package:
+    Three parse levels are provided for general convenience:
     
     *   ``FULL`` parse will parse through all available files and produce the
         most comprehensive replay object. 

@@ -8,6 +8,10 @@ from readers import *
 
 __version__ = "0.3.0"
 
+FULL = "FULL"
+PARTIAL = "PARTIAL"
+CUSTOM = "CUSTOM"
+
 FILES = {
     "FULL": [
             'replay.initData',
