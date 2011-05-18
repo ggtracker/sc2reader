@@ -8,15 +8,25 @@ from readers import *
 
 __version__ = "0.3.0"
 
-#Library configuration and constants
-FULL = 1
-PARTIAL = 2
-CUSTOM = 3
+FILES = {
+    "FULL": [
+            'replay.initData',
+            'replay.details',
+            'replay.attributes.events',
+            'replay.message.events',
+            'replay.game.events'
+        ],
+        
+    "PARTIAL": [
+            'replay.initData',
+            'replay.details',
+            'replay.attributes.events',
+            'replay.message.events'
+        ],
+}
 
-FILES_FULL = ['replay.initData','replay.details','replay.attributes.events','replay.message.events','replay.game.events']
-FILES_PARTIAL = ['replay.initData','replay.details','replay.attributes.events','replay.message.events']
-
-PROCESSORS_FULL = [
+PROCESSORS = {
+    "FULL": [
             PeopleProcessor(),
             AttributeProcessor(),
             TeamsProcessor(),
@@ -25,15 +35,16 @@ PROCESSORS_FULL = [
             EventProcessor(),
             ApmProcessor(),
             ResultsProcessor()
-        ]
+        ],
         
-PROCESSORS_PARTIAL = [
+    "PARTIAL": [
             PeopleProcessor(),
             AttributeProcessor(),
             TeamsProcessor(),
             MessageProcessor(),
             RecorderProcessor(),
-        ]
+        ],
+}
 
 class ReaderMap(object):
     def __getitem__(self,key):
@@ -97,28 +108,21 @@ def read_header(file):
     return data[1],data[3]
 
 class SC2Reader(object):
-    def __init__(self, parse=FULL, directory="", processors=[], debug=False, files=None):
-        #Check that arguments are consistent with expectations up front
-        #Easier to debug issues this way
-        if parse == FULL: 
-            files = FILES_FULL
-            processors = PROCESSORS_FULL + processors
-        elif parse == PARTIAL:
-            files = FILES_PARTIAL
-            processors = PROCESSORS_PARTIAL + processors
-        elif parse == CUSTOM:
-            if not files:
-                raise ValueError("Custom parsing requires specification the files arguments")
-        else:
-            raise ValueError("parse must be either FULL, PARTIAL, or CUSTOM")
+    def __init__(self, parse="FULL", directory="", processors=[], debug=False, files=None):
+        #Sanitize the parse level
+        parse = parse.upper()
+        if parse not in ("FULL","PARTIAL","CUSTOM"):
+            raise ValueError("Unrecognized parse argument `%s`" % parse)
         
-        #Update the class configuration
+        #get our defaults and save preferences
+        files = FILES.get(parse,files)
+        processors = PROCESSORS.get(parse,processors)
         self.__dict__.update(locals())
     
     def read(self, location):
-        #account for the directory option
-        if self.directory: location = os.path.join(self.directory,location)
-
+        #Sanitize the location provided (accounting for directory option)
+        if self.directory:
+            location = os.path.join(self.directory,location)
         if not os.path.exists(location):
             raise ValueError("Location must exist")
         
