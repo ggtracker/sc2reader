@@ -7,19 +7,31 @@ Basic Usage
 -------------
 
 The sc2reader package itself can be configured and used to read replay files
-right out of the box! This lightweight approach to usage provides sane default
-options so no configuration is necessary for most normal usage. Read accepts
-either a file or a directory and returns either a single replay or a list of
-replays as the result.
+right out of the box! This lightweight approach to usage provides default
+options for full replay parsing so no configuration is necessary for normal use.
+
+The ``configure`` function can be used to change this default configuration for
+all future package reads. The options, where supplied, will overwrite the 
+default values. The ``read`` function takes a location, either file or
+directory, and returns a single replay or a list of replays respectively.
 
 ::
 
     import sc2reader
     
-    #default configuration provided
     sc2reader.configure(**options)
     replay = sc2reader.read(file)
+
+Alternatively, you can also pass options directly to the read function. This
+causes sc2reader to do a one off read with the given options, leaving the
+defaults unchanged.
+
+::
+
+    import sc2reader
     
+    sc2reader.read(file,**options)
+
 If you prefer a class based approach or want to have several different
 configurations on hand try the above approach. Just initialize the SC2Reader
 with the desired options (sane defaults provided) and use it just like you
@@ -34,7 +46,7 @@ of the documentation will use this class based approach.
     reader = SC2Reader(**options)
     replay = reader.read(file)
 
-These two top level interfaces should remain fairly stable in the near to mid
+These three top level interfaces should remain fairly stable in the near to mid
 future.
 
 
@@ -42,23 +54,31 @@ Options
 -----------
 
 SC2Reader behavior can be configured with a number of options which can either
-be specified individually by keyword argument or packaged into a dictionary::
+be specified individually by keyword argument or packaged into a dictionary.
 
-    import sc2reader 
+::
+
+    import sc2reader
+    from sc2reader import SC2Reader, PARTIAL
     
+    #Its often cleaner to package the options into a dict first
     options = dict(
-            'processors': [PostProcessor],
-            'parse': sc2reader.PARTIAL,
-            'directory':'C:\Users\Me\Documents...',
+            processors=[ExamplePostProcessor],
+            parse=PARTIAL,
+            directory='C:\Users\Me\Documents...',
         )
-    
-    reader = SC2Reader(processors=[PostProcessor],parse=sc2reader.PARTIAL)
-    sc2reader.config(**options)
-    
+        
+    #The various different configuration methods
+    reader = SC2Reader(processors=[PostProcessor],parse=PARTIAL)
+    sc2reader.read(location,**options)
+    sc2reader.configure(**options)
+
 Options currently available are described below:
 
 .. option:: processors
 
+    *Default: []*
+    
     Specifies a list of processors to apply to the replay object after it is
     constructed but before it is returned::
         
@@ -75,11 +95,15 @@ Options currently available are described below:
     
 .. option:: directory
     
+    *Default: ""*
+    
     Specifies the directory in which the files to be read reside (defaults to
     None). Does a basic `os.path.join` with the file names as passed in.
     
 .. option:: parse
 
+    *Default: FULL*
+    
     Three parse levels are provided for general convenience:
     
     *   ``FULL`` parse will parse through all available files and produce the
@@ -89,4 +113,9 @@ Options currently available are described below:
     *   ``CUSTOM`` parse allows a user with intimate knowledge of sc2reader to
         hand build their own parse style.
     
+.. option:: verbose
+
+    *Default: False*
     
+    The verbose option can be used to get a detailed readout of the replay
+    parsing progress. **Experimental Option**
