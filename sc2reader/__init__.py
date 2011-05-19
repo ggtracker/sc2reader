@@ -79,7 +79,9 @@ class ReaderMap(object):
                 'replay.game.events': GameEventsReader_16561(),
             }
 
-        elif int(key) in (18574,):
+        #This one is also a catch all. If the build isn't recognized, try to use
+        #the latest parsing code and hope that it works!
+        elif int(key) in (18574,) or True:
             return {
                 'replay.initData': InitDataReader(),
                 'replay.details': DetailsReader(),
@@ -87,8 +89,6 @@ class ReaderMap(object):
                 'replay.message.events': MessageEventsReader(),
                 'replay.game.events': GameEventsReader_18574(),
             }
-        else:
-            raise KeyError(key)
 
 READERS = ReaderMap()
     
