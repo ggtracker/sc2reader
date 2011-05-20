@@ -87,6 +87,8 @@ GAME_FORMAT_CODES = {
     '2v2': '2v2',
     '3v3': '3v3',
     '4v4': '4v4',
+    '5v5': '5v5',
+    '6v6': '6v6',
     'AFF': 'FFA',
 }
 GAME_SPEED_CODES = {
