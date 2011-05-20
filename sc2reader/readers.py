@@ -158,17 +158,18 @@ class GameEventsBase(object):
             start = buffer.cursor
 
             frames += buffer.read_timestamp()
-            #print frames
             pid = buffer.shift(5)
             type, code = buffer.shift(3), buffer.read_byte()
-            #print "%s - %s" % (hex(type),hex(code))
-            parser = PARSERS[type](code)
-            
+            #print "Type %X - Code %X - Start %X" % (type,code,start)
+
+            parser = PARSERS.get(type,lambda x:None)(code)
+
             if parser == None:
-                msg = "Unknown event: %s - %s at %s"
-                raise TypeError(msg % (hex(type), hex(code), hex(start)))
+                msg = "Unknown event: %X - %X at %X"
+                raise TypeError(msg % (type, code, start))
             
             event = parser(buffer, frames, type, code, pid)
+
             buffer.align()
             event.bytes = buffer.read_range(start,buffer.cursor)
             replay.events.append(event)
@@ -200,6 +201,7 @@ class GameEventsBase(object):
         if   code == 0x16: return self.parse_0416_event
         elif code == 0xC6: return self.parse_04C6_event
         elif code == 0x87: return self.parse_0487_event
+        elif code == 0x88: return self.parse_0488_event
         elif code == 0x00: return self.parse_0400_event
         elif code & 0x0F == 0x02: return self.parse_04X2_event
         elif code & 0x0F == 0x0C: return self.parse_04XC_event

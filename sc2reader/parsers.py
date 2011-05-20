@@ -215,7 +215,7 @@ class ActionParser_18574(ActionParser_16561):
             end = buffer.peek(35)
             ability = buffer.read_byte() << 8 | buffer.read_byte()
 
-            if flag in (0x29, 0x19, 0x14): # cancels
+            if flag in (0x29, 0x19, 0x14, 0x0c): # cancels
                 # creation autoid number / object id
                 ability = ability << 8 | buffer.read_byte()
                 created_id = buffer.read_object_id()
@@ -300,13 +300,10 @@ class CameraParser(object):
         return CameraMovementEvent(frames, pid, type, code)
 
     def parse_camera08_event(self, buffer, frames, type, code, pid):
-        short = buffer.read_short(BIG_ENDIAN)
-        count = short & 0x0F
-        #print "Short %X, Count %X, Skipped %X" % (short,count,count << 3)
-        
-        buffer.skip( count << 3 )
+        flags, extra = buffer.read_byte(), buffer.read_byte()
+        buffer.skip( (flags&0x0F) << 3 )
         return CameraMovementEvent(frames, pid, type, code)
-        
+
     def parse_camera18_event(self, buffer, frames, type, code, pid):
         buffer.skip(162)
         return CameraMovementEvent(frames, pid, type, code)
@@ -346,6 +343,10 @@ class Unknown4Parser(object):
         
     def parse_04X2_event(self, buffer, frames, type, code, pid):
         buffer.skip(2)
+        return UnknownEvent(frames, pid, type, code)
+        
+    def parse_0488_event(self, buffer, frames, type, code, pid):
+        buffer.skip(4) #Always 00 00 00 01 ?? or 00 00 00 03
         return UnknownEvent(frames, pid, type, code)
         
     def parse_04XC_event(self, buffer, frames, type, code, pid):
