@@ -10,14 +10,6 @@ sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(os.path.abspath
 import sc2reader
 from sc2reader.exceptions import ParseError
 
-# Parsing should fail for an empty file.
-def test_empty():
-    # Todo: Are we happy with it raising a ValueError? Should it be rather ParseError or something else?
-    # Maybe a "production" mode would be nice to have, so that it simply returns a status of the parse without
-    # raising an exception.
-    with pytest.raises(ValueError):
-        sc2reader.read("test_replays/corrupted/empty.SC2Replay")
-
 # Tests for build 17811 replays
 
 def test_standard_1v1():
