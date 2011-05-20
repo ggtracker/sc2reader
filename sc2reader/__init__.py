@@ -91,7 +91,7 @@ class ReaderMap(object):
             }
 
 READERS = ReaderMap()
-    
+
 def read_header(file):
     buffer = ReplayBuffer(file)
     
@@ -159,7 +159,7 @@ class SC2Reader(object):
                     replay = process(replay)
                 
                 return replay
-                
+
     def configure(self,**options):
         self.__dict__.update(options)
         
@@ -168,7 +168,7 @@ class SC2Reader(object):
 __defaultSC2Reader = SC2Reader()
 
 def configure(**options):
-    __defaultSC2Reader.configure(options)
+    __defaultSC2Reader.configure(**options)
 
 def read(location, **options):
     if options:
