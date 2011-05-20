@@ -117,8 +117,12 @@ def ApmProcessor(replay):
 
     # Average the APM for actual players
     for player in replay.players:
-        if player.type != "Computer":
-            player.avg_apm /= player.events[-1].second/60.0
+        if player.events:
+            event_minutes = player.events[-1].second/60.0
+            if event_minutes:
+                player.avg_apm /= event_minutes
+            else:
+                player.avg_apm = 0
         else:
             player.avg_apm = 0
 
