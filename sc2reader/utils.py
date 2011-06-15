@@ -486,3 +486,26 @@ def key_in_bases(key,bases):
     for clazz in set(bases):
         if key in clazz.__dict__: return True
     return False
+
+def read_header(file):
+    ''' Read the file as a byte stream according to the documentation found at:
+            http://wiki.devklog.net/index.php?title=The_MoPaQ_Archive_Format
+
+        Return the release array and frame count for sc2reader use. For more
+        defailted header information, access mpyq directly.
+    '''
+    buffer = ReplayBuffer(file)
+
+    #Sanity check that the input is in fact an MPQ file
+    if buffer.read_hex(4).upper() != "4D50511B":
+        print "Header Hex was: %s" % buffer.read_hex(4).upper()
+        raise ValueError("File '%s' is not an MPQ file" % file.name)
+
+    #Extract replay header data, we are unlikely to ever use most of this
+    max_data_size = buffer.read_int(LITTLE_ENDIAN)
+    header_offset = buffer.read_int(LITTLE_ENDIAN)
+    data_size = buffer.read_int(LITTLE_ENDIAN)
+    header_data = buffer.read_data_struct()
+
+    #return the release array (version,major,minor,build) and frame count
+    return header_data[1],header_data[3]
