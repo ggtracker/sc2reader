@@ -3,7 +3,7 @@ import os
 from config import FULL, PARTIAL, CUSTOM, FILES, PROCESSORS, READERS
 from mpyq import MPQArchive
 from objects import Replay
-from utils import read_header
+from utils import ReplayBuffer, read_header
 
 __version__ = "0.3.0"
 __author__ = "Graylin Kim <graylin.kim@gmail.com>"
