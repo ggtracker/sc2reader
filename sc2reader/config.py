@@ -80,7 +80,7 @@ class ReaderMap(dict):
 
     def __getitem__(self,key):
         try:
-            super(self,ReaderMap).__getitem__(key)
+            return super(ReaderMap,self).__getitem__(key)
         except KeyError:
             return self.set3
 
