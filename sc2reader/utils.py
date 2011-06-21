@@ -507,5 +507,5 @@ def read_header(file):
     data_size = buffer.read_int(LITTLE_ENDIAN)
     header_data = buffer.read_data_struct()
 
-    #return the release array (version,major,minor,build) and frame count
-    return header_data[1],header_data[3]
+    #array [unknown,version,major,minor,build,unknown] and frame count
+    return header_data[1].values(),header_data[3]

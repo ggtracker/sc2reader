@@ -3,25 +3,25 @@ from collections import defaultdict
 
 from sc2reader.constants import *
 from sc2reader.data import GameObject, ABILITIES
-from sc2reader.utils import PersonDict,Selection
-
+from sc2reader.utils import PersonDict, Selection, read_header
 
 class Replay(object):
     
-    def __init__(self, filename, release, frames=0):
-        #Split and offset for matching indexes if they pass in the release string
-        if isinstance(release,basestring): release = [None]+release.split('.') 
-        
-        #Assign all the relevant information to the replay object
-        self.build = release[4]
-        self.versions = (release[1], release[2], release[3], release[4])
-        self.release_string = "%s.%s.%s.%s" % self.versions
-        self.frames, self.seconds = (frames, frames/16)
+    def __init__(self, reader, replay_file):
+        #Useful references
+        self.reader = reader
+        self.filename = replay_file.name
+
+        #header information
+        self.versions,self.frames = read_header(replay_file)
+        self.build = self.versions[4]
+        self.release_string = "%s.%s.%s.%s" % tuple(self.versions[1:5])
+        self.seconds = self.frames/16
         self.length = (self.seconds/60, self.seconds%60)
         
+        #default values, filled in during file read
         self.player_names = list()
         self.other_people = set()
-        self.filename = filename
         self.speed = ""
         self.type = ""
         self.category = ""
@@ -43,7 +43,7 @@ class Replay(object):
         self.winner_known = False
         
         # Set in parsers.DetailParser.load, should we hide this?
-        self.file_time = None # Probably number milliseconds since EPOCH
+        self.file_time = None
         
         # TODO: Test EPOCH differences between MacOsX and Windows
         # http://en.wikipedia.org/wiki/Epoch_(reference_date)

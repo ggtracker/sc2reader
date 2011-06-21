@@ -1,9 +1,11 @@
 import os
 
+import copy
+
 from config import FULL, PARTIAL, CUSTOM, FILES, PROCESSORS, READERS
 from mpyq import MPQArchive
 from objects import Replay
-from utils import ReplayBuffer, read_header
+from utils import ReplayBuffer
 
 __version__ = "0.3.0"
 __author__ = "Graylin Kim <graylin.kim@gmail.com>"
@@ -14,7 +16,7 @@ class SC2Reader(object):
         <<usage documentation here>>
     '''
 
-    def __init__(self, parse_type="FULL", directory="", processors=[], debug=False, files=[], verbose=False):
+    def __init__(self, parse_type="FULL", directory="", processors=[], debug=False, files=[], verbose=False, copy=copy.copy):
         try:
             #Update and save the reader configuration
             parse_type = parse_type.upper()
@@ -38,8 +40,7 @@ class SC2Reader(object):
 
         else:
             with open(location) as replay_file:
-                release,frames = read_header(replay_file)
-                replay = Replay(location,release,frames)
+                replay = Replay(self.copy(self),replay_file)
                 archive = MPQArchive(location,listfile=False)
 
                 for file in self.files:
