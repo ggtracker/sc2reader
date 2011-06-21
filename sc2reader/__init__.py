@@ -14,15 +14,15 @@ class SC2Reader(object):
         <<usage documentation here>>
     '''
 
-    def __init__(self, parse="FULL", directory="", processors=[], debug=False, files=None, verbose=False):
+    def __init__(self, parse_type="FULL", directory="", processors=[], debug=False, files=[], verbose=False):
         try:
             #Update and save the reader configuration
-            parse = parse.upper()
-            files = FILES.get(parse,files)
-            processors = PROCESSORS.get(parse,processors)
+            parse_type = parse_type.upper()
+            files = FILES.get(parse_type, files)
+            processors = PROCESSORS.get(parse_type, processors)
             self.__dict__.update(locals())
         except KeyError:
-            raise ValueError("Unrecognized parse argument `%s`" % parse)
+            raise ValueError("Unrecognized parse_type `%s`" % parse_type)
 
     def read(self, location):
         if self.directory:
