@@ -497,7 +497,7 @@ def read_header(file):
     buffer = ReplayBuffer(file)
 
     #Sanity check that the input is in fact an MPQ file
-    if buffer.read_hex(4).upper() != "4D50511B":
+    if buffer.empty or buffer.read_hex(4).upper() != "4D50511B":
         print "Header Hex was: %s" % buffer.read_hex(4).upper()
         raise ValueError("File '%s' is not an MPQ file" % file.name)
 
