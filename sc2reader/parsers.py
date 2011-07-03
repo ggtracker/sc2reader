@@ -129,6 +129,9 @@ class ActionParser_16561(ActionParser):
                     
                 return UnknownLocationAbilityEvent(frames, pid, type, code, None)
 
+            else:
+                raise TypeError("Unknown atype & 0x40: flag %X at frame %X" % (flag,frames))
+
         elif atype & 0x80: # right-click on target?
             # ability (2), object id (4), object type (2), ?? (10)
             ability = buffer.read_byte() << 8 | buffer.read_byte() 
