@@ -117,7 +117,7 @@ class ActionParser_16561(ActionParser):
                 return LocationAbilityEvent(frames, pid, type, code, None, location)
             
             elif flag in (0x04,0x05,0x07):
-                print "Made it!"
+                # print "Made it!"
                 h = buffer.read_hex(2)
                 hinge = buffer.read_byte()
                 if hinge & 0x20:
@@ -144,18 +144,18 @@ class ActionParser_16561(ActionParser):
         elif atype in (0x08,0x0a): #new to patch 1.3.3
             #10 bytes total, coordinates have a different format?
             #X coordinate definitely is the first byte, with (hopefully) y next
-            print hex(flag)
+            # print hex(flag)
             event = UnknownAbilityEvent(frames, pid, type, code, None)
             event.location1 = buffer.read_coordinate()
             buffer.skip(5)
             return event
 
         else:
-            print hex(atype)
-            print hex(buffer.cursor)
+            # print hex(atype)
+            # print hex(buffer.cursor)
             raise TypeError()
         
-        print "%s - %s" % (hex(atype),hex(flag))
+        # print "%s - %s" % (hex(atype),hex(flag))
         raise TypeError("Shouldn't be here EVER!")
         
     def parse_selection_event(self, buffer, frames, type, code, pid):
@@ -277,11 +277,11 @@ class ActionParser_18574(ActionParser_16561):
             return LocationAbilityEvent(frames, pid, type, code, None, location)
 
         else:
-            print hex(atype)
-            print hex(buffer.cursor)
+            # print hex(atype)
+            # print hex(buffer.cursor)
             raise TypeError()
 
-        print "%s - %s" % (hex(atype),hex(flag))
+        # print "%s - %s" % (hex(atype),hex(flag))
         raise TypeError("Shouldn't be here EVER!")
 
 class Unknown2Parser(object):

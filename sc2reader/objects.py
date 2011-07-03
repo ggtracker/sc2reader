@@ -242,7 +242,8 @@ class AbilityEvent(Event):
         
         if self.ability:
             if self.ability not in ABILITIES:
-                print "Unknown ability (%s) in frame %s" % (hex(self.ability),self.frame)
+                pass
+                # print "Unknown ability (%s) in frame %s" % (hex(self.ability),self.frame)
                 #raise ValueError("Unknown ability (%s)" % (hex(self.ability)),)
             else:
                 ability = ABILITIES[self.ability]
@@ -288,7 +289,8 @@ class TargetAbilityEvent(AbilityEvent):
                     obj.visit(self.frame, self.player, type_class)
                 self.target = obj
             except KeyError:
-                print "Unknown object type (%s) at frame %s" % (hex(obj_type),self.frame)
+                # print "Unknown object type (%s) at frame %s" % (hex(obj_type),self.frame)
+                pass
         super(TargetAbilityEvent, self).apply()
 
 class LocationAbilityEvent(AbilityEvent):
@@ -388,6 +390,7 @@ class SelectionEvent(Event):
                 obj.visit(self.frame, self.player, type_class)
                 selected.append(obj)
             except KeyError:
-                print "Unknown object type (%s) at frame %s" % (hex(obj_type),self.frame)
+                # print "Unknown object type (%s) at frame %s" % (hex(obj_type),self.frame)
+                pass
         
         selection[self.frame] = selected
