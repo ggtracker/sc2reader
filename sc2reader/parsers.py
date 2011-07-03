@@ -116,7 +116,7 @@ class ActionParser_16561(ActionParser):
                 buffer.skip(5)
                 return LocationAbilityEvent(frames, pid, type, code, None, location)
             
-            elif flag in (0x04,0x07):
+            elif flag in (0x04,0x05,0x07):
                 print "Made it!"
                 h = buffer.read_hex(2)
                 hinge = buffer.read_byte()
