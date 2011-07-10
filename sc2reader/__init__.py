@@ -33,20 +33,20 @@ class SC2Reader(object):
             tolist = lambda x: [x] if isinstance(x,Replay) else x
             return sum(map(tolist,(read(x) for x in os.listdir(location))),[])
 
-        else:
-            with open(location) as replay_file:
-                replay = Replay(replay_file,**self.options.copy())
-                archive = mpyq.MPQArchive(location,listfile=False)
+        with open(location) as replay_file:
+            replay = Replay(replay_file,**self.options.copy())
+            archive = mpyq.MPQArchive(location,listfile=False)
 
-                for file in self.files:
-                    buffer = ReplayBuffer(archive.read_file(file))
-                    READERS[replay.build][file].read(buffer,replay)
+            for file in self.files:
+                buffer = ReplayBuffer(archive.read_file(file))
+                read = config.readers[replay.build][file]
+                read(buffer,replay)
 
-                #Handle user processors after internal processors
-                for process in self.processors+self.options.processors:
-                    replay = process(replay)
+            #Handle user processors after internal processors
+            for process in self.processors+self.options.processors:
+                replay = process(replay)
 
-                return replay
+            return replay
 
     def configure(self,**options):
         self.options.update(options)

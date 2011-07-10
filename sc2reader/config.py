@@ -77,4 +77,4 @@ class ReaderMap(dict):
         except KeyError:
             return self.set3
 
-READERS = ReaderMap()
+readers = ReaderMap()

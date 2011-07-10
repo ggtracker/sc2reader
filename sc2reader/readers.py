@@ -8,23 +8,21 @@ from sc2reader.utils import timestamp_from_windows_time, AttributeDict
 #################################################
 
 class InitDataReader(object):
-    def read(self, buffer, replay):
-        
-        # Game clients
-        for p in range(buffer.read_byte()):
+    def __call__(self, buffer, replay):
+        # A fixed length list of player names (includes observers)
+        for player in range(buffer.read_byte()):
             name = buffer.read_string()
-            if len(name) > 0:
+            if name != "":
                 replay.player_names.append(name)
-            buffer.skip(5) #Always all zeros UNKNOWN
-        
-        # UNKNOWN
-        buffer.skip(5) # Unknown
-        buffer.read_chars(4) # Always Dflt
-        buffer.skip(15) #Unknown
+            buffer.skip(5) #Always all zeros
+
+        buffer.skip(24) #Fixed Length data for unknown purpose
+
         sc_account_id = buffer.read_string()
-        
+
         buffer.skip(684) # Fixed Length data for unknown purpose
         
+        # An array of map information, could do much more with this
         while( buffer.read_chars(4).lower() == 's2ma' ):
             buffer.skip(2)
             replay.realm = buffer.read_string(2).lower()
@@ -33,11 +31,11 @@ class InitDataReader(object):
 #################################################
 
 class AttributeEventsReader(object):
-    def read(self, buffer, replay):
+    def __call__(self, buffer, replay):
         self.load_header(replay, buffer)
         
         replay.attributes = list()
-        for i in range(0, buffer.read_int(LITTLE_ENDIAN)):
+        for i in range(buffer.read_int(LITTLE_ENDIAN)):
             replay.attributes.append(Attribute([
                     buffer.read_int(LITTLE_ENDIAN),     #Header
                     buffer.read_int(LITTLE_ENDIAN),     #Attr Id
@@ -58,7 +56,7 @@ class DetailsReader(object):
     color_fields = ('a','r','g','b',)
     player_fields = ('name','bnet','race','color','?','?','handicap','?','result')
 
-    def read(self, buffer, replay):
+    def __call__(self, buffer, replay):
         data = buffer.read_data_struct()
 
         for pid, pdata in enumerate(data[0]):
@@ -99,42 +97,36 @@ class DetailsReader(object):
 ##################################################
 
 class MessageEventsReader(object):
-    def read(self, buffer, replay):
+    def __call__(self, buffer, replay):
         replay.messages, time = list(), 0
 
-        while(buffer.left != 0):
+        while(buffer.left):
             time += buffer.read_timestamp()
             player_id = buffer.read_byte() & 0x0F
             flags = buffer.read_byte()
-            
+
             if flags & 0xF0 == 0x80:
                 # Pings, TODO: save and use data somewhere
                 if flags & 0x0F == 3:
                     x = buffer.read_int(LITTLE_ENDIAN)
                     y = buffer.read_int(LITTLE_ENDIAN)
-                # Some sort of header code
+
+                # Store recieved messages to later determine the recording
+                # player by process of elimination during post-processing
                 elif flags & 0x0F == 0:
                     buffer.skip(4) # UNKNOWN
-                    # XXX why?
                     replay.other_people.add(player_id)
-            
+
             elif flags & 0x80 == 0:
-                target = flags & 0x03
-                length = buffer.read_byte()
-                
-                # Flags for additional length in message
-                if flags & 0x08:
-                    length += 64
-                if flags & 0x10:
-                    length += 128
-                    
+                target,extension = flags & 0x03, (flags & 0x18) << 3
+                length = buffer.read_byte() + extension
                 text = buffer.read_chars(length)
                 replay.messages.append(Message(time, player_id, target, text))
 
 ####################################################
 
 class GameEventsBase(object):
-    def read(self, buffer, replay):
+    def __call__(self, buffer, replay):
         replay.events, frames = list(), 0
         
         PARSERS = {
@@ -150,8 +142,7 @@ class GameEventsBase(object):
             start = buffer.cursor
 
             frames += buffer.read_timestamp()
-            pid = buffer.shift(5)
-            type, code = buffer.shift(3), buffer.read_byte()
+            pid,type,code = buffer.shift(5), buffer.shift(3), buffer.read_byte()
             #print "Type %X - Code %X - Start %X" % (type,code,start)
 
             parser = PARSERS.get(type,lambda x:None)(code)
