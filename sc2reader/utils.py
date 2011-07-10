@@ -487,6 +487,16 @@ def key_in_bases(key,bases):
         if key in clazz.__dict__: return True
     return False
 
+class AttributeDict(dict):
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError('No such attribute {0}'.format(name))
+
+    def __setattr__(self, name, value):
+        self[name] = value
+
 def read_header(file):
     ''' Read the file as a byte stream according to the documentation found at:
             http://wiki.devklog.net/index.php?title=The_MoPaQ_Archive_Format
