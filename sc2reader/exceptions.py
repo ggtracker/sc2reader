@@ -1,3 +1,16 @@
+class SC2ReaderError(Exception):
+    pass
+
+class ReadError(SC2ReaderError):
+    pass
+
+class ProcessError(SC2ReaderError):
+    pass
+
+class FileError(SC2ReaderError):
+    pass
+
+
 class ParseError(Exception):
     def __init__(self, message, replay, event, bytes):
         self.message = message
