@@ -3,7 +3,17 @@ from collections import defaultdict
 
 from sc2reader.constants import *
 from sc2reader.data import GameObject, ABILITIES
-from sc2reader.utils import PersonDict, Selection, read_header
+from sc2reader.utils import PersonDict, Selection, read_header, AttributeDict
+
+class Color(AttributeDict):
+    @property
+    def hex():
+        return "{0.r:02X}{0.g:02X}{0.b:02X}".format(self)
+
+    def __str__(self):
+        if not hasattr(self,'name'):
+            self.name = COLOR_CODES[self.hex]
+        return self.name
 
 class Replay(object):
     
