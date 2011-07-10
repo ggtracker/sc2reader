@@ -1,47 +1,40 @@
+from utils import AttributeDict
+
 from processors import *
 from readers import *
 
-FULL = "FULL"
-PARTIAL = "PARTIAL"
-CUSTOM = "CUSTOM"
+full = AttributeDict(
+    files = [
+        'replay.initData',
+        'replay.details',
+        'replay.attributes.events',
+        'replay.message.events',
+        'replay.game.events'],
+    processors = [
+        PeopleProcessor,
+        AttributeProcessor,
+        TeamsProcessor,
+        MessageProcessor,
+        RecorderProcessor,
+        EventProcessor,
+        ApmProcessor,
+        ResultsProcessor],
+)
 
-FILES = {
-    "FULL": [
-            'replay.initData',
-            'replay.details',
-            'replay.attributes.events',
-            'replay.message.events',
-            'replay.game.events'
-        ],
-
-    "PARTIAL": [
-            'replay.initData',
-            'replay.details',
-            'replay.attributes.events',
-            'replay.message.events'
-        ],
-}
-
-PROCESSORS = {
-    "FULL": [
-            PeopleProcessor,
-            AttributeProcessor,
-            TeamsProcessor,
-            MessageProcessor,
-            RecorderProcessor,
-            EventProcessor,
-            ApmProcessor,
-            ResultsProcessor,
-        ],
-
-    "PARTIAL": [
+partial = AttributeDict(
+    files = [
+        'replay.initData',
+        'replay.details',
+        'replay.attributes.events',
+        'replay.message.events'],
+    processors = [
             PeopleProcessor,
             AttributeProcessor,
             TeamsProcessor,
             MessageProcessor,
             RecorderProcessor,
         ],
-}
+)
 
 class ReaderMap(dict):
     def __init__(self):

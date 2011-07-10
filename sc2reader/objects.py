@@ -17,9 +17,9 @@ class Color(AttributeDict):
 
 class Replay(object):
     
-    def __init__(self, reader, replay_file):
+    def __init__(self, replay_file, **options):
         #Useful references
-        self.reader = reader
+        self.opt = options
         self.filename = replay_file.name
 
         #header information
