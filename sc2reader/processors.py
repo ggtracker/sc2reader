@@ -139,9 +139,9 @@ def ResultsProcessor(replay):
     # Check if replay file has recorded the winner
     remaining = set()
     for player in replay.players:
-        if player.outcome == 1:
+        if player.result == 1:
             replay.results[player.team] = "Won"
-        elif player.outcome == 2:
+        elif player.result == 2:
             replay.results[player.team] = "Lost"
         else:
             remaining.add(player.team)

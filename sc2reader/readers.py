@@ -3,7 +3,7 @@ from datetime import datetime
 from sc2reader.parsers import *
 from sc2reader.objects import *
 from sc2reader.utils import LITTLE_ENDIAN, BIG_ENDIAN
-from sc2reader.utils import timestamp_from_windows_time
+from sc2reader.utils import timestamp_from_windows_time, AttributeDict
 
 #################################################
 
@@ -55,51 +55,43 @@ class AttributeEventsReader_17326(AttributeEventsReader):
 ##################################################
 
 class DetailsReader(object):
+    color_fields = ('a','r','g','b',)
+    player_fields = ('name','bnet','race','color','?','?','handicap','?','result')
+
     def read(self, buffer, replay):
         data = buffer.read_data_struct()
 
         for pid, pdata in enumerate(data[0]):
-            fields = ('name','battlenet','race','color','??','??','handicap','??','outcome',)
-            pdata = dict(zip(fields, [pdata[i] for i in sorted(pdata.keys())]))
+            values = [v for k,v in sorted(pdata.iteritems())]
+            pdata = AttributeDict(zip(self.player_fields, values))
 
-            # TODO?: get a map of realm,subregion => region in here
-            player = Player(pid+1, pdata['name'], replay)
-            player.uid = pdata['battlenet'][4]
-            player.subregion = pdata['battlenet'][2]
-            player.handicap = pdata['handicap']
+            #Handle the basic player attributes
+            player = Player(pid+1, pdata.name, replay)
+            player.uid = pdata.bnet[4]
+            player.subregion = pdata.bnet[2]
+            player.handicap = pdata.handicap
             player.realm = replay.realm
+            player.result = pdata.result
+            # TODO?: get a map of realm,subregion => region in here
 
-            # Some European language, like DE will have races written slightly differently (ie. Terraner).
-            # To avoid these differences, only examine the first letter, which seem to be consistent across languages.
-            race = pdata['race']
-            if race[0] == 'T':
-                race = "Terran"
-            if race[0] == 'P':
-                race = "Protoss"
-            if race[0] == 'Z':
-                race = "Zerg"
-            # Check against non-western localised races
-            player.actual_race = LOCALIZED_RACES.get(race, race)
+            # Now convert all different localizations to western if we can
+            # TODO: recognize current locale and use that instead of western
+            # TODO: fill in the LOCALIZED_RACES table
+            player.actual_race = LOCALIZED_RACES.get(pdata.race, pdata.race)
 
-            color = [pdata['color'][i] for i in sorted(pdata['color'].keys())]
-            color = dict(zip(('a','r','g','b',), color))
-            player.color_hex = "%(r)02X%(g)02X%(b)02X" % color
-            player.color = COLOR_CODES.get(player.color_hex, player.color_hex)
-            player.color_rgba = color
-
-            player.outcome = pdata['outcome']
+            ''' Conversion to the new color object:
+                    color_rgba is the color object itself
+                    color_hex is color.hex
+                    color is str(color)'''
+            values = [v for k,v in sorted(pdata.color.iteritems())]
+            player.color = Color(zip(self.color_fields, values))
 
             # Add player to replay
             replay.players.append(player)
-            
+
+        #Non-player details
         replay.map = data[1]
         replay.file_time = data[5]
-
-        # TODO: This doesn't seem to produce exactly correct results, ie. often off by one
-        # second compared to file timestamps reported by Windows.
-        # This might be due to wrong value of the magic constant 116444735995904000
-        # or rounding errors. Ceiling or Rounding the result didn't produce consistent
-        # results either.
         unix_timestamp = timestamp_from_windows_time(replay.file_time)
         replay.date = datetime.fromtimestamp(unix_timestamp)
         replay.utc_date = datetime.utcfromtimestamp(unix_timestamp)

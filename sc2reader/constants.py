@@ -7,7 +7,11 @@
 LOCALIZED_RACES = {
 
     # deDE
+    'Terraner': 'Terran',
     # enUS
+    'Terran': 'Terran',
+    'Protoss': 'Protoss',
+    'Zerg': 'Zerg',
     # esES
     # esMX
     # frFR
