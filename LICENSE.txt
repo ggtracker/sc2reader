@@ -1,8 +1,4 @@
---------------------------------------------------------
-From: http://www.opensource.org/licenses/mit-license.php
---------------------------------------------------------
-
-The MIT License
+The MIT License, http://www.opensource.org/licenses/mit-license.php
 
 Copyright (c) 2011 Graylin Kim
 
