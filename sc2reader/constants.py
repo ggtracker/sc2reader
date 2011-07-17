@@ -3,38 +3,54 @@
 # These are found in Repack-MPQ/fileset.{locale}#Mods#Core.SC2Mod#{locale}.SC2Data/LocalizedData/Editor/EditorCategoryStrings.txt
 # EDSTR_CATEGORY_Race
 # EDSTR_PLAYERPROPS_RACE
-# question mark means not confirmed data
+# The ??? means that I don't know what language it is.
+# If multiple languages use the same set they should be comma separated
 LOCALIZED_RACES = {
 
-    # deDE
-    'Terraner': 'Terran',
     # enUS
     'Terran': 'Terran',
     'Protoss': 'Protoss',
     'Zerg': 'Zerg',
+
+    # ruRU
+    'Терран': 'Terran',
+    'Протосс': 'Protoss',
+    'Зерг': 'Zerg',
+
+    # koKR
+    '테란': 'Terran',
+    '프로토스': 'Protoss',
+    '저그': 'Zerg',
+    
+    # ???
+    'Terrani': 'Terran',
+    'Protosi': 'Protoss',
+    'Zergi': 'Zerg',
+
+    # ???
+    '人类': 'Terran',
+    '星灵': 'Protoss',
+    '异虫': 'Zerg',
+
+    # ???
+    '人類': 'Terran'
+    '神族': 'Protoss',
+    '蟲族': 'Zerg',
+
+    # ???
+    'Terrano': 'Terran',
+
+    # deDE
+    'Terraner': 'Terran',
+
     # esES
     # esMX
     # frFR
     # itIT
-    
-    # koKR
-    '프로토스': 'Protoss',
-    '테란': 'Terran',
-    '저그': 'Zerg',
-    
     # plPL
     # ptBR
-    # ruRU
-    'Протосс': 'Protoss',
-    'Терран': 'Terran',
-    'Зерг': 'Zerg',
     # zhCN
     # zhTW
-    
-    # Uncategorized
-    '神族': 'Protoss',
-    '蟲族': 'Zerg',
-    '人類': 'Terran'
 }
 
 #
