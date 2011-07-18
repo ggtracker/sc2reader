@@ -1,8 +1,9 @@
 from itertools import chain
-
-from sc2reader.objects import *
-from sc2reader.utils import BIG_ENDIAN,LITTLE_ENDIAN
 from collections import defaultdict
+
+from .objects import *
+from .utils import BIG_ENDIAN,LITTLE_ENDIAN
+
 
 class SetupParser(object):
     def parse_join_event(self, buffer, frames, type, code, pid):

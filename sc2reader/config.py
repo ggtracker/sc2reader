@@ -1,7 +1,19 @@
-from utils import AttributeDict
+from .processors import *
+from .readers import *
+from .utils import AttributeDict
 
-from processors import *
-from readers import *
+default_options = AttributeDict(
+    directory="",
+    processors=[],
+    debug=False,
+    verbose=False,
+    parse_events=True,
+    include_regex=None,
+    exclude_dirs=[],
+    recursive=True,
+    depth=-1,
+    follow_symlinks=True
+)
 
 full = AttributeDict(
     files = [
@@ -11,14 +23,16 @@ full = AttributeDict(
         'replay.message.events',
         'replay.game.events'],
     processors = [
-        PeopleProcessor,
-        AttributeProcessor,
-        TeamsProcessor,
-        MessageProcessor,
-        RecorderProcessor,
-        EventProcessor,
-        ApmProcessor,
-        ResultsProcessor],
+        FullProcessor,
+        #PeopleProcessor,
+        #AttributeProcessor,
+        #TeamsProcessor,
+        #MessageProcessor,
+        #RecorderProcessor,
+        #EventProcessor,
+        #ApmProcessor,
+        #ResultsProcessor
+    ],
 )
 
 partial = AttributeDict(

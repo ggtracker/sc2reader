@@ -1,9 +1,22 @@
 from constants import LOCALIZED_RACES
 from collections import defaultdict
 
-from sc2reader.constants import *
-from sc2reader.data import GameObject, ABILITIES
-from sc2reader.utils import PersonDict, Selection, read_header, AttributeDict
+from .constants import *
+from .data import GameObject, ABILITIES
+from .utils import PersonDict, Selection, read_header, AttributeDict
+
+from collections import namedtuple
+
+Location = namedtuple('Location',('x','y'))
+Details = namedtuple('Details',['players','map','unknown1','unknown2','unknown3','file_time','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10','unknown11'])
+
+MapData = namedtuple('MapData',['unknown','realm','map_hash'])
+PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result'])
+ColorData = namedtuple('ColorData',['a','r','g','b'])
+BnetData = namedtuple('BnetData',['unknown1','subregion','unknown2','uid'])
+PacketData = namedtuple('Packet',['time','pid','flags','packet'])
+PingData = namedtuple('Ping',['time','pid','flags','x','y'])
+MessageData = namedtuple('Message',['time','pid','flags','target','text'])
 
 class Color(AttributeDict):
     @property
@@ -15,8 +28,20 @@ class Color(AttributeDict):
             self.name = COLOR_CODES[self.hex]
         return self.name
 
+class Team(object):
+    '''Usage:
+        Team.players -> list of players
+        Team.number -> int
+        Team.result -> result
+    '''
+    def __init__(self,number):
+        self.number = number
+        self.players = list()
+        self.result = "Unknown"
+
+
 class Replay(object):
-    
+
     def __init__(self, replay_file, **options):
         #Useful references
         self.opt = options
@@ -28,7 +53,7 @@ class Replay(object):
         self.release_string = "%s.%s.%s.%s" % tuple(self.versions[1:5])
         self.seconds = self.frames/16
         self.length = (self.seconds/60, self.seconds%60)
-        
+
         #default values, filled in during file read
         self.player_names = list()
         self.other_people = set()
@@ -45,97 +70,107 @@ class Replay(object):
         self.observers = list() #Unordered list of Observer
         self.players = list() #Unordered list of Player
         self.people = list() #Unordered list of Players+Observers
+        self.humans = list() #Unordered list of Human People
         self.person = PersonDict() #Maps pid to Player/Observer
         self.events_by_type = dict()
         self.attributes = list()
         self.messages = list()
         self.recorder = None # Player object
         self.winner_known = False
-        
+        self.packets = list()
         # Set in parsers.DetailParser.load, should we hide this?
         self.file_time = None
-        
+
         # TODO: Test EPOCH differences between MacOsX and Windows
         # http://en.wikipedia.org/wiki/Epoch_(reference_date)
         # Notice that Windows and Mac have different EPOCHs, I wonder whether
         # this is different depending on the OS on which the replay was played.
         self.date = None # Date when the game was played in local time
         self.utc_date = None # Date when the game was played in UTC
-        
+
         self.objects = {}
-        
+        self.raw = AttributeDict()
+
 class Attribute(object):
-    
+
     def __init__(self, data):
         #Unpack the data values and add a default name of unknown to be
         #overridden by known attributes; acts as a flag for exclusion
         self.header, self.id, self.player, self.value, self.name = tuple(data+["Unknown"])
-        
+
         #Strip off the null bytes
         while self.value[-1] == '\x00': self.value = self.value[:-1]
-   
+
         if self.id == 0x01F4:
             self.name, self.value = "Player Type", PLAYER_TYPE_CODES[self.value]
-            
+
         elif self.id == 0x07D1:
             self.name,self.value = "Game Type", GAME_FORMAT_CODES[self.value]
-            
+
         elif self.id == 0x0BB8:
             self.name, self.value = "Game Speed", GAME_SPEED_CODES[self.value]
-            
+
         elif self.id == 0x0BB9:
             self.name, self.value = "Race", RACE_CODES[self.value]
-            
+
         elif self.id == 0x0BBA:
             self.name, self.value = "Color", TEAM_COLOR_CODES[self.value]
-            
+
         elif self.id == 0x0BBB:
             self.name = "Handicap"
-            
+
         elif self.id == 0x0BBC:
             self.name, self.value = "Difficulty", DIFFICULTY_CODES[self.value]
-            
+
         elif self.id == 0x0BC1:
             self.name, self.value = "Category", GAME_TYPE_CODES[self.value]
-            
+
         elif self.id == 0x07D2:
             self.name = "Teams1v1"
             self.value = int(self.value[0])
-            
+
         elif self.id == 0x07D3:
             self.name = "Teams2v2"
             self.value = int(self.value[0])
-            
+
         elif self.id == 0x07D4:
             self.name = "Teams3v3"
             self.value = int(self.value[0])
-            
+
         elif self.id == 0x07D5:
             self.name = "Teams4v4"
             self.value = int(self.value[0])
-            
+
         elif self.id == 0x07D6:
             self.name = "TeamsFFA"
             self.value = int(self.value[0])
-            
+
     def __repr__(self):
         return str(self)
-        
+
     def __str__(self):
         return "%s: %s" % (self.name, self.value)
-    
+
+class Packet(object):
+    def __init__(self, time, player, data):
+        self.__dict__.update(locals())
+
+class Ping(object):
+    def __init__(self, time, player, x, y):
+        self.time, self.player, self.location = time, player, Location(x,y)
+
 class Message(object):
-    
+
     def __init__(self, time, pid, target, text):
         self.time, self.sender_id, self.target, self.text = time, pid, target, text
         self.seconds = time/16
         self.sent_to_all = (self.target == 0)
         self.sent_to_allies = (self.target == 2)
-        
+
     def __str__(self):
         time = ((self.time/16)/60, (self.time/16)%60)
         return "%s - Player %s - %s" % (time, self.sender_id, self.text)
-        
+
     def __repr__(self):
         return str(self)
 
@@ -152,7 +187,7 @@ class Person(object):
         self.selections = {}
         self.hotkeys = {}
         self.replay = replay
-        
+
     def get_selection(self, number=10):
         """ Get selection buffer by number """
         if number < 10:
@@ -175,16 +210,17 @@ class Person(object):
         selection = self.get_selection(10) # get user bank
         selection.deselect_all(timestamp)
         selection.select(hotkey.current(), timestamp)
-  
+
 class Observer(Person):
     def __init__(self, pid, name, replay):
         super(Observer,self).__init__(pid, name, replay)
         self.is_observer = True
-		
+        self.type = 'Human'
+
 class Player(Person):
-    
+
     URL_TEMPLATE = "http://%s.battle.net/sc2/en/profile/%s/%s/%s/"
-    
+
     def __init__(self, pid, name, replay):
         super(Player,self).__init__(pid, name, replay)
         self.is_observer = False
@@ -196,14 +232,14 @@ class Player(Person):
 
     def __str__(self):
         return "Player %s - %s (%s)" % (self.pid, self.name, self.actual_race)
-        
+
     def __repr__(self):
         return str(self)
-        
+
 class Event(object):
     name = 'BaseEvent'
     def apply(self): pass
-    
+
     """Abstract Event Type, should not be directly instanciated"""
     def __init__(self, timestamp, player_id, event_type, event_code):
         self.frame = timestamp
@@ -217,22 +253,22 @@ class Event(object):
         self.is_player_action = (event_type == 0x01)
         self.is_camera_movement = (event_type == 0x03)
         self.is_unknown = (event_type == 0x02 or event_type == 0x04 or event_type == 0x05)
-        
+
 class UnknownEvent(Event):
     name = 'UnknownEvent'
-    
+
 class PlayerJoinEvent(Event):
 	name = 'PlayerJoin'
-	
+
 class GameStartEvent(Event):
     name = 'GameStart'
-    
+
 class PlayerLeaveEvent(Event):
 	name = 'PlayerLeave'
-    
+
 class CameraMovementEvent(Event):
     name = 'CameraMovement'
-    
+
 class ResourceTransferEvent(Event):
     name = 'ResourceTransfer'
     def __init__(self, frames, pid, type, code, target, minerals, vespene):
@@ -241,7 +277,7 @@ class ResourceTransferEvent(Event):
         self.reciever = target
         self.minerals = minerals
         self.vespene = vespene
-        
+
 class AbilityEvent(Event):
     name = 'AbilityEvent'
     def __init__(self, framestamp, player, type, code, ability):
@@ -249,7 +285,7 @@ class AbilityEvent(Event):
         self.ability = ability
 
     def apply(self):
-        
+
         if self.ability:
             if self.ability not in ABILITIES:
                 pass
@@ -269,7 +305,7 @@ class AbilityEvent(Event):
 
     def get_able_selection(self, ability):
         return [obj for obj in self.player.get_selection().current if hasattr(obj, ability)]
-        
+
 class TargetAbilityEvent(AbilityEvent):
     name = 'TargetAbilityEvent'
     def __init__(self, framestamp, player, type, code, ability, target):
@@ -287,7 +323,7 @@ class TargetAbilityEvent(AbilityEvent):
                 type_class = GameObject.get_type(obj_type)
                 # Could this be hallucinated?
                 create_obj = not GameObject.has_type(obj_type & 0xfffffc | 0x2)
-                    
+
                 obj = None
                 if obj_id in self.player.replay.objects:
                     obj = self.player.replay.objects[obj_id]
@@ -316,7 +352,7 @@ class UnknownAbilityEvent(AbilityEvent):
 class UnknownLocationAbilityEvent(AbilityEvent):
     name = 'UnknownLocationAbilityEvent'
     pass
-    
+
 class HotkeyEvent(Event):
     name = 'HotkeyEvent'
     def __init__(self, framestamp, player, type, code, hotkey, overlay=None):
@@ -368,10 +404,10 @@ class GetHotkeyEvent(HotkeyEvent):
         # selection is alive!
         for obj in hotkeyed:
             obj.visit(self.frame, self.player)
-            
+
 class SelectionEvent(Event):
     name = 'SelectionEvent'
-    
+
     def __init__(self, framestamp, player, type, code, bank, objects, deselect):
         super(SelectionEvent, self).__init__(framestamp, player, type, code)
         self.bank = bank
@@ -402,5 +438,5 @@ class SelectionEvent(Event):
             except KeyError:
                 # print "Unknown object type (%s) at frame %s" % (hex(obj_type),self.frame)
                 pass
-        
+
         selection[self.frame] = selected
