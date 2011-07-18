@@ -1,6 +1,7 @@
-from cStringIO import StringIO
-from os import SEEK_CUR, SEEK_END, SEEK_SET
+import cStringIO
+import os
 import struct
+
 from itertools import groupby
 
 LITTLE_ENDIAN,BIG_ENDIAN = '<','>'
@@ -50,12 +51,12 @@ class ReplayBuffer(object):
     def __init__(self, file):
         #Accept file like objects and string objects
         if hasattr(file,'read'):
-            self.io = StringIO(file.read())
+            self.io = cStringIO.StringIO(file.read())
         else:
-            self.io = StringIO(file)
+            self.io = cStringIO.StringIO(file)
 
         # get length of stream
-        self.io.seek(0, SEEK_END)
+        self.io.seek(0, os.SEEK_END)
         self.length = self.io.tell()
         self.io.seek(0)
 
@@ -85,18 +86,18 @@ class ReplayBuffer(object):
         Stream manipulation functions
     '''
     def tell(self): return self.io.tell()
-    def skip(self, amount): self.seek(amount, SEEK_CUR)
+    def skip(self, amount): self.seek(amount, os.SEEK_CUR)
     def reset(self): self.io.seek(0); self.bit_shift = 0
     def align(self): self.bit_shift=0
-    def seek(self, position, mode=SEEK_SET):
+    def seek(self, position, mode=os.SEEK_SET):
         self.io.seek(position, mode)
         if self.io.tell()!=0 and self.bit_shift!=0:
-            self.io.seek(-1, SEEK_CUR)
+            self.io.seek(-1, os.SEEK_CUR)
             self.last_byte = ord(self.read_basic(1))
             
     def peek(self, length):
         start,last,ret = self.cursor,self.last_byte,self.read_hex(length)
-        self.seek(start, SEEK_SET)
+        self.seek(start, os.SEEK_SET)
         self.last_byte = last
         return ret
        
