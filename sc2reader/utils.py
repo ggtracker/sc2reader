@@ -472,7 +472,7 @@ class Selection(TimeDict):
     def get_types(self):
         return ', '.join([ u'%s %sx' % (name.name, len(list(objs))) for (name, objs) in groupby(self.current, lambda obj: obj.__class__)])
 
-def timestamp_from_windows_time(windows_time):
+def windows_to_unix(windows_time):
     # This windows timestamp measures the number of 100 nanosecond periods since
     # January 1st, 1601. First we subtract the number of nanosecond periods from
     # 1601-1970, then we divide by 10^7 to bring it back to seconds.
