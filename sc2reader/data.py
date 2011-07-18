@@ -1,6 +1,6 @@
 import re
 
-from utils import TimeDict
+from .utils import TimeDict
 
 OBJECTTYPE_CODES = {}
 ABILITIES = {}
