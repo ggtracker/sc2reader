@@ -21,19 +21,19 @@ LOCALIZED_RACES = {
     '테란': 'Terran',
     '프로토스': 'Protoss',
     '저그': 'Zerg',
-    
+
     # ???
     'Terrani': 'Terran',
     'Protosi': 'Protoss',
     'Zergi': 'Zerg',
 
-    # ???
+    # zhCH
     '人类': 'Terran',
     '星灵': 'Protoss',
     '异虫': 'Zerg',
 
-    # ???
-    '人類': 'Terran'
+    # zhTW
+    '人類': 'Terran',
     '神族': 'Protoss',
     '蟲族': 'Zerg',
 
@@ -43,14 +43,11 @@ LOCALIZED_RACES = {
     # deDE
     'Terraner': 'Terran',
 
-    # esES
-    # esMX
-    # frFR
-    # itIT
-    # plPL
-    # ptBR
-    # zhCN
-    # zhTW
+    # esES - Spanish
+    # esMX - Latin American
+    # frFR - French - France
+    # plPL - Polish Polish
+    # ptBR - Brazilian Portuguese
 }
 
 #
