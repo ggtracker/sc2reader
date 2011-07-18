@@ -1,4 +1,5 @@
 import cStringIO
+import fnmatch
 import os
 import struct
 
@@ -523,3 +524,40 @@ def read_header(file):
 
     #array [unknown,version,major,minor,build,unknown] and frame count
     return header_data[1].values(),header_data[3]
+
+
+def allow(file, include_regex=None):
+    name, ext = os.path.splitext(file)
+    if ext.lower() != ".sc2replay":
+        return False
+    elif include_regex and not re.match(include_regex,name):
+        return False
+    else:
+        return True
+
+def get_files( location, include_regex=None,
+               exclude_dirs=[],depth=-1, follow_symlinks=True, **extras):
+
+    if not os.path.exists(location):
+        raise ValueError("Location `{0}` does not exit".format(location))
+
+    if not os.path.isdir(location):
+        if allow(location, include_regex):
+            return [location]
+
+    files = list()
+    for file in os.listdir(location):
+        path = os.path.join(location, file)
+        if os.path.isdir(path):
+            if file in exclude_dirs or depth == 0:
+                continue
+            elif not follow_symlinks and os.path.islink(path):
+                continue
+            else:
+                files.extend(get_files(path, include_regex,
+                                       exclude_dirs, depth-1, follow_symlinks))
+        elif os.path.isfile(path):
+            if allow(file, include_regex):
+                files.append(path)
+
+    return files
