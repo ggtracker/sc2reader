@@ -497,6 +497,9 @@ class AttributeDict(dict):
     def __setattr__(self, name, value):
         self[name] = value
 
+    def copy(self):
+        return AttributeDict(super(AttributeDict,self).copy())
+
 def read_header(file):
     ''' Read the file as a byte stream according to the documentation found at:
             http://wiki.devklog.net/index.php?title=The_MoPaQ_Archive_Format
