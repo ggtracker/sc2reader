@@ -29,6 +29,7 @@ import mpyq
 import config
 import objects
 import utils
+import exceptions
 
 
 class Reader(object):
@@ -38,16 +39,16 @@ class Reader(object):
         orchestrates the replay build process.
     """
 
-
     def __init__(self, **user_options):
         """ The constructor makes a copy of the default_options to make sure the
             option configuration doesn't propogate back to the default_options.
             It should support any arbitrary number of different Reader objects.
         """
         self.options = config.default_options.copy()
+        self.sys = utils.AttributeDict()
         self.configure(**user_options)
 
-    def configure(self,**options):
+    def configure(self, **options):
         self.options.update(options)
 
         # Depending on the options choosen, the system needs to update related
@@ -68,7 +69,7 @@ class Reader(object):
         # to a location other than the present working directory by joining the
         # location with the directory of their choice.
         if options.directory:
-            location = os.path.join(options.directory,location)
+            location = os.path.join(options.directory, location)
 
         # When passed a directory as the location, the Reader recursively builds
         # a list of replays to return using the utils.get_files function. This
@@ -79,12 +80,12 @@ class Reader(object):
         #   * incldue_regex: A regular expression rule which all returned file
         #       names must match. Defaults to None
         #
-        replays, files = list(), utils.get_files(location,**options)
+        replays, files = list(), utils.get_files(location, **options)
 
         # If no files are found, it could be for a variety of reasons
         # raise a NoMatchingFilesError to alert them to the situation
         if not files:
-            raise NoMatchingFilesError()
+            raise exceptions.NoMatchingFilesError()
 
         for location in files:
             if options.verbose: print "Reading: %s" % location
@@ -93,7 +94,7 @@ class Reader(object):
                 # The Replay constructor scans the header of the replay file for
                 # the build number and stores the options for later use. The
                 # options are copied so subsequent option changes are isolated.
-                replay = objects.Replay(replay_file,**options.copy())
+                replay = objects.Replay(replay_file, **options.copy())
 
                 # .SC2Replay files are written in Blizzard's MPQ Archive format.
                 # The format stores a header which contains a block table that
@@ -103,7 +104,7 @@ class Reader(object):
                 # add messages promoting their sites without updating the header
                 # correctly. The listfile option(hack) lets us bypass this issue
                 # by specifying the files we want instead of generating a list.
-                archive = mpyq.MPQArchive(location,listfile=False)
+                archive = mpyq.MPQArchive(location, listfile=False)
 
                 # These files are configured for either full or partial parsing
                 for file in self.sys.files:
@@ -123,10 +124,13 @@ class Reader(object):
                     # Readers use the type agnostic __call__ interface so that
                     # they can be implemented as functions or classes as needed.
                     #
-                    # Readers store the extracted information into the replay
-                    # object for post processing because correct interpretation
-                    # of the information often requires data from other files.
-                    config.readers[replay.build][file].__call__(buffer,replay)
+                    # Readers return the extracted information from the buffer
+                    # object which gets stored into the raw data dict for later
+                    # use in post processing because correct interpretation of
+                    # the information often requires data from other files.
+                    reader = config.readers[replay.build][file]
+                    reference_name = '_'.join(file.split('.')[1:])
+                    replay.raw[reference_name] = reader(buffer, replay)
 
                 # Now that the replay has been loaded with the "raw" data from
                 # the archive files we run the system level post processors to
@@ -146,13 +150,13 @@ class Reader(object):
 
         return replays
 
-    def read_file(file,**options):
-        replays = self.read(file,**options)
+    def read_file(self, file, **options):
+        replays = self.read(file, **options)
 
         # While normal usage would suggest passing in only filenames, it is
         # possible that directories could be passed in. Don't fail silently!
         if len(replays) > 1:
-            raise MultipleMatchError(replays)
+            raise exceptions.MultipleMatchingFilesError(replays)
 
         # Propogate the replay in a singular context
         return replays[0] if len(replays) > 0 else None
@@ -164,7 +168,7 @@ functional interface, it just saves the hassel of creating the class object.
 __defaultReader = Reader()
 
 def read(location, **user_options):
-    return __defaultReader.read(location,**user_options)
+    return __defaultReader.read(location, **user_options)
 
 def configure(**options):
     config.default_options.update(options)

@@ -1,15 +1,10 @@
-from datetime import datetime
-
 from .parsers import *
 from .objects import *
-from .utils import LITTLE_ENDIAN, BIG_ENDIAN
-from .utils import AttributeDict
+from .utils import AttributeDict, LITTLE_ENDIAN
 
 
 class InitDataReader(object):
     def __call__(self,buffer, replay):
-        init_data = AttributeDict()
-
         # The first block of the replay.initData file represents a list of
         # human player names; computers are no recorded. This list appears to
         # always be 16 long, with "" names filling in the balance. Each name
@@ -26,7 +21,7 @@ class InitDataReader(object):
         # that. Its split into 3 sections because of the variable length segment
         # in the middle that prevents bulk skipping.
         buffer.skip(24)
-        init_data.sc_account_id = buffer.read_string()
+        sc_account_id = buffer.read_string()
         buffer.skip(684)
 
         # The final block of this file that we concern ourselves with is a list
@@ -40,21 +35,20 @@ class InitDataReader(object):
             map_hash = buffer.read_chars(32)
             map_data.append(MapData(unknown,realm,map_hash))
 
-        # We insert the data into the init_data entry in our replay.raw dict
-        # for later use during processing. Realm is promoted for convenience
-        # since it is guarenteed to be consistent across all the entries.
-        init_data.map_data = map_data
-        init_data.player_names = player_names
-        init_data.realm = init_data.map_data[0].realm
-        replay.raw.init_data = init_data
+        # Return the extracted information inside an AttributeDict. Promote the
+        # realm information to top level for convenience since it is a constant.
+        return AttributeDict(
+            map_data=map_data,
+            player_names=player_names,
+            sc_account_id=sc_account_id,
+            realm=map_data[0].realm
+        )
 
 
 class AttributeEventsReader(object):
     header_length = 4
 
     def __call__(self, buffer, replay):
-        attribute_events = list()
-
         # The replay.attribute.events file is comprised of a small header and
         # single long list of attributes with the 0x00 00 03 E7 header on each
         # element. Each element holds a four byte attribute id code, a one byte
@@ -63,8 +57,9 @@ class AttributeEventsReader(object):
         #
         # See: ``objects.Attribute`` for attribute id and value lookup logic
         #
+        attribute_events = list()
         buffer.skip(self.header_length)
-        for i in range(buffer.read_int(LITTLE_ENDIAN)):
+        for attribute in range(buffer.read_int(LITTLE_ENDIAN)):
             attribute_events.append(Attribute([
                     buffer.read_int(LITTLE_ENDIAN),
                     buffer.read_int(LITTLE_ENDIAN),
@@ -72,7 +67,7 @@ class AttributeEventsReader(object):
                     buffer.read_chars(4)
                 ]))
 
-        replay.raw.attribute_events = attribute_events
+        return attribute_events
 
 
 class AttributeEventsReader_17326(AttributeEventsReader):
@@ -134,13 +129,16 @@ class DetailsReader(object):
         # Because named tuples are read only, we need to build them in pieces
         # from the bottom up instead of in place from the top down.
         players = list()
-        for pid, pdata in enumerate(data[0]):
+        for pdata in data[0]:
             pdata[1] = BnetData(*ordered_values(pdata[1]))
             pdata[3] = ColorData(*ordered_values(pdata[3]))
             player = PlayerData(*ordered_values(pdata))
             players.append(player)
         data[0] = players
-        replay.raw.details = Details(*ordered_values(data))
+
+        # As a final touch, label all extracted information using the Details
+        # named tuple from objects.py
+        return Details(*ordered_values(data))
 
 
 class MessageEventsReader(object):
@@ -148,10 +146,9 @@ class MessageEventsReader(object):
         # The replay.message.events file is a single long list containing three
         # different element types (minimap pings, player messages, and some sort
         # of network packets); each differentiated by flags.
-        message_events = AttributeDict()
-        message_events.pings = list()
-        message_events.messages = list()
-        message_events.packets = list()
+        pings = list()
+        messages = list()
+        packets = list()
 
         time = 0
         while(buffer.left):
@@ -165,13 +162,13 @@ class MessageEventsReader(object):
             if flags == 0x83:
                 x = buffer.read_int(LITTLE_ENDIAN)
                 y = buffer.read_int(LITTLE_ENDIAN)
-                message_events.pings.append(PingData(time,pid,flags,x,y))
+                pings.append(PingData(time,pid,flags,x,y))
 
             # The 0x80 flag marks a network packet. I believe these mark packets
             # send over the network to establish latency or connectivity.
             elif flags == 0x80:
                 packet = PacketData(time,pid,flags,buffer.read_chars(4))
-                message_events.packets.append(packet)
+                packets.append(packet)
 
             # A flag set without the 0x80 bit set is a player message. Messages
             # store a target (allies or all) as well as the message text.
@@ -179,15 +176,18 @@ class MessageEventsReader(object):
                 target,extension = flags & 0x03, (flags & 0x18) << 3
                 text = buffer.read_chars(buffer.read_byte() + extension)
                 message = MessageData(time, pid, flags, target, text)
-                replay.messages.append(message)
+                messages.append(message)
 
-        replay.raw.message_events = message_events
+        return AttributeDict(pings=pings, messages=messages, packets=packets)
 
-####################################################
 
 class GameEventsBase(object):
 
     def __call__(self, buffer, replay):
+        # The game events file is a single long list of game events identified
+        # by both a type and a code. For convenience, we dispatch the handling
+        # of each unique event type to a separate function to handle the code
+        # specific dispatching.
         PARSERS = {
             0x00: self.get_setup_parser,
             0x01: self.get_action_parser,
@@ -197,52 +197,109 @@ class GameEventsBase(object):
         }
 
         game_events, frames = list(), 0
-
         while not buffer.empty:
             #Save the start so we can trace for debug purposes
             start = buffer.cursor
 
+            # Each event has the same header which consists of 1-3 bytes for a
+            # count of the number of frames since the last recorded event, a
+            # byte split 5-3 bitwise for the player id (0-16) and the event
+            # type (0-4). A final header byte representing the code uniquely
+            # identifies the class of event we are handling.
             frames += buffer.read_timestamp()
-            pid,type,code = buffer.shift(5), buffer.shift(3), buffer.read_byte()
-            #print "Type %X - Code %X - Start %X" % (type,code,start)
+            pid = buffer.shift(5)
+            type = buffer.shift(3)
+            code = buffer.read_byte()
 
-            parser = PARSERS.get(type,lambda x:None)(code)
 
-            if parser == None:
+            try:
+                # Use the PARSERS dispatch dict to delegate handling of the
+                # particular event code to the corresponding event type handler.
+                # The is handler should return the appropriate event parser
+                # which should then return the raw event data for storage.
+                parser = PARSERS[type](code)
+                event = parser(buffer, frames, type, code, pid)
+
+                # For debugging purposes, we may wish to record the event.bytes
+                # associated with this event; including the event header bytes.
+                if replay.opt.debug:
+                    event.bytes = buffer.read_range(start, buffer.cursor)
+
+                game_events.append(event)
+
+            except KeyError:
+                # If the type is not a key in the PARSERS lookup table we
+                # probably incorrectly parsed the previous event
+                # TODO: Raise an error instead an store the previous event
                 msg = "Unknown event: %X - %X at %X"
                 raise TypeError(msg % (type, code, start))
 
-            event = parser(buffer, frames, type, code, pid)
+            except TypeError:
+                # For some reason, the type handler that we delegated to didn't
+                # recognize the event code that we extracated.
+                # TODO: Do something meaningful here
+                raise
 
+            # Because events are parsed in a bitwise fashion, they sometimes
+            # leave the buffer in a bitshifted state. Each new event always
+            # starts byte aligned so make sure that the buffer does too.
             buffer.align()
-            event.bytes = buffer.read_range(start,buffer.cursor)
-            game_events.append(event)
 
-        replay.raw.game_events = game_events
+        return game_events
 
     def get_setup_parser(self, code):
-        if   code in (0x0B,0x0C,0x2C): return self.parse_join_event
-        elif code == 0x05: return self.parse_start_event
+        # The setup events typically form a header of sorts to the file with
+        # each player (in no particular order) registering a join event and
+        # the game starting immediately afterwords. On occassion, for unknown
+        # reasons, other events (particularly camera events) will register
+        # before the game has actually started. Wierd.
+        if   code in (0x0B, 0x0C, 0x2C): return self.parse_join_event
+        elif code in (0x05,): return self.parse_start_event
+        else:
+            # TODO: Raise a better error
+            raise TypeError()
 
     def get_action_parser(self, code):
+        # The action events are always associated with a particular player and
+        # generally encompass all possible player game actions.
         if   code == 0x09: return self.parse_leave_event
         elif code & 0x0F == 0xB: return self.parse_ability_event
         elif code & 0x0F == 0xC: return self.parse_selection_event
         elif code & 0x0F == 0xD: return self.parse_hotkey_event
         elif code & 0x0F == 0xF: return self.parse_transfer_event
+        else:
+            # TODO: Raise a better error
+            raise TypeError()
 
     def get_unknown2_parser(self, code):
+        # While its unclear what these events represent, they are MUCH more
+        # frequent in custom maps; possibly indicating that they are related
+        # to scripted actions as opposed to player actions.
         if   code == 0x06: return self.parse_0206_event
         elif code == 0x07: return self.parse_0207_event
         elif code == 0x0E: return self.parse_020E_event
+        else:
+            # TODO: Raise a better error
+            raise TypeError()
 
     def get_camera_parser(self, code):
+        # Each player's camera control events are recorded, separately from the
+        # rest of the player actions since the camera viewport location/angle
+        # has no meaningful impact on the course of the game. These events will
+        # infrequently occur before the game starts for some unknown reason.
         if   code == 0x87: return self.parse_camera87_event
         elif code == 0x08: return self.parse_camera08_event
         elif code == 0x18: return self.parse_camera18_event
         elif code & 0x0F == 1: return self.parse_cameraX1_event
+        else:
+            # TODO: Raise a better error
+            raise TypeError()
 
     def get_unknown4_parser(self, code):
+        # I don't know anything about these events. Any parse information for
+        # these events was arrived at by guess and check with little to no idea
+        # as to why it works or what the bytes represent. This was primarily an
+        # effort of pattern matching over hundreds of replays.
         if   code == 0x16: return self.parse_0416_event
         elif code == 0xC6: return self.parse_04C6_event
         elif code == 0x87: return self.parse_0487_event
@@ -250,12 +307,22 @@ class GameEventsBase(object):
         elif code == 0x00: return self.parse_0400_event
         elif code & 0x0F == 0x02: return self.parse_04X2_event
         elif code & 0x0F == 0x0C: return self.parse_04XC_event
+        else:
+            # TODO: Raise a better error
+            raise TypeError()
 
-class GameEventsReader(GameEventsBase,Unknown2Parser,Unknown4Parser,ActionParser,SetupParser,CameraParser):
+# The storage format for many of the game events has changed, sometimes
+# dramatically, over time. To handle this inconsistency sc2reader uses mixins
+# on the base class defined above to assemble the correct parsing functions
+# based on the replay build number.
+class GameEventsReader( GameEventsBase, Unknown2Parser, Unknown4Parser,
+                        ActionParser, SetupParser, CameraParser ):
     pass
 
-class GameEventsReader_16561(GameEventsBase,Unknown2Parser,Unknown4Parser,ActionParser_16561,SetupParser,CameraParser):
+class GameEventsReader_16561( GameEventsBase, Unknown2Parser, Unknown4Parser,
+                              ActionParser_16561, SetupParser, CameraParser ):
     pass
 
-class GameEventsReader_18574(GameEventsBase,Unknown2Parser,Unknown4Parser,ActionParser_18574,SetupParser,CameraParser):
+class GameEventsReader_18574( GameEventsBase, Unknown2Parser, Unknown4Parser,
+                              ActionParser_18574, SetupParser, CameraParser ):
     pass
