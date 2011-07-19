@@ -1,6 +1,12 @@
 class SC2ReaderError(Exception):
     pass
 
+class NoMatchingFilesError(SC2ReaderError):
+    pass
+
+class MutipleMatchingFilesError(SC2ReaderError):
+    pass
+
 class ReadError(SC2ReaderError):
     pass
 
@@ -17,11 +23,11 @@ class ParseError(Exception):
         self.replay = replay
         self.event = event
         self.bytes = bytes
-        
+
     def __str__(self):
         return """ParseError %s
             %s - %s
             %s""" % (self.message, self.event.type, self.event.code, self.bytes)
-        
+
     def __repr__(self):
         return str(self)
