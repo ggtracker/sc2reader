@@ -44,7 +44,7 @@ class Replay(object):
 
     def __init__(self, replay_file, **options):
         #Useful references
-        self.opt = options
+        self.opt = AttributeDict(**options)
         self.filename = replay_file.name
 
         #header information
@@ -65,6 +65,7 @@ class Replay(object):
         self.map = ""
         self.realm = ""
         self.events = list()
+        self.events_by_type = defaultdict(list)
         self.results = dict()
         self.teams = defaultdict(list)
         self.observers = list() #Unordered list of Observer
@@ -72,7 +73,6 @@ class Replay(object):
         self.people = list() #Unordered list of Players+Observers
         self.humans = list() #Unordered list of Human People
         self.person = PersonDict() #Maps pid to Player/Observer
-        self.events_by_type = dict()
         self.attributes = list()
         self.messages = list()
         self.recorder = None # Player object
@@ -224,6 +224,9 @@ class Player(Person):
     def __init__(self, pid, name, replay):
         super(Player,self).__init__(pid, name, replay)
         self.is_observer = False
+        self.aps = defaultdict(int)
+        self.apm = defaultdict(int)
+        self.avg_apm = 0
         # TODO: set default external interface variables?
 
     @property

@@ -5,7 +5,7 @@ from datetime import datetime
 
 def FullProcessor(replay):
     # Populate replay with details
-    replay.realm = replay.raw.init_data.realm
+    replay.realm = replay.raw.initData.realm
     replay.map = replay.raw.details.map
     replay.file_time = replay.raw.details.file_time
     replay.unix_timestamp = windows_to_unix(replay.file_time)
@@ -14,7 +14,7 @@ def FullProcessor(replay):
 
     # Organize the attribute data to be useful
     attribute_data = defaultdict(dict)
-    for attr in replay.raw.attribute_events:
+    for attr in replay.raw.attributes_events:
         attribute_data[attr.player][attr.name] = attr.value
 
     # Populate replay with attributes
@@ -68,7 +68,7 @@ def FullProcessor(replay):
         player.chosen_race = attributes['Race']
         player.difficulty = attributes['Difficulty']
         player.type = attributes['Player Type']
-        player.realm = replay.raw.init_data.realm
+        player.realm = replay.raw.initData.realm
         player.uid = pdata.bnet.uid
         player.subregion = pdata.bnet.subregion
         player.handicap = pdata.handicap
@@ -88,7 +88,7 @@ def FullProcessor(replay):
         replay.person[pid] = player
 
     # Create observers out of the leftover names
-    all_players = replay.raw.init_data.player_names
+    all_players = replay.raw.initData.player_names
     for i in range(observer_index,len(all_players)):
         observer = Observer(i+1,all_players[i],replay)
         replay.observers.append(observer)
@@ -121,6 +121,38 @@ def FullProcessor(replay):
     for player in replay.players:
         replay.teams[player.team].append(player)
 
+    # Copy the events over
+    # TODO: the events need to be fixed both on the reader and processor side
+    replay.events = replay.raw.game_events
+    for event in replay.events:
+        if event.is_local:
+            # Set up the object cross references
+            event.player = replay.person[event.pid]
+            event.player.events.append(event)
+
+        # event.apply() #Skip this for now
+        l = replay.events_by_type[event.name]
+        l.append(event)
+
+    # Gather data for APM measurements
+    for event in replay.events:
+        if event.is_local and event.is_player_action:
+            player = event.player
+            if not player.is_observer:
+                # Count up the APS, APM
+                second, minute = event.second, event.second/60
+                player.aps[event.second] += 1
+                player.apm[minute] += 1
+                player.avg_apm += 1
+
+    # Average the APM for actual players
+    for player in replay.players:
+        if player.events:
+            event_minutes = player.events[-1].second/60.0
+            if event_minutes:
+                player.avg_apm /= event_minutes
+
+    # TODO: only need to integrate results processing now!
     return replay
 
 
