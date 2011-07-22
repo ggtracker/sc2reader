@@ -167,6 +167,9 @@ functional interface, it just saves the hassel of creating the class object.
 """
 __defaultReader = Reader()
 
+def read_file(location, **user_options):
+    return __defaultReader.read_file(location, **user_options)
+
 def read(location, **user_options):
     return __defaultReader.read(location, **user_options)
 
