@@ -526,38 +526,35 @@ def read_header(file):
     return header_data[1].values(),header_data[3]
 
 
-def allow(file, include_regex=None):
-    name, ext = os.path.splitext(file)
-    if ext.lower() != ".sc2replay":
-        return False
-    elif include_regex and not re.match(include_regex,name):
-        return False
-    else:
-        return True
+def _allow(filename, regex):
+    name, ext = os.path.splitext(filename)
+    if ext.lower() != ".sc2replay": return False
+    return re.match(regex, name) if regex else True
 
-def get_files( location, include_regex=None,
-               exclude_dirs=[],depth=-1, follow_symlinks=True, **extras):
+def get_files( path, regex=None, exclude=[],
+               depth=-1, followlinks=False, **extras):
 
-    if not os.path.exists(location):
-        raise ValueError("Location `{0}` does not exit".format(location))
+    #os.walk and os.path.isfile fail silently. We want to be loud!
+    if not os.path.exists(path):
+        raise ValueError("Location `{0}` does not exist".format(path))
 
-    if not os.path.isdir(location):
-        if allow(location, include_regex):
-            return [location]
+    # Curry the function to prime it for use in the filter function
+    allow = lambda filename: _allow(filename, regex)
+
+    # You can't get more than one file from a file name!
+    if os.path.isfile(path):
+        return [path] if allow(os.path.basename(path)) else []
 
     files = list()
-    for file in os.listdir(location):
-        path = os.path.join(location, file)
-        if os.path.isdir(path):
-            if file in exclude_dirs or depth == 0:
-                continue
-            elif not follow_symlinks and os.path.islink(path):
-                continue
-            else:
-                files.extend(get_files(path, include_regex,
-                                       exclude_dirs, depth-1, follow_symlinks))
-        elif os.path.isfile(path):
-            if allow(file, include_regex):
-                files.append(path)
+    for root, directories, filenames in os.walk(path, followlinks=followlinks):
+        # Exclude the indicated directories by removing them from `directories`
+        for index,directory in enumerate(directories):
+            if directory in exclude or depth == 0:
+                del directories[index]
+
+        # Extend our return value only with the allowed file type and regex
+        allowed_files = filter(allow, filenames)
+        files.extend(os.path.join(root,file) for file in allowed_files)
+        depth -= 1
 
     return files
