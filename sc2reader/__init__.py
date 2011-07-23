@@ -29,6 +29,7 @@ import mpyq
 import config
 import objects
 import utils
+import processors
 import exceptions
 
 
@@ -45,15 +46,10 @@ class Reader(object):
             It should support any arbitrary number of different Reader objects.
         """
         self.options = config.default_options.copy()
-        self.sys = utils.AttributeDict()
         self.configure(**user_options)
 
     def configure(self, **options):
         self.options.update(options)
-
-        # Depending on the options choosen, the system needs to update related
-        # options and setting in order to get the reading right.
-        self.sys = config.full if self.options.parse_events else config.partial
 
     def read(self, location, **user_options):
         """ Read indicated file or recursively read matching files from the
@@ -107,7 +103,7 @@ class Reader(object):
                 archive = mpyq.MPQArchive(location, listfile=False)
 
                 # These files are configured for either full or partial parsing
-                for file in self.sys.files:
+                for file in options.files:
 
                     # For each file, we build a smart buffer object from the
                     # utf-8 encoded bitstream that mpyq extracts.
@@ -143,7 +139,7 @@ class Reader(object):
                 #
                 # TODO: Maybe we should switch this to a hook based architecture
                 #       Needs to be able to load "contrib" type processors..
-                for process in self.sys.processors+self.options.processors:
+                for process in [processors.Full]+options.processors:
                     replay = process(replay)
 
                 replays.append(replay)

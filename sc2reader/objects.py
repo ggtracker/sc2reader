@@ -13,7 +13,7 @@ Details = namedtuple('Details',['players','map','unknown1','unknown2','unknown3'
 MapData = namedtuple('MapData',['unknown','realm','map_hash'])
 PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result'])
 ColorData = namedtuple('ColorData',['a','r','g','b'])
-BnetData = namedtuple('BnetData',['unknown1','subregion','unknown2','uid'])
+BnetData = namedtuple('BnetData',['unknown1','unknown2','subregion','uid'])
 PacketData = namedtuple('Packet',['time','pid','flags','packet'])
 PingData = namedtuple('Ping',['time','pid','flags','x','y'])
 MessageData = namedtuple('Message',['time','pid','flags','target','text'])
@@ -67,9 +67,11 @@ class Replay(object):
         self.events = list()
         self.events_by_type = defaultdict(list)
         self.results = dict()
-        self.teams = defaultdict(list)
+        self.teams = list()
+        self.team = dict()
         self.observers = list() #Unordered list of Observer
         self.players = list() #Unordered list of Player
+        self.player = PersonDict()
         self.people = list() #Unordered list of Players+Observers
         self.humans = list() #Unordered list of Human People
         self.person = PersonDict() #Maps pid to Player/Observer
@@ -161,15 +163,15 @@ class Ping(object):
 
 class Message(object):
 
-    def __init__(self, time, pid, target, text):
-        self.time, self.sender_id, self.target, self.text = time, pid, target, text
+    def __init__(self, time, sender, target, text):
+        self.time,self.sender,self.target,self.text = time,sender,target,text
         self.seconds = time/16
         self.sent_to_all = (self.target == 0)
         self.sent_to_allies = (self.target == 2)
 
     def __str__(self):
         time = ((self.time/16)/60, (self.time/16)%60)
-        return "%s - Player %s - %s" % (time, self.sender_id, self.text)
+        return "%s - Player %s - %s" % (time, self.sender.pid, self.text)
 
     def __repr__(self):
         return str(self)
@@ -227,6 +229,8 @@ class Player(Person):
         self.aps = defaultdict(int)
         self.apm = defaultdict(int)
         self.avg_apm = 0
+        # self.result = "Win","Loss","Unknown"
+        # self.team = Team()
         # TODO: set default external interface variables?
 
     @property
@@ -238,6 +242,10 @@ class Player(Person):
 
     def __repr__(self):
         return str(self)
+
+    @property
+    def result(self):
+        return self.team.result
 
 class Event(object):
     name = 'BaseEvent'

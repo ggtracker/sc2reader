@@ -2,6 +2,39 @@ from .processors import *
 from .readers import *
 from .utils import AttributeDict
 
+ALL_FILES = [
+    'replay.initData',
+    'replay.details',
+    'replay.attributes.events',
+    'replay.message.events',
+    'replay.game.events'
+]
+
+files = AttributeDict(
+    all=[
+        'replay.initData',
+        'replay.details',
+        'replay.attributes.events',
+        'replay.message.events',
+        'replay.game.events'],
+
+    partial=[
+        'replay.initData',
+        'replay.details',
+        'replay.attributes.events',
+        'replay.message.events',],
+
+    basic=[
+        'replay.initData',
+        'replay.details',
+        'replay.attributes.events'],
+
+    minimal=[
+        'replay.initData',],
+
+    none=[]
+)
+
 default_options = AttributeDict(
     directory="",
     processors=[],
@@ -12,9 +45,11 @@ default_options = AttributeDict(
     exclude_dirs=[],
     recursive=True,
     depth=-1,
-    follow_symlinks=True
+    follow_symlinks=True,
+    files=files.all
 )
 
+"""
 full = AttributeDict(
     files = [
         'replay.initData',
@@ -49,6 +84,7 @@ partial = AttributeDict(
             RecorderProcessor,
         ],
 )
+"""
 
 class ReaderMap(dict):
     def __init__(self):
