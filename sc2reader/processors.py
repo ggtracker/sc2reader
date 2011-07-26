@@ -231,9 +231,10 @@ def Full(replay):
             #We can't determine anything else without the recorder
             if 'message_events' in replay.raw:
 
-                # If the recorder is the last person on his team
+                # If the recorder is the last person on his team, this obviously
+                # doesn't apply for recorders who are observers
                 team = replay.recorder.team
-                if pcount[team.number] == 1:
+                if replay.recorder.pid in replay.players and pcount[team.number] == 1:
 
                     # Get all other teams with at least 2 players left:
                     conditions = lambda p: p[0] != team.number and p[1] > 1
