@@ -8,7 +8,6 @@ def Full(replay):
     # TODO: Test this with different levels of file read.
     # TODO: Change config.py to work with this
     # TODO: remove legacy code, restructure config.py: just one processor now
-    print replay.raw.keys()
     if 'initData' in replay.raw:
         replay.realm = replay.raw.initData.realm
 
