@@ -209,7 +209,9 @@ class ActionParser_16561(ActionParser):
             return AddToHotkeyEvent(frames, pid, type, code, hotkey, overlay)
         elif action == 2:
             return GetHotkeyEvent(frames, pid, type, code, hotkey, overlay)
-            
+        else:
+            raise TypeError("Hotkey Action '{0}' unknown")
+
 class ActionParser_18574(ActionParser_16561):
     def parse_ability_event(self, buffer, frames, type, code, pid):
         flag = buffer.read_byte()
