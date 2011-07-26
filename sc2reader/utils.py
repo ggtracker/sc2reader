@@ -162,9 +162,16 @@ class ReplayBuffer(object):
         """
         first = self.read_byte()
         time,count = first >> 2, first & 0x03
-        for i in range(count):
-            time = (time << 8) | self.read_byte()
-        return time
+        if count == 0:
+            return time
+        elif count == 1:
+            return time << 8 | self.read_byte()
+        elif count == 2:
+            return time << 16 | self.read_short()
+        elif count == 3:
+            return time << 24 | self.read_short() << 8 | self.read_byte()
+        else:
+            raise ValueError()
 
     def read_data_struct(self):
         """
