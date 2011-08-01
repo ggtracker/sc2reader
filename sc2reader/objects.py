@@ -147,6 +147,11 @@ class Attribute(object):
             self.name = "TeamsFFA"
             self.value = int(self.value[0])
 
+        # Complete guesses here, there are several ids that might be correct
+        elif self.id == 0x07D7:
+            self.name = "Teams5v5"
+            self.value = int(self.value[0])
+
     def __repr__(self):
         return str(self)
 
