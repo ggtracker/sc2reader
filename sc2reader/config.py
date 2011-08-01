@@ -109,7 +109,7 @@ class ReaderMap(dict):
                 'replay.details': DetailsReader(),
                 'replay.attributes.events': AttributeEventsReader_17326(),
                 'replay.message.events': MessageEventsReader(),
-                'replay.game.events': GameEventsReader_16561(),
+                'replay.game.events': GameEventsReader_18574(),
             }
 
         for key in (16117,16195,16223,16291):
