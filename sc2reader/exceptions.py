@@ -8,7 +8,9 @@ class MutipleMatchingFilesError(SC2ReaderError):
     pass
 
 class ReadError(SC2ReaderError):
-    pass
+    def __init__(self, msg, replay=None,  game_events=[], buffer=None, location=None):
+        self.__dict__.update(locals())
+        super(ReadError, self).__init__(msg)
 
 class ProcessError(SC2ReaderError):
     pass

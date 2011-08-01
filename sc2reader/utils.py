@@ -3,6 +3,8 @@ import fnmatch
 import os
 import struct
 
+import exceptions
+
 from itertools import groupby
 
 LITTLE_ENDIAN,BIG_ENDIAN = '<','>'
@@ -521,7 +523,7 @@ def read_header(file):
     #Sanity check that the input is in fact an MPQ file
     if buffer.empty or buffer.read_hex(4).upper() != "4D50511B":
         print "Header Hex was: %s" % buffer.read_hex(4).upper()
-        raise ValueError("File '%s' is not an MPQ file" % file.name)
+        raise exceptions.FileError("File '%s' is not an MPQ file" % file.name)
 
     #Extract replay header data, we are unlikely to ever use most of this
     max_data_size = buffer.read_int(LITTLE_ENDIAN)
