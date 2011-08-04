@@ -231,15 +231,13 @@ class GameEventsBase(object):
                 # If the type is not a key in the PARSERS lookup table we
                 # probably incorrectly parsed the previous event
                 # TODO: Raise an error instead an store the previous event
-                msg = "Unknown event type: {0:X} - {1:X} at {2:X}".format(type, code, start)
-                raise exceptions.ReadError(msg, replay, game_events, buffer, start)
+                raise exceptions.ReadError("Unknown event type", type, code, start, replay, game_events, buffer)
 
             except TypeError:
                 # For some reason, the type handler that we delegated to didn't
                 # recognize the event code that we extracated.
                 # TODO: Do something meaningful here
-                msg = "Unknown event code: {0:X} - {1:X} at {2:X}".format(type, code, start)
-                raise exceptions.ReadError(msg, replay, game_events, buffer, start)
+                raise exceptions.ReadError("Unknown event code", type, code, start, replay, game_events, buffer)
 
             except exceptions.ReadError as e:
                 raise exceptions.ReadError(e.msg, replay, game_events, buffer, start)
