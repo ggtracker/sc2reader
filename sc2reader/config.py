@@ -109,8 +109,16 @@ class ReaderMap(dict):
                 'replay.details': DetailsReader(),
                 'replay.attributes.events': AttributeEventsReader_17326(),
                 'replay.message.events': MessageEventsReader(),
-                'replay.game.events': GameEventsReader_18574(),
+                'replay.game.events': GameEventsReader_16561(),
             }
+
+        self.set4 = {
+                'replay.initData': InitDataReader(),
+                'replay.details': DetailsReader(),
+                'replay.attributes.events': AttributeEventsReader_17326(),
+                'replay.message.events': MessageEventsReader(),
+                'replay.game.events': GameEventsReader_18574(),
+        }
 
         for key in (16117,16195,16223,16291):
             self[key] = self.set1
@@ -120,6 +128,9 @@ class ReaderMap(dict):
 
         for key in (17326,17682,17811,18092,18221,18317):
             self[key] = self.set3
+
+        for key in (18574,):
+            self[key] = self.set4
 
     def __getitem__(self,key):
         try:
