@@ -112,7 +112,6 @@ def Full(replay):
         replay.player[pid] = player
         replay.person[pid] = player
 
-    if replay.opt.debug: print replay.humans
     if 'initData' in replay.raw:
         # Create observers out of the leftover names gathered from initData
         all_players = replay.raw.initData.player_names
@@ -139,9 +138,6 @@ def Full(replay):
         # Figure out recorder
         packet_senders = map(lambda p: p.player, replay.packets)
         recorders = list(set(replay.humans) - set(packet_senders))
-        if replay.opt.debug:
-            print packet_senders
-            print recorders
         if len(recorders) == 1:
             replay.recorder = recorders[0]
             replay.recorder.recorder = True
