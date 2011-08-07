@@ -99,6 +99,6 @@ class ReaderMap(dict):
         try:
             return super(ReaderMap,self).__getitem__(key)
         except KeyError:
-            return self.set3
+            return self.set4
 
 readers = ReaderMap()
