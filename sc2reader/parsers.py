@@ -78,8 +78,8 @@ class ActionParser_16561(ActionParser):
         
         if atype & 0x20: # command card
             end = buffer.peek(35)
-            ability = buffer.read_byte() << 8 | buffer.read_byte() 
-            
+            ability = buffer.read_short()
+
             if flag in (0x29, 0x19, 0x14): # cancels
                 # creation autoid number / object id
                 ability = ability << 8 | buffer.read_byte()
@@ -219,7 +219,7 @@ class ActionParser_18574(ActionParser_16561):
         
         if atype & 0x20: # command card
             end = buffer.peek(35)
-            ability = buffer.read_byte() << 8 | buffer.read_byte()
+            ability = buffer.read_short()
 
             if flag in (0x29, 0x19, 0x14, 0x0c): # cancels
                 # creation autoid number / object id
