@@ -19,29 +19,35 @@ class InitDataReader(object):
         # The next block contains information about the structure of the MPQ
         # archive. We don't read this information because we've got mpyq for
         # that. Its split into 3 sections because of the variable length segment
-        # in the middle that prevents bulk skipping.
+        # in the middle that prevents bulk skipping. The last section also
+        # appears to be variable length, hack it to do a find for the section
+        # we are looking for.
         buffer.skip(24)
         sc_account_id = buffer.read_string()
-        buffer.skip(684)
+        distance = buffer.read_range(buffer.cursor, buffer.length).find('s2ma')
+        buffer.skip(distance)
 
         # The final block of this file that we concern ourselves with is a list
         # of what appears to be map data with the s2ma header on each element.
         # Each element consists of two unknown bytes, a realm id (e.g EU or US)
         # and a map hash which probably ties back to the sc2map files.
+        #
+        # Some replays don't seem to have a maps section at all, now we can't
+        # know what region its from? Very strange...
+        #
+        # TODO: Figure out how we could be missing a maps section.
         map_data = list()
-        while( buffer.read_chars(4).lower() == 's2ma' ):
+        while buffer.read_chars(4).lower() == 's2ma':
             unknown = buffer.read_chars(2)
             realm = buffer.read_string(2).lower()
             map_hash = buffer.read_chars(32)
             map_data.append(MapData(unknown,realm,map_hash))
 
-        # Return the extracted information inside an AttributeDict. Promote the
-        # realm information to top level for convenience since it is a constant.
+        # Return the extracted information inside an AttributeDict.
         return AttributeDict(
             map_data=map_data,
             player_names=player_names,
             sc_account_id=sc_account_id,
-            realm=map_data[0].realm
         )
 
 

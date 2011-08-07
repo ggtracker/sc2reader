@@ -8,8 +8,8 @@ def Full(replay):
     # TODO: Test this with different levels of file read.
     # TODO: Change config.py to work with this
     # TODO: remove legacy code, restructure config.py: just one processor now
-    if 'initData' in replay.raw:
-        replay.realm = replay.raw.initData.realm
+    if 'initData' in replay.raw and replay.raw.initData.map_data:
+        replay.realm = replay.raw.initData.map_data[0].realm
 
     if 'details' in replay.raw:
         replay.map = replay.raw.details.map
@@ -96,8 +96,8 @@ def Full(replay):
         player.actual_race = LOCALIZED_RACES.get(pdata.race, pdata.race)
 
         # We need initData for the realm which is required to build the url!
-        if 'initData' in replay.raw:
-            player.realm = replay.raw.initData.realm
+        if 'initData' in replay.raw and replay.realm:
+            player.realm = replay.realm
 
         # Conversion instructions to the new color object:
         #   color_rgba is the color object itself
