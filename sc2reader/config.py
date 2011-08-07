@@ -49,43 +49,6 @@ default_options = AttributeDict(
     files=files.all
 )
 
-"""
-full = AttributeDict(
-    files = [
-        'replay.initData',
-        'replay.details',
-        'replay.attributes.events',
-        'replay.message.events',
-        'replay.game.events'],
-    processors = [
-        FullProcessor,
-        #PeopleProcessor,
-        #AttributeProcessor,
-        #TeamsProcessor,
-        #MessageProcessor,
-        #RecorderProcessor,
-        #EventProcessor,
-        #ApmProcessor,
-        #ResultsProcessor
-    ],
-)
-
-partial = AttributeDict(
-    files = [
-        'replay.initData',
-        'replay.details',
-        'replay.attributes.events',
-        'replay.message.events'],
-    processors = [
-            PeopleProcessor,
-            AttributeProcessor,
-            TeamsProcessor,
-            MessageProcessor,
-            RecorderProcessor,
-        ],
-)
-"""
-
 class ReaderMap(dict):
     def __init__(self):
         self.set1 = {
