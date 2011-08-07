@@ -296,8 +296,7 @@ class GameEventsBase(object):
         # has no meaningful impact on the course of the game. These events will
         # infrequently occur before the game starts for some unknown reason.
         if   code == 0x87: return self.parse_camera87_event
-        elif code == 0x08: return self.parse_camera08_event
-        elif code == 0x18: return self.parse_camera18_event
+        elif code & 0x0F == 8: return self.parse_cameraX8_event
         elif code & 0x0F == 1: return self.parse_cameraX1_event
         else:
             # TODO: Raise a better error

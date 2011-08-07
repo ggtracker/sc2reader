@@ -305,13 +305,21 @@ class CameraParser(object):
         buffer.skip(8)
         return CameraMovementEvent(frames, pid, type, code)
 
-    def parse_camera08_event(self, buffer, frames, type, code, pid):
-        flags, extra = buffer.read_byte(), buffer.read_byte()
-        buffer.skip( (flags&0x0F) << 3 )
-        return CameraMovementEvent(frames, pid, type, code)
+    def parse_cameraX8_event(self, buffer, frames, type, code, pid):
+        # No idea why these two cases are ever so slightly different. There
+        # must be a pattern in here somewhere that I haven't found yet.
+        #
+        # TODO: Find out why we occassionally shift by 2 instead of 3
+        if code == 0x88:
+            flags = buffer.read_byte()
+            extra = buffer.read_byte()
+            buffer.skip( (code & 0xF0 | flags & 0x0F) << 2 )
 
-    def parse_camera18_event(self, buffer, frames, type, code, pid):
-        buffer.skip(162)
+        else:
+            flags = buffer.read_byte()
+            extra = buffer.read_byte()
+            buffer.skip( (code & 0xF0 | flags & 0x0F) << 3 )
+
         return CameraMovementEvent(frames, pid, type, code)
         
     def parse_cameraX1_event(self, buffer, frames, type, code, pid):
