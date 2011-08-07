@@ -119,6 +119,7 @@ PLAYER_TYPE_CODES = {
     'nmuH': 'Human',
     'pmoC': 'Computer',
     'nepO': 'Open',
+    'dslC': 'Closed',
 }
 GATEWAY_CODES = {
     'US': 'Americas',
