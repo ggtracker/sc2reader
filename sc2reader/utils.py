@@ -557,9 +557,9 @@ def get_files( path, regex=None, exclude=[],
     files = list()
     for root, directories, filenames in os.walk(path, followlinks=followlinks):
         # Exclude the indicated directories by removing them from `directories`
-        for index,directory in enumerate(directories):
+        for directory in list(directories):
             if directory in exclude or depth == 0:
-                del directories[index]
+                directories.remove(directory)
 
         # Extend our return value only with the allowed file type and regex
         allowed_files = filter(allow, filenames)
