@@ -1,6 +1,9 @@
 class SC2ReaderError(Exception):
     pass
 
+class MPQError(SC2ReaderError):
+    pass
+
 class NoMatchingFilesError(SC2ReaderError):
     pass
 

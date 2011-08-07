@@ -100,14 +100,27 @@ class Reader(object):
                 # add messages promoting their sites without updating the header
                 # correctly. The listfile option(hack) lets us bypass this issue
                 # by specifying the files we want instead of generating a list.
-                archive = mpyq.MPQArchive(location, listfile=False)
+                #
+                # In order to wrap mpyq exceptions we have to do this try hack.
+                try:
+                    archive = mpyq.MPQArchive(location, listfile=False)
+                except KeyboardInterrupt: raise
+                except:
+                    raise exceptions.MPQError("Unable to construct the MPQArchive")
 
                 # These files are configured for either full or partial parsing
                 for file in options.files:
 
+                    # To wrap mpyq exceptions we have to do this try hack.
+                    try:
+                        filedata = archive.read_file(file)
+                    except KeyboardInterrupt: raise
+                    except:
+                        raise exceptions.MPQError("Unable to extract file: {0}".format(file))
+
                     # For each file, we build a smart buffer object from the
                     # utf-8 encoded bitstream that mpyq extracts.
-                    buffer = utils.ReplayBuffer(archive.read_file(file))
+                    buffer = utils.ReplayBuffer(filedata)
 
                     # Each version of Starcraft slightly modifies some portions
                     # of the format for some files. To work with this, the
