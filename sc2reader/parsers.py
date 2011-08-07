@@ -302,7 +302,11 @@ class Unknown2Parser(object):
         
 class CameraParser(object):
     def parse_camera87_event(self, buffer, frames, type, code, pid):
-        buffer.skip(8)
+        #There are up to 3 peices to read depending on values encountered
+        for i in range(3):
+            if buffer.read_int(BIG_ENDIAN) & 0xF0 == 0:
+                break
+
         return CameraMovementEvent(frames, pid, type, code)
 
     def parse_cameraX8_event(self, buffer, frames, type, code, pid):
