@@ -298,6 +298,7 @@ class GameEventsBase(object):
         if   code == 0x87: return self.parse_camera87_event
         elif code & 0x0F == 8: return self.parse_cameraX8_event
         elif code & 0x0F == 1: return self.parse_cameraX1_event
+        elif code == 0x0a: return self.parse_camera0A_event
         else:
             # TODO: Raise a better error
             raise exceptions.ReadError("Unknown Camera Parser Code {0}".format(code))

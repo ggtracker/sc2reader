@@ -339,7 +339,16 @@ class CameraParser(object):
             flag = buffer.read_byte()
         if flag & 0x40 != 0:
             buffer.skip(2)
-            
+
+        return CameraMovementEvent(frames, pid, type, code)
+
+    def parse_camera0A_event(self, buffer, frames, type, code, pid):
+        # Not really sure wtf is up with this event
+        # I've only seen it a dozen times. Always (?) a custom game
+        for i in range(6):
+            if not buffer.read_int(BIG_ENDIAN) & 0xF0:
+                break
+
         return CameraMovementEvent(frames, pid, type, code)
         
 class Unknown4Parser(object):
