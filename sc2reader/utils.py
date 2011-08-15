@@ -1,6 +1,7 @@
 import cStringIO
 import fnmatch
 import os
+import re
 import struct
 
 import exceptions
