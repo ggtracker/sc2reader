@@ -20,7 +20,7 @@ MessageData = namedtuple('Message',['time','pid','flags','target','text'])
 
 class Color(AttributeDict):
     @property
-    def hex():
+    def hex(self):
         return "{0.r:02X}{0.g:02X}{0.b:02X}".format(self)
 
     def __str__(self):
