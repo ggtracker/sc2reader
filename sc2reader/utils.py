@@ -1,10 +1,12 @@
+import argparse
 import cStringIO
 import fnmatch
 import os
 import re
 import struct
+import textwrap
 
-import exceptions
+import sc2reader.exceptions
 
 from itertools import groupby
 
@@ -535,20 +537,22 @@ def read_header(file):
     return header_data[1].values(),header_data[3]
 
 
-def _allow(filename, regex):
+
+def _allow(filename, regex=None, allow=True):
     name, ext = os.path.splitext(filename)
     if ext.lower() != ".sc2replay": return False
-    return re.match(regex, name) if regex else True
+    return allow == re.match(regex, name) if regex else allow
 
-def get_files( path, regex=None, exclude=[],
+def get_files( path, regex=None, allow=True, exclude=[],
                depth=-1, followlinks=False, **extras):
+
 
     #os.walk and os.path.isfile fail silently. We want to be loud!
     if not os.path.exists(path):
         raise ValueError("Location `{0}` does not exist".format(path))
 
     # Curry the function to prime it for use in the filter function
-    allow = lambda filename: _allow(filename, regex)
+    allow = lambda filename: _allow(filename, regex, allow)
 
     # You can't get more than one file from a file name!
     if os.path.isfile(path):
@@ -567,3 +571,79 @@ def get_files( path, regex=None, exclude=[],
         depth -= 1
 
     return files
+
+from datetime import timedelta
+class Length(timedelta):
+    @property
+    def hours(self):
+        return self.seconds/3600
+
+    @property
+    def mins(self):
+        return self.seconds/60
+
+    @property
+    def secs(self):
+        return self.seconds%60
+
+    def __str__(self):
+        if self.hours:
+            return "{0:0>2}.{1:0>2}.{2:0>2}".format(self.hours,self.mins,self.secs)
+        else:
+            return "{0:0>2}.{1:0>2}".format(self.mins,self.secs)
+
+class Formatter(argparse.RawTextHelpFormatter):
+    """FlexiFormatter which respects new line formatting and wraps the rest
+
+    Example:
+        >>> parser = argparse.ArgumentParser(formatter_class=FlexiFormatter)
+        >>> parser.add_argument('a',help='''\
+        ...     This argument's help text will have this first long line\
+        ...     wrapped to fit the target window size so that your text\
+        ...     remains flexible.
+        ...
+        ...         1. This option list
+        ...         2. is still persisted
+        ...         3. and the option strings get wrapped like this\
+        ...            with an indent for readability.
+        ...
+        ...     You must use backslashes at the end of lines to indicate that\
+        ...     you want the text to wrap instead of preserving the newline.
+        ... ''')
+
+    Only the name of this class is considered a public API. All the methods
+    provided by the class are considered an implementation detail.
+    """
+
+    @classmethod
+    def new(cls, **options):
+        return lambda prog: Formatter(prog, **options)
+
+    def _split_lines(self, text, width):
+        lines = list()
+        main_indent = len(re.match(r'( *)',text).group(1))
+        # Wrap each line individually to allow for partial formatting
+        for line in text.splitlines():
+
+            # Get this line's indent and figure out what indent to use
+            # if the line wraps. Account for lists of small variety.
+            indent = len(re.match(r'( *)',line).group(1))
+            list_match = re.match(r'( *)(([*-+>]+|\w+\)|\w+\.) +)',line)
+            if(list_match):
+                sub_indent = indent + len(list_match.group(2))
+            else:
+                sub_indent = indent
+
+            # Textwrap will do all the hard work for us
+            line = self._whitespace_matcher.sub(' ', line).strip()
+            new_lines = textwrap.wrap(
+                text=line,
+                width=width,
+                initial_indent=' '*(indent-main_indent),
+                subsequent_indent=' '*(sub_indent-main_indent),
+            )
+
+            # Blank lines get eaten by textwrap, put it back with [' ']
+            lines.extend(new_lines or [' '])
+
+        return lines

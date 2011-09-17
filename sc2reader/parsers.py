@@ -39,7 +39,7 @@ class ActionParser(object):
         object_types = chain(*[[object_type,]*count for (object_type, count) in object_types])
         objects = zip(object_ids, object_types)
 
-        return AbilityEvent(frames, pid, type, code, None)
+        return SelectionEvent(frames, pid, type, code, None)
 
     def parse_hotkey_event(self, buffer, frames, type, code, pid):
         hotkey = code >> 4
@@ -108,13 +108,13 @@ class ActionParser_16561(ActionParser):
                     return TargetAbilityEvent(frames, pid, type, code, ability, target)
                 
                 else:
-                    return AbilityEvent(frames,pid,type,code,None)
+                    return AbilityEvent(frames,pid,type,code,ability)
                 
         elif atype & 0x40: # location/move
             if flag == 0x08:
                 # coordinates (4), ?? (6)
                 location = buffer.read_coordinate()
-                buffer.skip(5)
+                print buffer.read_hex(5)
                 return LocationAbilityEvent(frames, pid, type, code, None, location)
             
             elif flag in (0x04,0x05,0x07):
@@ -249,7 +249,7 @@ class ActionParser_18574(ActionParser_16561):
                     return TargetAbilityEvent(frames, pid, type, code, ability, target)
 
                 else:
-                    return AbilityEvent(frames,pid,type,code,None)
+                    return AbilityEvent(frames,pid,type,code,ability)
 
         elif atype & 0x40: # location/move ??
             h = buffer.read_hex(2)

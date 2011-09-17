@@ -1,6 +1,6 @@
 from collections import defaultdict
 from .objects import *
-from .utils import key_in_bases, windows_to_unix
+from .utils import key_in_bases, windows_to_unix, Length
 from datetime import datetime
 
 def Full(replay):
@@ -87,13 +87,13 @@ def Full(replay):
         if   pdata.result == 1: player.team.result = "Win"
         elif pdata.result == 2: player.team.result = "Loss"
 
-        player.chosen_race = attributes['Race']
+        player.pick_race = attributes['Race']
+        player.play_race = LOCALIZED_RACES.get(pdata.race, pdata.race)
         player.difficulty = attributes['Difficulty']
         player.type = attributes['Player Type']
         player.uid = pdata.bnet.uid
         player.subregion = pdata.bnet.subregion
         player.handicap = pdata.handicap
-        player.actual_race = LOCALIZED_RACES.get(pdata.race, pdata.race)
 
         # We need initData for the realm which is required to build the url!
         if 'initData' in replay.raw and replay.realm:
@@ -111,6 +111,10 @@ def Full(replay):
         replay.players.append(player)
         replay.player[pid] = player
         replay.person[pid] = player
+
+    #Create an store an ordered lineup string
+    for team in replay.teams:
+        team.lineup = sorted(player.play_race[0].upper() for player in team)
 
     if 'initData' in replay.raw:
         # Create observers out of the leftover names gathered from initData

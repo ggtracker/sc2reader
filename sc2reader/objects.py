@@ -1,9 +1,11 @@
 from constants import LOCALIZED_RACES
 from collections import defaultdict
 
+import datetime
+
 from .constants import *
 from .data import GameObject, ABILITIES
-from .utils import PersonDict, Selection, read_header, AttributeDict
+from .utils import PersonDict, Selection, read_header, AttributeDict, Length
 
 from collections import namedtuple
 
@@ -39,6 +41,9 @@ class Team(object):
         self.players = list()
         self.result = "Unknown"
 
+    def __iter__(self):
+        return self.players.__iter__()
+
 
 class Replay(object):
 
@@ -52,7 +57,7 @@ class Replay(object):
         self.build = self.versions[4]
         self.release_string = "%s.%s.%s.%s" % tuple(self.versions[1:5])
         self.seconds = self.frames/16
-        self.length = (self.seconds/60, self.seconds%60)
+        self.length = Length(seconds=self.seconds)
 
         #default values, filled in during file read
         self.player_names = list()
@@ -252,6 +257,9 @@ class Player(Person):
     def result(self):
         return self.team.result
 
+    def format(self, format_string):
+        return format_string.format(**self.__dict__)
+
 class Event(object):
     name = 'BaseEvent'
     def apply(self): pass
@@ -298,6 +306,7 @@ class AbilityEvent(Event):
     name = 'AbilityEvent'
     def __init__(self, framestamp, player, type, code, ability):
         super(AbilityEvent, self).__init__(framestamp, player, type, code)
+        print "{0}: {1}".format(self.name,ability)
         self.ability = ability
 
     def apply(self):
