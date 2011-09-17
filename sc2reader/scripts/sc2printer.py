@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os,sys
-
+import os
+import sys
 import argparse
 
 import sc2reader
@@ -60,7 +60,7 @@ def doFile(filename, arguments):
 
     print
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description='Prints basic information from SC2 replay files or directories.')
     parser.add_argument('paths', metavar='filename', type=str, nargs='+',
                         help="Paths to one or more SC2Replay files or directories")
@@ -90,3 +90,6 @@ if __name__ == '__main__':
         for file in files:
             print "\n--------------------------------------\n{0}\n".format(file)
             doFile(file, arguments)
+
+if __name__ == '__main__':
+    main()

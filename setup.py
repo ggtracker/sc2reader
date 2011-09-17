@@ -26,9 +26,12 @@ setuptools.setup(
 			"Topic :: Software Development :: Libraries",
 			"Topic :: Games/Entertainment :: Real Time Strategy",
 		],
-	
+	entry_points={
+        'console_scripts': [
+            'sc2printer = sc2reader.scripts.sc2printer:main',
+        ]
+    },
 	requires=['mpyq'],
 	install_requires=['mpyq==0.1.5'],
-	packages=['sc2reader'],
-	scripts=['scripts/sc2printer'],
+	packages=['sc2reader', 'sc2reader.scripts'],
 )
