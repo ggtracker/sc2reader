@@ -28,7 +28,9 @@ setuptools.setup(
 		],
 	entry_points={
         'console_scripts': [
+            'sc2autosave = sc2reader.scripts.sc2autosave:main',
             'sc2printer = sc2reader.scripts.sc2printer:main',
+            'sc2store = sc2reader.scripts.sc2store:main',
         ]
     },
 	requires=['mpyq'],
