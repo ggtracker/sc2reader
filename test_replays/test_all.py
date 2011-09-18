@@ -15,7 +15,7 @@ from sc2reader.exceptions import ParseError
 def test_standard_1v1():
     replay = sc2reader.read_file("test_replays/1.2.2.17811/1.SC2Replay")
 
-    assert replay.length == (32, 47)
+    assert str(replay.length) == "32.47"
     assert replay.map == "Lost Temple"
     assert replay.build == 17811
     assert replay.release_string == "1.2.2.17811"
@@ -30,14 +30,14 @@ def test_standard_1v1():
     assert replay.person[2].name == "Boom"
     emperor = replay.person['Emperor']
     assert emperor.team.number == 1
-    assert emperor.chosen_race == "Protoss"
-    assert emperor.actual_race == "Protoss"
+    assert emperor.pick_race == "Protoss"
+    assert emperor.play_race == "Protoss"
     assert emperor.recorder == False
 
     boom = replay.person['Boom']
     assert boom.team.number == 2
-    assert boom.chosen_race == "Terran"
-    assert boom.actual_race == "Terran"
+    assert boom.pick_race == "Terran"
+    assert boom.play_race == "Terran"
     assert boom.recorder == True
 
     for player in replay.players:
@@ -119,14 +119,14 @@ def test_random_player():
     replay = sc2reader.read_file("test_replays/1.2.2.17811/3.SC2Replay")
 
     gogeta = replay.person['Gogeta']
-    assert gogeta.chosen_race == "Random"
-    assert gogeta.actual_race == "Terran"
+    assert gogeta.pick_race == "Random"
+    assert gogeta.play_race == "Terran"
 
 def test_random_player2():
     replay = sc2reader.read_file("test_replays/1.2.2.17811/6.SC2Replay")
     permafrost = replay.person["Permafrost"]
-    assert permafrost.chosen_race == "Random"
-    assert permafrost.actual_race == "Protoss"
+    assert permafrost.pick_race == "Random"
+    assert permafrost.play_race == "Protoss"
 
 def test_us_realm():
     replay = sc2reader.read_file("test_replays/1.2.2.17811/5.SC2Replay")
@@ -143,11 +143,11 @@ def test_kr_realm_and_tampered_messages():
     assert replay.messages[0].text == "sc2.replays.net"
     assert replay.messages[5].text == "sc2.replays.net"
 
-    print replay.players[1].chosen_race
-    print replay.players[1].actual_race
+    print replay.players[1].pick_race
+    print replay.players[1].play_race
 
-    print replay.players[0].chosen_race
-    print replay.players[0].actual_race
+    print replay.players[0].pick_race
+    print replay.players[0].play_race
 
     print replay.map
 
