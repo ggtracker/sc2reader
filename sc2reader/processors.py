@@ -161,7 +161,7 @@ def Full(replay):
             event.player = replay.person[event.pid]
             event.player.events.append(event)
 
-        # event.apply() #Skip this for now
+        event.apply()
         l = replay.events_by_type[event.name]
         l.append(event)
 
