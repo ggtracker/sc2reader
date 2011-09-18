@@ -306,7 +306,6 @@ class AbilityEvent(Event):
     name = 'AbilityEvent'
     def __init__(self, framestamp, player, type, code, ability):
         super(AbilityEvent, self).__init__(framestamp, player, type, code)
-        print "{0}: {1}".format(self.name,ability)
         self.ability = ability
 
     def apply(self):
