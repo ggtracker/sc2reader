@@ -9,7 +9,7 @@ def Full(replay):
     # TODO: Change config.py to work with this
     # TODO: remove legacy code, restructure config.py: just one processor now
     if 'initData' in replay.raw and replay.raw.initData.map_data:
-        replay.realm = replay.raw.initData.map_data[0].realm
+        replay.gateway = replay.raw.initData.map_data[0].gateway
 
     if 'details' in replay.raw:
         replay.map = replay.raw.details.map
@@ -70,7 +70,7 @@ def Full(replay):
         #   * replay.details
         #   * replay.attribute.events
         #
-        # TODO: get a map of realm,subregion# => subregion in here
+        # TODO: get a map of gateway, subregion# => subregion in here
         # TODO: recognize current locale and use that instead of western
         # TODO: fill in the LOCALIZED_RACES table
         player = Player(pid,pdata.name,replay)
@@ -95,9 +95,9 @@ def Full(replay):
         player.subregion = pdata.bnet.subregion
         player.handicap = pdata.handicap
 
-        # We need initData for the realm which is required to build the url!
-        if 'initData' in replay.raw and replay.realm:
-            player.realm = replay.realm
+        # We need initData for the gateway which is required to build the url!
+        if 'initData' in replay.raw and replay.gateway:
+            player.gateway = replay.gateway
 
         # Conversion instructions to the new color object:
         #   color_rgba is the color object itself

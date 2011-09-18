@@ -12,7 +12,7 @@ from collections import namedtuple
 Location = namedtuple('Location',('x','y'))
 Details = namedtuple('Details',['players','map','unknown1','unknown2','unknown3','file_time','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10','unknown11'])
 
-MapData = namedtuple('MapData',['unknown','realm','map_hash'])
+MapData = namedtuple('MapData',['unknown','gateway','map_hash'])
 PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result'])
 ColorData = namedtuple('ColorData',['a','r','g','b'])
 BnetData = namedtuple('BnetData',['unknown1','unknown2','subregion','uid'])
@@ -68,7 +68,7 @@ class Replay(object):
         self.is_ladder = False
         self.is_private = False
         self.map = ""
-        self.realm = ""
+        self.gateway = ""
         self.events = list()
         self.events_by_type = defaultdict(list)
         self.results = dict()
@@ -245,7 +245,7 @@ class Player(Person):
 
     @property
     def url(self):
-        return self.URL_TEMPLATE % (self.realm, self.uid, self.subregion, self.name)
+        return self.URL_TEMPLATE % (self.gateway, self.uid, self.subregion, self.name)
 
     def __str__(self):
         return "Player %s - %s (%s)" % (self.pid, self.name, self.play_race)

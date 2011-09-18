@@ -33,15 +33,15 @@ class InitDataReader(object):
         # and a map hash which probably ties back to the sc2map files.
         #
         # Some replays don't seem to have a maps section at all, now we can't
-        # know what region its from? Very strange...
+        # know what gateway its from? Very strange...
         #
         # TODO: Figure out how we could be missing a maps section.
         map_data = list()
         while buffer.read_chars(4).lower() == 's2ma':
             unknown = buffer.read_chars(2)
-            realm = buffer.read_string(2).lower()
+            gateway = buffer.read_string(2).lower()
             map_hash = buffer.read_chars(32)
-            map_data.append(MapData(unknown,realm,map_hash))
+            map_data.append(MapData(unknown,gateway,map_hash))
 
         # Return the extracted information inside an AttributeDict.
         return AttributeDict(
