@@ -248,7 +248,7 @@ class Player(Person):
         return self.URL_TEMPLATE % (self.realm, self.uid, self.subregion, self.name)
 
     def __str__(self):
-        return "Player %s - %s (%s)" % (self.pid, self.name, self.actual_race)
+        return "Player %s - %s (%s)" % (self.pid, self.name, self.play_race)
 
     def __repr__(self):
         return str(self)
