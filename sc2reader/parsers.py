@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from .objects import *
 from .utils import BIG_ENDIAN,LITTLE_ENDIAN
-
+from .exceptions import ParseError
 
 class SetupParser(object):
     def parse_join_event(self, buffer, frames, type, code, pid):
@@ -131,7 +131,7 @@ class ActionParser_16561(ActionParser):
                 return UnknownLocationAbilityEvent(frames, pid, type, code, None)
 
             else:
-                raise TypeError("Unknown atype & 0x40: flag %X at frame %X" % (flag,frames))
+                raise ParseError("Unknown atype & 0x40: flag %X at frame %X" % (flag,frames))
 
         elif atype & 0x80: # right-click on target?
             # ability (2), object id (4), object type (2), ?? (10)
@@ -154,10 +154,10 @@ class ActionParser_16561(ActionParser):
         else:
             # print hex(atype)
             # print hex(buffer.cursor)
-            raise TypeError()
+            raise ParseError()
         
         # print "%s - %s" % (hex(atype),hex(flag))
-        raise TypeError("Shouldn't be here EVER!")
+        raise ParseError("Shouldn't be here EVER!")
         
     def parse_selection_event(self, buffer, frames, type, code, pid):
         bank = code >> 4
@@ -210,7 +210,7 @@ class ActionParser_16561(ActionParser):
         elif action == 2:
             return GetHotkeyEvent(frames, pid, type, code, hotkey, overlay)
         else:
-            raise TypeError("Hotkey Action '{0}' unknown")
+            raise ParseError("Hotkey Action '{0}' unknown")
 
 class ActionParser_18574(ActionParser_16561):
     def parse_ability_event(self, buffer, frames, type, code, pid):
@@ -282,10 +282,10 @@ class ActionParser_18574(ActionParser_16561):
         else:
             # print hex(atype)
             # print hex(buffer.cursor)
-            raise TypeError()
+            raise ParseError()
 
         # print "%s - %s" % (hex(atype),hex(flag))
-        raise TypeError("Shouldn't be here EVER!")
+        raise ParseError("Shouldn't be here EVER!")
 
 class Unknown2Parser(object):
     def parse_0206_event(self, buffer, frames, type, code, pid):

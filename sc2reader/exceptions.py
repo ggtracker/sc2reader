@@ -18,6 +18,9 @@ class ReadError(SC2ReaderError):
     def __str__(self):
         return "{0}, Type: {1}, Code: {2}".format(self.msg, self.type, self.code)
 
+class ParseError(SC2ReaderError):
+    pass
+
 class ProcessError(SC2ReaderError):
     pass
 

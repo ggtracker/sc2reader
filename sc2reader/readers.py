@@ -1,7 +1,7 @@
 from .parsers import *
 from .objects import *
 from .utils import AttributeDict, LITTLE_ENDIAN
-import exceptions
+from .exceptions import ParseError, ReadError
 
 class InitDataReader(object):
     def __call__(self,buffer, replay):
@@ -237,16 +237,16 @@ class GameEventsBase(object):
                 # If the type is not a key in the PARSERS lookup table we
                 # probably incorrectly parsed the previous event
                 # TODO: Raise an error instead an store the previous event
-                raise exceptions.ReadError("Unknown event type", type, code, start, replay, game_events, buffer)
+                raise ReadError("Unknown event type", type, code, start, replay, game_events, buffer)
 
-            except TypeError:
+            except ParseError:
                 # For some reason, the type handler that we delegated to didn't
                 # recognize the event code that we extracated.
                 # TODO: Do something meaningful here
-                raise exceptions.ReadError("Unknown event code", type, code, start, replay, game_events, buffer)
+                raise ReadError("Unknown event code", type, code, start, replay, game_events, buffer)
 
-            except exceptions.ReadError as e:
-                raise exceptions.ReadError(e.msg, replay, game_events, buffer, start)
+            except ReadError as e:
+                raise ReadError(e.msg, replay, game_events, buffer, start)
 
             # Because events are parsed in a bitwise fashion, they sometimes
             # leave the buffer in a bitshifted state. Each new event always
@@ -265,7 +265,7 @@ class GameEventsBase(object):
         elif code in (0x05,): return self.parse_start_event
         else:
             # TODO: Raise a better error
-            raise exceptions.ReadError("Unknown Setup Parser Code {0}".format(code))
+            raise ReadError("Unknown Setup Parser Code {0}".format(code))
 
     def get_action_parser(self, code):
         # The action events are always associated with a particular player and
@@ -277,7 +277,7 @@ class GameEventsBase(object):
         elif code & 0x0F == 0xF: return self.parse_transfer_event
         else:
             # TODO: Raise a better error
-            raise exceptions.ReadError("Unknown Action Parser Code {0}".format(code))
+            raise ReadError("Unknown Action Parser Code {0}".format(code))
 
     def get_unknown2_parser(self, code):
         # While its unclear what these events represent, they are MUCH more
@@ -288,7 +288,7 @@ class GameEventsBase(object):
         elif code == 0x0E: return self.parse_020E_event
         else:
             # TODO: Raise a better error
-            raise exceptions.ReadError("Unknown Unknown2 Parser Code {0}".format(code))
+            raise ReadError("Unknown Unknown2 Parser Code {0}".format(code))
 
     def get_camera_parser(self, code):
         # Each player's camera control events are recorded, separately from the
@@ -301,7 +301,7 @@ class GameEventsBase(object):
         elif code == 0x0a: return self.parse_camera0A_event
         else:
             # TODO: Raise a better error
-            raise exceptions.ReadError("Unknown Camera Parser Code {0}".format(code))
+            raise ReadError("Unknown Camera Parser Code {0}".format(code))
 
     def get_unknown4_parser(self, code):
         # I don't know anything about these events. Any parse information for
@@ -317,7 +317,7 @@ class GameEventsBase(object):
         elif code & 0x0F == 0x0C: return self.parse_04XC_event
         else:
             # TODO: Raise a better error
-            raise exceptions.ReadError("Unknown Unknown4 Parser Code {0}".format(code))
+            raise ReadError("Unknown Unknown4 Parser Code {0}".format(code))
 
 # The storage format for many of the game events has changed, sometimes
 # dramatically, over time. To handle this inconsistency sc2reader uses mixins
