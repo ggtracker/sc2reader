@@ -278,6 +278,13 @@ class Event(object):
         self.is_camera_movement = (event_type == 0x03)
         self.is_unknown = (event_type == 0x02 or event_type == 0x04 or event_type == 0x05)
 
+    def _str_prefix(self):
+        player_name = self.player.name if self.is_local else "Global"
+        return "%d\t%-15s " % (self.frame, player_name)
+
+    def __str__(self):
+        return self._str_prefix() + self.name
+
 class UnknownEvent(Event):
     name = 'UnknownEvent'
 
@@ -301,6 +308,9 @@ class ResourceTransferEvent(Event):
         self.reciever = target
         self.minerals = minerals
         self.vespene = vespene
+
+    def __str__(self):
+        return self._str_prefix() + "%s transfer %d minerals and %d gas to %s" % (self.sender, self.minerals, self.vespene, self.reciever)
 
 class AbilityEvent(Event):
     name = 'AbilityEvent'
@@ -329,6 +339,12 @@ class AbilityEvent(Event):
 
     def get_able_selection(self, ability):
         return [obj for obj in self.player.get_selection().current if hasattr(obj, ability)]
+
+    def __str__(self):
+        if not self.ability:
+            return self._str_prefix() + "Move"
+        ability_name = ABILITIES[self.ability] if self.ability in ABILITIES else "UNKNOWN"
+        return self._str_prefix() + "Ability (%s) - %s" % (hex(self.ability), ability_name)
 
 class TargetAbilityEvent(AbilityEvent):
     name = 'TargetAbilityEvent'
@@ -363,11 +379,18 @@ class TargetAbilityEvent(AbilityEvent):
                 pass
         super(TargetAbilityEvent, self).apply()
 
+    def __str__(self):
+        target = str(self.target) if self.target else "NONE"
+        return AbilityEvent.__str__(self) + "; Target: %s" % target
+
 class LocationAbilityEvent(AbilityEvent):
     name = 'LocationAbilityEvent'
     def __init__(self, framestamp, player, type, code, ability, location):
         super(LocationAbilityEvent, self).__init__(framestamp, player, type, code, ability)
         self.location = location
+
+    def __str__(self):
+        return AbilityEvent.__str__(self) + "; Location: %s" % str(self.location)
 
 class UnknownAbilityEvent(AbilityEvent):
     name = 'UnknownAbilityEvent'
@@ -384,16 +407,23 @@ class HotkeyEvent(Event):
         self.hotkey = hotkey
         self.overlay = overlay
 
+    def __str__(self):
+        return self._str_prefix() + "Hotkey #%d" % self.hotkey
+
 class SetToHotkeyEvent(HotkeyEvent):
     name = 'SetToHotkeyEvent'
     def apply(self):
         hotkey = self.player.get_hotkey(self.hotkey)
         selection = self.player.get_selection()
         hotkey[self.frame] = selection.current
+        self.selected = selection.current
 
         # They are alive!
         for obj in selection[self.frame]:
             obj.visit(self.frame, self.player)
+
+    def __str__(self):
+        return HotkeyEvent.__str__(self) + " - Set; Selection: %s" % str(self.selected)
 
 class AddToHotkeyEvent(HotkeyEvent):
     name = 'AddToHotkeyEvent'
@@ -408,10 +438,14 @@ class AddToHotkeyEvent(HotkeyEvent):
         hotkeyed.extend(self.player.get_selection()[self.frame])
         hotkeyed = list(set(hotkeyed)) # remove dups
         hotkey[self.frame] = hotkeyed
+        self.selected = hotkeyed
 
         # They are alive!
         for obj in hotkeyed:
             obj.visit(self.frame, self.player)
+
+    def __str__(self):
+        return HotkeyEvent.__str__(self) + " - Add; Seletion: %s" % str(self.selected)
 
 class GetHotkeyEvent(HotkeyEvent):
     name = 'GetHotkeyEvent'
@@ -424,10 +458,14 @@ class GetHotkeyEvent(HotkeyEvent):
 
         selection = self.player.get_selection()
         selection[self.frame] = hotkeyed
+        self.selected = hotkeyed
 
         # selection is alive!
         for obj in hotkeyed:
             obj.visit(self.frame, self.player)
+
+    def __str__(self):
+        return HotkeyEvent.__str__(self) + " - Get; Seletion: %s" % str(self.selected)
 
 class SelectionEvent(Event):
     name = 'SelectionEvent'
@@ -464,3 +502,7 @@ class SelectionEvent(Event):
                 pass
 
         selection[self.frame] = selected
+        self.selected = selected
+
+    def __str__(self):
+        return self._str_prefix() + "Selection: " + str(self.selected)
