@@ -114,7 +114,7 @@ class ActionParser_16561(ActionParser):
             if flag == 0x08:
                 # coordinates (4), ?? (6)
                 location = buffer.read_coordinate()
-                print buffer.read_hex(5)
+                buffer.skip(5)
                 return LocationAbilityEvent(frames, pid, type, code, None, location)
             
             elif flag in (0x04,0x05,0x07):
