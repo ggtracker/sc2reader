@@ -146,7 +146,14 @@ COLOR_CODES = {
     'E55BB0': 'Pink'
 }
 
-# TODO: We need a better mapping of subregions
+# TODO: Not sure if this is a complete mapping
+#
+# Assuming only 1 Public Test Realm subregion on the following basis:
+#
+#   Q: Is there only one PTR server or there will be one for each region?
+#   A: There's only one PTR server and it's located in North American.
+#      There are no current plans to have multiple PTR servers.
+#   Source: http://us.blizzard.com/support/article.xml?locale=en_US&articleId=36109
 REGIONS = {
     'us': {
         1: 'us',
@@ -159,5 +166,8 @@ REGIONS = {
     'kr': {
         1: 'kr',
         2: 'tw',
-    }
+    },
+    'xx': {
+        1: 'xx',
+    },
 }
