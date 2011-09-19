@@ -122,7 +122,11 @@ class Reader(object):
 
             # To wrap mpyq exceptions we have to do this try hack.
             try:
-                filedata = archive.read_file(file)
+                # We are currently assuming that the message file is always compressed
+                if file == 'replay.message.events':
+                    filedata = archive.read_file(file, force_decompress=True)
+                else:
+                    filedata = archive.read_file(file)
             except KeyboardInterrupt: raise
             except:
                 raise exceptions.MPQError("Unable to extract file: {0}".format(file))
