@@ -145,6 +145,8 @@ COLOR_CODES = {
     '232323': 'Dark grey',
     'E55BB0': 'Pink'
 }
+
+# TODO: We need a better mapping of subregions
 REGIONS = {
     'us': {
         1: 'us',

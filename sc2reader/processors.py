@@ -37,7 +37,7 @@ def Full(replay):
         return replay
 
     # Create and add the players based on attribute and details information
-    player_index, observer_index = 0, 0
+    player_index, observer_index, default_region = 0, 0, ''
     player_data = replay.raw.details.players
     for pid, attributes in sorted(attribute_data.iteritems()):
 
@@ -93,12 +93,14 @@ def Full(replay):
         player.type = attributes['Player Type']
         player.uid = pdata.bnet.uid
         player.subregion = pdata.bnet.subregion
-        player.region = REGIONS[replay.gateway][player.subregion]
         player.handicap = pdata.handicap
 
         # We need initData for the gateway which is required to build the url!
         if 'initData' in replay.raw and replay.gateway:
             player.gateway = replay.gateway
+            if player.type == 'Human':
+                player.region = REGIONS[replay.gateway][player.subregion]
+                default_region = player.region
 
         # Conversion instructions to the new color object:
         #   color_rgba is the color object itself
@@ -118,6 +120,13 @@ def Full(replay):
         team.lineup = sorted(player.play_race[0].upper() for player in team)
 
     if 'initData' in replay.raw:
+        # Assign the default region to computer players for consistency
+        # We know there will be a default region because there must be
+        # atleast 1 human player or we wouldn't have a replay.
+        for player in replay.players:
+            if player.type == 'Computer':
+                player.region = default_region
+
         # Create observers out of the leftover names gathered from initData
         all_players = replay.raw.initData.player_names
         for i in range(observer_index,len(all_players)):
