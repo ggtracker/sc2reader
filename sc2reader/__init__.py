@@ -87,88 +87,107 @@ class Reader(object):
             if options.verbose: print "Reading: %s" % location
 
             with open(location) as replay_file:
-                # The Replay constructor scans the header of the replay file for
-                # the build number and stores the options for later use. The
-                # options are copied so subsequent option changes are isolated.
-                replay = objects.Replay(replay_file, **options.copy())
-
-                # .SC2Replay files are written in Blizzard's MPQ Archive format.
-                # The format stores a header which contains a block table that
-                # specifies the location of each encrypted file.
-                #
-                # Unfortunately, some replay sites modify the replay contents to
-                # add messages promoting their sites without updating the header
-                # correctly. The listfile option(hack) lets us bypass this issue
-                # by specifying the files we want instead of generating a list.
-                #
-                # In order to wrap mpyq exceptions we have to do this try hack.
-                try:
-                    archive = mpyq.MPQArchive(location, listfile=False)
-                except KeyboardInterrupt: raise
-                except:
-                    raise exceptions.MPQError("Unable to construct the MPQArchive")
-
-                # These files are configured for either full or partial parsing
-                for file in options.files:
-
-                    # To wrap mpyq exceptions we have to do this try hack.
-                    try:
-                        filedata = archive.read_file(file)
-                    except KeyboardInterrupt: raise
-                    except:
-                        raise exceptions.MPQError("Unable to extract file: {0}".format(file))
-
-                    # For each file, we build a smart buffer object from the
-                    # utf-8 encoded bitstream that mpyq extracts.
-                    buffer = utils.ReplayBuffer(filedata)
-
-                    # Each version of Starcraft slightly modifies some portions
-                    # of the format for some files. To work with this, the
-                    # config file has a nested lookup structure of
-                    # [build][file]=>reader which returns the appropriate reader
-                    #
-                    # TODO: Different versions also have different data mappings
-                    #       sc2reader doesn't yet handle this difficulty.
-                    #
-                    # Readers use the type agnostic __call__ interface so that
-                    # they can be implemented as functions or classes as needed.
-                    #
-                    # Readers return the extracted information from the buffer
-                    # object which gets stored into the raw data dict for later
-                    # use in post processing because correct interpretation of
-                    # the information often requires data from other files.
-                    reader = config.readers[replay.build][file]
-                    reference_name = '_'.join(file.split('.')[1:])
-                    replay.raw[reference_name] = reader(buffer, replay)
-
-                # Now that the replay has been loaded with the "raw" data from
-                # the archive files we run the system level post processors to
-                # organize the data into a cross referenced data structure.
-                #
-                # After system level processors have run, call each of the post
-                # processors provided by the user. This would be a good place to
-                # convert the object to a serialized json string for cross
-                # language processes or add custom attributes.
-                #
-                # TODO: Maybe we should switch this to a hook based architecture
-                #       Needs to be able to load "contrib" type processors..
-                for process in [processors.Full]+options.processors:
-                    replay = process(replay)
-
-                replays.append(replay)
+                replays.append(self.make_replay(replay_file, **options))
 
         return replays
 
-    def read_file(self, file, **options):
-        replays = self.read(file, **options)
+    def make_replay(self, replay_file, **options):
+        options = utils.AttributeDict(options)
 
-        # While normal usage would suggest passing in only filenames, it is
-        # possible that directories could be passed in. Don't fail silently!
-        if len(replays) > 1:
-            raise exceptions.MultipleMatchingFilesError(replays)
+        # The Replay constructor scans the header of the replay file for
+        # the build number and stores the options for later use. The
+        # options are copied so subsequent option changes are isolated.
+        replay_file.seek(0)
+        replay = objects.Replay(replay_file, **options.copy())
 
-        # Propogate the replay in a singular context
-        return replays[0] if len(replays) > 0 else None
+        # .SC2Replay files are written in Blizzard's MPQ Archive format.
+        # The format stores a header which contains a block table that
+        # specifies the location of each encrypted file.
+        #
+        # Unfortunately, some replay sites modify the replay contents to
+        # add messages promoting their sites without updating the header
+        # correctly. The listfile option(hack) lets us bypass this issue
+        # by specifying the files we want instead of generating a list.
+        #
+        # In order to wrap mpyq exceptions we have to do this try hack.
+        try:
+            replay_file.seek(0)
+            archive = mpyq.MPQArchive(replay_file, listfile=False)
+        except KeyboardInterrupt: raise
+        except:
+            raise #exceptions.MPQError("Unable to construct the MPQArchive")
+
+        # These files are configured for either full or partial parsing
+        for file in options.files:
+
+            # To wrap mpyq exceptions we have to do this try hack.
+            try:
+                filedata = archive.read_file(file)
+            except KeyboardInterrupt: raise
+            except:
+                raise exceptions.MPQError("Unable to extract file: {0}".format(file))
+
+            # For each file, we build a smart buffer object from the
+            # utf-8 encoded bitstream that mpyq extracts.
+            buffer = utils.ReplayBuffer(filedata)
+
+            # Each version of Starcraft slightly modifies some portions
+            # of the format for some files. To work with this, the
+            # config file has a nested lookup structure of
+            # [build][file]=>reader which returns the appropriate reader
+            #
+            # TODO: Different versions also have different data mappings
+            #       sc2reader doesn't yet handle this difficulty.
+            #
+            # Readers use the type agnostic __call__ interface so that
+            # they can be implemented as functions or classes as needed.
+            #
+            # Readers return the extracted information from the buffer
+            # object which gets stored into the raw data dict for later
+            # use in post processing because correct interpretation of
+            # the information often requires data from other files.
+            reader = config.readers[replay.build][file]
+            reference_name = '_'.join(file.split('.')[1:])
+            replay.raw[reference_name] = reader(buffer, replay)
+
+        # Now that the replay has been loaded with the "raw" data from
+        # the archive files we run the system level post processors to
+        # organize the data into a cross referenced data structure.
+        #
+        # After system level processors have run, call each of the post
+        # processors provided by the user. This would be a good place to
+        # convert the object to a serialized json string for cross
+        # language processes or add custom attributes.
+        #
+        # TODO: Maybe we should switch this to a hook based architecture
+        #       Needs to be able to load "contrib" type processors..
+        for process in [processors.Full]+options.processors:
+            replay = process(replay)
+
+        return replay
+
+    def read_file(self, file_in, **user_options):
+        # Support file-like objects (with a read method)
+        if hasattr(file_in, 'read'):
+
+            # Base the options off a copy to leave the Reader options uneffected.
+            options = self.options.copy()
+            options.update(user_options)
+
+            return self.make_replay(file_in, **options)
+
+        # Also support filepath strings
+        else:
+            replays = self.read(file_in, **options)
+
+            # While normal usage would suggest passing in only filenames, it is
+            # possible that directories could be passed in. Don't fail silently!
+            if len(replays) > 1:
+                raise exceptions.MultipleMatchingFilesError(replays)
+
+            # Propogate the replay in a singular context
+            return replays[0] if len(replays) > 0 else None
+
 
 """sc2reader uses a default SC2Reader class instance to provide a package level
 interface to its functionality. The package level interface presents the same
