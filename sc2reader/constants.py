@@ -145,3 +145,17 @@ COLOR_CODES = {
     '232323': 'Dark grey',
     'E55BB0': 'Pink'
 }
+REGIONS = {
+    'us': {
+        1: 'us',
+        2: 'la',
+    },
+    'eu': {
+        1: 'eu',
+        2: 'ru',
+    },
+    'kr': {
+        1: 'kr',
+        2: 'tw',
+    }
+}

@@ -2,6 +2,7 @@ from collections import defaultdict
 from .objects import *
 from .utils import key_in_bases, windows_to_unix, Length
 from datetime import datetime
+from .constants import REGIONS
 
 def Full(replay):
     # Populate replay with details
@@ -70,7 +71,6 @@ def Full(replay):
         #   * replay.details
         #   * replay.attribute.events
         #
-        # TODO: get a map of gateway, subregion# => subregion in here
         # TODO: recognize current locale and use that instead of western
         # TODO: fill in the LOCALIZED_RACES table
         player = Player(pid,pdata.name,replay)
@@ -93,6 +93,7 @@ def Full(replay):
         player.type = attributes['Player Type']
         player.uid = pdata.bnet.uid
         player.subregion = pdata.bnet.subregion
+        player.region = REGIONS[replay.gateway][player.subregion]
         player.handicap = pdata.handicap
 
         # We need initData for the gateway which is required to build the url!
