@@ -178,7 +178,7 @@ class Reader(object):
 
         # Also support filepath strings
         else:
-            replays = self.read(file_in, **options)
+            replays = self.read(file_in, **user_options)
 
             # While normal usage would suggest passing in only filenames, it is
             # possible that directories could be passed in. Don't fail silently!
