@@ -172,7 +172,7 @@ class Reader(object):
 
     def read_file(self, file_in, **user_options):
         # Support file-like objects (with a read method)
-        if hasattr(file_in, 'read'):
+        if hasattr(file_in, 'read') and hasattr(file_in, 'seek'):
 
             # Base the options off a copy to leave the Reader options uneffected.
             options = self.options.copy()
