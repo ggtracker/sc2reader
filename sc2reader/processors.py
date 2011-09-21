@@ -12,6 +12,10 @@ def Full(replay):
     if 'initData' in replay.raw and replay.raw.initData.map_data:
         replay.gateway = replay.raw.initData.map_data[0].gateway
 
+        #Expand this special case mapping
+        if replay.gateway == 'sg':
+            replay.gateway = 'sea'
+
     if 'details' in replay.raw:
         replay.map = replay.raw.details.map
         replay.file_time = replay.raw.details.file_time

@@ -155,18 +155,30 @@ COLOR_CODES = {
 #      There are no current plans to have multiple PTR servers.
 #   Source: http://us.blizzard.com/support/article.xml?locale=en_US&articleId=36109
 REGIONS = {
+    # United States
     'us': {
         1: 'us',
         2: 'la',
     },
+
+    # Europe
     'eu': {
         1: 'eu',
         2: 'ru',
     },
+
+    # Korea
     'kr': {
         1: 'kr',
         2: 'tw',
     },
+
+    # South East Asia
+    'sea': {
+        1: 'sea',
+    },
+
+    # Public Test
     'xx': {
         1: 'xx',
     },
