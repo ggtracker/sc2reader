@@ -128,7 +128,6 @@ class Reader(object):
                         filedata = archive.read_file(file, force_decompress=True)
                     except IndexError as e:
                         # Catch decompression errors
-                        print str(e)
                         if str(e) == "string index out of range":
                             filedata = archive.read_file(file, force_decompress=False)
                         else:
