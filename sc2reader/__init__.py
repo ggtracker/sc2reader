@@ -115,16 +115,24 @@ class Reader(object):
             archive = mpyq.MPQArchive(replay_file, listfile=False)
         except KeyboardInterrupt: raise
         except:
-            raise #exceptions.MPQError("Unable to construct the MPQArchive")
+            raise exceptions.MPQError("Unable to construct the MPQArchive")
 
         # These files are configured for either full or partial parsing
         for file in options.files:
 
             # To wrap mpyq exceptions we have to do this try hack.
             try:
-                # We are currently assuming that the message file is always compressed
+                # Handle the tampering with the message.events file that some sites do
                 if file == 'replay.message.events':
-                    filedata = archive.read_file(file, force_decompress=True)
+                    try:
+                        filedata = archive.read_file(file, force_decompress=True)
+                    except IndexError as e:
+                        # Catch decompression errors
+                        print str(e)
+                        if str(e) == "string index out of range":
+                            filedata = archive.read_file(file, force_decompress=False)
+                        else:
+                            raise
                 else:
                     filedata = archive.read_file(file)
             except KeyboardInterrupt: raise
