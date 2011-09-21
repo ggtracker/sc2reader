@@ -264,8 +264,7 @@ class GameEventsBase(object):
         if   code in (0x0B, 0x0C, 0x2C): return self.parse_join_event
         elif code in (0x05,): return self.parse_start_event
         else:
-            # TODO: Raise a better error
-            raise ReadError("Unknown Setup Parser Code {0}".format(code))
+            raise ParseError("Unknown Setup Parser Code {0}".format(code))
 
     def get_action_parser(self, code):
         # The action events are always associated with a particular player and
@@ -276,8 +275,7 @@ class GameEventsBase(object):
         elif code & 0x0F == 0xD: return self.parse_hotkey_event
         elif code & 0x0F == 0xF: return self.parse_transfer_event
         else:
-            # TODO: Raise a better error
-            raise ReadError("Unknown Action Parser Code {0}".format(code))
+            raise ParseError("Unknown Action Parser Code {0}".format(code))
 
     def get_unknown2_parser(self, code):
         # While its unclear what these events represent, they are MUCH more
@@ -287,8 +285,7 @@ class GameEventsBase(object):
         elif code == 0x07: return self.parse_0207_event
         elif code == 0x0E: return self.parse_020E_event
         else:
-            # TODO: Raise a better error
-            raise ReadError("Unknown Unknown2 Parser Code {0}".format(code))
+            raise ParseError("Unknown Unknown2 Parser Code {0}".format(code))
 
     def get_camera_parser(self, code):
         # Each player's camera control events are recorded, separately from the
@@ -300,8 +297,7 @@ class GameEventsBase(object):
         elif code & 0x0F == 1: return self.parse_cameraX1_event
         elif code == 0x0a: return self.parse_camera0A_event
         else:
-            # TODO: Raise a better error
-            raise ReadError("Unknown Camera Parser Code {0}".format(code))
+            raise ParseError("Unknown Camera Parser Code {0}".format(code))
 
     def get_unknown4_parser(self, code):
         # I don't know anything about these events. Any parse information for
@@ -316,8 +312,7 @@ class GameEventsBase(object):
         elif code & 0x0F == 0x02: return self.parse_04X2_event
         elif code & 0x0F == 0x0C: return self.parse_04XC_event
         else:
-            # TODO: Raise a better error
-            raise ReadError("Unknown Unknown4 Parser Code {0}".format(code))
+            raise ParseError("Unknown Unknown4 Parser Code {0}".format(code))
 
 # The storage format for many of the game events has changed, sometimes
 # dramatically, over time. To handle this inconsistency sc2reader uses mixins
