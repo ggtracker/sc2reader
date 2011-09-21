@@ -7,7 +7,7 @@ class MPQError(SC2ReaderError):
 class NoMatchingFilesError(SC2ReaderError):
     pass
 
-class MutipleMatchingFilesError(SC2ReaderError):
+class MultipleMatchingFilesError(SC2ReaderError):
     pass
 
 class ReadError(SC2ReaderError):
