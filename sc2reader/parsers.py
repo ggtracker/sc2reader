@@ -72,92 +72,6 @@ class ActionParser(object):
         return ResourceTransferEvent(frames, pid, type, code, target, minerals, vespene)
 
 class ActionParser_16561(ActionParser):
-    def parse_ability_event(self, buffer, frames, type, code, pid):
-        flag = buffer.read_byte()
-        atype = buffer.read_byte()
-        
-        if atype & 0x20: # command card
-            end = buffer.peek(35)
-            ability = buffer.read_short()
-
-            if flag in (0x29, 0x19, 0x14): # cancels
-                # creation autoid number / object id
-                ability = ability << 8 | buffer.read_byte()
-                created_id = buffer.read_object_id() 
-                # TODO : expose the id
-                return AbilityEvent(frames, pid, type, code, ability)
-                
-            else:
-                ability_flags = buffer.shift(6)
-                ability = ability << 8 | ability_flags
-                
-                if ability_flags & 0x10:
-                    # ability(3), coordinates (4), ?? (4)
-                    location = buffer.read_coordinate()
-                    buffer.skip(4)
-                    return LocationAbilityEvent(frames, pid, type, code, ability, location)
-                    
-                elif ability_flags & 0x20:
-                    # ability(3), object id (4),  object type (2), ?? (10)
-                    code = buffer.read_short() # code??
-                    obj_id = buffer.read_object_id()
-                    obj_type = buffer.read_object_type()
-                    target = (obj_id, obj_type,)
-                    switch = buffer.read_byte()
-                    buffer.read_hex(9)
-                    return TargetAbilityEvent(frames, pid, type, code, ability, target)
-                
-                else:
-                    return AbilityEvent(frames,pid,type,code,ability)
-                
-        elif atype & 0x40: # location/move
-            if flag == 0x08:
-                # coordinates (4), ?? (6)
-                location = buffer.read_coordinate()
-                buffer.skip(5)
-                return LocationAbilityEvent(frames, pid, type, code, None, location)
-            
-            elif flag in (0x04,0x05,0x07):
-                # print "Made it!"
-                h = buffer.read_hex(2)
-                hinge = buffer.read_byte()
-                if hinge & 0x20:
-                    "\t%s - %s" % (hex(hinge),buffer.read_hex(9))
-                elif hinge & 0x40:
-                    "\t%s - %s" % (hex(hinge),buffer.read_hex(18))
-                elif hinge < 0x10:
-                    pass
-                    
-                return UnknownLocationAbilityEvent(frames, pid, type, code, None)
-
-            else:
-                raise ParseError("Unknown atype & 0x40: flag %X at frame %X" % (flag,frames))
-
-        elif atype & 0x80: # right-click on target?
-            # ability (2), object id (4), object type (2), ?? (10)
-            ability = buffer.read_byte() << 8 | buffer.read_byte() 
-            obj_id = buffer.read_object_id()
-            obj_type = buffer.read_object_type()
-            target = (obj_id, obj_type,)
-            buffer.skip(10)
-            return TargetAbilityEvent(frames, pid, type, code, ability, target)
-            
-        elif atype in (0x08,0x0a): #new to patch 1.3.3
-            #10 bytes total, coordinates have a different format?
-            #X coordinate definitely is the first byte, with (hopefully) y next
-            # print hex(flag)
-            event = UnknownAbilityEvent(frames, pid, type, code, None)
-            event.location1 = buffer.read_coordinate()
-            buffer.skip(5)
-            return event
-
-        else:
-            # print hex(atype)
-            # print hex(buffer.cursor)
-            raise ParseError()
-        
-        # print "%s - %s" % (hex(atype),hex(flag))
-        raise ParseError("Shouldn't be here EVER!")
         
     def parse_selection_event(self, buffer, frames, type, code, pid):
         bank = code >> 4
@@ -212,80 +126,129 @@ class ActionParser_16561(ActionParser):
         else:
             raise ParseError("Hotkey Action '{0}' unknown")
 
-class ActionParser_18574(ActionParser_16561):
+    def command_card(self, buffer, frames, type, code, pid, flag, atype):
+        ability = buffer.read_short()
+
+        if flag in (0x29, 0x19, 0x14, 0x0c): # cancels
+            # creation autoid number / object id
+            ability = ability << 8 | buffer.read_byte()
+            created_id = buffer.read_object_id()
+            # TODO : expose the id
+            return AbilityEvent(frames, pid, type, code, ability)
+
+        else:
+            ability_flags = buffer.shift(6)
+            ability = ability << 8 | ability_flags
+
+            if ability_flags & 0x10:
+                # ability(3), coordinates (4), ?? (4)
+                location = buffer.read_coordinate()
+                buffer.skip(4)
+                return LocationAbilityEvent(frames, pid, type, code, ability, location)
+
+            elif ability_flags & 0x20:
+                # ability(3), object id (4),  object type (2), ?? (10)
+                code = buffer.read_short() # code??
+                obj_id = buffer.read_object_id()
+                obj_type = buffer.read_object_type()
+                target = (obj_id, obj_type,)
+                switch = buffer.read_byte()
+                buffer.read_hex(9)
+                return TargetAbilityEvent(frames, pid, type, code, ability, target)
+
+            else:
+                return AbilityEvent(frames,pid,type,code,ability)
+
+    def location_move(self, buffer, frames, type, code, pid, flag, atype):
+        h = buffer.read_hex(2)
+        hinge = buffer.read_byte()
+        if hinge & 0x20:
+            "\t%s - %s" % (hex(hinge),buffer.read_hex(9))
+        elif hinge & 0x40:
+            "\t%s - %s" % (hex(hinge),buffer.read_hex(18))
+        elif hinge < 0x10:
+            pass
+        else:
+            pass
+
+        return UnknownLocationAbilityEvent(frames, pid, type, code, None)
+
+    def right_click_target(self, buffer, frames, type, code, pid, flag, atype):
+        # ability (2), object id (4), object type (2), ?? (10)
+        ability = buffer.read_short()
+        obj_id = buffer.read_object_id()
+        obj_type = buffer.read_object_type()
+        target = (obj_id, obj_type,)
+        buffer.skip(10)
+        return TargetAbilityEvent(frames, pid, type, code, ability, target)
+
+    def right_click_move(self, buffer, frames, type, code, pid, flag, atype):
+        #10 bytes total, coordinates have a different format?
+        #X coordinate definitely is the first byte, with (hopefully) y next
+        location = buffer.read_coordinate()
+        buffer.skip(5)
+        return LocationAbilityEvent(frames, pid, type, code, None, location)
+
     def parse_ability_event(self, buffer, frames, type, code, pid):
         flag = buffer.read_byte()
         atype = buffer.read_byte()
-        
+
         if atype & 0x20: # command card
-            end = buffer.peek(35)
-            ability = buffer.read_short()
-
-            if flag in (0x29, 0x19, 0x14, 0x0c): # cancels
-                # creation autoid number / object id
-                ability = ability << 8 | buffer.read_byte()
-                created_id = buffer.read_object_id()
-                # TODO : expose the id
-                return AbilityEvent(frames, pid, type, code, ability)
-
-            else:
-                ability_flags = buffer.shift(6)
-                ability = ability << 8 | ability_flags
-
-                if ability_flags & 0x10:
-                    # ability(3), coordinates (4), ?? (4)
-                    location = buffer.read_coordinate()
-                    buffer.skip(4)
-                    return LocationAbilityEvent(frames, pid, type, code, ability, location)
-
-                elif ability_flags & 0x20:
-                    # ability(3), object id (4),  object type (2), ?? (10)
-                    code = buffer.read_short() # code??
-                    obj_id = buffer.read_object_id()
-                    obj_type = buffer.read_object_type()
-                    target = (obj_id, obj_type,)
-                    switch = buffer.read_byte()
-                    buffer.read_hex(9)
-                    return TargetAbilityEvent(frames, pid, type, code, ability, target)
-
-                else:
-                    return AbilityEvent(frames,pid,type,code,ability)
-
-        elif atype & 0x40: # location/move ??
-            h = buffer.read_hex(2)
-            hinge = buffer.read_byte()
-            if hinge & 0x20:
-                "\t%s - %s" % (hex(hinge),buffer.read_hex(9))
-            elif hinge & 0x40:
-                "\t%s - %s" % (hex(hinge),buffer.read_hex(18))
-            elif hinge < 0x10:
-                pass
-
-            return UnknownLocationAbilityEvent(frames, pid, type, code, None)
-
+            return self.command_card(buffer, frames, type, code, pid, flag, atype)
+        elif atype & 0x40: # location/move
+            if flag == 0x08:
+                return self.right_click_move(buffer, frames, type, code, pid, flag, atype)
+            elif flag in (0x04,0x05,0x07):
+                return self.location_move(buffer, frames, type, code, pid, flag, atype)
         elif atype & 0x80: # right-click on target?
-            # ability (2), object id (4), object type (2), ?? (10)
-            ability = buffer.read_byte() << 8 | buffer.read_byte()
-            obj_id = buffer.read_object_id()
-            obj_type = buffer.read_object_type()
-            target = (obj_id, obj_type,)
-            buffer.skip(10)
-            return TargetAbilityEvent(frames, pid, type, code, ability, target)
+            return self.right_click_target(buffer, frames, type, code, pid, flag, atype)
 
-        elif atype < 0x10: #new to patch 1.3.3, location now??
-            #10 bytes total, coordinates have a different format?
-            #X coordinate definitely is the first byte, with (hopefully) y next
-            location = buffer.read_coordinate()
-            buffer.skip(5)
-            return LocationAbilityEvent(frames, pid, type, code, None, location)
-
-        else:
-            # print hex(atype)
-            # print hex(buffer.cursor)
             raise ParseError()
 
-        # print "%s - %s" % (hex(atype),hex(flag))
-        raise ParseError("Shouldn't be here EVER!")
+
+class ActionParser_18574(ActionParser_16561):
+
+    def parse_ability_event(self, buffer, frames, type, code, pid):
+        """Moves the right click move to the top level"""
+        flag = buffer.read_byte()
+        atype = buffer.read_byte()
+
+        if atype & 0x20: # command card
+            return self.command_card(buffer, frames, type, code, pid, flag, atype)
+        elif atype & 0x40: # location/move ??
+            return self.location_move(buffer, frames, type, code, pid, flag, atype)
+        elif atype & 0x80: # right-click on target?
+            return self.right_click_target(buffer, frames, type, code, pid, flag, atype)
+        elif atype < 0x10: #new to patch 1.3.3, location now??
+            return self.right_click_move(buffer, frames, type, code, pid, flag, atype)
+
+        raise ParseError()
+
+class ActionParser_19595(ActionParser_18574):
+    def location_move(self, buffer, frames, type, code, pid, flag, atype):
+        h = buffer.read_hex(2)
+        hinge = buffer.read_byte()
+        if hinge & 0x20:
+            "\t%s - %s" % (hex(hinge),buffer.read_hex(9))
+        elif hinge & 0x40:
+            # extra byte
+            "\t%s - %s" % (hex(hinge),buffer.read_hex(19))
+        elif hinge < 0x10:
+            pass
+        else:
+            pass
+
+        return UnknownLocationAbilityEvent(frames, pid, type, code, None)
+
+    def right_click_target(self, buffer, frames, type, code, pid, flag, atype):
+        # ability (2), object id (4), object type (2), ?? (10)
+        ability = buffer.read_byte() << 8 | buffer.read_byte()
+        obj_id = buffer.read_object_id()
+        obj_type = buffer.read_object_type()
+        target = (obj_id, obj_type,)
+        # extra byte
+        buffer.skip(11)
+        return TargetAbilityEvent(frames, pid, type, code, ability, target)
 
 class Unknown2Parser(object):
     def parse_0206_event(self, buffer, frames, type, code, pid):

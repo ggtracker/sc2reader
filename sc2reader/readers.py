@@ -329,3 +329,7 @@ class GameEventsReader_16561( GameEventsBase, Unknown2Parser, Unknown4Parser,
 class GameEventsReader_18574( GameEventsBase, Unknown2Parser, Unknown4Parser,
                               ActionParser_18574, SetupParser, CameraParser ):
     pass
+
+class GameEventsReader_19595( GameEventsBase, Unknown2Parser, Unknown4Parser,
+                              ActionParser_19595, SetupParser, CameraParser ):
+    pass
