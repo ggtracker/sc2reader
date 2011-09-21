@@ -39,7 +39,7 @@ class ActionParser(object):
         object_types = chain(*[[object_type,]*count for (object_type, count) in object_types])
         objects = zip(object_ids, object_types)
 
-        return SelectionEvent(frames, pid, type, code, None)
+        return SelectionEvent(frames, pid, type, code, bank, objects, None)
 
     def parse_hotkey_event(self, buffer, frames, type, code, pid):
         hotkey = code >> 4
