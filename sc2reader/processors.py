@@ -175,7 +175,9 @@ def Full(replay):
             event.player = replay.person[event.pid]
             event.player.events.append(event)
 
-        event.apply()
+        # Because applying the events is slow, make it configurable
+        if replay.opt.apply: event.apply()
+
         l = replay.events_by_type[event.name]
         l.append(event)
 

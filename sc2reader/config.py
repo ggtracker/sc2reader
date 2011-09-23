@@ -46,7 +46,8 @@ default_options = AttributeDict(
     recursive=True,
     depth=-1,
     follow_symlinks=True,
-    files=files.all
+    files=files.all,
+    apply=False
 )
 
 class ReaderMap(dict):
