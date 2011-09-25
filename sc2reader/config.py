@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 from sc2reader import readers as r
 from sc2reader.utils import AttributeDict, RangeMap
+from sc2reader import data
 
 ALL_FILES = [
     'replay.initData',
@@ -92,3 +93,6 @@ readers.add_range(19595, None, {
         'replay.message.events': r.MessageEventsReader(),
         'replay.game.events': r.GameEventsReader_19595(),
     })
+
+build_data = RangeMap()
+build_data.add_range(0, None, data.Data_18092)

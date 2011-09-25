@@ -9,6 +9,7 @@ from sc2reader.utils import BIG_ENDIAN,LITTLE_ENDIAN
 
 
 class SetupParser(object):
+
     def parse_join_event(self, buffer, frames, type, code, pid):
         return PlayerJoinEvent(frames, pid, type, code)
 
@@ -98,6 +99,7 @@ class ActionParser_16561(ActionParser):
         return overlay
 
     def parse_selection_event(self, buffer, frames, type, code, pid):
+
         bank = code >> 4
         first = buffer.read_byte() # TODO ?
 
@@ -204,7 +206,7 @@ class ActionParser_16561(ActionParser):
         elif atype & 0x80: # right-click on target?
             return self.right_click_target(buffer, frames, type, code, pid, flag, atype)
 
-            raise ParseError()
+        raise ParseError()
 
 
 class ActionParser_18574(ActionParser_16561):
@@ -242,7 +244,7 @@ class ActionParser_19595(ActionParser_18574):
 
     def right_click_target(self, buffer, frames, type, code, pid, flag, atype):
         # ability (2), object id (4), object type (2), ?? (10)
-        ability = buffer.read_byte() << 8 | buffer.read_byte()
+        ability = buffer.read_short()
         obj_id = buffer.read_object_id()
         obj_type = buffer.read_object_type()
         target = (obj_id, obj_type,)

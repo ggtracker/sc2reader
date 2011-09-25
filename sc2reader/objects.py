@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from collections import defaultdict, namedtuple
 
 from sc2reader.constants import *
-from sc2reader.data import GameObject, ABILITIES
+from sc2reader.data import Object as DataObject
 from sc2reader.utils import PersonDict, Selection, read_header, AttributeDict, Length
 
 Location = namedtuple('Location',('x','y'))
@@ -263,12 +263,13 @@ class Player(Person):
 
 class Event(object):
     name = 'BaseEvent'
-    def apply(self): pass
+    def apply(self, data):
+        self.data = data
 
-    """Abstract Event Type, should not be directly instantiated"""
-    def __init__(self, timestamp, player_id, event_type, event_code):
-        self.frame = timestamp
-        self.second = timestamp >> 4
+    """Abstract Event Type, should not be directly instanciated"""
+    def __init__(self, framestamp, player_id, event_type, event_code):
+        self.frame = framestamp
+        self.second = framestamp >> 4
         self.type = event_type
         self.code = event_code
         self.is_local = (player_id != 16)
@@ -319,8 +320,9 @@ class AbilityEvent(Event):
         super(AbilityEvent, self).__init__(framestamp, player, type, code)
         self.ability = ability
 
-    def apply(self):
-
+    def apply(self, data):
+        self.data = data
+        '''
         if self.ability:
             if self.ability not in ABILITIES:
                 pass
@@ -337,6 +339,7 @@ class AbilityEvent(Event):
         # claim units
         for obj in self.player.get_selection().current:
             obj.player = self.player
+        '''
 
     def get_able_selection(self, ability):
         return [obj for obj in self.player.get_selection().current if hasattr(obj, ability)]
@@ -344,7 +347,7 @@ class AbilityEvent(Event):
     def __str__(self):
         if not self.ability:
             return self._str_prefix() + "Move"
-        ability_name = ABILITIES[self.ability] if self.ability in ABILITIES else "UNKNOWN"
+        ability_name = self.data.ability(self.ability) if self.ability in self.data.abilities else "UNKNOWN"
         return self._str_prefix() + "Ability (%s) - %s" % (hex(self.ability), ability_name)
 
 class TargetAbilityEvent(AbilityEvent):
@@ -353,7 +356,8 @@ class TargetAbilityEvent(AbilityEvent):
         super(TargetAbilityEvent, self).__init__(framestamp, player, type, code, ability)
         self.target = target
 
-    def apply(self):
+    def apply(self, data):
+        self.data = data
         obj_id, obj_type = self.target
         if not obj_id:
             # fog of war
@@ -361,16 +365,16 @@ class TargetAbilityEvent(AbilityEvent):
         else:
             obj_type = obj_type << 8 | 0x01
             try:
-                type_class = GameObject.get_type(obj_type)
+                type_class = self.data.types[obj_type]
                 # Could this be hallucinated?
-                create_obj = not GameObject.has_type(obj_type & 0xfffffc | 0x2)
+                create_obj = not ((obj_type & 0xfffffc | 0x2) in self.data.types)
 
                 obj = None
-                if obj_id in self.player.replay.objects:
-                    obj = self.player.replay.objects[obj_id]
+                if (obj_id, obj_type) in self.player.replay.objects:
+                    obj = self.player.replay.objects[(obj_id, obj_type)]
                 elif create_obj:
                     obj = type_class(obj_id, self.frame)
-                    self.player.replay.objects[obj_id] = obj
+                    self.player.replay.objects[(obj_id, obj_type)] = obj
 
                 if obj:
                     obj.visit(self.frame, self.player, type_class)
@@ -378,11 +382,22 @@ class TargetAbilityEvent(AbilityEvent):
             except KeyError:
                 # print "Unknown object type (%s) at frame %s" % (hex(obj_type),self.frame)
                 pass
-        super(TargetAbilityEvent, self).apply()
+        super(TargetAbilityEvent, self).apply(data)
 
     def __str__(self):
-        target = str(self.target) if self.target else "NONE"
-        return AbilityEvent.__str__(self) + "; Target: %s" % target
+        if self.target:
+            if isinstance(self.target, DataObject):
+                target = "{0} [{1}]".format(self.target.name, self.target.id)
+            else:
+                if self.target[1] in self.data.types:
+                    target = "{0} [{1}]".format(self.data.types[self.target[1]].name,self.target[0])
+                else:
+                    target = "UNKNOWN {0}".format(hex(self.target[1]))
+
+        else:
+            target = "NONE"
+
+        return AbilityEvent.__str__(self) + "; Target: {0}".format(target)
 
 class LocationAbilityEvent(AbilityEvent):
     name = 'LocationAbilityEvent'
@@ -413,7 +428,8 @@ class HotkeyEvent(Event):
 
 class SetToHotkeyEvent(HotkeyEvent):
     name = 'SetToHotkeyEvent'
-    def apply(self):
+    def apply(self, data):
+        self.data = data
         hotkey = self.player.get_hotkey(self.hotkey)
         selection = self.player.get_selection()
         hotkey[self.frame] = selection.current
@@ -428,7 +444,8 @@ class SetToHotkeyEvent(HotkeyEvent):
 
 class AddToHotkeyEvent(HotkeyEvent):
     name = 'AddToHotkeyEvent'
-    def apply(self):
+    def apply(self, data):
+        self.data = data
         hotkey = self.player.get_hotkey(self.hotkey)
         hotkeyed = hotkey.current[:]
 
@@ -450,7 +467,8 @@ class AddToHotkeyEvent(HotkeyEvent):
 
 class GetHotkeyEvent(HotkeyEvent):
     name = 'GetHotkeyEvent'
-    def apply(self):
+    def apply(self, data):
+        self.data = data
         hotkey = self.player.get_hotkey(self.hotkey)
         hotkeyed = hotkey.current[:]
 
@@ -477,7 +495,8 @@ class SelectionEvent(Event):
         self.objects = objects
         self.deselect = deselect
 
-    def apply(self):
+    def apply(self, data):
+        self.data = data
         selection = self.player.get_selection(self.bank)
 
         selected = selection.current[:]
@@ -490,20 +509,22 @@ class SelectionEvent(Event):
         # Add new selection
         for (obj_id, obj_type) in self.objects:
             try:
-                type_class = GameObject.get_type(obj_type)
-                if obj_id not in self.player.replay.objects:
+                type_class = self.data.type(obj_type)
+                if (obj_id, obj_type) not in self.player.replay.objects:
                     obj = type_class(obj_id, self.frame)
-                    self.player.replay.objects[obj_id] = obj
+                    self.player.replay.objects[(obj_id,obj_type)] = obj
                 else:
-                    obj = self.player.replay.objects[obj_id]
+                    obj = self.player.replay.objects[(obj_id,obj_type)]
                 obj.visit(self.frame, self.player, type_class)
                 selected.append(obj)
             except KeyError:
+                print self._str_prefix() + "Selection ERROR: " + hex(obj_type)
+                #raise
                 # print "Unknown object type (%s) at frame %s" % (hex(obj_type),self.frame)
-                pass
+                #pass
 
         selection[self.frame] = selected
         self.selected = selected
 
     def __str__(self):
-        return self._str_prefix() + "Selection: " + str(self.selected)
+        return self._str_prefix() + "Selection: " + ', '.join(str(o) for o in self.selected)
