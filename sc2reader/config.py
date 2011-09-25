@@ -1,6 +1,6 @@
 from .processors import *
 from .readers import *
-from .utils import AttributeDict
+from .utils import AttributeDict, RangeMap
 
 ALL_FILES = [
     'replay.initData',
@@ -50,73 +50,44 @@ default_options = AttributeDict(
     apply=False
 )
 
-class ReaderMap(dict):
-    def __init__(self):
-        self.set1 = {
-                'replay.initData': InitDataReader(),
-                'replay.details': DetailsReader(),
-                'replay.attributes.events': AttributeEventsReader(),
-                'replay.message.events': MessageEventsReader(),
-                'replay.game.events': GameEventsReader(),
-            }
 
-        self.set2 = {
-                'replay.initData': InitDataReader(),
-                'replay.details': DetailsReader(),
-                'replay.attributes.events': AttributeEventsReader(),
-                'replay.message.events': MessageEventsReader(),
-                'replay.game.events': GameEventsReader_16561(),
-            }
+readers = RangeMap()
+readers.add_range(0, 16561, {
+        'replay.initData': InitDataReader(),
+        'replay.details': DetailsReader(),
+        'replay.attributes.events': AttributeEventsReader(),
+        'replay.message.events': MessageEventsReader(),
+        'replay.game.events': GameEventsReader(),
+    })
 
-        self.set3 = {
-                'replay.initData': InitDataReader(),
-                'replay.details': DetailsReader(),
-                'replay.attributes.events': AttributeEventsReader_17326(),
-                'replay.message.events': MessageEventsReader(),
-                'replay.game.events': GameEventsReader_16561(),
-            }
+readers.add_range(16561, 17326, {
+        'replay.initData': InitDataReader(),
+        'replay.details': DetailsReader(),
+        'replay.attributes.events': AttributeEventsReader(),
+        'replay.message.events': MessageEventsReader(),
+        'replay.game.events': GameEventsReader_16561(),
+    })
 
-        self.set4 = {
-                'replay.initData': InitDataReader(),
-                'replay.details': DetailsReader(),
-                'replay.attributes.events': AttributeEventsReader_17326(),
-                'replay.message.events': MessageEventsReader(),
-                'replay.game.events': GameEventsReader_18574(),
-        }
+readers.add_range(17326, 18574, {
+        'replay.initData': InitDataReader(),
+        'replay.details': DetailsReader(),
+        'replay.attributes.events': AttributeEventsReader_17326(),
+        'replay.message.events': MessageEventsReader(),
+        'replay.game.events': GameEventsReader_16561(),
+    })
 
-        self.set5 = {
-                'replay.initData': InitDataReader(),
-                'replay.details': DetailsReader(),
-                'replay.attributes.events': AttributeEventsReader_17326(),
-                'replay.message.events': MessageEventsReader(),
-                'replay.game.events': GameEventsReader_19595(),
-        }
+readers.add_range(18574, 19595, {
+        'replay.initData': InitDataReader(),
+        'replay.details': DetailsReader(),
+        'replay.attributes.events': AttributeEventsReader_17326(),
+        'replay.message.events': MessageEventsReader(),
+        'replay.game.events': GameEventsReader_18574(),
+    })
 
-        # 1.0.0-3
-        for key in (16117,16195,16223,16291):
-            self[key] = self.set1
-
-        # 1.1.0-3
-        for key in (16561,16605,16755,16939):
-            self[key] = self.set2
-
-        # 1.2.0-1.3.2
-        for key in (17326,17682,17811,18092,18221,18317):
-            self[key] = self.set3
-
-        # 1.3.3-1.3.6
-        for key in (18574,18701,19132,19269):
-            self[key] = self.set4
-
-        # 1.4beta, 1.4.0
-        for key in (19595,19679):
-            self[key] = self.set5
-
-    def __getitem__(self,key):
-        try:
-            return super(ReaderMap,self).__getitem__(key)
-        # Keep using the latest dict for all newer replay versions
-        except KeyError:
-            return self.set5
-
-readers = ReaderMap()
+readers.add_range(19595, None, {
+        'replay.initData': InitDataReader(),
+        'replay.details': DetailsReader(),
+        'replay.attributes.events': AttributeEventsReader_17326(),
+        'replay.message.events': MessageEventsReader(),
+        'replay.game.events': GameEventsReader_19595(),
+    })
