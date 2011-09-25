@@ -50,7 +50,12 @@ class Replay(object):
     def __init__(self, replay_file, **options):
         #Useful references
         self.opt = AttributeDict(**options)
-        self.filename = replay_file.name
+
+        # Some file-like objects may not support filenames. Issue #21
+        if hasattr(replay_file, 'name'):
+            self.filename = replay_file.name
+        else:
+            self.filename = "Unavailable"
 
         #header information
         self.versions,self.frames = read_header(replay_file)
