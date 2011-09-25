@@ -78,6 +78,8 @@ class ReplayBuffer(object):
         self.coord_convert = [(2**(12 - i),1.0/2**i) for i in range(1,13)]
 
         self.read_basic = self.io.read
+        self.char_buffer = cStringIO.StringIO()
+
     '''
         Additional Properties
     '''
@@ -131,7 +133,10 @@ class ReplayBuffer(object):
         if self.bit_shift==0:
             return self.read_basic(length)
         else:
-            return ''.join(chr(byte) for byte in self.read(length))
+            self.char_buffer.truncate(0)
+            for byte in self.read(length):
+                self.char_buffer.write(chr(byte))
+            return self.char_buffer.getvalue()
 
     def read_hex(self, length=0):
         return self.read_chars(length).encode("hex")
