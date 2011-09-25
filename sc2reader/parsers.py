@@ -8,7 +8,7 @@ from .exceptions import ParseError
 class SetupParser(object):
     def parse_join_event(self, buffer, frames, type, code, pid):
         return PlayerJoinEvent(frames, pid, type, code)
-        
+
     def parse_start_event(self, buffer, frames, type, code, pid):
         return GameStartEvent(frames, pid, type, code)
 
@@ -254,15 +254,15 @@ class Unknown2Parser(object):
     def parse_0206_event(self, buffer, frames, type, code, pid):
         buffer.skip(8)
         return UnknownEvent(frames, pid, type, code)
-        
+
     def parse_0207_event(self, buffer, frames, type, code, pid):
         buffer.skip(4)
         return UnknownEvent(frames, pid, type, code)
-        
+
     def parse_020E_event(self, buffer, frames, type, code, pid):
         buffer.skip(4)
         return UnknownEvent(frames, pid, type, code)
-        
+
 class CameraParser(object):
     def parse_camera87_event(self, buffer, frames, type, code, pid):
         #There are up to 3 peices to read depending on values encountered
@@ -288,7 +288,7 @@ class CameraParser(object):
             buffer.skip( (code & 0xF0 | flags & 0x0F) << 3 )
 
         return CameraMovementEvent(frames, pid, type, code)
-        
+
     def parse_cameraX1_event(self, buffer, frames, type, code, pid):
         #Get the X and Y,  last byte is also a flag
         buffer.skip(3)
@@ -313,32 +313,32 @@ class CameraParser(object):
                 break
 
         return CameraMovementEvent(frames, pid, type, code)
-        
+
 class Unknown4Parser(object):
     def parse_0416_event(self, buffer, frames, type, code, pid):
         buffer.skip(24)
         return UnknownEvent(frames, pid, type, code)
-        
+
     def parse_04C6_event(self, buffer, frames, type, code, pid):
         buffer.skip(16)
         return UnknownEvent(frames, pid, type, code)
-        
+
     def parse_0487_event(self, buffer, frames, type, code, pid):
         buffer.skip(4) #Always 00 00 00 01 ??
         return UnknownEvent(frames, pid, type, code)
-        
+
     def parse_0400_event(self, buffer, frames, type, code, pid):
         buffer.skip(10)
         return UnknownEvent(frames, pid, type, code)
-        
+
     def parse_04X2_event(self, buffer, frames, type, code, pid):
         buffer.skip(2)
         return UnknownEvent(frames, pid, type, code)
-        
+
     def parse_0488_event(self, buffer, frames, type, code, pid):
         buffer.skip(4) #Always 00 00 00 01 ?? or 00 00 00 03
         return UnknownEvent(frames, pid, type, code)
-        
+
     def parse_04XC_event(self, buffer, frames, type, code, pid):
         #no body
         return UnknownEvent(frames, pid, type, code)
