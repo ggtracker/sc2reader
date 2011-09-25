@@ -72,24 +72,34 @@ class ActionParser(object):
         return ResourceTransferEvent(frames, pid, type, code, target, minerals, vespene)
 
 class ActionParser_16561(ActionParser):
-        
+
+    def parse_overlay(self, buffer, mode):
+        if mode == 0x01: # deselect overlay mask
+            mask = buffer.read_bitmask()
+            def deselect_overlay_mask(a):
+                return Selection.mask(a, mask)
+            overlay = deselect_overlay_mask
+        elif mode == 0x02: # deselect mask
+            indexes = [buffer.read_byte() for i in range(buffer.read_byte())]
+            def deselect_mask(a):
+                return Selection.deselect(a, indexes)
+            overlay = deselect_mask
+        elif mode == 0x03: # replace mask
+            indexes = [buffer.read_byte() for i in range(buffer.read_byte())]
+            def replace_mask(a):
+                return Selection.replace(a,indexes)
+            overlay = replace_mask
+        else:
+            overlay = None
+
+        return overlay
+
     def parse_selection_event(self, buffer, frames, type, code, pid):
         bank = code >> 4
         first = buffer.read_byte() # TODO ?
 
-        deselect_flag = buffer.shift(2)
-        if deselect_flag == 0x01: # deselect deselect mask
-            mask = buffer.read_bitmask()
-            deselect = lambda a: Selection.mask(a, mask)
-        elif deselect_flag == 0x02: # deselect mask
-            indexes = [buffer.read_byte() for i in range(buffer.read_byte())]
-            deselect = lambda a: Selection.deselect(a, indexes)
-        elif deselect_flag == 0x03: # replace mask
-            indexes = [buffer.read_byte() for i in range(buffer.read_byte())]
-            deselect = lambda a: Selection.replace(a, indexes)
-        else:
-            deselect = None
-            
+        deselect = self.parse_overlay(buffer, buffer.shift(2))
+
         # <count> (<type_id>, <count>,)*
         object_types = [ (buffer.read_object_type(read_modifier=True), buffer.read_byte(), ) for i in range(buffer.read_byte()) ]
         # <count> (<object_id>,)*
@@ -103,19 +113,9 @@ class ActionParser_16561(ActionParser):
 
     def parse_hotkey_event(self, buffer, frames, type, code, pid):
         hotkey = code >> 4
-        action, mode = buffer.shift(2), buffer.shift(2)
+        action = buffer.shift(2)
 
-        if mode == 1: # deselect overlay mask
-            mask = buffer.read_bitmask()
-            overlay = lambda a: Selection.mask(a, mask)
-        elif mode == 2: # deselect mask
-            indexes = [buffer.read_byte() for i in range(buffer.read_byte())]
-            overlay = lambda a: Selection.deselect(a, indexes)
-        elif mode == 3: # replace mask
-            indexes = [buffer.read_byte() for i in range(buffer.read_byte())]
-            overlay = lambda a: Selection.replace(a, indexes)
-        else:
-            overlay = None
+        overlay = self.parse_overlay(buffer, buffer.shift(2))
 
         if action == 0:
             return SetToHotkeyEvent(frames, pid, type, code, hotkey, overlay)
