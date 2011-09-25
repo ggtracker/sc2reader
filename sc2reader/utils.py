@@ -6,9 +6,9 @@ import re
 import struct
 import textwrap
 
-import sc2reader.exceptions
-
 from itertools import groupby
+
+from .exceptions import FileError
 
 LITTLE_ENDIAN,BIG_ENDIAN = '<','>'
 
@@ -79,6 +79,34 @@ class ReplayBuffer(object):
 
         self.read_basic = self.io.read
         self.char_buffer = cStringIO.StringIO()
+
+        # Pre-generate the state for all reads, marginal time savings
+        self.read_state = dict()
+        for old in range(0,8):
+            for new in range(0,8):
+                self.read_state[(old,new)] = self.load_state(old, new)
+
+    def load_state(self, old_bit_shift, new_bit_shift):
+        old_bit_shift_inv = 8-old_bit_shift
+
+        # Masks
+        lo_mask = 2**old_bit_shift-1
+        lo_mask_inv = 0xFF - 2**(8-old_bit_shift)+1
+        hi_mask = 0xFF ^ lo_mask
+        hi_mask_inv = 0xFF ^ lo_mask_inv
+
+        #last byte parameters
+        if new_bit_shift == 0: #this means we filled the last byte (8)
+            last_mask = 0xFF
+            adjustment = 8-old_bit_shift
+            adjustment_mask = 2**adjustment-1
+        else:
+            last_mask = 2**new_bit_shift-1
+            adjustment = new_bit_shift-old_bit_shift
+            adjustment_mask = 2**adjustment-1
+
+        return (old_bit_shift_inv, lo_mask, lo_mask_inv, hi_mask,
+                hi_mask_inv, last_mask, adjustment, adjustment_mask)
 
     '''
         Additional Properties
@@ -333,29 +361,20 @@ class ReplayBuffer(object):
                     return base+[self.shift(bits)]
                 return base
 
-            # Calculated shifts
+            # Calculated shifts as our keys
             old_bit_shift = self.bit_shift
             new_bit_shift = (self.bit_shift+bits) % 8
 
-            # Masks
-            lo_mask = 2**old_bit_shift-1
-            lo_mask_inv = 0xFF - 2**(8-old_bit_shift)+1
-            hi_mask = 0xFF ^ lo_mask
-            hi_mask_inv = 0xFF ^ lo_mask_inv
-
-            #last byte parameters
-            if new_bit_shift == 0: #this means we filled the last byte (8)
-                last_mask = 0xFF
-                adjustment = 8-old_bit_shift
-            else:
-                last_mask = 2**new_bit_shift-1
-                adjustment = new_bit_shift-old_bit_shift
+            # Load the precalculated state variables
+            (old_bit_shift_inv, lo_mask, lo_mask_inv,
+             hi_mask, hi_mask_inv, last_mask, adjustment,
+             adjustment_mask) = self.read_state[(old_bit_shift,new_bit_shift)]
 
             #Set up for the looping with a list, the bytes, and an initial part
             raw_bytes = list()
             prev, next = self.last_byte, ord(self.read_basic(1))
             first = prev & hi_mask
-            bit_count -= 8-old_bit_shift
+            bit_count -= old_bit_shift_inv
 
             while bit_count > 0:
 
@@ -369,15 +388,17 @@ class ReplayBuffer(object):
                     # if the adjustment is lower than 0
                     if adjustment < 0:
                         first = first >> abs(adjustment)
-
-                    raw_bytes.append(first | (last >> max(adjustment,0)))
-                    if adjustment > 0:
-                        raw_bytes.append(last & (2**adjustment-1))
+                        raw_bytes.append(first | last)
+                    elif adjustment > 0:
+                        raw_bytes.append(last & adjustment_mask)
+                        raw_bytes.append(first | (last >> adjustment))
+                    else:
+                        raw_bytes.append(first | last)
 
                     bit_count = 0
 
                 if bit_count > 8: #We can do simple wrapping for middle bytes
-                    second = (next & lo_mask_inv) >> (8-old_bit_shift)
+                    second = (next & lo_mask_inv) >> old_bit_shift_inv
                     raw_bytes.append(first | second)
 
                     #To remain consistent, always shfit these bits into the hi_mask
@@ -530,7 +551,7 @@ def read_header(file):
 
     #Sanity check that the input is in fact an MPQ file
     if buffer.empty or buffer.read_hex(4).upper() != "4D50511B":
-        raise exceptions.FileError("File '%s' is not an MPQ file" % file.name)
+        raise FileError("File '%s' is not an MPQ file" % file.name)
 
     #Extract replay header data, we are unlikely to ever use most of this
     max_data_size = buffer.read_int(LITTLE_ENDIAN)
