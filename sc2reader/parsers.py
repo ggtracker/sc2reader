@@ -160,18 +160,16 @@ class ActionParser_16561(ActionParser):
                 return AbilityEvent(frames,pid,type,code,ability)
 
     def location_move(self, buffer, frames, type, code, pid, flag, atype):
-        h = buffer.read_hex(2)
-        hinge = buffer.read_byte()
-        if hinge & 0x20:
-            "\t%s - %s" % (hex(hinge),buffer.read_hex(9))
-        elif hinge & 0x40:
-            "\t%s - %s" % (hex(hinge),buffer.read_hex(18))
-        elif hinge < 0x10:
-            pass
+        ability = buffer.read_short()
+        ability = ability << 8 | buffer.read_byte()
+        if ability & 0x20:
+            buffer.read_hex(9)
+        elif ability & 0x40:
+            buffer.read_hex(18)
         else:
             pass
 
-        return UnknownLocationAbilityEvent(frames, pid, type, code, None)
+        return UnknownLocationAbilityEvent(frames, pid, type, code, ability)
 
     def right_click_target(self, buffer, frames, type, code, pid, flag, atype):
         # ability (2), object id (4), object type (2), ?? (10)
@@ -225,20 +223,19 @@ class ActionParser_18574(ActionParser_16561):
         raise ParseError()
 
 class ActionParser_19595(ActionParser_18574):
+
     def location_move(self, buffer, frames, type, code, pid, flag, atype):
-        h = buffer.read_hex(2)
-        hinge = buffer.read_byte()
-        if hinge & 0x20:
-            "\t%s - %s" % (hex(hinge),buffer.read_hex(9))
-        elif hinge & 0x40:
+        ability = buffer.read_short()
+        ability = ability << 8 | buffer.read_byte()
+        if ability & 0x20:
+            buffer.read_hex(9)
+        elif ability & 0x40:
             # extra byte
-            "\t%s - %s" % (hex(hinge),buffer.read_hex(19))
-        elif hinge < 0x10:
-            pass
+            buffer.read_hex(19)
         else:
             pass
 
-        return UnknownLocationAbilityEvent(frames, pid, type, code, None)
+        return UnknownLocationAbilityEvent(frames, pid, type, code, ability)
 
     def right_click_target(self, buffer, frames, type, code, pid, flag, atype):
         # ability (2), object id (4), object type (2), ?? (10)
