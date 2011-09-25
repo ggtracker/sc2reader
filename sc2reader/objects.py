@@ -285,7 +285,7 @@ class Event(object):
 
     def _str_prefix(self):
         player_name = self.player.name if self.is_local else "Global"
-        return "%d\t%-15s " % (self.frame, player_name)
+        return "%s\t%-15s " % (Length(seconds=int(self.frame/16)), player_name)
 
     def __str__(self):
         return self._str_prefix() + self.name
