@@ -42,13 +42,13 @@ def doFile(filename, arguments):
     if arguments.teams:
         races = list()
         for team in replay.teams:
-            races.append(''.join([player.chosen_race[0] for player in team.players]))
+            races.append(''.join([player.pick_race[0] for player in team.players]))
         print "   Teams:    {0}".format("v".join(races))
 
         for team in replay.teams:
-            print "      Team {0}\t{1} ({2})".format(team.number,team.players[0].name,team.players[0].chosen_race[0])
+            print "      Team {0}\t{1} ({2})".format(team.number,team.players[0].name,team.players[0].pick_race[0])
             for player in team.players[1:]:
-                print "              \t{0} ({1})".format(player.name,player.chosen_race[0])
+                print "              \t{0} ({1})".format(player.name,player.pick_race[0])
     if arguments.messages:
         print "   Messages:"
         for message in replay.messages:
