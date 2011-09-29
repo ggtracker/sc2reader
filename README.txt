@@ -48,7 +48,7 @@ See the sc2replay `wiki`_ for additional usage details (coming soon).
 Current Status
 ---------------
 
-sc2reader is written to parse replays where ``buidl >= 16561`` (generally
+sc2reader is written to parse replays where ``build >= 16561`` (generally
 version 1.1 replays). This means that the following information can be
 extracted:
 
@@ -69,7 +69,7 @@ Requirements
 ~~~~~~~~~~~~~
 
 - Python 2.6+, Python 3.0 untested
-- The `mpyq`_ MPQ exraction library
+- The `mpyq`_ MPQ extraction library
 - `pytest`_ testing library (optional)
 
 Basic Install

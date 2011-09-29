@@ -5,7 +5,7 @@
 
     A Starcraft II replay parsing library intended to promote innovation in
     Starcraft tools and communities. Eventually, it will cover all official
-    releases and dump easily to JSON for inter-language portabilty.
+    releases and dump easily to JSON for inter-language portability.
 
     sc2reader has been carefully written for clarity to serve as a starting
     point for those who want to write their own parsers, potentially in other
@@ -42,7 +42,7 @@ class Reader(object):
 
     def __init__(self, **user_options):
         """ The constructor makes a copy of the default_options to make sure the
-            option configuration doesn't propogate back to the default_options.
+            option configuration doesn't propagate back to the default_options.
             It should support any arbitrary number of different Reader objects.
         """
         self.options = config.default_options.copy()
@@ -181,7 +181,7 @@ class Reader(object):
         # Support file-like objects (with a read method)
         if hasattr(file_in, 'read') and hasattr(file_in, 'seek'):
 
-            # Base the options off a copy to leave the Reader options uneffected.
+            # Base the options off a copy to leave the Reader options unaffected.
             options = self.options.copy()
             options.update(user_options)
 
@@ -202,7 +202,7 @@ class Reader(object):
 
 """sc2reader uses a default SC2Reader class instance to provide a package level
 interface to its functionality. The package level interface presents the same
-functional interface, it just saves the hassel of creating the class object.
+functional interface, it just saves the hassle of creating the class object.
 """
 __defaultReader = Reader()
 

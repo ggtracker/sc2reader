@@ -262,7 +262,7 @@ class Unknown2Parser(object):
 
 class CameraParser(object):
     def parse_camera87_event(self, buffer, frames, type, code, pid):
-        #There are up to 3 peices to read depending on values encountered
+        #There are up to 3 pieces to read depending on values encountered
         for i in range(3):
             if buffer.read_int(BIG_ENDIAN) & 0xF0 == 0:
                 break
@@ -273,7 +273,7 @@ class CameraParser(object):
         # No idea why these two cases are ever so slightly different. There
         # must be a pattern in here somewhere that I haven't found yet.
         #
-        # TODO: Find out why we occassionally shift by 2 instead of 3
+        # TODO: Find out why we occasionally shift by 2 instead of 3
         if code == 0x88:
             flags = buffer.read_byte()
             extra = buffer.read_byte()

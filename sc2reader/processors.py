@@ -36,7 +36,7 @@ def Full(replay):
         replay.is_ladder = (replay.category == "Ladder")
         replay.is_private = (replay.category == "Private")
 
-    #If we don't atleast have details and attributes_events we can go no further
+    #If we don't at least have details and attributes_events we can go no further
     if not ('details' in replay.raw and 'attributes_events' in replay.raw):
         return replay
 
@@ -64,7 +64,7 @@ def Full(replay):
 
         # Create the player using the current pid and the player name from
         # The details file. This works because players are stored in order
-        # of pid intside of the details file. Attributes and Details must be
+        # of pid inside of the details file. Attributes and Details must be
         # processed together because Details doesn't index players by or
         # store their player ids; Attributes can provide that information
         # and allow for accurate pid mapping even with computers, observers,
@@ -126,7 +126,7 @@ def Full(replay):
     if 'initData' in replay.raw:
         # Assign the default region to computer players for consistency
         # We know there will be a default region because there must be
-        # atleast 1 human player or we wouldn't have a replay.
+        # at least 1 human player or we wouldn't have a replay.
         for player in replay.players:
             if player.type == 'Computer':
                 player.region = default_region
@@ -139,7 +139,7 @@ def Full(replay):
             replay.people.append(observer)
             replay.person[i+1] = observer
 
-    # Miscellenious people processing
+    # Miscellaneous people processing
     replay.humans = filter(lambda p: p.type == 'Human', replay.people)
 
     if 'message_events' in replay.raw:
@@ -258,7 +258,7 @@ def Full(replay):
 
                     # If there are any big teams left or more than one 1 person
                     # team left this is definitely either a loss or a really
-                    # akward tie between 3 or more people on 2 or more teams.
+                    # awkward tie between 3 or more people on 2 or more teams.
                     #
                     # Since I don't think ties can be detected, ignore that case
                     if len(pcount) > 2 or big_teams:
