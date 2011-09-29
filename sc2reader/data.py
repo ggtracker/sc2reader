@@ -951,7 +951,7 @@ class Broodling(GameObject, Unit, Zerg):
     code = 0xcf01
 class Changeling(GameObject, Unit, Zerg):
     code = 0x2601
-    # TODO insta-change beween them 
+    # TODO insta-change between them 
 class ChangelingZealot(GameObject):
     code = 0x2701
 class ChangelingMarine(GameObject):

@@ -14,7 +14,7 @@ LITTLE_ENDIAN,BIG_ENDIAN = '<','>'
 
 class ReplayBuffer(object):
     """ The ReplayBuffer is a wrapper over the cStringIO object and provides
-        convenience functions for reading structured data from Stacraft II
+        convenience functions for reading structured data from Starcraft II
         replay files. These convenience functions can be sorted into several
         different categories providing an interface as follows:
 
@@ -25,7 +25,7 @@ class ReplayBuffer(object):
             align(self)
             seek(self, position, mode=SEEK_CUR)
 
-        Data Retrival::
+        Data Retrieval::
             read_variable_int(self)
             read_string(self,additional)
             read_timestamp(self)
@@ -250,7 +250,7 @@ class ReplayBuffer(object):
         elif datatype == 0x09:
             return self.read_variable_int()
 
-        raise TypeError("Uknown Data Structure: '%s'" % datatype)
+        raise TypeError("Unknown Data Structure: '%s'" % datatype)
 
     def read_object_type(self, read_modifier=False):
         """ Object type is big-endian short16 """
@@ -313,7 +313,7 @@ class ReplayBuffer(object):
     def shift(self, bits):
         """
         The only valid use of Buffer.shift is when you know that there are
-        enough bits left in the loaded byte to accomodate your request.
+        enough bits left in the loaded byte to accommodate your request.
 
         If there is no loaded byte, or the loaded byte has been exhausted,
         then Buffer.shift(8) could technically be used to read a single
@@ -545,7 +545,7 @@ def read_header(file):
             http://wiki.devklog.net/index.php?title=The_MoPaQ_Archive_Format
 
         Return the release array and frame count for sc2reader use. For more
-        defailted header information, access mpyq directly.
+        detailed header information, access mpyq directly.
     '''
     buffer = ReplayBuffer(file)
 

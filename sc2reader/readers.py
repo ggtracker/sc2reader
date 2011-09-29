@@ -129,7 +129,7 @@ class DetailsReader(object):
         # we don't need to use data[0][0][1][3] to get the battle.net player id.
         # The field names are documented in the namedtuples section of the
         # objects file. The ordered_values function extracts the values while
-        # maintaining key order required for propper mapping
+        # maintaining key order required for proper mapping
         ordered_values = lambda dict: [v for k,v in sorted(dict.iteritems())]
 
         # Because named tuples are read only, we need to build them in pieces
@@ -241,7 +241,7 @@ class GameEventsBase(object):
 
             except ParseError:
                 # For some reason, the type handler that we delegated to didn't
-                # recognize the event code that we extracated.
+                # recognize the event code that we extracted.
                 # TODO: Do something meaningful here
                 raise ReadError("Unknown event code", type, code, start, replay, game_events, buffer)
 
@@ -258,9 +258,9 @@ class GameEventsBase(object):
     def get_setup_parser(self, code):
         # The setup events typically form a header of sorts to the file with
         # each player (in no particular order) registering a join event and
-        # the game starting immediately afterwords. On occassion, for unknown
+        # the game starting immediately afterwords. On occasion, for unknown
         # reasons, other events (particularly camera events) will register
-        # before the game has actually started. Wierd.
+        # before the game has actually started. Weird.
         if   code in (0x0B, 0x0C, 0x2C): return self.parse_join_event
         elif code in (0x05,): return self.parse_start_event
         else:

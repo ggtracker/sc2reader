@@ -269,7 +269,7 @@ class Event(object):
     name = 'BaseEvent'
     def apply(self): pass
 
-    """Abstract Event Type, should not be directly instanciated"""
+    """Abstract Event Type, should not be directly instantiated"""
     def __init__(self, timestamp, player_id, event_type, event_code):
         self.frame = timestamp
         self.second = timestamp >> 4
@@ -450,7 +450,7 @@ class AddToHotkeyEvent(HotkeyEvent):
             obj.visit(self.frame, self.player)
 
     def __str__(self):
-        return HotkeyEvent.__str__(self) + " - Add; Seletion: %s" % str(self.selected)
+        return HotkeyEvent.__str__(self) + " - Add; Selection: %s" % str(self.selected)
 
 class GetHotkeyEvent(HotkeyEvent):
     name = 'GetHotkeyEvent'
@@ -470,7 +470,7 @@ class GetHotkeyEvent(HotkeyEvent):
             obj.visit(self.frame, self.player)
 
     def __str__(self):
-        return HotkeyEvent.__str__(self) + " - Get; Seletion: %s" % str(self.selected)
+        return HotkeyEvent.__str__(self) + " - Get; Selection: %s" % str(self.selected)
 
 class SelectionEvent(Event):
     name = 'SelectionEvent'
