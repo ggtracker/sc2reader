@@ -1,2 +1,0 @@
-Debugging sc2reader
-======================
