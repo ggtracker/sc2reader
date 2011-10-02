@@ -1,23 +1,12 @@
 from __future__ import absolute_import
-from datetime import datetime
+
 import functools
-try:
-    import json
-except:
-    import simplejson as json
 
-class __JSONDateEncoder__(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, datetime):
-            return obj.strftime("%Y-%m-%d %H:%M:%S")
-        return json.JSONEncoder.default(self, obj)
-
-
-def jsonProcessor(replay):
+def toDict(replay):
     def __getattr(object, name, default):
         return getattr(object, name, default)
     _getattr = functools.partial(__getattr, default=None)
-    json_data = {
+    data = {
         'gateway': _getattr(replay, 'gateway'),
         'map': _getattr(replay, 'map'),
         'file_time': _getattr(replay, 'file_time'),
@@ -58,7 +47,7 @@ def jsonProcessor(replay):
                 'is_public': message.sent_to_all
             })
         players.append(p)
-    json_data['players'] = players
+    data['players'] = players
     observers = []
     for observer in replay.observers:
         observers.append({
@@ -66,6 +55,5 @@ def jsonProcessor(replay):
             'messages': _getattr(observer, 'messages', default=[]),
             'pid': _getattr(observer, 'pid'),
         })
-    json_data['observers'] = observers
-    encoded = json.dumps(json_data, cls=__JSONDateEncoder__)
-    return encoded
+    data['observers'] = observers
+    return data
