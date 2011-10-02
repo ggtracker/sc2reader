@@ -112,7 +112,7 @@ class Team(Base):
     def __init__(self, team, db):
         self.number = team.number
         self.result = team.result
-        self.players = [Player(plZAayer,db) for player in team.players]
+        self.players = [Player(player,db) for player in team.players]
         self.lineup = ''.join(sorted(player.play_race[0].upper() for player in self.players))
 
         try:
@@ -177,8 +177,10 @@ def main():
 
     db.commit()
 
-    for row in db.query(distinct(Person.name)).all():
-        print row
+    print list(db.query(distinct(Person.name)).all())
+
+    #for row in db.query(distinct(Person.name)).all():
+    #    print row
 
 
 def load_session(args):
