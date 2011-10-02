@@ -40,9 +40,8 @@ def toDict(replay):
             'messages': [],
         }
         for message in player.messages:
-            msg_time = '%s:%s' % ((message.time/16)/60, (message.time/16)%60)
             p['messages'].append({
-                'time': msg_time,
+                'time': message.time.seconds,
                 'text': message.text,
                 'is_public': message.sent_to_all
             })

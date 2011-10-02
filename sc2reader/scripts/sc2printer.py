@@ -52,9 +52,7 @@ def doFile(filename, arguments):
     if arguments.messages:
         print "   Messages:"
         for message in replay.messages:
-            minutes, seconds = ((message.time/16)/60,(message.time/16)%60)
-            player_name = message.sender.name
-            print "      %02i:%02i %s:\t%s" % (minutes, seconds, player_name, message.text)
+            print message
     if arguments.version:
         print "   Version:  {0}".format(replay.release_string)
 

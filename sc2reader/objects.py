@@ -175,15 +175,14 @@ class Ping(object):
 
 class Message(object):
 
-    def __init__(self, time, sender, target, text):
-        self.time,self.sender,self.target,self.text = time,sender,target,text
-        self.seconds = time/16
+    def __init__(self, framestamp, sender, target, text):
+        self.framestamp,self.sender,self.target,self.text = framestamp,sender,target,text
+        self.time = Length(seconds=self.framestamp/16)
         self.sent_to_all = (self.target == 0)
         self.sent_to_allies = (self.target == 2)
 
     def __str__(self):
-        time = ((self.time/16)/60, (self.time/16)%60)
-        return "%s - Player %s - %s" % (time, self.sender.pid, self.text)
+        return "{0:>8} - {1:<14} - {2}".format(self.time, self.sender.name, self.text)
 
     def __repr__(self):
         return str(self)
