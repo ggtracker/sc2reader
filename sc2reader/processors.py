@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-import datetime
+from datetime import datetime
 
 from collections import defaultdict
 
@@ -25,8 +25,8 @@ def Full(replay):
         replay.map = replay.raw.details.map
         replay.file_time = replay.raw.details.file_time
         replay.unix_timestamp = windows_to_unix(replay.file_time)
-        replay.date = datetime.datetime.fromtimestamp(replay.unix_timestamp)
-        replay.utc_date = datetime.datetime.utcfromtimestamp(replay.unix_timestamp)
+        replay.date = datetime.fromtimestamp(replay.unix_timestamp)
+        replay.utc_date = datetime.utcfromtimestamp(replay.unix_timestamp)
 
     if 'attributes_events' in replay.raw:
         # Organize the attribute data to be useful

@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
 from collections import defaultdict, namedtuple
-import datetime
 
 from sc2reader.constants import *
 from sc2reader.data import GameObject, ABILITIES
