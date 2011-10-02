@@ -1,7 +1,9 @@
-from .parsers import *
-from .objects import *
-from .utils import AttributeDict, LITTLE_ENDIAN
-from .exceptions import ParseError, ReadError
+from __future__ import absolute_import
+
+from sc2reader.exceptions import ParseError, ReadError
+from sc2reader.objects import *
+from sc2reader.parsers import *
+from sc2reader.utils import AttributeDict, LITTLE_ENDIAN
 
 class InitDataReader(object):
     def __call__(self,buffer, replay):

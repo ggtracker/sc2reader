@@ -16,8 +16,10 @@
     :copyright: (c) 2011 Graylin Kim
     :license: MIT, See LICENSE.txt for details
 """
+from __future__ import absolute_import
 
 __version__ = '0.3-dev'
+
 
 #System imports
 import os
@@ -26,11 +28,7 @@ import os
 import mpyq
 
 #Package imports
-import config
-import objects
-import utils
-import processors
-import exceptions
+from sc2reader import config, objects, utils, processors, exceptions
 
 
 class Reader(object):

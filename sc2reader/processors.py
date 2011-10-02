@@ -1,8 +1,13 @@
+from __future__ import absolute_import
+
+import datetime
+
 from collections import defaultdict
-from .objects import *
-from .utils import key_in_bases, windows_to_unix, Length
-from datetime import datetime
-from .constants import REGIONS
+
+from sc2reader.constants import REGIONS
+from sc2reader.objects import *
+from sc2reader.utils import windows_to_unix
+
 
 def Full(replay):
     # Populate replay with details
@@ -20,8 +25,8 @@ def Full(replay):
         replay.map = replay.raw.details.map
         replay.file_time = replay.raw.details.file_time
         replay.unix_timestamp = windows_to_unix(replay.file_time)
-        replay.date = datetime.fromtimestamp(replay.unix_timestamp)
-        replay.utc_date = datetime.utcfromtimestamp(replay.unix_timestamp)
+        replay.date = datetime.datetime.fromtimestamp(replay.unix_timestamp)
+        replay.utc_date = datetime.datetime.utcfromtimestamp(replay.unix_timestamp)
 
     if 'attributes_events' in replay.raw:
         # Organize the attribute data to be useful

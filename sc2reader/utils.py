@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import argparse
 import cStringIO
 import fnmatch
@@ -8,7 +10,7 @@ import textwrap
 
 from itertools import groupby
 
-from .exceptions import FileError
+from sc2reader.exceptions import FileError
 
 LITTLE_ENDIAN,BIG_ENDIAN = '<','>'
 

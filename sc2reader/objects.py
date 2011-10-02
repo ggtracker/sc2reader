@@ -1,13 +1,11 @@
-from constants import LOCALIZED_RACES
-from collections import defaultdict
+from __future__ import absolute_import
 
+from collections import defaultdict, namedtuple
 import datetime
 
-from .constants import *
-from .data import GameObject, ABILITIES
-from .utils import PersonDict, Selection, read_header, AttributeDict, Length
-
-from collections import namedtuple
+from sc2reader.constants import *
+from sc2reader.data import GameObject, ABILITIES
+from sc2reader.utils import PersonDict, Selection, read_header, AttributeDict, Length
 
 Location = namedtuple('Location',('x','y'))
 Details = namedtuple('Details',['players','map','unknown1','unknown2','unknown3','file_time','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10','unknown11'])
