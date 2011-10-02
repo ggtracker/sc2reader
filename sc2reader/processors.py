@@ -4,8 +4,8 @@ from datetime import datetime
 
 from collections import defaultdict
 
-from sc2reader.constants import REGIONS
-from sc2reader.objects import *
+from sc2reader.constants import REGIONS, LOCALIZED_RACES
+from sc2reader.objects import Player, Message, Color, Observer, Team, Packet
 from sc2reader.utils import windows_to_unix
 
 
