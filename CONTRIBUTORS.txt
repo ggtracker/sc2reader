@@ -1,9 +1,10 @@
 Author and Maintainer:
-	Graylin Kim - graylinkim @ github
+    Graylin Kim - graylinkim @ github
 
 Contributors:
-	Alexander Hanhikoski - alexhanh @ github
-	Bas Peschier (fizzgig) - bpeschier @ github
-	Jason Dana - sheutka @ github
-	Cameron Zemek (grom) - grom358 @ github
-	Mike Anderson
+    Alexander Hanhikoski - alexhanh @ github
+    Bas Peschier (fizzgig) - bpeschier @ github
+    Jason Dana - sheutka @ github
+    Cameron Zemek (grom) - grom358 @ github
+    Fabien Reboia (srounet) - srounet @ github
+    Mike Anderson
