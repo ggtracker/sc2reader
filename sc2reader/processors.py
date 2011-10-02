@@ -11,9 +11,6 @@ from sc2reader.utils import windows_to_unix
 
 def Full(replay):
     # Populate replay with details
-    # TODO: Test this with different levels of file read.
-    # TODO: Change config.py to work with this
-    # TODO: remove legacy code, restructure config.py: just one processor now
     if 'initData' in replay.raw and replay.raw.initData.map_data:
         replay.gateway = replay.raw.initData.map_data[0].gateway
 
