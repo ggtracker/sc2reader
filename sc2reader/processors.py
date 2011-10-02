@@ -154,6 +154,9 @@ def Full(replay):
         for time, pid, flags, target, text in replay.raw.message_events.messages:
             message = Message(time, replay.person[pid], target, text)
             replay.messages.append(message)
+            for player in replay.players:
+                if player.pid == pid:
+                    player.messages.append(message)
 
         # Figure out recorder
         packet_senders = map(lambda p: p.player, replay.packets)
