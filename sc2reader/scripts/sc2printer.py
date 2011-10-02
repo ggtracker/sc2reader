@@ -52,7 +52,7 @@ def doFile(filename, arguments):
     if arguments.messages:
         print "   Messages:"
         for message in replay.messages:
-            print message
+            print "   {0}".format(message)
     if arguments.version:
         print "   Version:  {0}".format(replay.release_string)
 
