@@ -94,9 +94,9 @@ DIFFICULTY_CODES = {
 }
 GAME_TYPE_CODES = {
     'virP': 'Private',
-    'buP': 'Public',
-    'mmA': 'Ladder',
-    '': 'Single Player',
+    'buP':  'Public',
+    'mmA':  'Ladder',
+    '':     'Single',
 }
 # (name, key for team ids)
 GAME_FORMAT_CODES = {
