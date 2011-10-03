@@ -178,8 +178,8 @@ class Message(object):
     def __init__(self, framestamp, sender, target, text):
         self.framestamp,self.sender,self.target,self.text = framestamp,sender,target,text
         self.time = Length(seconds=self.framestamp/16)
-        self.sent_to_all = (self.target == 0)
-        self.sent_to_allies = (self.target == 2)
+        self.to_all = (self.target == 0)
+        self.to_allies = (self.target == 2)
 
     def __str__(self):
         return "{0:>8} - {1:<14} - {2}".format(self.time, self.sender.name, self.text)
