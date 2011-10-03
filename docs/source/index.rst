@@ -2,10 +2,23 @@
    sphinx-quickstart on Sun May 01 12:39:48 2011.
 
 
-sc2reader Official Documentation
+sc2reader Documentation
 =====================================
 
-Stuff in here...
+sc2reader is a library for extracting game information from Starcraft II
+replay files into a structured replay object. sc2reader aims to give anyone
+and everyone the power to construct their own tools and hack on their own
+Starcraft II projects under the open MIT license.
+
+This document is a work in progress and an attempt to document the use and
+configuration of sc2reader as well as the data that it makes available. I'll
+try to keep it up to date and fill out some of the missing sections as time
+goes on. While this document will hopefully give you an idea how sc2reader works
+there is no substitute for reading the source code. If you plan on seriously
+using the library please feel welcome to ask questions in #sc2reader on FreeNode
+(IRC) or on the `mailing list`_. I'd be happy to help you out.
+
+.. _mailing list: http://groups.google.com/group/sc2reader
 
 Use and Configuration
 =======================
@@ -70,7 +83,7 @@ replay parser and processor. This can be used to effect scanning of the file
 tree, the output and logging destination, and the fullness of the parsing. In
 the example above, we have restricted the file set to a partial parse and
 excluded the replay.game.events file from the parsing process. While sc2reader
-doesn't support custom games, by restricting the fileset it can successfully
+doesn't support custom games, by restricting the file set it can successfully
 read custom games to get non-event related information including summary game
 information as well as a general profile of the players.
 
@@ -125,54 +138,76 @@ Options
 
     Its primary purpose is to allow developers to push post processing back
     into the sc2reader module. It can also be used as a final gateway for
-    transforming the replay datastructure into something more useful for your
+    transforming the replay data structure into something more useful for your
     purposes. Eventually sc2reader will come with a small contrib module with
     useful post-processing tasks out of the box.
 
 .. attribute:: debug
 
-    pass
+    *Default: False*
+
+    When enabled this will make more information available for debugging. Right
+    now all this does is tack a ``bytes`` attribute onto all the parsed events
+    so that their byte code can be inspected post replay parsing.
 
 .. attribute:: verbose
 
     *Default: False*
 
-    The verbose option can be used to get a detailed readout of the replay
-    parsing progress. **Experimental option**
-
-.. attribute:: parse_events
-
-    pass
-
-.. attribute:: include_regex
-
-    pass
-
-.. attribute:: exclude_dirs
-
-    pass
+    The verbose option can be used to get a more detailed readout of the replay
+    parsing progress. Currently this will only print the file name being parsed
+    during read_ calls and not much else.
 
 .. attribute:: recursive
 
-    pass
+    *Default: True*
+
+    When scanning for files, do so recursively.
 
 .. attribute:: depth
 
-    pass
+    *Default: -1*
+
+    When scanning for files recursively, limit the depth of recursion. The default,
+    -1, puts no limit on the recursion.
+
+.. attribute:: exclude_dirs
+
+    *Default: []*
+
+    A list of directory names to exclude if they are encountered during a
+    recursive scan.
 
 .. attribute:: follow_symlinks
 
-    pass
+    *Default: True*
+
+    When scanning for files with the read_ function this flag instructs sc2reader
+    to follow symlinks.
 
 .. attribute:: parse
 
     *Default: sc2reader.config.files.all*
 
-    TODO: Fill this in
+    Indicates which files should be parsed out of the replay (all replays are
+    actually archives; like a zip file). While by default we parse all parsable
+    files you might have need to parse only a subset of them because you either
+    have a need for speed (the replay.game.events file takes a long time) or
+    because you are dealing with custom maps where the replay.game.events file
+    cannot be parsed.
+
+    The most common alternate value to use is ``sc2reader.config.files.partial``
+    which excludes the replay.game.events file from the processing. Other built
+    in options are available and, if you wish, you can supply your own list.
 
 .. attribute:: apply
 
-    pass
+    *Default: False*
+
+    A flag for whether or not sc2reader should attempt to step through the game
+    events and reconstruct the game frame by frame. Applying the events is a
+    work in progress and is slow so the functionality is turned off for now. You
+    can turn it on with this flag if you are interested.
 
 
 Structures
@@ -188,6 +223,13 @@ replay. Depending on the level of parsing performed, different attributes
 here will have values. They will always be set.
 
 
+.. attribute:: raw
+
+    An AttributeDict mapping replay file name to a fairly raw form that has
+    been extracted. If you want to do your own processing or want to inspect
+    how and/or what sc2reader was able to parse out of those files this is
+    where you should look. Not particularly useful unless you think there is
+    a problem with the file parsing.
 
 .. attribute:: release_str
 
@@ -299,7 +341,7 @@ here will have values. They will always be set.
 .. attribute:: recorder
 
     A Person_ object representing the person that recorded the game. Packets
-    are currently used to determine the recording player (who won't recieve
+    are currently used to determine the recording player (who won't receive
     packets from themselves).
 
 .. attribute:: events
@@ -387,7 +429,7 @@ Player
 
 .. attribute:: avg_apm
 
-    The average of all the avlues in the APM dict up until the point that
+    The average of all the values in the APM dict up until the point that
     the player has died.
 
 .. attribute:: result
@@ -405,7 +447,7 @@ Player
 
 .. attribute:: pick_race
 
-    The race choosen at the beginning of the game. This includes Random.
+    The race chosen at the beginning of the game. This includes Random.
 
 .. attribute:: play_race
 
@@ -494,6 +536,110 @@ Packet
 ------------------
 
 Packets are not yet documented
+
+
+
+Processors
+=================
+
+jsonEncode
+---------------
+
+    The jsonEncode processor can be used to return a encoded json string instead
+    of a replay object. This shortcut processor might be useful for web apps or
+    interprocess communication perhaps.
+
+    ::
+
+        >>> import sc2reader;
+        >>> from sc2reader.processors import jsonEncode
+        >>> print sc2reader.read_file('test_replays/1.4.0.19679/36663.SC2Replay', processors=[jsonEncode])
+
+    The processor also comes in a slightly different class based flavor which
+    allows you to configure the encoding process by basically piping your options
+    through to python's ``json.dumps`` standard library function.
+
+    ::
+
+        >>> import sc2reader;
+        >>> from sc2reader.processors import jsonEncoder
+        >>> print sc2reader.read_file(
+        ...     'test_replays/1.4.0.19679/36663.SC2Replay',
+        ...     processors=[jsonEncoder(indent=4)]
+        ... )
+        {
+            "category": "Ladder",
+            "map": "Xel'Naga Caverns",
+            "players": [
+                {
+                    "uid": 934659,
+                    "play_race": "Terran",
+                    "color": {
+                        "a": 255,
+                        "r": 180,
+                        "b": 30,
+                        "g": 20
+                    },
+                    "pick_race": "Terran",
+                    "pid": 1,
+                    "result": "Win",
+                    "name": "MaNNErCHOMP",
+                    "url": "http://us.battle.net/sc2/en/profile/934659/1/MaNNErCHOMP/",
+                    "messages": [
+                        {
+                            "text": "lol",
+                            "is_public": true,
+                            "time": 9
+                        },
+                        {
+                            "text": "sup bra",
+                            "is_public": true,
+                            "time": 23
+                        },
+                        {
+                            "text": ":(",
+                            "is_public": true,
+                            "time": 48
+                        }
+                    ],
+                    "type": "Human",
+                    "avg_apm": 148.13353566009107
+                },
+                {
+                {
+                    "uid": 493391,
+                    "play_race": "Protoss",
+                    "color": {
+                        "a": 255,
+                        "r": 0,
+                        "b": 255,
+                        "g": 66
+                    },
+                    "pick_race": "Protoss",
+                    "pid": 2,
+                    "result": "Loss",
+                    "name": "vVvHasuu",
+                    "url": "http://us.battle.net/sc2/en/profile/493391/1/vVvHasuu/",
+                    "messages": [],
+                    "type": "Human",
+                    "avg_apm": 143.52583586626139
+                }
+            ],
+            "type": "1v1",
+            "is_ladder": true,
+            "utc_date": "2011-09-21 06:49:47",
+            "file_time": 129610613871027307,
+            "observers": [],
+            "frames": 10552,
+            "build": 19679,
+            "date": "2011-09-21 02:49:47",
+            "unix_timestamp": 1316587787,
+            "filename": "test_replays/1.4.0.19679/36663.SC2Replay",
+            "speed": "Faster",
+            "gateway": "us",
+            "is_private": false,
+            "release": "1.4.0.19679"
+        }
 
 
 
