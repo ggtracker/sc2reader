@@ -23,6 +23,7 @@ def toDict(replay):
         'frames': _getattr(replay, 'frames'),
         'build': _getattr(replay, 'build'),
         'release': _getattr(replay, 'release_string'),
+        'length': _getattr(replay, 'length').seconds,
     }
     players = []
     for player in replay.players:
@@ -43,7 +44,7 @@ def toDict(replay):
             p['messages'].append({
                 'time': message.time.seconds,
                 'text': message.text,
-                'is_public': message.sent_to_all
+                'is_public': message.to_all
             })
         players.append(p)
     data['players'] = players
