@@ -34,5 +34,5 @@ setuptools.setup(
         ]
     },
 	install_requires=['mpyq','argparse'] if float(sys.version[:3]) < 2.7 else ['mpyq'],
-	packages=['sc2reader', 'sc2reader.scripts'],
+	packages=['sc2reader', 'sc2reader.scripts', 'sc2reader.processors'],
 )
