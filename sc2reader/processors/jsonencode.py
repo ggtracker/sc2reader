@@ -27,4 +27,4 @@ class jsonEncoder(object):
 
 
 def jsonEncode(replay):
-    return jsonEncoder().__calll__(replay)
+    return jsonEncoder().__call__(replay)
