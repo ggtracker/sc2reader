@@ -2,7 +2,7 @@ import setuptools, sys
 
 setuptools.setup(
 	name="sc2reader",
-	version="0.3.0",
+	version="0.3.1",
 	license="MIT",
 	
 	author="Graylin Kim",
