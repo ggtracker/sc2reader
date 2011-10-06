@@ -84,7 +84,7 @@ class Reader(object):
         for location in files:
             if options.verbose: print "Reading: %s" % location
 
-            with open(location) as replay_file:
+            with open(location, 'rb') as replay_file:
                 replays.append(self.make_replay(replay_file, **options))
 
         return replays
