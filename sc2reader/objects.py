@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from collections import defaultdict, namedtuple
 
 from sc2reader.constants import *
-from sc2reader.data import Object as DataObject
+from sc2reader.data import DataObject
 from sc2reader.utils import PersonDict, Selection, read_header, AttributeDict, Length
 
 Location = namedtuple('Location',('x','y'))
@@ -322,15 +322,19 @@ class AbilityEvent(Event):
 
     def apply(self, data):
         self.data = data
-        '''
+        
         if self.ability:
-            if self.ability not in ABILITIES:
+            if self.ability not in self.data.abilities:
                 pass
                 # print "Unknown ability (%s) in frame %s" % (hex(self.ability),self.frame)
                 #raise ValueError("Unknown ability (%s)" % (hex(self.ability)),)
             else:
-                ability = ABILITIES[self.ability]
-                able = self.get_able_selection(ability)
+                if not self.get_able_selection(self.ability):
+                    for unit in self.player.get_selection().current:
+                        print unit, unit.abilities
+                    print hex(self.ability)
+                    raise ValueError("Using invalid abilitiy matchup.")
+        '''
                 if able:
                     object = able[0]
                     ability = getattr(object, ability)
@@ -342,13 +346,14 @@ class AbilityEvent(Event):
         '''
 
     def get_able_selection(self, ability):
-        return [obj for obj in self.player.get_selection().current if hasattr(obj, ability)]
+        return [obj for obj in self.player.get_selection().current if (ability in obj.abilities)]
 
     def __str__(self):
         if not self.ability:
             return self._str_prefix() + "Move"
-        ability_name = self.data.ability(self.ability) if self.ability in self.data.abilities else "UNKNOWN"
-        return self._str_prefix() + "Ability (%s) - %s" % (hex(self.ability), ability_name)
+        else:
+            ability_name = self.data.ability(self.ability) if self.ability in self.data.abilities else "UNKNOWN"
+            return self._str_prefix() + "Ability (%s) - %s" % (hex(self.ability), ability_name)
 
 class TargetAbilityEvent(AbilityEvent):
     name = 'TargetAbilityEvent'

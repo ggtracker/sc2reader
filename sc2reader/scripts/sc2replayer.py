@@ -66,6 +66,8 @@ def main():
     # Loop through the events
     data = sc2reader.config.build_data[replay.build]
     for event in events:
+        event.apply(data)
+        
         # Use their options to filter the event stream
         if isinstance(event,AbilityEvent) or\
                    isinstance(event,SelectionEvent) or\
@@ -75,7 +77,6 @@ def main():
                    (args.hotkeys and isinstance(event,HotkeyEvent)) or\
                    (args.cameras and isinstance(event,CameraEvent)):
 
-            event.apply(data)
             print event
             if args.bytes:
                 print "\t"+event.bytes.encode('hex')

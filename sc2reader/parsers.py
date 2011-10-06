@@ -132,7 +132,7 @@ class ActionParser_16561(ActionParser):
             raise ParseError("Hotkey Action '{0}' unknown")
 
     def command_card(self, buffer, frames, type, code, pid, flag, atype):
-        ability = buffer.read_short()
+        ability = buffer.read_short(endian=BIG_ENDIAN)
 
         if flag in (0x29, 0x19, 0x14, 0x0c): # cancels
             # creation autoid number / object id
@@ -165,7 +165,7 @@ class ActionParser_16561(ActionParser):
                 return AbilityEvent(frames,pid,type,code,ability)
 
     def location_move(self, buffer, frames, type, code, pid, flag, atype):
-        ability = buffer.read_short()
+        ability = buffer.read_short(endian=BIG_ENDIAN)
         ability = ability << 8 | buffer.read_byte()
         if ability & 0x20:
             buffer.read_hex(9)
@@ -178,7 +178,7 @@ class ActionParser_16561(ActionParser):
 
     def right_click_target(self, buffer, frames, type, code, pid, flag, atype):
         # ability (2), object id (4), object type (2), ?? (10)
-        ability = buffer.read_short()
+        ability = buffer.read_short(endian=BIG_ENDIAN)
         obj_id = buffer.read_object_id()
         obj_type = buffer.read_object_type()
         target = (obj_id, obj_type,)
@@ -230,7 +230,7 @@ class ActionParser_18574(ActionParser_16561):
 class ActionParser_19595(ActionParser_18574):
 
     def location_move(self, buffer, frames, type, code, pid, flag, atype):
-        ability = buffer.read_short()
+        ability = buffer.read_short(endian=BIG_ENDIAN)
         ability = ability << 8 | buffer.read_byte()
         if ability & 0x20:
             buffer.read_hex(9)
@@ -244,7 +244,7 @@ class ActionParser_19595(ActionParser_18574):
 
     def right_click_target(self, buffer, frames, type, code, pid, flag, atype):
         # ability (2), object id (4), object type (2), ?? (10)
-        ability = buffer.read_short()
+        ability = buffer.read_short(endian=BIG_ENDIAN)
         obj_id = buffer.read_object_id()
         obj_type = buffer.read_object_type()
         target = (obj_id, obj_type,)

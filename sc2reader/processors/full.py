@@ -104,7 +104,7 @@ def Full(replay):
         # We need initData for the gateway which is required to build the url!
         if 'initData' in replay.raw and replay.gateway:
             player.gateway = replay.gateway
-            if player.type == 'Human':
+            if player.type == 'Human' and player.subregion:
                 player.region = REGIONS[replay.gateway][player.subregion]
                 default_region = player.region
 
