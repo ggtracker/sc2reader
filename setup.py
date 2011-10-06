@@ -1,8 +1,9 @@
 import setuptools, sys
+from sc2reader import __version__ as version
 
 setuptools.setup(
 	name="sc2reader",
-	version="0.3.1",
+	version=version,
 	license="MIT",
 	
 	author="Graylin Kim",
