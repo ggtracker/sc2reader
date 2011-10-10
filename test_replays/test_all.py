@@ -77,7 +77,7 @@ def test_standard_1v1():
     assert replay.messages[11].sender.name == "Boom"
 
     for msg in replay.messages:
-        assert msg.sent_to_all == True
+        assert msg.to_all == True
 
 def test_private_category():
     replay = sc2reader.read_file("test_replays/1.2.2.17811/2.SC2Replay")
