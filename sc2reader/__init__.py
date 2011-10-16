@@ -117,6 +117,7 @@ class Reader(object):
 
         # These files are configured for either full or partial parsing
         for file in options.files:
+            reference_name = '_'.join(file.split('.')[1:])
 
             # To wrap mpyq exceptions we have to do this try hack.
             try:
@@ -135,6 +136,11 @@ class Reader(object):
             except KeyboardInterrupt: raise
             except:
                 raise exceptions.MPQError("Unable to extract file: {0}".format(file))
+
+            #It is possible that the file doesnt exist,  e.g.
+            #   Single Player vs AI games with no chat events
+            if not filedata:
+                continue
 
             # For each file, we build a smart buffer object from the
             # utf-8 encoded bitstream that mpyq extracts.
@@ -156,7 +162,6 @@ class Reader(object):
             # use in post processing because correct interpretation of
             # the information often requires data from other files.
             reader = config.readers[replay.build][file]
-            reference_name = '_'.join(file.split('.')[1:])
             replay.raw[reference_name] = reader(buffer, replay)
 
         # Now that the replay has been loaded with the "raw" data from
