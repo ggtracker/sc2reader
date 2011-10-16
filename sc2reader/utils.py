@@ -392,8 +392,8 @@ class ReplayBuffer(object):
                         first = first >> abs(adjustment)
                         raw_bytes.append(first | last)
                     elif adjustment > 0:
-                        raw_bytes.append(last & adjustment_mask)
-                        raw_bytes.append(first | (last >> adjustment))
+                        raw_bytes.append(first | (last & lo_mask))
+                        raw_bytes.append(last >> old_bit_shift)
                     else:
                         raw_bytes.append(first | last)
 
