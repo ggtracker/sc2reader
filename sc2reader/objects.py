@@ -390,10 +390,10 @@ class TargetAbilityEvent(AbilityEvent):
     def __str__(self):
         if self.target:
             if isinstance(self.target, DataObject):
-                target = "{0} [{1}]".format(self.target.name, self.target.id)
+                target = "{0} [{1:0>8X}]".format(self.target.name, self.target.id)
             else:
                 if self.target[1] in self.data.types:
-                    target = "{0} [{1}]".format(self.data.types[self.target[1]].name,self.target[0])
+                    target = "{0} [{1:0>8X}]".format(self.data.types[self.target[1]].name,self.target[0])
                 else:
                     target = "UNKNOWN {0}".format(hex(self.target[1]))
 
@@ -443,7 +443,7 @@ class SetToHotkeyEvent(HotkeyEvent):
             obj.visit(self.frame, self.player)
 
     def __str__(self):
-        return HotkeyEvent.__str__(self) + " - Set; Selection: %s" % str(self.selected)
+        return HotkeyEvent.__str__(self) + " - Set; Selection: %s" % ', '.join(str(o) for o in self.selected)
 
 class AddToHotkeyEvent(HotkeyEvent):
     name = 'AddToHotkeyEvent'
@@ -466,7 +466,7 @@ class AddToHotkeyEvent(HotkeyEvent):
             obj.visit(self.frame, self.player)
 
     def __str__(self):
-        return HotkeyEvent.__str__(self) + " - Add; Selection: %s" % str(self.selected)
+        return HotkeyEvent.__str__(self) + " - Add; Selection: %s" % ', '.join(str(o) for o in self.selected)
 
 class GetHotkeyEvent(HotkeyEvent):
     name = 'GetHotkeyEvent'
@@ -487,7 +487,7 @@ class GetHotkeyEvent(HotkeyEvent):
             obj.visit(self.frame, self.player)
 
     def __str__(self):
-        return HotkeyEvent.__str__(self) + " - Get; Selection: %s" % str(self.selected)
+        return HotkeyEvent.__str__(self) + " - Get; Selection: %s" % ', '.join(str(o) for o in self.selected)
 
 class SelectionEvent(Event):
     name = 'SelectionEvent'
