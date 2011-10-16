@@ -276,6 +276,7 @@ class GameEventsBase(object):
         elif code & 0x0F == 0xC: return self.parse_selection_event
         elif code & 0x0F == 0xD: return self.parse_hotkey_event
         elif code & 0x0F == 0xF: return self.parse_transfer_event
+        elif code & 0x0F == 0x6: return self.parse_game_save_event
         else:
             raise ParseError("Unknown Action Parser Code {0}".format(code))
 

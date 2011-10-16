@@ -76,6 +76,9 @@ class ActionParser(object):
 
 class ActionParser_16561(ActionParser):
 
+    def parse_game_save_event(self, buffer, frames, type, code, pid):
+        raise ParseError("Unparsable game save event found.");
+
     def parse_overlay(self, buffer, mode):
         if mode == 0x01: # deselect overlay mask
             mask = buffer.read_bitmask()

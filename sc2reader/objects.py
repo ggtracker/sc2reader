@@ -506,4 +506,11 @@ class SelectionEvent(Event):
         self.selected = selected
 
     def __str__(self):
-        return self._str_prefix() + "Selection: " + str(self.selected)
+        return self._str_prefix() + "Selection: " + ', '.join(str(o) for o in self.selected)
+
+class GameSaveEvent(Event):
+    name = 'GameSaveEvent'
+
+    def __init__(self, framestamp, player,type, code, data):
+        super(SelectionEvent, self).__init__(framestamp, player, type, code)
+        self.event_data = data
