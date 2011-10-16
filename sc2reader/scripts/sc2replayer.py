@@ -50,39 +50,51 @@ def get_args():
 
 def main():
     args = get_args()
-    replay = sc2reader.read_file(args.FILE,debug=True)
-    print "Release {0}".format(replay.release_string)
-    print "{0} on {1}".format(replay.type,replay.map)
-    for player in replay.players:
-        print player
-    print "\n--------------------------\n\n"
+    for filename in sc2reader.utils.get_files(args.FILE):
+        replay = sc2reader.read_file(filename,debug=True)
+        print "Release {0}".format(replay.release_string)
+        print "{0} on {1}".format(replay.type,replay.map)
+        for player in replay.players:
+            print player
+        print "\n--------------------------\n\n"
 
-    # Allow picking of the player to 'watch'
-    if args.player:
-        events = replay.player[args.player].events
-    else:
-        events = replay.events
+        # Allow picking of the player to 'watch'
+        if args.player:
+            events = replay.player[args.player].events
+        else:
+            events = replay.events
 
-    # Loop through the events
-    data = sc2reader.config.build_data[replay.build]
-    for event in events:
-        event.apply(data)
-        
-        # Use their options to filter the event stream
-        if isinstance(event,AbilityEvent) or\
-                   isinstance(event,SelectionEvent) or\
-                   isinstance(event,PlayerJoinEvent) or\
-                   isinstance(event, PlayerLeaveEvent) or\
-                   isinstance(event,GameStartEvent) or\
-                   (args.hotkeys and isinstance(event,HotkeyEvent)) or\
-                   (args.cameras and isinstance(event,CameraEvent)):
+        # Loop through the events
+        data = sc2reader.config.build_data[replay.build]
+        for event in events:
+            try:
+                event.apply(data)
+            except ValueError as e:
+                if str(e) == "Using invalid abilitiy matchup.":
+                    myGetch()
+                else:
+                    raise e
 
-            print event
-            if args.bytes:
-                print "\t"+event.bytes.encode('hex')
-                
-            if re.search('UNKNOWN|ERROR', str(event)):
-                myGetch()
+            # Use their options to filter the event stream
+
+            if isinstance(event,AbilityEvent) or\
+                       isinstance(event,SelectionEvent) or\
+                       isinstance(event,PlayerJoinEvent) or\
+                       isinstance(event, PlayerLeaveEvent) or\
+                       isinstance(event,GameStartEvent) or\
+                       (args.hotkeys and isinstance(event,HotkeyEvent)) or\
+                       (args.cameras and isinstance(event,CameraEvent)):
+                '''
+                if isinstance(event, SelectionEvent) or isinstance(event, HotkeyEvent):
+                '''
+                print event
+                #myGetch()
+                if args.bytes:
+                    print "\t"+event.bytes.encode('hex')
+
+                if re.search('UNKNOWN|ERROR', str(event)):
+                    myGetch()
+
 
 
 if __name__ == '__main__':
