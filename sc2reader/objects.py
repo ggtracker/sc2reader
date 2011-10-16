@@ -364,29 +364,27 @@ class TargetAbilityEvent(AbilityEvent):
     def apply(self, data):
         self.data = data
         obj_id, obj_type = self.target
-        if not obj_id:
-            # fog of war
-            pass
-        else:
+
+        try:
             obj_type = obj_type << 8 | 0x01
-            try:
-                type_class = self.data.types[obj_type]
-                # Could this be hallucinated?
-                create_obj = not ((obj_type & 0xfffffc | 0x2) in self.data.types)
+            type_class = self.data.types[obj_type]
 
-                obj = None
-                if (obj_id, obj_type) in self.player.replay.objects:
-                    obj = self.player.replay.objects[(obj_id, obj_type)]
-                elif create_obj:
-                    obj = type_class(obj_id, self.frame)
-                    self.player.replay.objects[(obj_id, obj_type)] = obj
+            obj = None
+            if (obj_id, obj_type) in self.player.replay.objects:
+                obj = self.player.replay.objects[(obj_id, obj_type)]
 
-                if obj:
-                    obj.visit(self.frame, self.player, type_class)
+            elif obj_id:
+                obj = type_class(obj_id, self.frame)
+                self.player.replay.objects[(obj_id, obj_type)] = obj
+
+            if obj:
+                obj.visit(self.frame, self.player, type_class)
                 self.target = obj
-            except KeyError:
-                # print "Unknown object type (%s) at frame %s" % (hex(obj_type),self.frame)
-                pass
+            else:
+                self.target = (obj_id, obj_type)
+        except KeyError:
+            # print "Unknown object type (%s) at frame %s" % (hex(obj_type),self.frame)
+            pass
         super(TargetAbilityEvent, self).apply(data)
 
     def __str__(self):
