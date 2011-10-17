@@ -577,7 +577,7 @@ class BaseData(object):
     class VespeneGeyser1(VespeneGeyser):
         code = 0x00f9
 
-    class MineralField5(MineralField):
+    class MineralField1(MineralField):
         code = 0xf101
 
     class VespeneGeyser2(VespeneGeyser):
