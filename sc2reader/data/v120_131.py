@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from sc2reader.data.base import *
 from sc2reader.data.utils import *
 
+#Hell, this might even cover 1.3.2 as well. Definitely not 1.3.3 though.
 class Data_120_131(BaseData):
 
     class DataObject(DataObject):
@@ -195,6 +196,11 @@ class Data_120_131(BaseData):
             0x021500: 'Arm silo with Nuke',
             0x021900: 'Personal Cloaking',
             0x021901: 'Moebius Reactor',
+        }
+
+    class FusionCore(TerranBuilding, Research):
+        abilities = {
+            0x031c00: 'Research Yamato Cannon', #Good guess???
         }
 
     @Transports(0x020001, None, 0x020033, 0x20020)
@@ -507,6 +513,7 @@ class Data_120_131(BaseData):
     @Burrows(0x023600, 0x023700)
     class Drone(Worker):
         abilities = {
+            0x022920: 'Gather Resources (Zerg)',
             0x022901: 'Return cargo',
             0x023600: 'Burrow',
             0x022810: 'Hatchery',
