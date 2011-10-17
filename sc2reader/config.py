@@ -95,5 +95,12 @@ readers.add_range(19595, None, {
     })
 
 build_data = RangeMap()
+
+#Use the only data dict we've got for now
 build_data.add_range(0, None, data.Data_120_131)
-#build_data.add_range(19595, None, data.Data_19595)
+
+#Uncommenting all of these would make them use the correct data dicts
+#build_data.add_range(16561, 17326, data.Data_110_112)
+#build_data.add_range(17326, 18317, data.Data_120_131)
+#build_data.add_range(18317, 19595, data.Data_132_136)
+#build_data.add_range(19595, None, data.Data_140_)
