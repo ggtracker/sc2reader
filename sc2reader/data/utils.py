@@ -41,7 +41,7 @@ def pull_abilities(cls):
                 if code in cls.abilities:
                     if name != cls.abilities[code]:
                         msg = "Ability codes shouldn't duplicate: {0:X} => {1}, {2}!"
-                        raise KeyError(msg.format(code, name, cls.abilities[code]))
+                        #raise KeyError(msg.format(code, name, cls.abilities[code]))
                     else:
                         pass #it is okay
                 else:
