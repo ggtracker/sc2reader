@@ -1,15 +1,14 @@
 import setuptools, sys
-from sc2reader import __version__ as version
 
 setuptools.setup(
 	name="sc2reader",
-	version=version,
+	version='0.3.3',
 	license="MIT",
-	
+
 	author="Graylin Kim",
 	author_email="graylin.kim@gmail.com",
 	url="https://github.com/GraylinKim/sc2reader",
-	
+
 	description="Utility for parsing Starcraft II replay files",
 	long_description=open("README.txt").read(),
 	keywords=["starcraft 2","sc2","parser","replay"],
