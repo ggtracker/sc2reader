@@ -7,25 +7,28 @@ class Data_140_(BaseData):
 
     class DataObject(DataObject):
         abilities = {
-            0x0: 'Right click',
-            0x0: 'Right click in fog',
+            0x3601: 'Right click',
+            0x5601: 'Right click in fog',
         }
 
     class Moveable(DataObject):
         abilities = {
-            0x0: 'Stop',
-            0x0: 'Hold position',
-            0x0: 'Move to',
-            0x0: 'Patrol',
+            0x2400: 'Stop',
+            0x2602: 'Hold position',
+            0x2620: 'Move to',
+            0x2640: 'Move to',
+            0x2621: 'Patrol',
+            0x26a1: 'Patrol',
             0x0: 'Follow',
         }
 
     class Attacker(DataObject):
         abilities = {
-            0x0: 'Stop',   #Attackers can also stop
-            0x0: 'Hold position',
-            0x0: 'Attack move',
-            0x0: 'Attack object',
+            0x2400: 'Stop',   #Attackers can also stop
+            0x2602: 'Hold position',
+            0x2a20: 'Attack object',
+            0x2a40: 'Attack object',
+            0x2aa0: 'Attack move',
         }
 
     class Supporter(DataObject):
@@ -36,7 +39,13 @@ class Data_140_(BaseData):
 
     class Building(DataObject):
         abilities = {
-            0x0: 'Cancel',
+            0x6c00: 'Cancel',
+            0x6c61: 'Cancel',
+            0x6d00: 'Cancel',
+            0x6d61: 'Cancel',
+            0x6e00: 'Cancel',
+            0x7000: 'Cancel',
+            0x7100: 'Cancel',
         }
 
     class TerranBuilding(Building):
@@ -52,9 +61,9 @@ class Data_140_(BaseData):
 
     class Production(Building):
         abilities = {
-            0x0: 'Set rally point',
+            0x5820: 'Set rally point',
             0x0: 'Set rally target',
-            0x0: 'Cancel', # Generic ESC cancel
+            0x6d00: 'Cancel', # Generic ESC cancel
             0x0: 'Cancel unit', # Cancel + build id
         }
 
@@ -68,19 +77,19 @@ class Data_140_(BaseData):
             0x0: 'Toggle Auto-Repair',
             0x0: 'Repair',
             0x0: 'Halt',
-            0x0: 'Command Center',
-            0x0: 'Supply Depot',
-            0x0: 'Barracks',
-            0x0: 'Engineering Bay',
-            0x0: 'Missile Turret',
-            0x0: 'Bunker',
-            0x0: 'Refinery',
-            0x0: 'Sensor Tower',
-            0x0: 'Ghost Academy',
-            0x0: 'Factory',
-            0x0: 'Starport',
-            0x0: 'Armory',
-            0x0: 'Fusion Core',
+            0x7320: 'Command Center',
+            0x7321: 'Supply Depot',
+            0x7323: 'Barracks',
+            0x7324: 'Engineering Bay',
+            0x7325: 'Missile Turret',
+            0x7326: 'Bunker',
+            0x7342: 'Refinery',
+            0x7328: 'Sensor Tower',
+            0x7329: 'Ghost Academy',
+            0x732a: 'Factory',
+            0x732b: 'Starport',
+            0x732d: 'Armory',
+            0x732f: 'Fusion Core',
         }
 
     class MULE(Worker):
@@ -110,7 +119,7 @@ class Data_140_(BaseData):
             0x0: 'Sniper Round',
         }
 
-    @Mode('Sieged',('Siege Mode', 0x0, None),('Unsiege', 0x0, None))
+    @Mode('Sieged',('Siege Mode', 0x7900, None),('Unsiege', 0x7a00, None))
     class SiegeTank(Moveable, Attacker):
         pass
 
@@ -150,52 +159,52 @@ class Data_140_(BaseData):
         abilities = {
             0x0: 'Set rally point',
             0x0: 'Set rally target',
-            0x0: 'Train SCV',
+            0x10d00: 'Train SCV',
         }
 
-    @Lifts(0x0, 0x0)
-    @Transports(0x0, 0x0, 0x0, 0x0)
+    @Lifts(0x10300, 0x10420)
+    @Transports(0x10201, None, 0x10623, 0x10204)
     class CommandCenter(TerranMain, Production):
         pass
 
-    @Lifts(0x0, 0x0)
-    @UpgradeFrom(CommandCenter, 0x0, 0x0)
+    @Lifts(0x15800, 0x15920)
+    @UpgradeFrom(CommandCenter, 0x15500, 0x0)
     class OrbitalCommand(TerranMain, Production):
         abilities = {
-            0x0: 'MULE (Target)',
+            0x4c40: 'MULE (Target)',
             0x0: 'MULE (Location)',
-            0x0: 'Extra Supplies',
-            0x0: 'Scanner Sweep',
+            0x6340: 'Extra Supplies',
+            0x7d20: 'Scanner Sweep',
         }
 
-    @UpgradeFrom(CommandCenter, 0x0, 0x0)
+    @UpgradeFrom(CommandCenter, 0x15000, 0x0)
     class PlanetaryFortress(TerranMain, Production):
         abilties = {
             0x0: 'Cancel (PF ONLY)', #????
         }
 
-    @Lowers(0x0, 0x0)
+    @Lowers(0x10f00, 0x11000)
     class SupplyDepot(TerranBuilding):
         pass
 
     class EngineeringBay(TerranBuilding, Research):
         abilities = {
-            0x0: 'Hi-Sec Auto Tracking',
-            0x0: 'Building Armor',
-            0x0: 'Infantry Weapons Level 1',
-            0x0: 'Infantry Weapons Level 2',
-            0x0: 'Infantry Weapons Level 3',
-            0x0: 'Neosteel Frame',
-            0x0: 'Infantry Armor Level 1',
-            0x0: 'Infantry Armor Level 2',
-            0x0: 'Infantry Armor Level 3',
+            0x11400: 'Hi-Sec Auto Tracking',
+            0x11401: 'Building Armor',
+            0x11402: 'Infantry Weapons Level 1',
+            0x11403: 'Infantry Weapons Level 2',
+            0x11404: 'Infantry Weapons Level 3',
+            0x11405: 'Neosteel Frame',
+            0x11406: 'Infantry Armor Level 1',
+            0x11407: 'Infantry Armor Level 2',
+            0x11408: 'Infantry Armor Level 3',
         }
 
     class GhostAcademy(TerranBuilding, Research):
         abilities = {
-            0x0: 'Arm silo with Nuke',
-            0x0: 'Personal Cloaking',
-            0x0: 'Moebius Reactor',
+            0x11600: 'Arm silo with Nuke',
+            0x11a00: 'Personal Cloaking',
+            0x11a01: 'Moebius Reactor',
         }
 
     @Transports(0x0, 0x0, 0x0, 0x0)
@@ -210,37 +219,38 @@ class Data_140_(BaseData):
 
     class Armory(TerranBuilding, Research):
         abilities = {
-            0x0: 'Vehicle Plating Level 1',
-            0x0: 'Vehicle Plating Level 2',
-            0x0: 'Vehicle Plating Level 3',
-            0x0: 'Vehicle Weapons Level 1',
-            0x0: 'Vehicle Weapons Level 2',
-            0x0: 'Vehicle Weapons Level 3',
-            0x0: 'Ship Plating Level 1',
-            0x0: 'Ship Plating Level 2',
-            0x0: 'Ship Plating Level 3',
-            0x0: 'Ship Weapons Level 1',
-            0x0: 'Ship Weapons Level 2',
-            0x0: 'Ship Weapons Level 3',
+            0x11b02: 'Vehicle Plating Level 1',
+            0x11b03: 'Vehicle Plating Level 2',
+            0x11b04: 'Vehicle Plating Level 3',
+            0x11b05: 'Vehicle Weapons Level 1',
+            0x11b06: 'Vehicle Weapons Level 2',
+            0x11b07: 'Vehicle Weapons Level 3',
+            0x11b08: 'Ship Plating Level 1',
+            0x11b09: 'Ship Plating Level 2',
+            0x11b0a: 'Ship Plating Level 3',
+            0x11b0b: 'Ship Weapons Level 1',
+            0x11b0c: 'Ship Weapons Level 2',
+            0x11b0d: 'Ship Weapons Level 3',
         }
 
-    @Lifts(0x0, 0x0)
-    @AddOn('Techlab', start=0x0, move=0x0, cancel=0x0)
-    @AddOn('Reactor', start=0x0, move=0x0, cancel=0x0)
+    @Lifts(0x10600, 0x10e20)
+    @AddOn('Techlab', start=0x10500, move=0x0, cancel=0x0)
+    @AddOn('Techlab', start=0x10520, move=0x0, cancel=0x0)
+    @AddOn('Reactor', start=0x10501, move=0x0, cancel=0x0)
     class Barracks(TerranBuilding, Production):
         abilities = {
-            0x0: 'Marine',
-            0x0: 'Reaper',
-            0x0: 'Ghost',
-            0x0: 'Marauder',
+            0x11100: 'Marine',
+            0x11101: 'Reaper',
+            0x11102: 'Ghost',
+            0x11103: 'Marauder',
         }
 
         class Techlab(Research):
             abilities = {
-                0x0: 'Nitro Packs',
-                0x0: 'Stimpack',
-                0x0: 'Combat Shields',
-                0x0: 'Concussive Shells',
+                0x11503: 'Nitro Packs',
+                0x11700: 'Stimpack',
+                0x11701: 'Combat Shields',
+                0x11702: 'Concussive Shells',
                 0x0: 'Cancel Research',
                 0x0: 'Cancel specific Research',
             }
@@ -253,21 +263,21 @@ class Data_140_(BaseData):
         class Flying(TerranBuilding, Moveable):
             pass
 
-    @Lifts(0x0,0x0)
-    @AddOn('Techlab', start=0x0, move=0x0, cancel=0x0)
-    @AddOn('Reactor', start=0x0, move=0x0, cancel=0x0)
+    @Lifts(0x10800,0x10b20)
+    @AddOn('Techlab', start=0x10700, move=0x0, cancel=0x0)
+    @AddOn('Reactor', start=0x10701, move=0x0, cancel=0x0)
     class Factory(TerranBuilding, Production):
         abilities = {
-            0x0: 'Siege Tank',
-            0x0: 'Thor',
-            0x0: 'Hellion'
+            0x11201: 'Siege Tank',
+            0x11204: 'Thor',
+            0x11205: 'Hellion'
         }
 
         class Techlab(Research):
             abilities = {
-                0x0: 'Siege Tech',
-                0x0: 'Infernal Pre-igniter',
-                0x0: '250mm Strike Cannons',
+                0x11800: 'Siege Tech',
+                0x11801: 'Infernal Pre-igniter',
+                0x11802: '250mm Strike Cannons',
                 0x0: 'Cancel Research',
                 0x0: 'Cancel specific Research',
             }
@@ -281,25 +291,25 @@ class Data_140_(BaseData):
         class Flying(TerranBuilding, Moveable):
             pass
 
-    @Lifts(0x0, 0x0)
-    @AddOn('Techlab', start=0x0, move=0x0, cancel=0x0)
-    @AddOn('Reactor', start=0x0, move=0x0, cancel=0x0)
+    @Lifts(0x10a00, 0x10c20)
+    @AddOn('Techlab', start=0x10900, move=0x0, cancel=0x0)
+    @AddOn('Reactor', start=0x10901, move=0x0, cancel=0x0)
     class Starport(TerranBuilding, Production):
         abilities = {
-            0x0: 'Medivac',
-            0x0: 'Banshee',
-            0x0: 'Raven',
-            0x0: 'Battlecruiser',
-            0x0: 'Viking',
+            0x11300: 'Medivac',
+            0x11301: 'Banshee',
+            0x11302: 'Raven',
+            0x11303: 'Battlecruiser',
+            0x11304: 'Viking',
         }
 
         class Techlab(Research):
             abilities = {
-                0x0: 'Cloaking Field',
-                0x0: 'Caduceus Reactor',
-                0x0: 'Corvid Rector',
-                0x0: 'Seeker Missile',
-                0x0: 'Durable Materials',
+                0x11900: 'Cloaking Field',
+                0x11902: 'Caduceus Reactor',
+                0x11903: 'Corvid Rector',
+                0x11906: 'Seeker Missile',
+                0x11907: 'Durable Materials',
                 0x0: 'Cancel Research',
                 0x0: 'Cancel specific Research',
             }
@@ -319,25 +329,39 @@ class Data_140_(BaseData):
     class Probe(Worker):
         abilities = {
             0x0: 'Return cargo',
-            0x0: 'Nexus',
-            0x0: 'Pylon',
-            0x0: 'Gateway',
-            0x0: 'Forge',
-            0x0: 'Fleet Beacon',
-            0x0: 'Twilight Council',
-            0x0: 'Photon Cannon',
-            0x0: 'Assimilator',
-            0x0: 'Stargate',
-            0x0: 'Templar Archives',
-            0x0: 'Dark Shrine',
-            0x0: 'Robotics Bay',
-            0x0: 'Robotics Facility',
-            0x0: 'Cybernetics Core',
+            0x11c20: 'Nexus',
+            0x11ca0: 'Nexus',
+            0x11c21: 'Pylon',
+            0x11ca1: 'Pylon',
+            0x11c23: 'Gateway',
+            0x11ca3: 'Gateway',
+            0x11c24: 'Forge',
+            0x11ca4: 'Forge',
+            0x11c25: 'Fleet Beacon',
+            0x11ca5: 'Fleet Beacon',
+            0x11c26: 'Twilight Council',
+            0x11ca6: 'Twilight Council',
+            0x11c27: 'Photon Cannon',
+            0x11ca7: 'Photon Cannon',
+            0x11c42: 'Assimilator',
+            0x11c29: 'Stargate',
+            0x11ca9: 'Stargate',
+            0x11c2a: 'Templar Archives',
+            0x11caa: 'Templar Archives',
+            0x11c2b: 'Dark Shrine',
+            0x11cab: 'Dark Shrine',
+            0x11c2c: 'Robotics Bay',
+            0x11cac: 'Robotics Bay',
+            0x11c2d: 'Robotics Facility',
+            0x11cad: 'Robotics Facility',
+            0x11c2e: 'Cybernetics Core',
+            0x11cae: 'Cybernetics Core',
         }
 
     class Stalker(Moveable, Attacker):
         abilities = {
-            0x0: 'Blink',
+            0x14c20: 'Blink',
+            0x14ca0: 'Blink',
         }
 
     class Sentry(Moveable, Attacker):
@@ -352,14 +376,14 @@ class Data_140_(BaseData):
             0x0: 'Hallucinate Void Ray',
             0x0: 'Hallucinate Warp Prism',
             0x0: 'Hallucinate Zealot',
-            0x0: 'Guardian Shield',
-            0x0: 'Force Field',
+            0x3900: 'Guardian Shield',
+            0x15a20: 'Force Field',
         }
 
     class HighTemplar(Moveable, Supporter):
         abilities = {
-            0x0: 'Psionic Storm',
-            0x0: 'Feedback',
+            0x12220: 'Psionic Storm',
+            0x3d40: 'Feedback',
         }
 
     class DarkTemplar(Moveable, Attacker):
@@ -370,8 +394,8 @@ class Data_140_(BaseData):
         pass
 
     #Phasing mode changes cannot be cancelled
-    @Mode('Phasing', ('Phase Mode', 0x0, None), ('Transport Mode', 0x0, None))
-    @Transports(0x0, 0x0, 0x0, 0x0)
+    @Mode('Phasing', ('Phase Mode', 0x15b00, None), ('Transport Mode', 0x15c00, None))
+    @Transports(0x11d42, None, 0x11d63, 0x11d40)
     class WarpPrism(Moveable, Supporter):
         pass
 
@@ -392,76 +416,82 @@ class Data_140_(BaseData):
 
     class Nexus(Production):
         abilities = {
-            0x0: 'Probe',
-            0x0: 'Mothership',
-            0x0: 'Chrono Boost',
-            0x0: 'Set rally point',
+            0x12100: 'Probe',
+            0x3c00: 'Mothership',
+            0x6640: 'Chrono Boost',
+            0x5b40: 'Set rally point',
             0x0: 'Set rally target',
         }
 
-    @Mode('WarpGate', ('Tranform to Warpgate',0x031500, None), ('Transform to Gateway', 0x031600, None))
+    @Mode('WarpGate', ('Tranform to Warpgate',0x15600, None), ('Transform to Gateway', 0x15700, None))
     class Gateway(Production):
         abilities = {
-            0x0: 'Train Zealot',
-            0x0: 'Train Stalker',
-            0x0: 'Train High Templar',
-            0x0: 'Train Dark Templar',
-            0x0: 'Train Sentry',
+            0x11e00: 'Train Zealot',
+            0x11e01: 'Train Stalker',
+            0x11e03: 'Train High Templar',
+            0x11e04: 'Train Dark Templar',
+            0x11e05: 'Train Sentry',
         }
 
         class WarpGate(Building):
             abilities = {
-                0x0: 'Warp in Zealot',
-                0x0: 'Warp in Stalker',
-                0x0: 'Warp in High Templar',
-                0x0: 'Warp in Dark Templar',
-                0x0: 'Warp in Sentry',
+                0x14820: 'Warp in Zealot',
+                0x14821: 'Warp in Stalker',
+                0x14823: 'Warp in High Templar',
+                0x14824: 'Warp in Dark Templar',
+                0x14825: 'Warp in Sentry',
+
+                0x148a0: 'Warp in Zealot',
+                0x148a1: 'Warp in Stalker',
+                0x148a3: 'Warp in High Templar',
+                0x148a4: 'Warp in Dark Templar',
+                0x148a5: 'Warp in Sentry',
             }
 
     class Forge(Research):
         abilities = {
-            0x0: 'Ground Weapons Level 1',
-            0x0: 'Ground Weapons Level 2',
-            0x0: 'Ground Weapons Level 3',
-            0x0: 'Ground Armor Level 1',
-            0x0: 'Ground Armor Level 2',
-            0x0: 'Ground Armor Level 3',
-            0x0: 'Shield Level 1',
-            0x0: 'Shield Level 2',
-            0x0: 'Shield Level 3',
+            0x12600: 'Ground Weapons Level 1',
+            0x12601: 'Ground Weapons Level 2',
+            0x12602: 'Ground Weapons Level 3',
+            0x12603: 'Ground Armor Level 1',
+            0x12604: 'Ground Armor Level 2',
+            0x12605: 'Ground Armor Level 3',
+            0x12606: 'Shield Level 1',
+            0x12607: 'Shield Level 2',
+            0x12608: 'Shield Level 3',
         }
 
     class CyberneticsCore(Research):
         abilities = {
-            0x0: 'Air Weapons Level 1',
-            0x0: 'Air Weapons Level 2',
-            0x0: 'Air Weapons Level 3',
-            0x0: 'Air Armor Level 1',
-            0x0: 'Air Armor Level 2',
-            0x0: 'Air Armor Level 3',
-            0x0: 'Warp Gate',
-            0x0: 'Hallucination',
+            0x15e00: 'Air Weapons Level 1',
+            0x15e01: 'Air Weapons Level 2',
+            0x15e02: 'Air Weapons Level 3',
+            0x15e03: 'Air Armor Level 1',
+            0x15e04: 'Air Armor Level 2',
+            0x15e05: 'Air Armor Level 3',
+            0x15e06: 'Warp Gate',
+            0x15e07: 'Hallucination',
         }
 
     class RoboticsFacility(Production):
         abilities = {
-            0x0: 'Warp Prism',
-            0x0: 'Observer',
-            0x0: 'Colossus',
-            0x0: 'Immortal',
+            0x12000: 'Warp Prism',
+            0x12001: 'Observer',
+            0x12002: 'Colossus',
+            0x12003: 'Immortal',
         }
 
     class Stargate(Production):
         abilities = {
-            0x0: 'Phoenix',
-            0x0: 'Carrier',
-            0x0: 'Void Ray',
+            0x11f00: 'Phoenix',
+            0x11f02: 'Carrier',
+            0x11f04: 'Void Ray',
         }
 
     class TwilightCouncil(Research):
         abilities = {
-            0x0: 'Charge',
-            0x0: 'Blink',
+            0x15f00: 'Charge',
+            0x15f01: 'Blink',
         }
 
     class FleetBeacon(Research):
@@ -472,14 +502,14 @@ class Data_140_(BaseData):
     class TemplarArchive(Research):
         abilities = {
             0x0: 'Khaydarin Amulet',
-            0x0: 'Psionic Storm',
+            0x12804: 'Psionic Storm',
         }
 
     class RoboticsBay(Research):
         abilities = {
-            0x0: 'Gravitic Booster',
-            0x0: 'Gravitic Drive',
-            0x0: 'Extended Thermal Lance',
+            0x12701: 'Gravitic Booster',
+            0x12702: 'Gravitic Drive',
+            0x12705: 'Extended Thermal Lance',
         }
 
     #####################
