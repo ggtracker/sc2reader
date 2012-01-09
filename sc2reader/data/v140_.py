@@ -518,15 +518,15 @@ class Data_140_(BaseData):
 
     class Larva(DataObject):
         abilities = {
-            0x0: 'Drone',
-            0x0: 'Zergling',
-            0x0: 'Overlord',
-            0x0: 'Hydralisk',
-            0x0: 'Mutalisk',
-            0x0: 'Ultralisk',
-            0x0: 'Roach',
-            0x0: 'Infestor',
-            0x0: 'Corruptor',
+            0x13300: 'Drone',
+            0x13301: 'Zergling',
+            0x13302: 'Overlord',
+            0x13303: 'Hydralisk',
+            0x13304: 'Mutalisk',
+            0x13306: 'Ultralisk',
+            0x13309: 'Roach',
+            0x1330a: 'Infestor',
+            0x1330b: 'Corruptor',
         }
 
     class Egg(Supporter):
@@ -539,60 +539,78 @@ class Data_140_(BaseData):
         abilities = {
             0x0: 'Return cargo',
             0x0: 'Burrow',
-            0x0: 'Hatchery',
-            0x0: 'Spawning Pool',
-            0x0: 'Evolution Chamber',
-            0x0: 'Hydralisk Den',
-            0x0: 'Spire',
-            0x0: 'Ultralisk Cavern',
-            0x0: 'Extractor',
-            0x0: 'Infestation Pit',
-            0x0: 'Nydus Network',
-            0x0: 'Baneling Nest',
-            0x0: 'Roach Warren',
-            0x0: 'Spine Crawler',
-            0x0: 'Spore Crawler',
+            0x12920: 'Hatchery',
+            0x12923: 'Spawning Pool',
+            0x12924: 'Evolution Chamber',
+            0x12925: 'Hydralisk Den',
+            0x12926: 'Spire',
+            0x12927: 'Ultralisk Cavern',
+            0x12942: 'Extractor',
+            0x12928: 'Infestation Pit',
+            0x12929: 'Nydus Network',
+            0x1292a: 'Baneling Nest',
+            0x1292d: 'Roach Warren',
+            0x1292e: 'Spine Crawler',
+            0x1292f: 'Spore Crawler',
+
+            0x129a0: 'Hatchery',
+            0x129a3: 'Spawning Pool',
+            0x129a4: 'Evolution Chamber',
+            0x129a5: 'Hydralisk Den',
+            0x129a6: 'Spire',
+            0x129a7: 'Ultralisk Cavern',
+            0x129a2: 'Extractor',
+            0x129a8: 'Infestation Pit',
+            0x129a9: 'Nydus Network',
+            0x129aa: 'Baneling Nest',
+            0x129ad: 'Roach Warren',
+            0x129ae: 'Spine Crawler',
+            0x129af: 'Spore Crawler',
         }
 
     @Burrows(0x0, 0x0)
     class Queen(Moveable, Attacker):
         abilities = {
-            0x0: 'Creep Tumor',
-            0x0: 'Larva',
-            0x0: 'Transfuse',
+            0x17620: 'Creep Tumor',
+            0x6140: 'Larva',
+            0x16740: 'Transfuse',
         }
 
-    @Burrows(0x0, 0x0)
+    @Burrows(0x13d00, 0x13e00)
     class Zergling(Moveable, Attacker):
         pass
 
-    @Burrows(0x0, 0x0)
-    @MorphedFrom(Zergling, 0x0, 0x0)
+    @Burrows(0x13500, 0x13600)
+    @MorphedFrom(Zergling, 0x3b00, 0x0)
     class Baneling(Moveable, Attacker):
         abilities = {
             0x0: 'Explode',
             0x0: 'Attack Structure'
         }
 
-    @Burrows(0x0, 0x0)
+    @Burrows(0x13b00, 0x13c00)
     class Roach(Moveable, Attacker):
         pass
 
-    @Burrows(0x0, 0x0)
+    @Burrows(0x13900, 0x13a00)
     class Hydralisk(Moveable, Attacker):
         pass
 
-    @Burrows(0x0, 0x0)
+    @Burrows(0x14d00, 0x14e00)
     @Channels('Neural Parasite', 0x0, 0x0)
     class Infestor(Moveable, Supporter):
         abilities = {
-            0x0: 'Fungal Growth',
-            0x0: 'Infested Terran',
+            0x3820: 'Fungal Growth',
+            0x38a0: 'Fungal Growth',
+
+            0x5f20: 'Infested Terran',
+            0x5fa0: 'Infested Terran',
         }
 
         class Burrowed(Moveable, Supporter):
             abilities = {
-                0x0: 'Infested Terran',
+                0x5f20: 'Infested Terran',
+                0x5fa0: 'Infested Terran',
             }
 
     @Burrows(0x0, 0x0)
@@ -605,7 +623,8 @@ class Data_140_(BaseData):
 
     class Corruptor(Moveable, Attacker):
         abilities = {
-            0x0: 'Corruption',
+            0x3200: 'Corruption',
+            0x3240: 'Corruption',
         }
 
     @MorphedFrom(Corruptor, 0x0, 0x0)
@@ -631,80 +650,80 @@ class Data_140_(BaseData):
     class NydusWorm(Building):
         pass
 
-    @Uproots(0x0, 0x0, 0x0)
+    @Uproots(0x17700, 0x17920, 0x0)
     class SpineCrawler(Building, Attacker):
         pass
 
-    @Uproots(0x0, 0x0, 0x0)
+    @Uproots(0x17800, 0x17a20, 0x0)
     class SporeCrawler(Building, Attacker):
         pass
 
     class ZergMain(Production, Research):
         abilities = {
             0x0: 'Set worker rally point',
-            0x0: 'Set worker rally target',
+            0x5c41: 'Set worker rally target',
             0x0: 'Set unit rally point',
             0x0: 'Set unit rally target',
-            0x0: 'Queen',
-            0x0: 'Evolve Burrow',
-            0x0: 'Evolve Pneumatized Carapace',
-            0x0: 'Evolve Ventral Sacs',
+            0x16500: 'Queen',
+            0x12f03: 'Evolve Burrow',
+            0x12f01: 'Evolve Pneumatized Carapace',
+            0x12f02: 'Evolve Ventral Sacs',
         }
 
     class Hatchery(ZergMain):
         pass
 
-    @UpgradeFrom(Hatchery,0x0, 0x0)
+    @UpgradeFrom(Hatchery,0x12c00, 0x12c01)
     class Lair(ZergMain):
         pass
 
-    @UpgradeFrom(Lair, 0x0, 0x0)
+    @UpgradeFrom(Lair, 0x12d00, 0x12d01)
     class Hive(ZergMain):
         pass
 
     class SpawningPool(Research):
         abilities = {
-            0x0: 'Evolve Adrenal Glands',
-            0x0: 'Evolve Metabolic Boost',
+            0x13000: 'Evolve Adrenal Glands',
+            0x13001: 'Evolve Metabolic Boost',
         }
 
     class EvolutionChamber(Research):
         abilities = {
-            0x0: 'Evolve Melee Attacks Level 1',
-            0x0: 'Evolve Melee Attacks Level 2',
-            0x0: 'Evolve Melee Attacks Level 3',
-            0x0: 'Evolve Ground Carapace Level 1',
-            0x0: 'Evolve Ground Carapace Level 2',
-            0x0: 'Evolve Ground Carapace Level 3',
-            0x0: 'Evolve Missile Attacks Level 1',
-            0x0: 'Evolve Missile Attacks Level 2',
-            0x0: 'Evolve Missile Attacks Level 3',
+            0x12b00: 'Evolve Melee Attacks Level 1',
+            0x12b01: 'Evolve Melee Attacks Level 2',
+            0x12b02: 'Evolve Melee Attacks Level 3',
+            0x12b03: 'Evolve Ground Carapace Level 1',
+            0x12b04: 'Evolve Ground Carapace Level 2',
+            0x12b05: 'Evolve Ground Carapace Level 3',
+            0x12b06: 'Evolve Missile Attacks Level 1',
+            0x12b07: 'Evolve Missile Attacks Level 2',
+            0x12b08: 'Evolve Missile Attacks Level 3',
         }
 
     class RoachWarren(Research):
         abilities = {
-            0x0: 'Evolve Glial Reconstitution',
-            0x0: 'Evolve Tunneling Claws',
+            0x5d01: 'Evolve Glial Reconstitution',
+            0x5d02: 'Evolve Tunneling Claws',
         }
 
     class BanelingNest(Research):
         abilities = {
-            0x0: 'Evolve Centrifugal Hooks',
+            0x15200: 'Evolve Centrifugal Hooks',
         }
 
-    @Channels('Creep Tumor', 0x0, 0x0)
+    @Channels('Creep Tumor', 0x17b20, 0x0)
     class CreepTumorBurrowed(Building):
         pass
 
     class HydraliskDen(Research):
         abilities = {
-            0x0: 'Evolve Grooved Spines',
+            0x13102: 'Evolve Grooved Spines',
         }
 
     class InfestationPit(Research):
         abilities = {
-            0x0: 'Evolve Pathogen Glands',
-            0x0: 'Evolve Neural Parasite',
+            0x15102: 'Evolve Pathogen Glands',
+            0x15103: 'Evolve Neural Parasite',
         }
 
     @Transports(0x0, 0x0, 0x0, 0x0)
@@ -715,12 +734,12 @@ class Data_140_(BaseData):
 
     class Spire(Research):
         abilities = {
-            0x0: 'Evolve Flyer Attacks Level 1',
-            0x0: 'Evolve Flyer Attacks Level 2',
-            0x0: 'Evolve Flyer Attacks Level 3',
-            0x0: 'Evolve Flyer Carapace Level 1',
-            0x0: 'Evolve Flyer Carapace Level 2',
-            0x0: 'Evolve Flyer Carapace Level 3',
+            0x13200: 'Evolve Flyer Attacks Level 1',
+            0x13201: 'Evolve Flyer Attacks Level 2',
+            0x13202: 'Evolve Flyer Attacks Level 3',
+            0x13203: 'Evolve Flyer Carapace Level 1',
+            0x13204: 'Evolve Flyer Carapace Level 2',
+            0x13205: 'Evolve Flyer Carapace Level 3',
         }
 
     @UpgradeFrom(Spire, 0x0, 0x0)
@@ -729,5 +748,5 @@ class Data_140_(BaseData):
 
     class UltraliskCavern(Research):
         abilities = {
-            0x0: 'Chitinous Plating',
+            0x6702: 'Chitinous Plating',
         }
