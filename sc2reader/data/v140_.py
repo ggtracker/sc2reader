@@ -14,8 +14,10 @@ class Data_140_(BaseData):
     class Moveable(DataObject):
         abilities = {
             0x2400: 'Stop',
+            0x2403: 'Stop',
             0x2602: 'Hold position',
             0x2620: 'Move to',
+            0x26a0: 'Move to',
             0x2640: 'Move to',
             0x2621: 'Patrol',
             0x26a1: 'Patrol',
@@ -33,8 +35,9 @@ class Data_140_(BaseData):
 
     class Supporter(DataObject):
         abilities = {
-            0x0: 'Scan move', # attack move for units without attack
-            0x0: 'Scan target', # attack move for units without attack
+            0x2623: 'Scan move', # attack move for units without attack
+            0x26a3: 'Scan move', # attack move for units without attack
+            0x2643: 'Scan target', # attack move for units without attack
         }
 
     class Building(DataObject):
@@ -50,7 +53,7 @@ class Data_140_(BaseData):
 
     class TerranBuilding(Building):
         abilities = {
-            0x0: 'Halt build',
+            0x7101: 'Halt build',
         }
 
     class Research(Building):
@@ -72,11 +75,11 @@ class Data_140_(BaseData):
 
     class SCV(Worker):
         abilities = {
-            0x0: 'Gather resources',
-            0x0: 'Return cargo',
-            0x0: 'Toggle Auto-Repair',
-            0x0: 'Repair',
-            0x0: 'Halt',
+            0x6940: 'Gather resources',
+            0x6901: 'Return cargo',
+            0x7200: 'Toggle Auto-Repair',
+            0x7240: 'Repair',
+            0xf30e: 'Halt',
             0x7320: 'Command Center',
             0x7321: 'Supply Depot',
             0x7323: 'Barracks',
@@ -90,69 +93,89 @@ class Data_140_(BaseData):
             0x732b: 'Starport',
             0x732d: 'Armory',
             0x732f: 'Fusion Core',
+
+            0x73a0: 'Command Center',
+            0x73a1: 'Supply Depot',
+            0x73a3: 'Barracks',
+            0x73a4: 'Engineering Bay',
+            0x73a5: 'Missile Turret',
+            0x73a6: 'Bunker',
+            0x73a2: 'Refinery',
+            0x73a8: 'Sensor Tower',
+            0x73a9: 'Ghost Academy',
+            0x73aa: 'Factory',
+            0x73ab: 'Starport',
+            0x73ad: 'Armory',
+            0x73af: 'Fusion Core',
         }
 
     class MULE(Worker):
         abilities = {
-            0x0: 'Toggle Auto-Repair',
-            0x0: 'Repair',
+            0x3a00: 'Toggle Auto-Repair',
+            0x3a40: 'Repair',
         }
 
     class Marine(Moveable, Attacker):
         abilities = {
-            0x0: 'Use Stimpack (mixed)',
+            0x7500: 'Use Stimpack (mixed)',
         }
 
     class Marauder(Moveable, Attacker):
         abilities = {
-            0x0: 'Use Stimpack (mixed)',
-            0x0: 'Use Stimpack',
+            0x7500: 'Use Stimpack (mixed)',
+            0x6200: 'Use Stimpack',
         }
 
-    @Cloaks(0x0, 0x0)
-    @Channels('Tactical Nuclear Strike',start=0x0,cancel=0x0)
+    @Cloaks(0x7600, 0x7601)
+    @Channels('Tactical Nuclear Strike',start=0x16020,cancel=0x16001)
     class Ghost(Moveable, Attacker):
         abilities = {
-            0x0: 'Hold fire',
-            0x0: 'Weapons free',
-            0x0: 'EMP Round',
-            0x0: 'Sniper Round',
+            0x3300: 'Hold fire',
+            0x3400: 'Weapons free',
+            0x16320: 'EMP Round',
+            0x7740: 'Sniper Round',
+
+            0x163a0: 'EMP Round',
         }
 
     @Mode('Sieged',('Siege Mode', 0x7900, None),('Unsiege', 0x7a00, None))
     class SiegeTank(Moveable, Attacker):
         pass
 
-    @Channels('250mm Strike Cannons',0x0,None)
+    @Channels('250mm Strike Cannons',0x11802,None)
     class Thor(Moveable, Attacker):
         pass
 
     #This mode change cannot be cancelled
-    @Mode('Assault',('Assult Mode', 0x0, None),('Fighter Mode', 0x0, None))
+    @Mode('Assault',('Assult Mode', 0x7f00, None),('Fighter Mode', 0x8000, None))
     class Viking(Moveable, Attacker):
         pass
 
-    @Transports(0x0, 0x0, 0x0, 0x0)
+    @Transports(0x7c22, None, 0x7c63, 0x7c40)
+    @Transports(0x0, None, 0x0, 0x7c42)
+    @Transports(0x7ca2, None, 0x0, 0x0)
     class Medivac(Moveable, Supporter):
         abilities = {
-            0x0: 'Toggle Auto-Heal',
-            0x0: 'Heal',
+            0x7800: 'Toggle Auto-Heal',
+            0x7840: 'Heal',
         }
 
     class Raven(Moveable, Supporter):
         abilities = {
-            0x0: 'Auto Turret',
-            0x0: 'Point Defense Drone',
-            0x0: 'Seeker Missile',
+            0x17c20: 'Auto Turret',
+            0x3f20: 'Point Defense Drone',
+            0x4b40: 'Seeker Missile',
+
+            0x17ca0: 'Auto Turret',
         }
 
-    @Cloaks(0x0, 0x0)
+    @Cloaks(0x7b00, 0x7b01)
     class Banshee(Moveable, Attacker):
         pass
 
     class Battlecruiser(Moveable, Attacker):
         abilities = {
-            0x0: 'Yamato Cannon',
+            0x7e40: 'Yamato Cannon',
         }
 
     class TerranMain(TerranBuilding):
@@ -163,18 +186,22 @@ class Data_140_(BaseData):
         }
 
     @Lifts(0x10300, 0x10420)
+    @Lifts(0x0, 0x104a0)
     @Transports(0x10201, None, 0x10623, 0x10204)
     class CommandCenter(TerranMain, Production):
         pass
 
     @Lifts(0x15800, 0x15920)
+    @Lifts(0x0, 0x159a0)
     @UpgradeFrom(CommandCenter, 0x15500, 0x0)
     class OrbitalCommand(TerranMain, Production):
         abilities = {
             0x4c40: 'MULE (Target)',
-            0x0: 'MULE (Location)',
+            0x4c20: 'MULE (Location)',
             0x6340: 'Extra Supplies',
             0x7d20: 'Scanner Sweep',
+
+            0x7da0: 'Scanner Sweep',
         }
 
     @UpgradeFrom(CommandCenter, 0x15000, 0x0)
@@ -207,13 +234,13 @@ class Data_140_(BaseData):
             0x11a01: 'Moebius Reactor',
         }
 
-    @Transports(0x0, 0x0, 0x0, 0x0)
+    @Transports(0x10101, None, 0x10163, 0x10140)
     class Bunker(TerranBuilding):
         abilities = {
-            0x0: 'Salvage',
-            0x0: 'Stimpack', #Can bunkers really stimpack?
-            # I don't think these 2 are right....?
-            #0x0: 'Attack',
+            0x3100: 'Salvage',
+            0x16200: 'Salvage',
+            0x17100: 'Stimpack',
+            0x17040: 'Attack',
             #0x0: 'Stop'
         }
 
@@ -233,10 +260,19 @@ class Data_140_(BaseData):
             0x11b0d: 'Ship Weapons Level 3',
         }
 
+    class FusionCore(TerranBuilding, Research):
+        abilities = {
+            0x15d00: 'Weapon Refit',
+            0x15d01: 'Behemoth Reactor',
+        }
+
     @Lifts(0x10600, 0x10e20)
+    @Lifts(0x0, 0x10ea0)
     @AddOn('Techlab', start=0x10500, move=0x0, cancel=0x0)
     @AddOn('Techlab', start=0x10520, move=0x0, cancel=0x0)
+    @AddOn('Techlab', start=0x105a0, move=0x0, cancel=0x0)
     @AddOn('Reactor', start=0x10501, move=0x0, cancel=0x0)
+    @AddOn('Reactor', start=0x10521, move=0x0, cancel=0x0)
     class Barracks(TerranBuilding, Production):
         abilities = {
             0x11100: 'Marine',
@@ -258,14 +294,22 @@ class Data_140_(BaseData):
         class Reactor(TerranBuilding):
             pass
 
-        @AddOn('Techlab', start=0x0, move=0x0, cancel=0x0)
-        @AddOn('Reactor', start=0x0, move=0x0, cancel=0x0)
+        @AddOn('Techlab', start=0x10500, move=0x0, cancel=0x0)
+        @AddOn('Techlab', start=0x10520, move=0x0, cancel=0x0)
+        @AddOn('Techlab', start=0x105a0, move=0x0, cancel=0x0)
+        @AddOn('Reactor', start=0x10501, move=0x0, cancel=0x0)
+        @AddOn('Reactor', start=0x10521, move=0x0, cancel=0x0)
         class Flying(TerranBuilding, Moveable):
             pass
 
     @Lifts(0x10800,0x10b20)
+    @Lifts(0x0,0x10ba0)
     @AddOn('Techlab', start=0x10700, move=0x0, cancel=0x0)
+    @AddOn('Techlab', start=0x10720, move=0x0, cancel=0x0)
+    @AddOn('Techlab', start=0x107a0, move=0x0, cancel=0x0)
     @AddOn('Reactor', start=0x10701, move=0x0, cancel=0x0)
+    @AddOn('Reactor', start=0x10721, move=0x0, cancel=0x0)
+    @AddOn('Reactor', start=0x107a1, move=0x0, cancel=0x0)
     class Factory(TerranBuilding, Production):
         abilities = {
             0x11201: 'Siege Tank',
@@ -286,14 +330,16 @@ class Data_140_(BaseData):
 
             pass
 
-        @AddOn('Techlab', start=0x0, move=None, cancel=None)
-        @AddOn('Reactor', start=0x0, move=None, cancel=None)
+        @AddOn('Techlab', start=0x10700, move=0x0, cancel=0x0)
+        @AddOn('Reactor', start=0x10701, move=0x0, cancel=0x0)
         class Flying(TerranBuilding, Moveable):
             pass
 
     @Lifts(0x10a00, 0x10c20)
+    @Lifts(0x0, 0x10ca0)
     @AddOn('Techlab', start=0x10900, move=0x0, cancel=0x0)
     @AddOn('Reactor', start=0x10901, move=0x0, cancel=0x0)
+    @AddOn('Techlab', start=0x109a0, move=0x0, cancel=0x0)
     class Starport(TerranBuilding, Production):
         abilities = {
             0x11300: 'Medivac',
@@ -317,8 +363,8 @@ class Data_140_(BaseData):
         class Reactor(TerranBuilding):
             pass
 
-        @AddOn('TechLab', start=0x0, move=0x0, cancel=0x0)
-        @AddOn('Reactor', start=0x0, move=0x0, cancel=0x0)
+        @AddOn('Techlab', start=0x10900, move=0x0, cancel=0x0)
+        @AddOn('Reactor', start=0x10901, move=0x0, cancel=0x0)
         class Flying(TerranBuilding, Moveable):
             pass
 
@@ -328,7 +374,7 @@ class Data_140_(BaseData):
 
     class Probe(Worker):
         abilities = {
-            0x0: 'Return cargo',
+            0x6a01: 'Return cargo',
             0x11c20: 'Nexus',
             0x11ca0: 'Nexus',
             0x11c21: 'Pylon',
@@ -366,30 +412,33 @@ class Data_140_(BaseData):
 
     class Sentry(Moveable, Attacker):
         abilities = {
-            0x0: 'Hallucinate Archon',
-            0x0: 'Hallucinate Colossus',
-            0x0: 'Hallucinate High Templar',
-            0x0: 'Hallucinate Immortal',
-            0x0: 'Hallucinate Phoenix',
-            0x0: 'Hallucinate Probe',
-            0x0: 'Hallucinate Stalker',
-            0x0: 'Hallucinate Void Ray',
-            0x0: 'Hallucinate Warp Prism',
-            0x0: 'Hallucinate Zealot',
+            0x4000: 'Hallucinate Archon',
+            0x4100: 'Hallucinate Colossus',
+            0x4200: 'Hallucinate High Templar',
+            0x4300: 'Hallucinate Immortal',
+            0x4400: 'Hallucinate Phoenix',
+            0x4500: 'Hallucinate Probe',
+            0x4600: 'Hallucinate Stalker',
+            0x4700: 'Hallucinate Void Ray',
+            0x4800: 'Hallucinate Warp Prism',
+            0x4900: 'Hallucinate Zealot',
             0x3900: 'Guardian Shield',
             0x15a20: 'Force Field',
+
+            0x15aa0: 'Force Field',
         }
 
     class HighTemplar(Moveable, Supporter):
         abilities = {
             0x12220: 'Psionic Storm',
+            0x122a0: 'Psionic Storm',
             0x3d40: 'Feedback',
         }
 
     class DarkTemplar(Moveable, Attacker):
         pass
 
-    @MergeFrom([HighTemplar, DarkTemplar], 0x0, 0x0)
+    @MergeFrom([HighTemplar, DarkTemplar], 0x17d00, 0x0)
     class Archon(Moveable, Attacker):
         pass
 
@@ -399,19 +448,19 @@ class Data_140_(BaseData):
     class WarpPrism(Moveable, Supporter):
         pass
 
-    @Channels('Graviton Beam', 0x0, 0x0)
+    @Channels('Graviton Beam', 0x4d40, 0x4d01)
     class Pheonix(Moveable, Attacker):
         pass
 
     class Carrier(Moveable, Attacker):
         abilities = {
-            0x0: 'Build Intercepter',
+            0x12500: 'Build Intercepter',
         }
 
     class Mothership(Moveable, Attacker):
         abilities = {
-            0x0: 'Vortex',
-            0x0: 'Mass Recall',
+            0x16420: 'Vortex',
+            0x3e20: 'Mass Recall',
         }
 
     class Nexus(Production):
@@ -420,7 +469,7 @@ class Data_140_(BaseData):
             0x3c00: 'Mothership',
             0x6640: 'Chrono Boost',
             0x5b40: 'Set rally point',
-            0x0: 'Set rally target',
+            0x5b20: 'Set rally target',
         }
 
     @Mode('WarpGate', ('Tranform to Warpgate',0x15600, None), ('Transform to Gateway', 0x15700, None))
@@ -471,6 +520,7 @@ class Data_140_(BaseData):
             0x15e05: 'Air Armor Level 3',
             0x15e06: 'Warp Gate',
             0x15e07: 'Hallucination',
+            0x15e09: 'Hallucination',
         }
 
     class RoboticsFacility(Production):
@@ -496,7 +546,7 @@ class Data_140_(BaseData):
 
     class FleetBeacon(Research):
         abilities = {
-            0x0: 'Graviton Catapult',
+            0x3701: 'Graviton Catapult',
         }
 
     class TemplarArchive(Research):
@@ -534,10 +584,10 @@ class Data_140_(BaseData):
             0x0: 'Cancel',
         }
 
-    @Burrows(0x0, 0x0)
+    @Burrows(0x13700, 0x13800)
     class Drone(Worker):
         abilities = {
-            0x0: 'Return cargo',
+            0x12a01: 'Return cargo',
             0x0: 'Burrow',
             0x12920: 'Hatchery',
             0x12923: 'Spawning Pool',
@@ -572,6 +622,7 @@ class Data_140_(BaseData):
     class Queen(Moveable, Attacker):
         abilities = {
             0x17620: 'Creep Tumor',
+            0x176a0: 'Creep Tumor',
             0x6140: 'Larva',
             0x16740: 'Transfuse',
         }
@@ -584,8 +635,8 @@ class Data_140_(BaseData):
     @MorphedFrom(Zergling, 0x3b00, 0x0)
     class Baneling(Moveable, Attacker):
         abilities = {
-            0x0: 'Explode',
-            0x0: 'Attack Structure'
+            0x3600: 'Explode',
+            0x5e40: 'Attack Structure'
         }
 
     @Burrows(0x13b00, 0x13c00)
@@ -597,7 +648,7 @@ class Data_140_(BaseData):
         pass
 
     @Burrows(0x14d00, 0x14e00)
-    @Channels('Neural Parasite', 0x0, 0x0)
+    @Channels('Neural Parasite', 0x6040, 0x6001)
     class Infestor(Moveable, Supporter):
         abilities = {
             0x3820: 'Fungal Growth',
@@ -617,7 +668,7 @@ class Data_140_(BaseData):
     class Ultralisk(Moveable, Attacker):
         pass
 
-    @Burrows(0x0, 0x0)
+    @Burrows(0x13f00, 0x14000)
     class InfestedTerran(Moveable, Attacker):
         pass
 
@@ -627,43 +678,45 @@ class Data_140_(BaseData):
             0x3240: 'Corruption',
         }
 
-    @MorphedFrom(Corruptor, 0x0, 0x0)
+    @MorphedFrom(Corruptor, 0x13400, 0x13401)
     class Broodlord(Moveable, Attacker):
         pass
 
-    @Transports(0x0, 0x0, 0x0, 0x0)
+    @Transports(0x14501, None, 0x14563, 0x14504)
     class Overlord(Moveable, Supporter):
         abilities = {
-            0x0: 'Generate Creep',
-            0x0: 'Stop generating Creep',
-            0x0: 'Unload all at',
+            0x17500: 'Generate Creep',
+            0x17501: 'Stop generating Creep',
+            0x14522: 'Unload all at',
         }
 
-    @MorphedFrom(Overlord, 0x0, 0x0)
+    @MorphedFrom(Overlord, 0x14f00, 0x14f01)
     class Overseer(Zerg, Moveable, Supporter):
         abilities = {
-            0x0: 'Changeling',
-            0x0: 'Contaminate',
+            0x5100: 'Changeling',
+            0x20440: 'Contaminate',
         }
 
     @Transports(0x0, 0x0, 0x0, 0x0)
     class NydusWorm(Building):
         pass
 
-    @Uproots(0x17700, 0x17920, 0x0)
+    @Uproots(0x17700, 0x17920, 0x17901)
+    @Uproots(0x0, 0x179a0, 0x0)
     class SpineCrawler(Building, Attacker):
         pass
 
     @Uproots(0x17800, 0x17a20, 0x0)
+    @Uproots(0x0, 0x17aa0, 0x0)
     class SporeCrawler(Building, Attacker):
         pass
 
     class ZergMain(Production, Research):
         abilities = {
-            0x0: 'Set worker rally point',
+            0x5c21: 'Set worker rally point',
             0x5c41: 'Set worker rally target',
-            0x0: 'Set unit rally point',
-            0x0: 'Set unit rally target',
+            0x5c20: 'Set unit rally point',
+            0x5c40: 'Set unit rally target',
             0x16500: 'Queen',
             0x12f03: 'Evolve Burrow',
             0x12f01: 'Evolve Pneumatized Carapace',
@@ -712,6 +765,7 @@ class Data_140_(BaseData):
         }
 
     @Channels('Creep Tumor', 0x17b20, 0x0)
+    @Channels('Creep Tumor', 0x17ba0, 0x0)
     class CreepTumorBurrowed(Building):
         pass
 
@@ -726,10 +780,10 @@ class Data_140_(BaseData):
             0x15103: 'Evolve Neural Parasite',
         }
 
-    @Transports(0x0, 0x0, 0x0, 0x0)
+    @Transports(0x14b01, None, 0x14b63, 0x14b40)
     class NydusNetwork(Building):
         abilities = {
-            0x0: 'Spawn Nydus Worm',
+            0x17e20: 'Spawn Nydus Worm',
         }
 
     class Spire(Research):
@@ -742,7 +796,7 @@ class Data_140_(BaseData):
             0x13205: 'Evolve Flyer Carapace Level 3',
         }
 
-    @UpgradeFrom(Spire, 0x0, 0x0)
+    @UpgradeFrom(Spire, 0x12e00, 0x12e01)
     class GreaterSpire(Spire):
         pass
 
