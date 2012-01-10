@@ -148,6 +148,7 @@ class Data_140_(BaseData):
 
     #This mode change cannot be cancelled
     @Mode('Assault',('Assult Mode', 0x7f00, None),('Fighter Mode', 0x8000, None))
+    @Mode('Assault',('Assult Mode', 0x0, None),('Fighter Mode', 0x10000, None))
     class Viking(Moveable, Attacker):
         pass
 
@@ -167,6 +168,7 @@ class Data_140_(BaseData):
             0x4b40: 'Seeker Missile',
 
             0x17ca0: 'Auto Turret',
+            0x3fa0: 'Point Defense Drone',
         }
 
     @Cloaks(0x7b00, 0x7b01)
@@ -193,7 +195,7 @@ class Data_140_(BaseData):
 
     @Lifts(0x15800, 0x15920)
     @Lifts(0x0, 0x159a0)
-    @UpgradeFrom(CommandCenter, 0x15500, 0x0)
+    @UpgradeFrom(CommandCenter, 0x15500, 0x15501)
     class OrbitalCommand(TerranMain, Production):
         abilities = {
             0x4c40: 'MULE (Target)',
@@ -201,6 +203,7 @@ class Data_140_(BaseData):
             0x6340: 'Extra Supplies',
             0x7d20: 'Scanner Sweep',
 
+            0x4ca0: 'MULE (Location)',
             0x7da0: 'Scanner Sweep',
         }
 
@@ -241,7 +244,7 @@ class Data_140_(BaseData):
             0x16200: 'Salvage',
             0x17100: 'Stimpack',
             0x17040: 'Attack',
-            #0x0: 'Stop'
+            0x17400: 'Stop'
         }
 
     class Armory(TerranBuilding, Research):
@@ -268,11 +271,12 @@ class Data_140_(BaseData):
 
     @Lifts(0x10600, 0x10e20)
     @Lifts(0x0, 0x10ea0)
-    @AddOn('Techlab', start=0x10500, move=0x0, cancel=0x0)
-    @AddOn('Techlab', start=0x10520, move=0x0, cancel=0x0)
-    @AddOn('Techlab', start=0x105a0, move=0x0, cancel=0x0)
-    @AddOn('Reactor', start=0x10501, move=0x0, cancel=0x0)
-    @AddOn('Reactor', start=0x10521, move=0x0, cancel=0x0)
+    @AddOn('Techlab', start=0x10500, move=0x0, cancel=0x1850e)
+    @AddOn('Techlab', start=0x10520, move=0x0, cancel=0x1850e)
+    @AddOn('Techlab', start=0x105a0, move=0x0, cancel=0x1850e)
+    @AddOn('Reactor', start=0x10501, move=0x0, cancel=0x1850e)
+    @AddOn('Reactor', start=0x10521, move=0x0, cancel=0x1850e)
+    @AddOn('Reactor', start=0x105a1, move=0x0, cancel=0x1850e)
     class Barracks(TerranBuilding, Production):
         abilities = {
             0x11100: 'Marine',
@@ -294,22 +298,23 @@ class Data_140_(BaseData):
         class Reactor(TerranBuilding):
             pass
 
-        @AddOn('Techlab', start=0x10500, move=0x0, cancel=0x0)
-        @AddOn('Techlab', start=0x10520, move=0x0, cancel=0x0)
-        @AddOn('Techlab', start=0x105a0, move=0x0, cancel=0x0)
-        @AddOn('Reactor', start=0x10501, move=0x0, cancel=0x0)
-        @AddOn('Reactor', start=0x10521, move=0x0, cancel=0x0)
+        @AddOn('Techlab', start=0x10500, move=0x0, cancel=0x1850e)
+        @AddOn('Techlab', start=0x10520, move=0x0, cancel=0x1850e)
+        @AddOn('Techlab', start=0x105a0, move=0x0, cancel=0x1850e)
+        @AddOn('Reactor', start=0x10501, move=0x0, cancel=0x1850e)
+        @AddOn('Reactor', start=0x10521, move=0x0, cancel=0x1850e)
+        @AddOn('Reactor', start=0x105a1, move=0x0, cancel=0x1850e)
         class Flying(TerranBuilding, Moveable):
             pass
 
     @Lifts(0x10800,0x10b20)
     @Lifts(0x0,0x10ba0)
-    @AddOn('Techlab', start=0x10700, move=0x0, cancel=0x0)
-    @AddOn('Techlab', start=0x10720, move=0x0, cancel=0x0)
-    @AddOn('Techlab', start=0x107a0, move=0x0, cancel=0x0)
-    @AddOn('Reactor', start=0x10701, move=0x0, cancel=0x0)
-    @AddOn('Reactor', start=0x10721, move=0x0, cancel=0x0)
-    @AddOn('Reactor', start=0x107a1, move=0x0, cancel=0x0)
+    @AddOn('Techlab', start=0x10700, move=0x0, cancel=0x1870e)
+    @AddOn('Techlab', start=0x10720, move=0x0, cancel=0x1870e)
+    @AddOn('Techlab', start=0x107a0, move=0x0, cancel=0x1870e)
+    @AddOn('Reactor', start=0x10701, move=0x0, cancel=0x1870e)
+    @AddOn('Reactor', start=0x10721, move=0x0, cancel=0x1870e)
+    @AddOn('Reactor', start=0x107a1, move=0x0, cancel=0x1870e)
     class Factory(TerranBuilding, Production):
         abilities = {
             0x11201: 'Siege Tank',
@@ -330,16 +335,23 @@ class Data_140_(BaseData):
 
             pass
 
-        @AddOn('Techlab', start=0x10700, move=0x0, cancel=0x0)
-        @AddOn('Reactor', start=0x10701, move=0x0, cancel=0x0)
+        @AddOn('Techlab', start=0x10700, move=0x0, cancel=0x1870e)
+        @AddOn('Techlab', start=0x10720, move=0x0, cancel=0x1870e)
+        @AddOn('Techlab', start=0x107a0, move=0x0, cancel=0x1870e)
+        @AddOn('Reactor', start=0x10701, move=0x0, cancel=0x1870e)
+        @AddOn('Reactor', start=0x10721, move=0x0, cancel=0x1870e)
+        @AddOn('Reactor', start=0x107a1, move=0x0, cancel=0x1870e)
         class Flying(TerranBuilding, Moveable):
             pass
 
     @Lifts(0x10a00, 0x10c20)
     @Lifts(0x0, 0x10ca0)
-    @AddOn('Techlab', start=0x10900, move=0x0, cancel=0x0)
-    @AddOn('Reactor', start=0x10901, move=0x0, cancel=0x0)
-    @AddOn('Techlab', start=0x109a0, move=0x0, cancel=0x0)
+    @AddOn('Techlab', start=0x10900, move=0x0, cancel=0x1890e)
+    @AddOn('Techlab', start=0x10920, move=0x0, cancel=0x1890e)
+    @AddOn('Techlab', start=0x109a0, move=0x0, cancel=0x1890e)
+    @AddOn('Reactor', start=0x10901, move=0x0, cancel=0x1890e)
+    @AddOn('Reactor', start=0x10921, move=0x0, cancel=0x1890e)
+    @AddOn('Reactor', start=0x109a1, move=0x0, cancel=0x1890e)
     class Starport(TerranBuilding, Production):
         abilities = {
             0x11300: 'Medivac',
@@ -363,8 +375,12 @@ class Data_140_(BaseData):
         class Reactor(TerranBuilding):
             pass
 
-        @AddOn('Techlab', start=0x10900, move=0x0, cancel=0x0)
-        @AddOn('Reactor', start=0x10901, move=0x0, cancel=0x0)
+        @AddOn('Techlab', start=0x10900, move=0x0, cancel=0x1890e)
+        @AddOn('Techlab', start=0x10920, move=0x0, cancel=0x1890e)
+        @AddOn('Techlab', start=0x109a0, move=0x0, cancel=0x1890e)
+        @AddOn('Reactor', start=0x10901, move=0x0, cancel=0x1890e)
+        @AddOn('Reactor', start=0x10921, move=0x0, cancel=0x1890e)
+        @AddOn('Reactor', start=0x109a1, move=0x0, cancel=0x1890e)
         class Flying(TerranBuilding, Moveable):
             pass
 
@@ -375,6 +391,7 @@ class Data_140_(BaseData):
     class Probe(Worker):
         abilities = {
             0x6a01: 'Return cargo',
+            0x6a40: 'Gather resources',
             0x11c20: 'Nexus',
             0x11ca0: 'Nexus',
             0x11c21: 'Pylon',
@@ -445,6 +462,8 @@ class Data_140_(BaseData):
     #Phasing mode changes cannot be cancelled
     @Mode('Phasing', ('Phase Mode', 0x15b00, None), ('Transport Mode', 0x15c00, None))
     @Transports(0x11d42, None, 0x11d63, 0x11d40)
+    @Transports(0x11d22, None, 0x0, 0x0)
+    @Transports(0x11da2, None, 0x0, 0x0)
     class WarpPrism(Moveable, Supporter):
         pass
 
