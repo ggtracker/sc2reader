@@ -669,24 +669,44 @@ class BaseData(object):
     class MengshStatue3(Destructable):
         code = 0x11b01
 
+    class MengshStatue4(Destructable):
+        code = 0x11c01
+
     class WolfStatue(Destructable):
         code = 0x11d01
+
+    class WolfStatue2(Destructable):
+        code = 0x11e01
+
+    class WolfStatue3(Destructable):
+        code = 0x11f01
+
+    class UnknownDestructable(Destructable):
+        code = 0xd001
 
     class Beacon(Destructable):
         code = 0xdb01
         name = "Beacon (Protoss Large)"
-    class Beacon2(Destructable):
-        code = 0xdd01
-        name = "Beacon (Terran Large)"
-    class Beacon3(Destructable):
-        code = 0xdf01
-        name = "Beacon (Zerg Large)"
+
     class Beacon4(Destructable):
         code = 0xdc01
         name = "Beacon (Protoss Small)"
+
+    class Beacon2(Destructable):
+        code = 0xdd01
+        name = "Beacon (Terran Large)"
+
     class Beacon5   (Destructable):
         code = 0xde01
         name = "Beacon (Terran Small)"
+
+    class Beacon3(Destructable):
+        code = 0xdf01
+        name = "Beacon (Zerg Large)"
+
     class Beacon6(Destructable):
         code = 0xe001
         name = "Beacon (Zerg Small)"
+
+    class Automaton2000(Critter):
+        code = 0xed01
