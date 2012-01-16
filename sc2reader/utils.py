@@ -7,10 +7,11 @@ import os
 import re
 import struct
 import textwrap
-
+import sys
+import mpyq
 from itertools import groupby
 
-from sc2reader.exceptions import FileError
+from sc2reader import exceptions
 
 LITTLE_ENDIAN,BIG_ENDIAN = '<','>'
 
@@ -542,49 +543,87 @@ class AttributeDict(dict):
     def copy(self):
         return AttributeDict(super(AttributeDict,self).copy())
 
-def read_header(file):
-    ''' Read the file as a byte stream according to the documentation found at:
-            http://wiki.devklog.net/index.php?title=The_MoPaQ_Archive_Format
+def open_archive(replay_file):
+    # Don't read the listfile because some replays have corrupted listfiles
+    # due  to tampering by 3rd parties.
+    #
+    # In order to wrap mpyq in exceptions we have to do this try hack.
+    try:
+        replay_file.seek(0)
+        return  mpyq.MPQArchive(replay_file, listfile=False)
+    except KeyboardInterrupt:
+        raise
+    except Exception as e:
+        trace = sys.exc_info()[2]
+        raise exceptions.MPQError("Unable to construct the MPQArchive",e), None, trace
 
-        Return the release array and frame count for sc2reader use. For more
-        detailed header information, access mpyq directly.
-    '''
-    buffer = ReplayBuffer(file)
+def extract_data_file(data_file, archive):
+    # To wrap mpyq exceptions we have to do this try hack again.
+    try:
+        # Some sites tamper with the message events file so
+        # Catch decompression errors and try again before giving up
+        if data_file == 'replay.message.events':
+            try:
+                file_data = archive.read_file(data_file, force_decompress=True)
+            except IndexError as e:
+                if str(e) == "string index out of range":
+                    file_data = archive.read_file(data_file, force_decompress=False)
+                else:
+                    raise
+        else:
+            file_data = archive.read_file(data_file)
+
+        return file_data
+
+    except KeyboardInterrupt:
+        raise
+    except Exception as e:
+        trace = sys.exc_info()[2]
+        raise exceptions.MPQError("Unable to extract file: {0}".format(data_file),e), None, trace
+
+def read_header(replay_file):
+    # Extract useful header information from the MPQ files. This information
+    # can be used to configure the rest of the program to correctly parse
+    # the archived data files.
+    replay_file.seek(0)
+    buffer = ReplayBuffer(replay_file)
 
     #Sanity check that the input is in fact an MPQ file
     if buffer.empty or buffer.read_hex(4).upper() != "4D50511B":
-        raise FileError("File '%s' is not an MPQ file" % file.name)
+        raise exceptions.FileError("File '%s' is not an MPQ file" % file.name)
 
-    #Extract replay header data, we are unlikely to ever use most of this
     max_data_size = buffer.read_int(LITTLE_ENDIAN)
     header_offset = buffer.read_int(LITTLE_ENDIAN)
     data_size = buffer.read_int(LITTLE_ENDIAN)
-    header_data = buffer.read_data_struct()
 
     #array [unknown,version,major,minor,build,unknown] and frame count
-    return header_data[1].values(),header_data[3]
+    header_data = buffer.read_data_struct()
+    versions = header_data[1].values()
+    frames = header_data[3]
+    build = versions[4]
+    release_string = "%s.%s.%s.%s" % tuple(versions[1:5])
+    length = Length(seconds=frames/16)
 
+    keys = ('versions', 'frames', 'build', 'release_string', 'length')
+    return filter(lambda item: item[0] in keys, locals().iteritems())
 
+def merged_dict(a, b):
+    c = a.copy()
+    c.update(b)
+    return c
 
-def _allow(filename, regex=None, allow=True):
+def sc2replay_ext(filename):
     name, ext = os.path.splitext(filename)
-    if ext.lower() != ".sc2replay": return False
-    return allow == re.match(regex, name) if regex else allow
+    return ext.lower() == ".sc2replay"
 
-def get_files( path, regex=None, allow=True, exclude=[],
-               depth=-1, followlinks=False, **extras):
-
-
+def get_replay_files(path, exclude=[], depth=-1, followlinks=False, **extras):
     #os.walk and os.path.isfile fail silently. We want to be loud!
     if not os.path.exists(path):
         raise ValueError("Location `{0}` does not exist".format(path))
 
-    # Curry the function to prime it for use in the filter function
-    allow = lambda filename: _allow(filename, regex, allow)
-
-    # You can't get more than one file from a file name!
+    # os.walk can't handle file paths, only directories
     if os.path.isfile(path):
-        return [path] if allow(os.path.basename(path)) else []
+        return [path] if sc2replay_ext(path) else []
 
     files = list()
     for root, directories, filenames in os.walk(path, followlinks=followlinks):
@@ -594,8 +633,8 @@ def get_files( path, regex=None, allow=True, exclude=[],
                 directories.remove(directory)
 
         # Extend our return value only with the allowed file type and regex
-        allowed_files = filter(allow, filenames)
-        files.extend(os.path.join(root,file) for file in allowed_files)
+        allowed_files = filter(sc2replay_ext, filenames)
+        files.extend(os.path.join(root, filename) for filename in allowed_files)
         depth -= 1
 
     return files
