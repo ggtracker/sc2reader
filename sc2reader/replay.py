@@ -9,7 +9,7 @@ from sc2reader import utils
 
 class Replay(object):
 
-    def __init__(self, replay_file, auto_parse=True, autoplay=True, **options):
+    def __init__(self, replay_file, **options):
         self.opt = utils.AttributeDict(options)
         self.datapack = None
         self.raw_data = dict()
