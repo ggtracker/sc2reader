@@ -6,14 +6,16 @@ import sys
 import argparse
 
 import sc2reader
-from sc2reader.utils import get_files
+from sc2reader import utils
 from sc2reader.exceptions import ReadError
 
 def doFile(filename, arguments):
     '''Prints summary information about SC2 replay file'''
     try:
-        replay = sc2reader.read_file(filename, debug=True)
+        replay = sc2reader.load_replay(filename, debug=True)
     except ReadError as e:
+        raise
+        return
         prev = e.game_events[-1]
         print "\nVersion {0} replay:\n\t{1}".format(e.replay.release_string, e.replay.filename)
         print "\t{0}, Type={1:X}, Code={2:X}".format(e.msg, e.type,e.code)
@@ -25,6 +27,7 @@ def doFile(filename, arguments):
         print e
         return
     except TypeError as e:
+        raise
         print "Error with '%s': " % filename,
         print e
         return
@@ -81,9 +84,9 @@ def main():
 
     for path in arguments.paths:
         if arguments.recursive:
-            files = get_files(path)
+            files = utils.get_replay_files(path)
         else:
-            files = get_files(path, depth=0)
+            files = utils.get_replay_files(path, depth=0)
 
         for file in files:
             print "\n--------------------------------------\n{0}\n".format(file)
