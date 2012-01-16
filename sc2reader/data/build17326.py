@@ -4,7 +4,7 @@ from sc2reader.data.base import *
 from sc2reader.data.utils import *
 
 #Hell, this might even cover 1.3.2 as well. Definitely not 1.3.3 though.
-class Data_120_131(BaseData):
+class Data_17326(BaseData):
 
     class DataObject(DataObject):
         abilities = {
@@ -15,6 +15,7 @@ class Data_120_131(BaseData):
     class Moveable(DataObject):
         abilities = {
             0x002400: 'Stop',
+            0x002403: 'Stop',
             0x002602: 'Hold position',
             0x002610: 'Move to',
             0x002611: 'Patrol',
@@ -208,6 +209,7 @@ class Data_120_131(BaseData):
         abilities = {
             0x032100: 'Salvage',
             0x033000: 'Stimpack', #Can bunkers really stimpack?
+            0x032f20: 'Attack',
             # I don't think these 2 are right....?
             #0x032f20: 'Attack',
             #0x033300: 'Stop'
@@ -289,8 +291,8 @@ class Data_120_131(BaseData):
             pass
 
     @Lifts(0x020900, 0x020b10)
-    @AddOn('Techlab', start=0x020800, move=0x020810, cancel=0x02806)
-    @AddOn('Reactor', start=0x020801, move=0x020811, cancel=0x02806)
+    @AddOn('Techlab', start=0x020800, move=0x020810, cancel=0x02c806)
+    @AddOn('Reactor', start=0x020801, move=0x020811, cancel=0x02c806)
     class Starport(TerranBuilding, Production):
         abilities = {
             0x021200: 'Medivac',
@@ -326,6 +328,7 @@ class Data_120_131(BaseData):
     class Probe(Worker):
         abilities = {
             0x012901: 'Return cargo',
+            0x012920: 'Gather Resources',
             0x021b10: 'Nexus',
             0x021b11: 'Pylon',
             0x021b13: 'Gateway',

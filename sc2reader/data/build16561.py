@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from sc2reader.data.base import *
 from sc2reader.data.utils import *
 
-class Data_132_136(BaseData):
+class Data_16561(BaseData):
 
     class DataObject(DataObject):
         abilities = {

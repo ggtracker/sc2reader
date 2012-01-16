@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from sc2reader.data.base import *
 from sc2reader.data.utils import *
 
-class Data_140_(BaseData):
+class Data_19595(BaseData):
 
     class DataObject(DataObject):
         abilities = {
@@ -65,6 +65,7 @@ class Data_140_(BaseData):
     class Production(Building):
         abilities = {
             0x5820: 'Set rally point',
+            0x5840: 'Set rally point',
             0x0: 'Set rally target',
             0x6d00: 'Cancel', # Generic ESC cancel
             0x0: 'Cancel unit', # Cancel + build id
@@ -182,8 +183,8 @@ class Data_140_(BaseData):
 
     class TerranMain(TerranBuilding):
         abilities = {
-            0x0: 'Set rally point',
-            0x0: 'Set rally target',
+            0x5a20: 'Set rally point',
+            0x5a40: 'Set rally target',
             0x10d00: 'Train SCV',
         }
 
@@ -207,7 +208,7 @@ class Data_140_(BaseData):
             0x7da0: 'Scanner Sweep',
         }
 
-    @UpgradeFrom(CommandCenter, 0x15000, 0x0)
+    @UpgradeFrom(CommandCenter, 0x15000, 0x15001)
     class PlanetaryFortress(TerranMain, Production):
         abilties = {
             0x0: 'Cancel (PF ONLY)', #????
@@ -637,7 +638,7 @@ class Data_140_(BaseData):
             0x129af: 'Spore Crawler',
         }
 
-    @Burrows(0x0, 0x0)
+    @Burrows(0x14900, 0x14a00)
     class Queen(Moveable, Attacker):
         abilities = {
             0x17620: 'Creep Tumor',
@@ -683,7 +684,7 @@ class Data_140_(BaseData):
                 0x5fa0: 'Infested Terran',
             }
 
-    @Burrows(0x0, 0x0)
+    @Burrows(0x15300, 0x15400)
     class Ultralisk(Moveable, Attacker):
         pass
 
@@ -701,7 +702,8 @@ class Data_140_(BaseData):
     class Broodlord(Moveable, Attacker):
         pass
 
-    @Transports(0x14501, None, 0x14563, 0x14504)
+    #@Transports(0x14501, None, 0x14563, 0x14504)
+    @Transports(0x14501, None, 0x00, 0x00)
     class Overlord(Moveable, Supporter):
         abilities = {
             0x17500: 'Generate Creep',

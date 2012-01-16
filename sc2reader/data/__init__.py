@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from sc2reader.data.utils import DataObject
-from sc2reader.data.v110_113 import Data_110_113
-from sc2reader.data.v120_131 import Data_120_131
-from sc2reader.data.v132_136 import Data_132_136
-from sc2reader.data.v140_    import Data_140_
+from sc2reader.data.build16561 import Data_16561
+from sc2reader.data.build17326 import Data_17326
+from sc2reader.data.build18317 import Data_18317
+from sc2reader.data.build19595 import Data_19595
