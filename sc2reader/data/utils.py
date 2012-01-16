@@ -152,7 +152,7 @@ class MetaObject(type):
 #All data is either an object or an ability
 class DataObject(object):
     __metaclass__ = MetaObject
-    def __init__(self, id, timestamp):
+    def __init__(self, id):
         self.id = id
 
     def visit(self,frame,player,object_type=None):
