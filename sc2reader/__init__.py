@@ -166,6 +166,11 @@ class SC2Reader(object):
         #self.register_listener(Event, PrintEventListener())
         pass
 
+    def configure(self, **new_options):
+        self.options.update(new_options)
+
+    def reset(self):
+        self.options = utils.AttributeDict(self.default_options)
 
 __defaultSC2Reader = SC2Reader()
 
@@ -179,3 +184,6 @@ get_reader = __defaultSC2Reader.get_reader
 
 load_replay = __defaultSC2Reader.load_replay
 load_replays = __defaultSC2Reader.load_replays
+
+configure = __defaultSC2Reader.configure
+reset = __defaultSC2Reader.reset
