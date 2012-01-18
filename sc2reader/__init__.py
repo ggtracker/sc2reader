@@ -52,10 +52,7 @@ class SC2Reader(object):
             full_path = os.path.join(directory, replay_collection)
             for replay_path in utils.get_replay_files(full_path, **options):
                 with open(replay_path) as replay_file:
-                    try:
-                        yield self.load_replay(replay_file, options=options)
-                    except exceptions.MPQError as e:
-                        print e
+                    yield self.load_replay(replay_file, options=options)
 
         else:
             for replay_file in replay_collection:
