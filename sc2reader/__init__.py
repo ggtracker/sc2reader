@@ -43,10 +43,14 @@ class SC2Reader(object):
 
     def load_replays(self, replay_collection, options=None, **new_options):
         options = options or utils.merged_dict(self.options, new_options)
+
+        # Get the directory and hide it from nested calls
+        directory = options.get('directory','')
+        if 'directory' in options: del options['directory']
+
         if isinstance(replay_collection, basestring):
-            directory = os.path.join(options.get('directory',''), replay_collection)
-            del options['directory'] # don't need this anymore on this request
-            for replay_path in utils.get_replay_files(directory, **options):
+            full_path = os.path.join(directory, replay_collection)
+            for replay_path in utils.get_replay_files(full_path, **options):
                 with open(replay_path) as replay_file:
                     try:
                         yield self.load_replay(replay_file, options=options)
@@ -55,7 +59,16 @@ class SC2Reader(object):
 
         else:
             for replay_file in replay_collection:
-                yield self.load_replay(replay_file, options=options)
+                if isinstance(replay_file, basestring):
+                    full_path = os.path.join(directory, replay_file)
+                    if os.path.isdir(full_path):
+                        for replay in self.load_replays(full_path, options=options):
+                            yield replay
+                    else:
+                        yield self.load_replay(full_path, options=options)
+
+                else:
+                    yield self.load_replay(replay_file, options=options)
 
     def load_replay(self, replay_file, options=None, **new_options):
         options = options or utils.merged_dict(self.options, new_options)
