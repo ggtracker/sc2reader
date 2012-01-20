@@ -9,6 +9,47 @@ from sc2reader.replay import Replay
 from collections import defaultdict
 
 class SC2Reader(object):
+    """
+    The primary interface to the sc2reader library. Acts as a configurable
+    factory for :class:`Replay` objects. Maintains a set of registered readers,
+    datapacks, and listeners with filterfuncs that allow the factory to apply
+    a replay specific context to each replay as it loads.
+
+    #TODO:  Include some examples here...
+
+    See the specific functions below for details.
+
+    :param True register_defaults: Automatically registers default readers
+        and datapacks. Only disable if you know what you are doing.
+
+    :param True load_events: Enables parsing of game events. If you are do
+        not need this information setting to false will reduce replay load
+        time.
+
+    :param True autoplay: Enables auto playing of replays after loading game
+        events. Playing events triggers enables registered listeners to add
+        new data features to replays. Option ignored if load_events is false.
+
+    :param False load_map: Triggers downloading and parsing of map files
+        associated with replays as they are loaded. When false, only the map
+        url and name are available.
+
+    :param False verbose: Causes many steps in the replay loading process
+        to produce more verbose output.
+
+    :param string directory: Specifies a base directory to prepend to all paths
+        before attempting to load the replay.
+
+    :param -1 depth: Indicates the maximum search depth when loading replays
+        from directories. -1 indicates no limit, 0 turns recursion off.
+
+    :param list exclude: A list of directory names (not paths) to exclude when
+        performing recursive searches while loading replays from directories.
+
+    :param False followlinks: Enables symlink following when recursing through
+        directories to load replay files.
+
+    """
 
     default_options = dict(
         # General use
@@ -39,22 +80,58 @@ class SC2Reader(object):
 
         self.configure(**options)
 
+    def configure(self, **new_options):
+        """
+        Update the factory settings with the specified overrides.
 
-    def load_replays(self, replay_collection, options=None, **new_options):
+        See :class:`SC2Reader` for a list of available options.
+
+        :param new_options: Option values to override current factory settings.
+        """
+        self.options.update(new_options)
+
+    def reset(self):
+        """
+        Resets the current factory to default settings and removes all
+        registered readers, datapacks, and listeners.
+        """
+        self.options = utils.AttributeDict(self.default_options)
+        self.registered_readers = defaultdict(list)
+        self.registered_datapacks = list()
+        self.registered_listeners = defaultdict(list)
+
+
+    def load_replays(self, collection, options=None, **new_options):
+        """
+        Loads the specified collection of replays using the current factory
+        settings with specified overrides.
+
+        :param collection: Either a directory path or a mixed collection of
+            directories, file paths, and open file objects.
+
+        :param None options: When options are passed directly into the options
+            parameter the current factory settings are ignored and only the
+            specified options are used during replay load.
+
+        :param new_options: Options values to override current factory settings
+            for the collection of replays to be loaded.
+
+        :rtype: generator(:class:`Replay`)
+        """
         options = options or utils.merged_dict(self.options, new_options)
 
         # Get the directory and hide it from nested calls
         directory = options.get('directory','')
         if 'directory' in options: del options['directory']
 
-        if isinstance(replay_collection, basestring):
-            full_path = os.path.join(directory, replay_collection)
+        if isinstance(collection, basestring):
+            full_path = os.path.join(directory, collection)
             for replay_path in utils.get_replay_files(full_path, **options):
                 with open(replay_path) as replay_file:
                     yield self.load_replay(replay_file, options=options)
 
         else:
-            for replay_file in replay_collection:
+            for replay_file in collection:
                 if isinstance(replay_file, basestring):
                     full_path = os.path.join(directory, replay_file)
                     if os.path.isdir(full_path):
@@ -67,6 +144,21 @@ class SC2Reader(object):
                     yield self.load_replay(replay_file, options=options)
 
     def load_replay(self, replay_file, options=None, **new_options):
+        """
+        Loads the specified replay using current factory settings with the
+        specified overrides.
+
+        :param replay: An open file object or a path to a single file.
+
+        :param None options: When options are passed directly into the options
+            parameter the current factory settings are ignored and only the
+            specified options are used during replay load.
+
+        :param new_options: Options values to override current factory settings
+            while loading this replay.
+
+        :rtype: :class:`Replay`
+        """
         options = options or utils.merged_dict(self.options, new_options)
         load_events = options.get('load_events',True)
         autoplay = options.get('autoplay',True)
@@ -127,6 +219,28 @@ class SC2Reader(object):
 
 
     def register_listener(self, events, listener, filterfunc=lambda r: True):
+        """
+        Allows you to specify event listeners for adding new features to the
+        :class:`Replay` objects on :meth:`~Replay.play`. sc2reader comes with a
+        small collection of :class:`Listener` classes that you can apply to your
+        replays as needed.
+
+        Events are sent to listeners in registration order as they come up. By
+        specifying a parent class you can register a listener to a set of events
+        at once instead of listing them out individually. See the tutorials for
+        more information.
+
+        :param events: A list of event classes you want sent to this listener.
+            Registration to a single event can be done by specifying a single
+            event class instead of a list. An isinstance() check is used so
+            you can catch sets of classes at once by supplying a parent class.
+
+        :param listener: The :class:`Listener` object you want events sent to.
+
+        :param filterfunc: A function that accepts a partially loaded
+            :class:`Replay` object as an argument and returns true if the
+            reader should be used on this replay.
+        """
         try:
             for event in events:
                 self.registered_listeners[event].append((filterfunc, listener))
@@ -134,17 +248,52 @@ class SC2Reader(object):
             self.registered_listeners[event].append((filterfunc, listener))
 
     def register_reader(self, data_file, reader, filterfunc=lambda r: True):
+        """
+        Allows you to specify your own reader for use when reading the data
+        files packed into the .SC2Replay archives. Datapacks are checked for
+        use with the supplied filterfunc in reverse registration order to give
+        user registered datapacks preference over factory default datapacks.
+
+        Don't use this unless you know what you are doing.
+
+        :param data_file: The full file name that you would like this reader to
+            parse.
+
+        :param reader: The :class:`Reader` object you wish to use to read the
+            data file.
+
+        :param filterfunc: A function that accepts a partially loaded
+            :class:`Replay` object as an argument and returns true if the
+            reader should be used on this replay.
+        """
         self.registered_readers[data_file].insert(0,(filterfunc, reader))
 
     def register_datapack(self, datapack, filterfunc=lambda r: True):
+        """
+        Allows you to specify your own datapacks for use when loading replays.
+        Datapacks are checked for use with the supplied filterfunc in reverse
+        registration order to give user registered datapacks preference over
+        factory default datapacks.
+
+        This is how you would add mappings for your favorite custom map.
+
+        :param datapack: A :class:`BaseData` object to use for mapping unit
+            types and ability codes to their corresponding classes.
+
+        :param filterfunc: A function that accepts a partially loaded
+            :class:`Replay` object as an argument and returns true if the
+            datapack should be used on this replay.
+        """
         self.registered_datapacks.insert(0,(filterfunc, datapack))
 
 
     def register_defaults(self):
+        """Registers all factory default objects."""
         self.register_default_readers()
         self.register_default_datapacks()
 
     def register_default_readers(self):
+        """Registers factory default readers."""
         self.register_reader('replay.details', readers.DetailsReader_Base())
         self.register_reader('replay.initData', readers.InitDataReader_Base())
         self.register_reader('replay.message.events', readers.MessageEventsReader_Base())
@@ -156,20 +305,11 @@ class SC2Reader(object):
         self.register_reader('replay.game.events', readers.GameEventsReader_19595(), lambda r: 19595 <= r.build)
 
     def register_default_datapacks(self):
+        """Registers factory default datapacks."""
         self.register_datapack(data.Data_16561, lambda r: 16561 <= r.build < 17326)
         self.register_datapack(data.Data_17326, lambda r: 17326 <= r.build < 18317)
         self.register_datapack(data.Data_18317, lambda r: 18317 <= r.build < 19595)
         self.register_datapack(data.Data_19595, lambda r: 19595 <= r.build)
-
-
-    def configure(self, **new_options):
-        self.options.update(new_options)
-
-    def reset(self):
-        self.options = utils.AttributeDict(self.default_options)
-        self.registered_readers = defaultdict(list)
-        self.registered_datapacks = list()
-        self.registered_listeners = defaultdict(list)
 
 __defaultSC2Reader = SC2Reader()
 
