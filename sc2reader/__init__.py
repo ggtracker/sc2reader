@@ -32,14 +32,13 @@ class SC2Reader(object):
     )
 
     def __init__(self, **options):
-        self.registered_readers = defaultdict(list)
-        self.registered_datapacks = list()
-        self.registered_listeners = defaultdict(list)
+        self.reset()
 
-        self.options = utils.AttributeDict(utils.merged_dict(self.default_options, options))
-
-        if self.options.register_defaults:
+        if options.get('register_defaults',None):
             self.register_defaults()
+
+        self.configure(**options)
+
 
     def load_replays(self, replay_collection, options=None, **new_options):
         options = options or utils.merged_dict(self.options, new_options)
@@ -168,6 +167,9 @@ class SC2Reader(object):
 
     def reset(self):
         self.options = utils.AttributeDict(self.default_options)
+        self.registered_readers = defaultdict(list)
+        self.registered_datapacks = list()
+        self.registered_listeners = defaultdict(list)
 
 __defaultSC2Reader = SC2Reader()
 
