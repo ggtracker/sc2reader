@@ -66,12 +66,12 @@ class Attribute(object):
         0x0BBB: ("Handicap", None),
         0x0BBC: ("Difficulty", DIFFICULTY_CODES),
         0x0BC1: ("Category", GAME_TYPE_CODES),
-        0x07D2: ("Teams1v1", lambda v: int(self.value[0])),
-        0x07D3: ("Teams2v2", lambda v: int(self.value[0])),
-        0x07D4: ("Teams3v3", lambda v: int(self.value[0])),
-        0x07D5: ("Teams4v4", lambda v: int(self.value[0])),
-        0x07D6: ("TeamsFFA", lambda v: int(self.value[0])),
-        0x07D7: ("Teams5v5", lambda v: int(self.value[0]))
+        0x07D2: ("Teams1v1", lambda value: int(value[0])),
+        0x07D3: ("Teams2v2", lambda value: int(value[0])),
+        0x07D4: ("Teams3v3", lambda value: int(value[0])),
+        0x07D5: ("Teams4v4", lambda value: int(value[0])),
+        0x07D6: ("TeamsFFA", lambda value: int(value[0])),
+        0x07D7: ("Teams5v5", lambda value: int(value[0]))
     }
 
     def __init__(self, data):
@@ -136,7 +136,6 @@ class Person(object):
         self.messages = list()
         self.events = list()
         self.is_human = bool()
-        self.result = "Unknown"
         self.recorder = False # Actual recorder will be determined using the replay.message.events file
 
 class Observer(Person):

@@ -268,7 +268,7 @@ class Replay(object):
             # We know there will be a default region because there must be
             # at least 1 human player or we wouldn't have a self.
             for player in self.players:
-                if player.type == 'Computer':
+                if not player.is_human:
                     player.region = default_region
 
             # Create observers out of the leftover names gathered from initData
@@ -280,7 +280,7 @@ class Replay(object):
                 self.person[i+1] = observer
 
         # Miscellaneous people processing
-        self.humans = filter(lambda p: p.type == 'Human', self.people)
+        self.humans = filter(lambda p: p.is_human, self.people)
 
         if 'message_events' in self.raw_data:
             # Figure out recorder

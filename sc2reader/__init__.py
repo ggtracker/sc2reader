@@ -74,11 +74,12 @@ class SC2Reader(object):
 
     def __init__(self, **options):
         self.reset()
+        self.configure(**options)
 
-        if options.get('register_defaults',None):
+        if self.options.get('register_defaults',None):
             self.register_defaults()
 
-        self.configure(**options)
+
 
     def configure(self, **new_options):
         """
