@@ -155,7 +155,7 @@ class Replay(object):
             player.pick_race = attributes['Race']
             player.play_race = LOCALIZED_RACES.get(pdata.race, pdata.race)
             player.difficulty = attributes['Difficulty']
-            player.type = attributes['Player Type']
+            player.is_human = (attributes['Player Type'] == 'Human')
             player.uid = pdata.bnet.uid
             player.subregion = pdata.bnet.subregion
             player.handicap = pdata.handicap
@@ -163,7 +163,7 @@ class Replay(object):
             # We need initData for the gateway portion of the url!
             if 'replay.initData' in self.raw_data and self.gateway:
                 player.gateway = self.gateway
-                if player.type == 'Human' and player.subregion:
+                if player.is_human and player.subregion:
                     player.region = REGIONS[self.gateway][player.subregion]
                     default_region = player.region
 

@@ -106,13 +106,15 @@ class Person(object):
         self.is_observer = None
         self.messages = list()
         self.events = list()
+        self.is_human = bool()
+        self.result = "Unknown"
         self.recorder = False # Actual recorder will be determined using the replay.message.events file
 
 class Observer(Person):
     def __init__(self, pid, name):
         super(Observer,self).__init__(pid, name)
         self.is_observer = True
-        self.type = 'Human'
+        self.is_human = True
 
 class Player(Person):
 
