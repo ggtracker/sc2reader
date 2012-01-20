@@ -139,7 +139,6 @@ class SC2Reader(object):
     def register_defaults(self):
         self.register_default_readers()
         self.register_default_datapacks()
-        self.register_default_listeners()
 
     def register_default_readers(self):
         self.register_reader('replay.details', readers.DetailsReader_Base())
@@ -158,9 +157,6 @@ class SC2Reader(object):
         self.register_datapack(data.Data_18317, lambda r: 18317 <= r.build < 19595)
         self.register_datapack(data.Data_19595, lambda r: 19595 <= r.build)
 
-    def register_default_listeners(self):
-        #self.register_listener(Event, PrintEventListener())
-        pass
 
     def configure(self, **new_options):
         self.options.update(new_options)
