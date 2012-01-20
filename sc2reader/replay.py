@@ -15,10 +15,9 @@ class Replay(object):
         self.raw_data = dict()
         self.listeners = defaultdict(list)
 
-        self.file = replay_file
-        self.filename = getattr(self.file,'name', 'Unavailable')
-        self.__dict__.update(utils.read_header(self.file))
-        self.archive = utils.open_archive(self.file)
+        self.filename = getattr(replay_file,'name', 'Unavailable')
+        self.__dict__.update(utils.read_header(replay_file))
+        self.archive = utils.open_archive(replay_file)
 
         #default values, filled in during file read
         self.player_names = list()
