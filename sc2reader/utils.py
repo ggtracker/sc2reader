@@ -543,6 +543,16 @@ class AttributeDict(dict):
     def copy(self):
         return AttributeDict(super(AttributeDict,self).copy())
 
+class Color(AttributeDict):
+    @property
+    def hex(self):
+        return "{0.r:02X}{0.g:02X}{0.b:02X}".format(self)
+
+    def __str__(self):
+        if not hasattr(self,'name'):
+            self.name = COLOR_CODES[self.hex]
+        return self.name
+
 def open_archive(replay_file):
     # Don't read the listfile because some replays have corrupted listfiles
     # due  to tampering by 3rd parties.

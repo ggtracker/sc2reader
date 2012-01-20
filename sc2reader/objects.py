@@ -13,16 +13,6 @@ PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','u
 ColorData = namedtuple('ColorData',['a','r','g','b'])
 BnetData = namedtuple('BnetData',['unknown1','unknown2','subregion','uid'])
 
-class Color(AttributeDict):
-    @property
-    def hex(self):
-        return "{0.r:02X}{0.g:02X}{0.b:02X}".format(self)
-
-    def __str__(self):
-        if not hasattr(self,'name'):
-            self.name = COLOR_CODES[self.hex]
-        return self.name
-
 class Team(object):
     """
     The team object primarily a container object for organizing :class:`Player`

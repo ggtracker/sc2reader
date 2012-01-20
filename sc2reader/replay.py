@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from datetime import datetime
 from collections import defaultdict
 from sc2reader.constants import REGIONS, LOCALIZED_RACES
-from sc2reader.objects import Player, Color, Observer, Team
+from sc2reader.objects import Player, Observer, Team
 
 from sc2reader import utils
 
@@ -250,7 +250,7 @@ class Replay(object):
             #   color_rgba is the color object itself
             #   color_hex is color.hex
             #   color is str(color)
-            player.color = Color(**pdata.color._asdict())
+            player.color = utils.Color(**pdata.color._asdict())
 
             # Each player can be referenced in a number of different ways,
             # primarily for convenience of access in any given situation.
