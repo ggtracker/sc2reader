@@ -9,6 +9,85 @@ from sc2reader import utils
 
 class Replay(object):
 
+    #: Fully qualified filename of the replay file represented.
+    filename = str()
+
+    #: Total number of frames in this game at 16 frames per second.
+    frames = int()
+
+    #: The SCII game engine build number
+    build = int()
+
+    #: The full version release string as seen on Battle.net
+    release_string = str()
+
+    #: The :class:`Length` of the replay as an alternative to :attr:`frames`
+    length = utils.Length()
+
+    #: The effective game speed when the game was played.
+    speed = str()
+
+    #: The game type: 1v1, 2v2, 3v3, 4v4, FFA
+    type = str()
+
+    #: The category of the game, Ladder and Private
+    category = str()
+
+    #: A flag for public ladder games
+    is_ladder = bool()
+
+    #: A flag for private non-ladder games
+    is_private = bool()
+
+    #: The name of the map the game was played on
+    map = str()
+
+    #: The gateway the game was played on: us, eu, sea, etc
+    gateway = str()
+
+    #: An integrated list of all the game events
+    events = list()
+
+    #: A dict mapping team numbers to their game result
+    results = dict()
+
+    #: A list of :class:`Team` objects from the game
+    teams = list()
+
+    #: A dict mapping team number to :class:`Team` object
+    team = dict()
+
+    #: A list of :class:`Player` objects from the game
+    players = list()
+
+    #: A dual key dict mapping player names and numbers to
+    #: :class:`Player` objects
+    player = utils.PersonDict()
+
+    #: A list of :class:`Observer` objects from the game
+    observers = list()
+
+    #: A list of :class:`Person` objects from the game representing
+    #: both the player and observer lists
+    people = list()
+
+    #: A dual key dict mapping :class:`Person` object to their
+    #: person id's and names
+    person = utils.PersonDict()
+
+    #: A list of :class:`Person` objects from the game represnting
+    #: only the human players from the :attr:`people` list
+    humans = list()
+
+    #: A list of all the chat message events from the game
+    messages = list()
+
+    #: A reference to the :class:`Person` that recorded the game
+    recorder = None
+
+    #: A flag indicating whether all the results are known or not
+    winner_known = bool()
+
     def __init__(self, replay_file, **options):
         self.opt = utils.AttributeDict(options)
         self.datapack = None
