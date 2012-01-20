@@ -419,12 +419,22 @@ class ReplayBuffer(object):
             raise EOFError("Cannot read requested bits/bytes. End of buffer reached")
 
 class PersonDict(dict):
-    """Delete is supported on the pid index only"""
+    """
+    Supports lookup on both the player name and player id
+
+    ::
+
+        person = PersonDict()
+        person[1] = Player(1,"ShadesofGray")
+        me = person["ShadesofGray"]
+        del person[me.pid]
+
+    Delete is supported on the player id only
+    """
     def __init__(self, *args, **kwargs):
         self._key_map = dict()
 
         if args:
-            print args
             for arg in args[0]:
                 self[arg[0]] = arg[1]
 
@@ -478,8 +488,27 @@ class AttributeDict(dict):
         return AttributeDict(super(AttributeDict,self).copy())
 
 class Color(AttributeDict):
+    """
+    Stores the string and rgba representation of a color. Individual components
+    of the color can be retrieved with the dot operator::
+
+        color = Color(r=255, g=0, b=0, a=75)
+        tuple(color.r,color.g, color.b, color.a) = color.rgba
+
+    Because Color is an implementation of an AttributeDict you must specify
+    each component by name in the constructor.
+
+    Can print the string representation with str(Color)
+    """
+
+    @property
+    def rgba(self):
+        """Tuple containing the (r,g,b,a) representation of the color"""
+        return tuple(self.r,self.g,self.b,self.a)
+
     @property
     def hex(self):
+        """The hexadecimal representation of the color"""
         return "{0.r:02X}{0.g:02X}{0.b:02X}".format(self)
 
     def __str__(self):
@@ -585,16 +614,23 @@ def get_replay_files(path, exclude=[], depth=-1, followlinks=False, **extras):
 
 from datetime import timedelta
 class Length(timedelta):
+
+    #: The total number of seconds represented
+    seconds = int()
+
     @property
     def hours(self):
+        """The number of hours in represented."""
         return self.seconds/3600
 
     @property
     def mins(self):
+        """The number of minutes in excess of the hours."""
         return self.seconds/60
 
     @property
     def secs(self):
+        """The number of seconds in excess of the minutes."""
         return self.seconds%60
 
     def __str__(self):
