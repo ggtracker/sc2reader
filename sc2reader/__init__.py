@@ -20,7 +20,7 @@ class SC2Reader(object):
 
         # Related to creating new replay objects
         autoplay=True,
-        complete=True,
+        load_events=True,
 
         # Related to passing paths into load_replay(s)
         directory='',
@@ -69,7 +69,7 @@ class SC2Reader(object):
 
     def load_replay(self, replay_file, options=None, **new_options):
         options = options or utils.merged_dict(self.options, new_options)
-        complete = options.get('complete',True)
+        load_events = options.get('load_events',True)
         autoplay = options.get('autoplay',True)
 
 
@@ -93,7 +93,7 @@ class SC2Reader(object):
         replay.load_details()
         replay.load_players()
 
-        if complete:
+        if load_events:
             for data_file in ('replay.game.events',):
                 reader = self.get_reader(data_file, replay)
                 replay.read_data(data_file, reader)
