@@ -126,14 +126,14 @@ class SC2Reader(object):
         return listeners
 
 
-    def register_listener(self, event_class, listener, callback=lambda r: True):
-        self.registered_listeners[event_class].append((callback, listener))
+    def register_listener(self, event_class, listener, filterfunc=lambda r: True):
+        self.registered_listeners[event_class].append((filterfunc, listener))
 
-    def register_reader(self, data_file, reader, callback=lambda r: True):
-        self.registered_readers[data_file].insert(0,(callback, reader))
+    def register_reader(self, data_file, reader, filterfunc=lambda r: True):
+        self.registered_readers[data_file].insert(0,(filterfunc, reader))
 
-    def register_datapack(self, datapack, callback=lambda r: True):
-        self.registered_datapacks.insert(0,(callback, datapack))
+    def register_datapack(self, datapack, filterfunc=lambda r: True):
+        self.registered_datapacks.insert(0,(filterfunc, datapack))
 
 
     def register_defaults(self):
