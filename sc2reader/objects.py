@@ -35,10 +35,15 @@ class Team(object):
     #: One of "Win", "Loss", or "Unknown"
     result = str()
 
+    #: A string representation of the team play races like PP or TPZZ. Random
+    #: pick races are not reflected in this string
+    lineup = str()
+
     def __init__(self,number):
         self.number = number
         self.players = list()
         self.result = "Unknown"
+        self.lineup = ""
 
     def __iter__(self):
         return self.players.__iter__()
@@ -149,6 +154,30 @@ class Player(Person):
 
     #: A reference to the player's :class:`Team` object
     team = None
+
+    #: A reference to a :class:`Color` object representing the player's color
+    color = None
+
+    #: The race the player picked prior to the game starting.
+    #: Protoss, Terran, Zerg, Random
+    pick_race = str()
+
+    #: The race the player ultimately wound up playing.
+    #: Protoss, Terran, Zerg
+    play_race = str()
+
+    #: The difficulty setting for the player. Always Medium for human players.
+    #: Very easy, East, Medium, Hard, Very hard, Insane
+    difficulty = str()
+
+    #: The player's handicap as set prior to game start, ranges from 50-100
+    handicap = int()
+
+    #: The player's region
+    region = str()
+
+    #: The subregion with in the player's region
+    subregion = int()
 
     def __init__(self, pid, name):
         super(Player,self).__init__(pid, name)
