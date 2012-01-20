@@ -36,6 +36,23 @@ class Team(object):
 
 class Attribute(object):
 
+    id_map = {
+        0x01F4: ("Player Type", PLAYER_TYPE_CODES),
+        0x07D1: ("Game Type", GAME_FORMAT_CODES),
+        0x0BB8: ("Game Speed", GAME_SPEED_CODES),
+        0x0BB9: ("Race", RACE_CODES),
+        0x0BBA: ("Color", TEAM_COLOR_CODES),
+        0x0BBB: ("Handicap", None),
+        0x0BBC: ("Difficulty", DIFFICULTY_CODES),
+        0x0BC1: ("Category", GAME_TYPE_CODES),
+        0x07D2: ("Teams1v1", lambda v: int(self.value[0])),
+        0x07D3: ("Teams2v2", lambda v: int(self.value[0])),
+        0x07D4: ("Teams3v3", lambda v: int(self.value[0])),
+        0x07D5: ("Teams4v4", lambda v: int(self.value[0])),
+        0x07D6: ("TeamsFFA", lambda v: int(self.value[0])),
+        0x07D7: ("Teams5v5", lambda v: int(self.value[0]))
+    }
+
     def __init__(self, data):
         #Unpack the data values and add a default name of unknown to be
         #overridden by known attributes; acts as a flag for exclusion
@@ -44,54 +61,13 @@ class Attribute(object):
         #Strip off the null bytes
         while self.value[-1] == '\x00': self.value = self.value[:-1]
 
-        if self.id == 0x01F4:
-            self.name, self.value = "Player Type", PLAYER_TYPE_CODES[self.value]
-
-        elif self.id == 0x07D1:
-            self.name,self.value = "Game Type", GAME_FORMAT_CODES[self.value]
-
-        elif self.id == 0x0BB8:
-            self.name, self.value = "Game Speed", GAME_SPEED_CODES[self.value]
-
-        elif self.id == 0x0BB9:
-            self.name, self.value = "Race", RACE_CODES[self.value]
-
-        elif self.id == 0x0BBA:
-            self.name, self.value = "Color", TEAM_COLOR_CODES[self.value]
-
-        elif self.id == 0x0BBB:
-            self.name = "Handicap"
-
-        elif self.id == 0x0BBC:
-            self.name, self.value = "Difficulty", DIFFICULTY_CODES[self.value]
-
-        elif self.id == 0x0BC1:
-            self.name, self.value = "Category", GAME_TYPE_CODES[self.value]
-
-        elif self.id == 0x07D2:
-            self.name = "Teams1v1"
-            self.value = int(self.value[0])
-
-        elif self.id == 0x07D3:
-            self.name = "Teams2v2"
-            self.value = int(self.value[0])
-
-        elif self.id == 0x07D4:
-            self.name = "Teams3v3"
-            self.value = int(self.value[0])
-
-        elif self.id == 0x07D5:
-            self.name = "Teams4v4"
-            self.value = int(self.value[0])
-
-        elif self.id == 0x07D6:
-            self.name = "TeamsFFA"
-            self.value = int(self.value[0])
-
-        # Complete guesses here, there are several ids that might be correct
-        elif self.id == 0x07D7:
-            self.name = "Teams5v5"
-            self.value = int(self.value[0])
+        if self.id in self.id_map:
+            self.name, lookup = self.id_map[self.id]
+            if lookup:
+                if callable(lookup):
+                    self.value = lookup(self.value)
+                else:
+                    self.value = lookup[self.value]
 
     def __repr__(self):
         return str(self)
