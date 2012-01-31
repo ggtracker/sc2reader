@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import os
 from sc2reader import utils
 from sc2reader import readers
-from sc2reader import data
+from sc2reader.data import Data_16561,Data_17326,Data_18317,Data_19595
 from sc2reader import exceptions
 from sc2reader.replay import Replay
 from collections import defaultdict
@@ -307,10 +307,10 @@ class SC2Reader(object):
 
     def register_default_datapacks(self):
         """Registers factory default datapacks."""
-        self.register_datapack(data.Data_16561, lambda r: 16561 <= r.build < 17326)
-        self.register_datapack(data.Data_17326, lambda r: 17326 <= r.build < 18317)
-        self.register_datapack(data.Data_18317, lambda r: 18317 <= r.build < 19595)
-        self.register_datapack(data.Data_19595, lambda r: 19595 <= r.build)
+        self.register_datapack(Data_16561, lambda r: 16561 <= r.build < 17326)
+        self.register_datapack(Data_17326, lambda r: 17326 <= r.build < 18317)
+        self.register_datapack(Data_18317, lambda r: 18317 <= r.build < 19595)
+        self.register_datapack(Data_19595, lambda r: 19595 <= r.build)
 
 __defaultSC2Reader = SC2Reader()
 
