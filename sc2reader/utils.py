@@ -12,6 +12,7 @@ import mpyq
 from itertools import groupby
 
 from sc2reader import exceptions
+from sc2reader.constants import COLOR_CODES
 
 LITTLE_ENDIAN,BIG_ENDIAN = '<','>'
 
