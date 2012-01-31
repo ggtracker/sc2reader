@@ -617,7 +617,7 @@ from datetime import timedelta
 class Length(timedelta):
 
     #: The total number of seconds represented
-    seconds = int()
+    #seconds = int()
 
     @property
     def hours(self):
