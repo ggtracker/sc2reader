@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from sc2reader.sc2reader import SC2Reader
+from sc2reader.sc import SC2Reader
 
 __defaultSC2Reader = SC2Reader()
 
