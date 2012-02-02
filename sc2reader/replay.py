@@ -228,8 +228,11 @@ class Replay(object):
             player.team = self.team[team_number]
 
             # Do basic win/loss processing from details data
-            if   pdata.result == 1: player.team.result = "Win"
-            elif pdata.result == 2: player.team.result = "Loss"
+            if   pdata.result == 1: 
+		player.team.result = "Win"
+		self.winner_known = True
+            elif pdata.result == 2: 
+		player.team.result = "Loss"
 
             player.pick_race = attributes['Race']
             player.play_race = LOCALIZED_RACES.get(pdata.race, pdata.race)
