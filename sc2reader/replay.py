@@ -88,6 +88,9 @@ class Replay(object):
     #: A flag indicating whether all the results are known or not
     winner_known = bool()
 
+    #: If the winner_known flag is set this will contain the winning team
+    winner = object()
+
     def __init__(self, replay_file, **options):
         self.opt = utils.AttributeDict(options)
         self.datapack = None
@@ -231,6 +234,7 @@ class Replay(object):
             if   pdata.result == 1:
                 player.team.result = "Win"
                 self.winner_known = True
+                self.winner = player.team
             elif pdata.result == 2:
                 player.team.result = "Loss"
 
