@@ -467,15 +467,6 @@ def windows_to_unix(windows_time):
     # 1601-1970, then we divide by 10^7 to bring it back to seconds.
     return (windows_time-116444735995904000)/10**7
 
-import inspect
-def key_in_bases(key,bases):
-    bases = list(bases)
-    for base in list(bases):
-        bases.extend(inspect.getmro(base))
-    for clazz in set(bases):
-        if key in clazz.__dict__: return True
-    return False
-
 class AttributeDict(dict):
     def __getattr__(self, name):
         try:
@@ -641,22 +632,6 @@ class Length(timedelta):
         else:
             return "{0:0>2}.{1:0>2}".format(self.mins,self.secs)
 
-class RangeMap(dict):
-    def add_range(self, start, end, reader_set):
-        self.ranges.append((start, end, reader_set))
-
-    def __init__(self):
-        self.ranges = list()
-
-    def __getitem__(self,key):
-        for start, end, range_set in self.ranges:
-            if end:
-                if (start <= key < end):
-                    return range_set
-            else:
-                if start <= key:
-                    return range_set
-        raise KeyError(key)
 
 class Formatter(argparse.RawTextHelpFormatter):
     """FlexiFormatter which respects new line formatting and wraps the rest
