@@ -204,19 +204,29 @@ class GameEventsReader_Base(Reader):
         }
 
         game_events, frames = list(), 0
-        while not buffer.empty:
+
+        # Locals are faster!
+        tell = buffer.io.tell
+        read_timestamp = buffer.read_timestamp
+        shift = buffer.shift
+        read_byte = buffer.read_byte
+        debug = replay.opt.debug
+        append = game_events.append
+        align = buffer.align
+
+        while buffer.left:
             #Save the start so we can trace for debug purposes
-            start = buffer.cursor
+            start = tell()
 
             # Each event has the same header which consists of 1-3 bytes for a
             # count of the number of frames since the last recorded event, a
             # byte split 5-3 bitwise for the player id (0-16) and the event
             # type (0-4). A final header byte representing the code uniquely
             # identifies the class of event we are handling.
-            frames += buffer.read_timestamp()
-            pid = buffer.shift(5)
-            type = buffer.shift(3)
-            code = buffer.read_byte()
+            frames += read_timestamp()
+            pid = shift(5)
+            type = shift(3)
+            code = read_byte()
 
 
             try:
@@ -229,10 +239,10 @@ class GameEventsReader_Base(Reader):
 
                 # For debugging purposes, we may wish to record the event.bytes
                 # associated with this event; including the event header bytes.
-                if replay.opt.debug:
+                if debug:
                     event.bytes = buffer.read_range(start, buffer.cursor)
 
-                game_events.append(event)
+                append(event)
 
             except KeyError:
                 # If the type is not a key in the PARSERS lookup table we
@@ -252,7 +262,7 @@ class GameEventsReader_Base(Reader):
             # Because events are parsed in a bitwise fashion, they sometimes
             # leave the buffer in a bitshifted state. Each new event always
             # starts byte aligned so make sure that the buffer does too.
-            buffer.align()
+            align()
 
         return game_events
 
@@ -406,16 +416,13 @@ class GameEventsReader_Base(Reader):
 
     def parse_cameraX1_event(self, buffer, frames, type, code, pid):
         #Get the X and Y,  last byte is also a flag
-        buffer.skip(3)
-        flag = buffer.read_byte()
+        chunk = buffer.read_int(BIG_ENDIAN)
 
-        if flag & 0x10 != 0:
-            buffer.skip(1)
-            flag = buffer.read_byte()
-        if flag & 0x20 != 0:
-            buffer.skip(1)
-            flag = buffer.read_byte()
-        if flag & 0x40 != 0:
+        if chunk & 0x10 != 0:
+            chunk = buffer.read_short(BIG_ENDIAN)
+        if chunk & 0x20 != 0:
+            chunk = buffer.read_short(BIG_ENDIAN)
+        if chunk & 0x40 != 0:
             buffer.skip(2)
 
         return CameraMovementEvent(frames, pid, type, code)
