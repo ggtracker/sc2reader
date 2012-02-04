@@ -253,7 +253,7 @@ class SC2Reader(object):
             for event in events:
                 self.registered_listeners[event].append((filterfunc, listener))
         except TypeError:
-            self.registered_listeners[event].append((filterfunc, listener))
+            self.registered_listeners[events].append((filterfunc, listener))
 
     def register_reader(self, data_file, reader, filterfunc=lambda r: True):
         """

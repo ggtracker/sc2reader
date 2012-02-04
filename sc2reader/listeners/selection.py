@@ -61,13 +61,13 @@ class PlayerSelection(dict):
 class SelectionListener(object):
 
     def setup(self, replay):
-        for player in replay.players:
+        for player in replay.people:
             player.selections = GameState(PlayerSelection())
 
     def __call__(self, event, replay):
-        selections = event.player.selections[event.frame]
 
         if isinstance(event, events.HotkeyEvent):
+            selections = event.player.selections[event.frame]
             hotkey_selection = selections[event.hotkey]
 
             if isinstance(event, events.SetToHotkeyEvent):
@@ -86,6 +86,7 @@ class SelectionListener(object):
             event.selected = selections[event.hotkey]
 
         if isinstance(event, events.SelectionEvent):
+            selections = event.player.selections[event.frame]
             selections[0x0A].deselect(*event.deselect)
             selections[0x0A].select(event.objects)
 

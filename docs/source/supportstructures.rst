@@ -18,7 +18,6 @@ Length
 
 .. autoclass:: Length
 
-    .. autoattribute:: seconds
     .. autoattribute:: hours
     .. autoattribute:: mins
     .. autoattribute:: secs

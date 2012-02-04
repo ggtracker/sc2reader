@@ -5,7 +5,7 @@ from collections import defaultdict
 class APMTracker(object):
 
     def setup(self, replay):
-        for player in replay.players
+        for player in replay.players:
             player.aps = defaultdict(int)
             player.apm = defaultdict(int)
             player.avg_apm = 0
