@@ -407,7 +407,7 @@ class ReplayBuffer(object):
 
             #check special case of byte-aligned reads, performance booster
             if self.bit_shift == 0:
-                base = [ord(self.read_basic(1)) for byte in range(bytes)]
+                base = map(ord, map(self.read_basic, [1]*bytes))
                 if bits != 0:
                     return base+[self.shift(bits)]
                 return base
