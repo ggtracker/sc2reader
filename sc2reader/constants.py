@@ -115,6 +115,15 @@ GAME_SPEED_CODES = {
     'tsaF': 'Fast',
     'rsaF': 'Faster',
 }
+
+GAME_SPEED_FACTOR = {
+    'Slower':   0.6,
+    'Slow':     0.8,
+    'Normal':   1.0,
+    'Fast':     1.2,
+    'Faster':   1.4
+}
+
 PLAYER_TYPE_CODES = {
     'nmuH': 'Human',
     'pmoC': 'Computer',

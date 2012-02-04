@@ -6,7 +6,7 @@ from sc2reader.constants import *
 from sc2reader.utils import PersonDict, AttributeDict
 
 Location = namedtuple('Location',('x','y'))
-Details = namedtuple('Details',['players','map','unknown1','unknown2','unknown3','file_time','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10','unknown11'])
+Details = namedtuple('Details',['players','map','unknown1','unknown2','unknown3','file_time','utc_adjustment','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10'])
 
 MapData = namedtuple('MapData',['unknown','gateway','map_hash'])
 PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result'])

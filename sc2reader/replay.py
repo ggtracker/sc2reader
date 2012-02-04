@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 from datetime import datetime
 from collections import defaultdict
-from sc2reader.constants import REGIONS, LOCALIZED_RACES
+from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR
 from sc2reader.objects import Player, Observer, Team
 
 from sc2reader import utils
@@ -154,14 +154,6 @@ class Replay(object):
                 if self.gateway == 'sg':
                     self.gateway = 'sea'
 
-        if 'replay.details' in self.raw_data:
-            details = self.raw_data['replay.details']
-            self.map = details.map
-            self.file_time = details.file_time
-            self.unix_timestamp = utils.windows_to_unix(self.file_time)
-            self.date = datetime.fromtimestamp(self.unix_timestamp)
-            self.utc_date = datetime.utcfromtimestamp(self.unix_timestamp)
-
         if 'replay.attributes.events' in self.raw_data:
             # Organize the attribute data to be useful
             self.attributes = defaultdict(dict)
@@ -175,6 +167,22 @@ class Replay(object):
             self.type = self.attributes[16]['Game Type']
             self.is_ladder = (self.category == "Ladder")
             self.is_private = (self.category == "Private")
+
+        if 'replay.details' in self.raw_data:
+            details = self.raw_data['replay.details']
+
+            self.map = details.map
+
+            self.windows_timestamp = details.file_time-details.utc_adjustment
+            self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
+            self.time_zone = details.utc_adjustment/(10**7*60*60)
+
+            self.end_time = datetime.utcfromtimestamp(self.unix_timestamp)
+            self.game_length = self.length
+            self.real_length = utils.Length(seconds=int(self.length.seconds/GAME_SPEED_FACTOR[self.speed]))
+            self.start_time = datetime.utcfromtimestamp(self.unix_timestamp-self.real_length.seconds)
+            self.date = self.end_time #backwards compatibility
+
 
     def load_players(self):
         #If we don't at least have details and attributes_events we can go no further

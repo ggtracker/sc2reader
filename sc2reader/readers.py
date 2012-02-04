@@ -128,6 +128,7 @@ class DetailsReader_Base(Reader):
         #   Unknown2
         #   Unknown3
         #   file_time - Time file was created/replay was made
+        #   utc_adjustment
         #   Unknown4
         #   Unknown5
         #   Unknown6
@@ -135,7 +136,6 @@ class DetailsReader_Base(Reader):
         #   Unknown8
         #   Unknown9
         #   Unknown10
-        #   Unknown11
         #
         data = buffer.read_data_struct()
 
