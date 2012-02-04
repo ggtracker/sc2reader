@@ -150,25 +150,71 @@ class ReplayBuffer(object):
         if self.bit_shift==0:
             return ord(self.read_basic(1))
         else:
-            return self.read(1)[0]
+            extra_bits = self.bit_shift
+            hi_bits = self.last_byte >> extra_bits
+            last_byte = ord(self.read_basic(1))
+            lo_bits = last_byte & self.lo_masks[extra_bits]
+            self.last_byte = last_byte
+            return hi_bits << extra_bits | lo_bits
+
 
     def read_int(self, endian=LITTLE_ENDIAN):
-        """ int32 read """
-        chars = self.read_basic(4) if self.bit_shift==0 else self.read_chars(4)
-        return struct.unpack(endian+'I', chars)[0]
+        if self.bit_shift == 0:
+            return struct.unpack(endian+'I', self.read_basic(4))[0]
+
+        else:
+            old_bit_shift = self.bit_shift
+
+            # Get all the bytes at once
+            hi_bits = self.shift(8 - old_bit_shift)
+            block = struct.unpack('>I', self.read_basic(4))[0]
+
+            # Reformat them according to the rules
+            number = (block >> 8) << old_bit_shift | (block & self.lo_masks[old_bit_shift])
+            number += hi_bits << (24 + old_bit_shift)
+
+            # If the number is little endian, repack it
+            if endian == LITTLE_ENDIAN:
+                number = (number & 0xFF000000) >> 24 | (number & 0xFF0000) >> 8 | (number & 0xFF00) << 8 | (number & 0xFF) << 24
+
+            # Reset the shift
+            self.last_byte = block & 0xFF
+            self.bit_shift = old_bit_shift
+
+            return number
 
     def read_short(self, endian=LITTLE_ENDIAN):
         """ short16 read """
-        chars = self.read_basic(2) if self.bit_shift==0 else self.read_chars(2)
-        return struct.unpack(endian+'H', chars)[0]
+        if self.bit_shift == 0:
+            return struct.unpack(endian+'H', self.read_basic(2))[0]
+
+        else:
+            old_bit_shift = self.bit_shift
+
+            # Get all the bytes at once
+            hi_bits = self.shift(8 - old_bit_shift)
+            block = struct.unpack('>H', self.read_basic(2))[0]
+
+            # Reformat them according to the rules
+            number = (block >> 8) << old_bit_shift | (block & self.lo_masks[old_bit_shift])
+            number += hi_bits << (8 + old_bit_shift)
+
+            # If the number is little endian, repack it
+            if endian == LITTLE_ENDIAN:
+                number = (number & 0xFF00) >> 8 | (number & 0xFF) << 8
+
+            # Reset the shift
+            self.last_byte = block & 0xFF
+            self.bit_shift = old_bit_shift
+
+            return number
 
     def read_chars(self, length=0):
         if self.bit_shift==0:
             return self.read_basic(length)
         else:
             self.char_buffer.truncate(0)
-            for byte in self.read(length):
-                self.char_buffer.write(chr(byte))
+            self.char_buffer.writelines(map(chr,self.read(length)))
             return self.char_buffer.getvalue()
 
     def read_hex(self, length=0):
