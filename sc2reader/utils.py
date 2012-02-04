@@ -315,18 +315,34 @@ class ReplayBuffer(object):
         return self.read_int(endian=BIG_ENDIAN)
 
     def read_coordinate(self):
-        # Combine coordinate whole and fraction
-        def _coord_to_float(coord):
-            fraction = 0
-            for mask,quotient in self.coord_convert:
-                if (coord[1] & mask):
-                    fraction = fraction + quotient
-            return coord[0] + fraction
-
+        # TODO: This seems unreasonably percise....
         # Read an x or y coordinate dimension
         def _coord_dimension():
-            coord = self.read(bits=20)
-            return _coord_to_float([coord[0], coord[1] << 4 | coord[2],])
+            if self.bit_shift == 0:
+                return (self.read_short() << 4 | self.shift(4))/4096.0
+
+            else:
+                old_bit_shift = self.bit_shift
+                new_bit_shift = (20 + old_bit_shift) % 8
+
+                # Get all the bytes at once
+                hi_bits = self.shift(8 - old_bit_shift)
+                block = struct.unpack('>H', self.read_basic(2))[0]
+
+                if old_bit_shift > 4:
+                    block = block << 8 | ord(self.read_basic(1))
+
+                    number = (block >> 8) << old_bit_shift | (block & self.lo_masks[new_bit_shift])
+                    number += hi_bits << (16 + new_bit_shift)
+                else:
+                    number = (block >> 8) << old_bit_shift | (block & self.lo_masks[new_bit_shift])
+                    number += hi_bits << (8 + new_bit_shift)
+
+                # Reset the shift
+                self.last_byte = block & 0xFF
+                self.bit_shift = new_bit_shift
+
+                return number/4096.0
 
         # TODO?: Handle optional z dimension
         return (_coord_dimension(), _coord_dimension())
