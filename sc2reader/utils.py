@@ -10,6 +10,7 @@ import textwrap
 import sys
 import mpyq
 from itertools import groupby
+from datetime import timedelta
 
 from sc2reader import exceptions
 from sc2reader.constants import COLOR_CODES
@@ -613,11 +614,11 @@ def get_replay_files(path, exclude=[], depth=-1, followlinks=False, **extras):
 
     return files
 
-from datetime import timedelta
 class Length(timedelta):
-
-    #: The total number of seconds represented
-    #seconds = int()
+    """
+        Extends the builtin timedelta class. See python docs for more info on
+        what capabilities this gives you.
+    """
 
     @property
     def hours(self):
