@@ -198,7 +198,7 @@ class Replay(object):
             return
 
         # Create and add the players based on attribute and details information
-        player_index, observer_index, default_region = 0, 0, ''
+        player_index, obs_index, default_region = 0, 1, ''
         player_data = self.raw_data['replay.details'].players
         for pid, attributes in sorted(self.attributes.iteritems()):
 
@@ -217,7 +217,7 @@ class Replay(object):
             # If this is a human player, push back the initial observer index in
             # the list of all human players we gathered from the initdata file.
             if attributes['Player Type'] == 'Human':
-                observer_index += 1
+                obs_index += 1
 
             # Create the player using the current pid and the player name from
             # The details file. This works because players are stored in order
@@ -293,12 +293,17 @@ class Replay(object):
                     player.region = default_region
 
             # Create observers out of the leftover names gathered from initData
-            all_players = self.raw_data['replay.initData'].player_names
-            for i in range(observer_index,len(all_players)):
-                observer = Observer(i+1,all_players[i])
+            all_players = [p.name for p in self.players]
+            all_people = self.raw_data['replay.initData'].player_names
+            for obs_name in all_people:
+                if obs_name in all_players: continue
+
+                observer = Observer(obs_index,obs_name)
+                observer.gateway = self.gateway
                 self.observers.append(observer)
                 self.people.append(observer)
-                self.person[i+1] = observer
+                self.person[obs_index] = observer
+                obs_index += 1
 
         # Miscellaneous people processing
         self.humans = filter(lambda p: p.is_human, self.people)
