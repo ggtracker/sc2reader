@@ -323,14 +323,7 @@ class Replay(object):
             self.packets = self.raw_data['replay.message.events'].pings
             self.events += self.messages+self.pings+self.packets
 
-        #Mix them all up and sort them for playback
-        def sortEvents(x,y):
-            result = x.frame-y.frame
-            if result == 0:
-                result = x.pid-y.pid
-            return result
-
-        self.events = sorted(self.events, cmp=sortEvents)
+        self.events = sorted(self.events, key=lambda e: e.frame)
 
         for event in self.events:
             event.load_context(self)
