@@ -87,11 +87,8 @@ class Replay(object):
     #: A reference to the :class:`Person` that recorded the game
     recorder = None
 
-    #: A flag indicating whether all the results are known or not
-    winner_known = bool()
-
     #: If the winner_known flag is set this will contain the winning team
-    winner = object()
+    winner = None
 
     def __init__(self, replay_file, **options):
         self.opt = utils.AttributeDict(options)
@@ -131,7 +128,6 @@ class Replay(object):
         self.attributes = list()
         self.messages = list()
         self.recorder = None # Player object
-        self.winner_known = False
         self.packets = list()
 
         self.objects = {}
@@ -247,7 +243,6 @@ class Replay(object):
             # Do basic win/loss processing from details data
             if   pdata.result == 1:
                 player.team.result = "Win"
-                self.winner_known = True
                 self.winner = player.team
             elif pdata.result == 2:
                 player.team.result = "Loss"
