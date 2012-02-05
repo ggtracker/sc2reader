@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import hashlib
+
 from datetime import datetime
 from collections import defaultdict
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR
@@ -96,6 +98,10 @@ class Replay(object):
         self.datapack = None
         self.raw_data = dict()
         self.listeners = defaultdict(list)
+
+        replay_file.seek(0)
+        self.file_hash = hashlib.sha256(replay_file.read()).hexdigest()
+        replay_file.seek(0)
 
         self.filename = getattr(replay_file,'name', 'Unavailable')
         self.__dict__.update(utils.read_header(replay_file))
@@ -308,6 +314,9 @@ class Replay(object):
             else:
                 raise ValueError("Get Recorder algorithm is broken!")
 
+        player_names = sorted(map(lambda p: p.name, self.people))
+        hash_input = self.gateway+":"+','.join(player_names)
+        self.people_hash = hashlib.sha256(hash_input).hexdigest()
 
     def load_events(self, datapack=None):
         self.datapack = datapack

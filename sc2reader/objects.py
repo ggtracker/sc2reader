@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import hashlib
+
 from collections import namedtuple
 
 from sc2reader.constants import *
@@ -25,6 +27,9 @@ class Team(object):
     :param interger number: The team number as recorded in the replay
     """
 
+    #: A unique hash identifying the team of players
+    hash = str()
+
     #: The team number as recorded in the replay
     number = int()
 
@@ -48,6 +53,10 @@ class Team(object):
     def __iter__(self):
         return self.players.__iter__()
 
+    @property
+    def hash(self):
+        raw_hash = ','.join(sorted(p.url for p in self.players))
+        return hashlib.sha256(raw_hash).hexdigest()
 
 
 class Attribute(object):
