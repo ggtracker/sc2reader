@@ -308,13 +308,14 @@ class Replay(object):
         # Miscellaneous people processing
         self.humans = filter(lambda p: p.is_human, self.people)
 
-        if 'message_events' in self.raw_data:
+        if 'replay.message.events' in self.raw_data:
             # Figure out recorder
-            self.packets = self.raw_data.message_events.packets
-            packet_senders = map(lambda p: p.player, self.packets)
-            recorders = list(set(self.humans) - set(packet_senders))
+            self.packets = self.raw_data['replay.message.events'].packets
+            packet_senders = map(lambda p: p.pid, self.packets)
+            human_pids = map(lambda p: p.pid, self.humans)
+            recorders = list(set(human_pids) - set(packet_senders))
             if len(recorders) == 1:
-                self.recorder = recorders[0]
+                self.recorder = self.person[recorders[0]]
                 self.recorder.recorder = True
             else:
                 raise ValueError("Get Recorder algorithm is broken!")
