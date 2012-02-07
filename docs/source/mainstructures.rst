@@ -35,7 +35,7 @@ Replay
     .. autoattribute:: humans
     .. autoattribute:: messages
     .. autoattribute:: recorder
-    .. autoattribute:: winner_known
+    .. autoattribute:: winner
 
 
 .. currentmodule:: sc2reader.objects

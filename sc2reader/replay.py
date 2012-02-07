@@ -77,7 +77,7 @@ class Replay(object):
     #: person id's and names
     person = utils.PersonDict()
 
-    #: A list of :class:`Person` objects from the game represnting
+    #: A list of :class:`Person` objects from the game representing
     #: only the human players from the :attr:`people` list
     humans = list()
 
@@ -87,7 +87,7 @@ class Replay(object):
     #: A reference to the :class:`Person` that recorded the game
     recorder = None
 
-    #: If the winner_known flag is set this will contain the winning team
+    #: If there is a valid winning team this will contain a :class:`Team` otherwise it will be :class:`None`
     winner = None
 
     def __init__(self, replay_file, **options):
