@@ -5,7 +5,7 @@ import hashlib
 from datetime import datetime
 from collections import defaultdict
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR
-from sc2reader.objects import Player, Observer, Team
+from sc2reader.objects import Player, Observer, Team, Map
 
 from sc2reader import utils
 
@@ -42,7 +42,7 @@ class Replay(object):
     is_private = bool()
 
     #: The name of the map the game was played on
-    map = str()
+    map = None
 
     #: The gateway the game was played on: us, eu, sea, etc
     gateway = str()
@@ -151,6 +151,7 @@ class Replay(object):
             initData = self.raw_data['replay.initData']
             if initData.map_data:
                 self.gateway = initData.map_data[0].gateway
+                self.map = Map(self.gateway, initData.map_data[-1].map_hash)
 
                 #Expand this special case mapping
                 if self.gateway == 'sg':
@@ -173,7 +174,8 @@ class Replay(object):
         if 'replay.details' in self.raw_data:
             details = self.raw_data['replay.details']
 
-            self.map = details.map
+            if self.map:
+                self.map.name = details.map
 
             self.windows_timestamp = details.file_time-details.utc_adjustment
             self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
@@ -185,6 +187,8 @@ class Replay(object):
             self.start_time = datetime.utcfromtimestamp(self.unix_timestamp-self.real_length.seconds)
             self.date = self.end_time #backwards compatibility
 
+    def load_map(self):
+        self.map.load()
 
     def load_players(self):
         #If we don't at least have details and attributes_events we can go no further
