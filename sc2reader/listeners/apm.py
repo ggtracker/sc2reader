@@ -1,8 +1,10 @@
 from __future__ import absolute_import
 
+from sc2reader.listeners.utils import ListenerBase
+
 from collections import defaultdict
 
-class APMTracker(object):
+class APMTracker(ListenerBase):
 
     def setup(self, replay):
         for player in replay.players:

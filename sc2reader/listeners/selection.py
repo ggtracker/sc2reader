@@ -1,5 +1,10 @@
+from __future__ import absolute_import
+
+from sc2reader.listeners.utils import ListenerBase
+
 from sc2reader import events
 from sc2reader import utils
+
 
 class GameState(dict):
     def __init__(self, initial_state):
@@ -58,7 +63,7 @@ class PlayerSelection(dict):
             new[bank] = UnitSelection(*selection.objects)
         return new
 
-class SelectionListener(object):
+class SelectionListener(ListenerBase):
 
     def setup(self, replay):
         for player in replay.people:
@@ -72,16 +77,16 @@ class SelectionListener(object):
 
             if isinstance(event, events.SetToHotkeyEvent):
                 selections[event.hotkey] = selections[0x0A].copy()
-                print "[{0}] {1} set hotkey {2} to current selection".format(utils.Length(seconds=event.second),event.player.name,event.hotkey)
+                self.logger.info("[{0}] {1} set hotkey {2} to current selection".format(utils.Length(seconds=event.second),event.player.name,event.hotkey))
 
             if isinstance(event, events.AddToHotkeyEvent):
                 selections[event.hotkey].deselect(*event.deselect)
                 selections[event.hotkey].select(selections[0x0A].objects)
-                print "[{0}] {1} added current selection to hotkey {2}".format(utils.Length(seconds=event.second),event.player.name,event.hotkey)
+                self.logger.info("[{0}] {1} added current selection to hotkey {2}".format(utils.Length(seconds=event.second),event.player.name,event.hotkey))
 
             if isinstance(event, events.GetFromHotkeyEvent):
                 selections[0x0A] = selections[event.hotkey]
-                print "[{0}] {1} retrieved hotkey {2}: {3}".format(utils.Length(seconds=event.second),event.player.name,event.hotkey,selections[event.hotkey])
+                self.logger.info("[{0}] {1} retrieved hotkey {2}: {3}".format(utils.Length(seconds=event.second),event.player.name,event.hotkey,selections[event.hotkey]))
 
             event.selected = selections[event.hotkey]
 
@@ -91,4 +96,4 @@ class SelectionListener(object):
             selections[0x0A].select(event.objects)
 
             event.selected = selections[0x0A]
-            print "[{0}] {1} selected: {2}".format(utils.Length(seconds=event.second),event.player.name,event.selected)
+            self.logger.info("[{0}] {1} selected: {2}".format(utils.Length(seconds=event.second),event.player.name,event.selected))
