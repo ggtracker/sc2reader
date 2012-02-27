@@ -502,7 +502,6 @@ class PersonDict(dict):
                 self[arg[0]] = arg[1]
 
         if kwargs:
-            print kwargs
             for key, value in kwargs.iteritems():
                 self[key] = value
 
