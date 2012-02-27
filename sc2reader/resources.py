@@ -1,15 +1,28 @@
 from __future__ import absolute_import
 
 import hashlib
-
 from datetime import datetime
+from StringIO import StringIO
 from collections import defaultdict
-from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR
-from sc2reader.objects import Player, Observer, Team, Map
+
+from mpyq import MPQArchive
 
 from sc2reader import utils
+from sc2reader.objects import Player, Observer, Team
+from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR
 
-class Replay(object):
+
+class Resource(object):
+    def __init__(self, file_object, filename=None, **options):
+        self.opt = utils.AttributeDict(options)
+        self.filename = filename or getattr(file_object,'name','Unavailable')
+
+        file_object.seek(0)
+        self.filehash = hashlib.sha256(file_object.read()).hexdigest()
+        file_object.seek(0)
+
+
+class Replay(Resource):
 
     #: Fully qualified filename of the replay file represented.
     filename = str()
@@ -90,17 +103,12 @@ class Replay(object):
     #: If there is a valid winning team this will contain a :class:`Team` otherwise it will be :class:`None`
     winner = None
 
-    def __init__(self, replay_file, **options):
-        self.opt = utils.AttributeDict(options)
+    def __init__(self, replay_file, filename=None, **options):
+        super(Replay, self).__init__(replay_file, filename, **options)
         self.datapack = None
         self.raw_data = dict()
         self.listeners = defaultdict(list)
 
-        replay_file.seek(0)
-        self.file_hash = hashlib.sha256(replay_file.read()).hexdigest()
-        replay_file.seek(0)
-
-        self.filename = getattr(replay_file,'name', 'Unavailable')
         self.__dict__.update(utils.read_header(replay_file))
         self.archive = utils.open_archive(replay_file)
 
@@ -151,7 +159,7 @@ class Replay(object):
             initData = self.raw_data['replay.initData']
             if initData.map_data:
                 self.gateway = initData.map_data[0].gateway
-                self.map = Map(self.gateway, initData.map_data[-1].map_hash)
+                self.map_hash = initData.map_data[-1].map_hash
 
                 #Expand this special case mapping
                 if self.gateway == 'sg':
@@ -174,8 +182,7 @@ class Replay(object):
         if 'replay.details' in self.raw_data:
             details = self.raw_data['replay.details']
 
-            if self.map:
-                self.map.name = details.map
+            self.map_name = details.map
 
             self.windows_timestamp = details.file_time-details.utc_adjustment
             self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
@@ -186,9 +193,6 @@ class Replay(object):
             self.real_length = utils.Length(seconds=int(self.length.seconds/GAME_SPEED_FACTOR[self.speed]))
             self.start_time = datetime.utcfromtimestamp(self.unix_timestamp-self.real_length.seconds)
             self.date = self.end_time #backwards compatibility
-
-    def load_map(self):
-        self.map.load()
 
     def load_players(self):
         #If we don't at least have details and attributes_events we can go no further
@@ -356,3 +360,36 @@ class Replay(object):
                 if isinstance(event, event_type):
                     for listener in listeners:
                         listener(event, self)
+
+
+class Map(Resource):
+    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
+
+    def __init__(self, map_file, filename=None, gateway=None, map_hash=None, **options):
+        super(Map, self).__init__(map_file, filename, **options)
+        self.hash = map_hash
+        self.gateway = gateway
+        self.url = Map.get_url(gateway, map_hash)
+        self.archive = MPQArchive(StringIO(self.file))
+        self.minimap = self.archive.read_file('Minimap.tga')
+
+    @classmethod
+    def get_url(gateway, map_hash):
+        if gateway and map_hash:
+            return Map.url_template.format(gateway, map_hash)
+        else:
+            return None
+
+    def load(self):
+        self.read_game_strings()
+
+    def read_game_strings(self):
+        self.game_strings = self.archive.read_file('enUS.SC2Data\LocalizedData\GameStrings.txt')
+        for line in self.game_strings.split('\r\n'):
+            parts = line.split('=')
+            if parts[0] == 'DocInfo/Name':
+                self.name = parts[1]
+            elif parts[0] == 'DocInfo/Author':
+                self.author = parts[1]
+            elif parts[0] == 'DocInfo/DescLong':
+                self.description = parts[1]

@@ -1,13 +1,8 @@
 from __future__ import absolute_import
 
-import urllib2
 import hashlib
 
-from cStringIO import StringIO
-
 from collections import namedtuple
-
-from mpyq import MPQArchive
 
 from sc2reader.constants import *
 from sc2reader.utils import PersonDict, AttributeDict
@@ -215,28 +210,3 @@ class Player(Person):
 
     def __repr__(self):
         return str(self)
-
-class Map(object):
-    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
-
-    def __init__(self, gateway, map_hash, map_name=''):
-        self.hash = map_hash.encode('hex')
-        self.gateway = gateway
-        self.url = Map.url_template.format(self.gateway, self.hash)
-        self.name = map_name
-
-    def load(self):
-        print "Fetching map: {0}".format(self.url);
-        self.file = urllib2.urlopen(self.url).read()
-        print "Map Received"
-        self.archive = MPQArchive(StringIO(self.file))
-        self.minimap = self.archive.read_file('Minimap.tga')
-        self.game_strings = self.archive.read_file('enUS.SC2Data\LocalizedData\GameStrings.txt')
-        for line in self.game_strings.split('\r\n'):
-            parts = line.split('=')
-            if parts[0] == 'DocInfo/Name':
-                self.name = parts[1]
-            elif parts[0] == 'DocInfo/Author':
-                self.author = parts[1]
-            elif parts[0] == 'DocInfo/DescLong':
-                self.description = parts[1]
