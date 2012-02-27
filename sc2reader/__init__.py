@@ -1,6 +1,9 @@
 from __future__ import absolute_import
 
-from sc2reader import factories
+from sc2reader import factories, log_utils
+
+# setup the library logging
+log_utils.setup()
 
 # For backwards compatibility
 SC2Reader = factories.SC2Factory

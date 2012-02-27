@@ -8,6 +8,7 @@ from collections import defaultdict
 from mpyq import MPQArchive
 
 from sc2reader import utils
+from sc2reader import log_utils
 from sc2reader.objects import Player, Observer, Team
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR
 
@@ -15,6 +16,7 @@ from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR
 class Resource(object):
     def __init__(self, file_object, filename=None, **options):
         self.opt = utils.AttributeDict(options)
+        self.logger = log_utils.get_logger(self.__class__)
         self.filename = filename or getattr(file_object,'name','Unavailable')
 
         file_object.seek(0)
@@ -152,7 +154,7 @@ class Replay(Resource):
         elif self.opt.debug:
             raise ValueError("{0} not found in archive".format(data_file))
         else:
-            print "[Error] {0} not found in archive".format(data_file)
+            self.logger.error("{0} not found in archive".format(data_file))
 
     def load_details(self):
         if 'replay.initData' in self.raw_data:

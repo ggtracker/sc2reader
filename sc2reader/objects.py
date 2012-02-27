@@ -19,10 +19,7 @@ class Team(object):
     """
     The team object primarily a container object for organizing :class:`Player`
     objects with some metadata. As such, it implements iterable and can be
-    looped over like a list::
-
-        for player in team:
-            print player
+    looped over like a list.
 
     :param interger number: The team number as recorded in the replay
     """

@@ -2,9 +2,11 @@ from __future__ import absolute_import
 
 from sc2reader.utils import Length, LITTLE_ENDIAN
 from sc2reader.data.utils import DataObject
+from sc2reader import log_utils
 
 class Event(object):
     def __init__(self, frame, pid):
+        self.logger = log_utils.get_logger(self.__class__)
         self.pid = pid
         self.frame = frame
         self.second = frame >> 4
@@ -125,11 +127,11 @@ class AbilityEvent(PlayerActionEvent):
         if self.ability not in replay.datapack.abilities:
             if not getattr(replay, 'marked_error', None):
                 replay.marked_error=True
-                print replay.filename
-                print "Release String: "+replay.release_string
+                self.logger.error(replay.filename)
+                self.logger.error("Release String: "+replay.release_string)
                 for player in replay.players:
-                    print "\t"+str(player)
-            print "[Error] {0}\t{1}\tMissing ability {2} from {3}".format(self.frame, self.player.name, hex(self.ability), replay.datapack.__class__.__name__)
+                    self.logger.error("\t"+str(player))
+            self.logger.error("{0}\t{1}\tMissing ability {2} from {3}".format(self.frame, self.player.name, hex(self.ability), replay.datapack.__class__.__name__))
 
     def __str__(self):
         if not self.ability:
@@ -153,7 +155,6 @@ class TargetAbilityEvent(AbilityEvent):
             self.target = replay.objects[(obj_id, obj_type)]
 
         elif obj_id:
-            #print "{0}:\t{1}\t{2}".format(self.frame << 2, self.player.name, hex(obj_type))
             if obj_type not in replay.datapack.types:
                 self.target = DataObject(0x00)
             else:
@@ -221,8 +222,8 @@ class SelectionEvent(PlayerActionEvent):
         data = replay.datapack
         for (obj_id, obj_type) in self.objects:
             if obj_type not in data.types:
-                msg = "[Error] Unit Type {0} not found in {1}"
-                print msg.format(hex(obj_type), data.__class__.__name__)
+                msg = "Unit Type {0} not found in {1}"
+                self.logger.error(msg.format(hex(obj_type), data.__class__.__name__))
                 objects.append(DataObject(0x0))
 
             else:

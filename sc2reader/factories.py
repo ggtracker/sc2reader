@@ -13,6 +13,7 @@ from sc2reader import readers
 from sc2reader import data
 from sc2reader import exceptions
 from sc2reader import utils
+from sc2reader import log_utils
 from sc2reader.resources import Replay, Map
 
 class SC2Factory(object):
@@ -82,6 +83,7 @@ class SC2Factory(object):
     def __init__(self, **options):
         self.reset()
         self.configure(**options)
+        self.logger = log_utils.get_logger(self.__class__)
 
         if self.options.get('register_defaults',None):
             self.register_defaults()
@@ -148,6 +150,7 @@ class SC2Factory(object):
 
         if isinstance(resource, basestring):
             if re.match(r'https?://',resource):
+                self.logger.info("Fetching remote resource: "+resource)
                 contents = urllib2.urlopen(resource).read()
 
             else:
