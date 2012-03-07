@@ -157,6 +157,7 @@ class SC2Factory(object):
                 directory = options.get('directory','')
                 location = os.path.join(directory, resource)
 
+                # Extract the contents so we can close the file
                 with open(location, 'rb') as resource_file:
                     contents = resource_file.read()
 
@@ -168,11 +169,9 @@ class SC2Factory(object):
             # Totally not designed for large files!!
             # We need a multiread resource, so wrap it in StringIO
             if not hasattr(resource,'seek'):
-                resource = StringIO(replay_file.read())
-            else:
-                resource = replay_file
+                resource = StringIO(resource.read())
 
-            resource_name = getattr(resource,'name','Unknown')
+            resource_name = getattr(resource, 'name', 'Unknown')
 
         return (resource, resource_name)
 

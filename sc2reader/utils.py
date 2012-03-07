@@ -616,7 +616,8 @@ def read_header(replay_file):
 
     #Sanity check that the input is in fact an MPQ file
     if buffer.empty or buffer.read_hex(4).upper() != "4D50511B":
-        raise exceptions.FileError("File '%s' is not an MPQ file" % file.name)
+        msg = "File '{0}' is not an MPQ file";
+        raise exceptions.FileError(msg.format(replay_file.name))
 
     max_data_size = buffer.read_int(LITTLE_ENDIAN)
     header_offset = buffer.read_int(LITTLE_ENDIAN)
