@@ -2,9 +2,10 @@ from __future__ import absolute_import
 
 from sc2reader.listeners.utils import ListenerBase
 
+import sc2reader
 from sc2reader import events
 from sc2reader import utils
-
+from sc2reader import log_utils
 
 class GameState(dict):
     def __init__(self, initial_state):
@@ -22,6 +23,7 @@ class GameState(dict):
 
 class UnitSelection(object):
     def __init__(self, *new_objects):
+        self.logger = log_utils.get_logger(UnitSelection)
         self.objects = list()
         self.select(new_objects)
 
@@ -36,6 +38,7 @@ class UnitSelection(object):
             if len(mask) < len(self.objects):
                 # pad to the right
                 mask = mask+[False,]*(len(self.objects)-len(mask))
+            self.logger.debug("Deselection Mask: "+mask)
             self.objects = [ obj for (slct, obj) in filter(lambda (slct, obj): not slct, zip(mask, self.objects)) ]
 
         elif mode == 0x02:
@@ -72,6 +75,9 @@ class SelectionListener(ListenerBase):
     def __call__(self, event, replay):
 
         if isinstance(event, events.HotkeyEvent):
+            if replay.opt.debug:
+                self.logger.debug("Event bytes: "+event.bytes.encode("hex"))
+
             selections = event.player.selections[event.frame]
             hotkey_selection = selections[event.hotkey]
 
@@ -85,15 +91,20 @@ class SelectionListener(ListenerBase):
                 self.logger.info("[{0}] {1} added current selection to hotkey {2}".format(utils.Length(seconds=event.second),event.player.name,event.hotkey))
 
             if isinstance(event, events.GetFromHotkeyEvent):
-                selections[0x0A] = selections[event.hotkey]
-                self.logger.info("[{0}] {1} retrieved hotkey {2}: {3}".format(utils.Length(seconds=event.second),event.player.name,event.hotkey,selections[event.hotkey]))
+                # For some reason they leave the hotkey buffer unmodified
+                selections[0x0A] = selections[event.hotkey].copy()
+                selections[0x0A].deselect(*event.deselect)
+                self.logger.info("[{0}] {1} retrieved hotkey {2}, {3} units: {4}".format(utils.Length(seconds=event.second),event.player.name,event.hotkey,len(selections[0x0A].objects),selections[0x0A]))
 
-            event.selected = selections[event.hotkey]
+            event.selected = selections[0x0A]
 
         if isinstance(event, events.SelectionEvent):
+            if replay.opt.debug:
+                self.logger.debug("Event bytes: "+event.bytes.encode("hex"))
+
             selections = event.player.selections[event.frame]
             selections[0x0A].deselect(*event.deselect)
             selections[0x0A].select(event.objects)
 
             event.selected = selections[0x0A]
-            self.logger.info("[{0}] {1} selected: {2}".format(utils.Length(seconds=event.second),event.player.name,event.selected))
+            self.logger.info("[{0}] {1} selected {2} units: {3}".format(utils.Length(seconds=event.second),event.player.name,len(event.selected.objects),event.selected))
