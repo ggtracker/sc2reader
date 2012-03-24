@@ -38,7 +38,7 @@ class UnitSelection(object):
             if len(mask) < len(self.objects):
                 # pad to the right
                 mask = mask+[False,]*(len(self.objects)-len(mask))
-            self.logger.debug("Deselection Mask: "+mask)
+            self.logger.debug("Deselection Mask: {0}".format(mask))
             self.objects = [ obj for (slct, obj) in filter(lambda (slct, obj): not slct, zip(mask, self.objects)) ]
 
         elif mode == 0x02:
@@ -73,38 +73,36 @@ class SelectionListener(ListenerBase):
             player.selections = GameState(PlayerSelection())
 
     def __call__(self, event, replay):
+        # TODO: The whole register_listener thing is really clunky
+        #   right now. In some cases, listeners already know what
+        #   they want to listen to.
+        if not (isinstance(event, events.SelectionEvent) or isinstance(event, events.HotkeyEvent)):
+            return
 
-        if isinstance(event, events.HotkeyEvent):
-            if replay.opt.debug:
-                self.logger.debug("Event bytes: "+event.bytes.encode("hex"))
+        if replay.opt.debug:
+            self.logger.debug("Event bytes: "+event.bytes.encode("hex"))
 
-            selections = event.player.selections[event.frame]
-            hotkey_selection = selections[event.hotkey]
+        selections = event.player.selections[event.frame]
 
-            if isinstance(event, events.SetToHotkeyEvent):
-                selections[event.hotkey] = selections[0x0A].copy()
-                self.logger.info("[{0}] {1} set hotkey {2} to current selection".format(utils.Length(seconds=event.second),event.player.name,event.hotkey))
+        if isinstance(event, events.SetToHotkeyEvent):
+            # Make a copy to decouple the hotkey from primary selection
+            selections[event.hotkey] = selections[0x0A].copy()
+            self.logger.info("[{0}] {1} set hotkey {2} to current selection".format(utils.Length(seconds=event.second),event.player.name,event.hotkey))
 
-            if isinstance(event, events.AddToHotkeyEvent):
-                selections[event.hotkey].deselect(*event.deselect)
-                selections[event.hotkey].select(selections[0x0A].objects)
-                self.logger.info("[{0}] {1} added current selection to hotkey {2}".format(utils.Length(seconds=event.second),event.player.name,event.hotkey))
+        elif isinstance(event, events.AddToHotkeyEvent):
+            selections[event.hotkey].deselect(*event.deselect)
+            selections[event.hotkey].select(selections[0x0A].objects)
+            self.logger.info("[{0}] {1} added current selection to hotkey {2}".format(utils.Length(seconds=event.second),event.player.name,event.hotkey))
 
-            if isinstance(event, events.GetFromHotkeyEvent):
-                # For some reason they leave the hotkey buffer unmodified
-                selections[0x0A] = selections[event.hotkey].copy()
-                selections[0x0A].deselect(*event.deselect)
-                self.logger.info("[{0}] {1} retrieved hotkey {2}, {3} units: {4}".format(utils.Length(seconds=event.second),event.player.name,event.hotkey,len(selections[0x0A].objects),selections[0x0A]))
+        elif isinstance(event, events.GetFromHotkeyEvent):
+            # For some reason they leave the hotkey buffer unmodified so make a copy
+            selections[0x0A] = selections[event.hotkey].copy()
+            selections[0x0A].deselect(*event.deselect)
+            self.logger.info("[{0}] {1} retrieved hotkey {2}, {3} units: {4}".format(utils.Length(seconds=event.second),event.player.name,event.hotkey,len(selections[0x0A].objects),selections[0x0A]))
 
-            event.selected = selections[0x0A]
-
-        if isinstance(event, events.SelectionEvent):
-            if replay.opt.debug:
-                self.logger.debug("Event bytes: "+event.bytes.encode("hex"))
-
-            selections = event.player.selections[event.frame]
+        elif isinstance(event, events.SelectionEvent):
             selections[0x0A].deselect(*event.deselect)
             selections[0x0A].select(event.objects)
+            self.logger.info("[{0}] {1} selected {2} units: {3}".format(utils.Length(seconds=event.second),event.player.name,len(selections[0x0A].objects),selections[0x0A]))
 
-            event.selected = selections[0x0A]
-            self.logger.info("[{0}] {1} selected {2} units: {3}".format(utils.Length(seconds=event.second),event.player.name,len(event.selected.objects),event.selected))
+        event.selected = selections[0x0A]
