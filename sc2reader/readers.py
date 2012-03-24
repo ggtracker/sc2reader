@@ -237,6 +237,11 @@ class GameEventsReader_Base(Reader):
                 parser = PARSERS[type](code)
                 event = parser(buffer, frames, type, code, pid)
 
+                # Because events are parsed in a bitwise fashion, they sometimes
+                # leave the buffer in a bitshifted state. Each new event always
+                # starts byte aligned so make sure that the buffer does too.
+                align()
+
                 # For debugging purposes, we may wish to record the event.bytes
                 # associated with this event; including the event header bytes.
                 if debug:
@@ -258,11 +263,6 @@ class GameEventsReader_Base(Reader):
 
             except ReadError as e:
                 raise ReadError(e.msg, replay, game_events, buffer, start)
-
-            # Because events are parsed in a bitwise fashion, they sometimes
-            # leave the buffer in a bitshifted state. Each new event always
-            # starts byte aligned so make sure that the buffer does too.
-            align()
 
         return game_events
 
