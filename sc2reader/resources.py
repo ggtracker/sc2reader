@@ -348,6 +348,8 @@ class Replay(Resource):
         for event in self.events:
             event.load_context(self)
             self.events_by_type[event.name].append(event)
+            if event.pid != 16:
+                self.player[event.pid].events.append(event)
 
 
     def start(self):
