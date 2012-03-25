@@ -1,5 +1,8 @@
 from __future__ import absolute_import
 
+# import submodules
+from sc2reader import listeners, data, scripts, processors
+
 from sc2reader import factories, log_utils
 
 # setup the library logging
