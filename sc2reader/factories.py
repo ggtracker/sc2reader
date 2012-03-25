@@ -107,7 +107,7 @@ class SC2Factory(object):
         self.options = utils.AttributeDict(self.default_options)
         self.registered_readers = defaultdict(list)
         self.registered_datapacks = list()
-        self.registered_listeners = defaultdict(list)
+        self.registered_listeners = list()
 
     def load_resources(self, resources, resource_loader, options=None, **new_options):
         """
@@ -286,42 +286,30 @@ class SC2Factory(object):
         return None
 
     def get_listeners(self, replay):
-        listeners = defaultdict(list)
-        for event_class in self.registered_listeners.keys():
-            for callback, listener in self.registered_listeners[event_class]:
-                if callback(replay):
-                    listeners[event_class].append(listener)
+        listeners = list()
+        for callback, listener in self.registered_listeners:
+            if callback(replay):
+                listeners.append(listener)
         return listeners
 
 
-    def register_listener(self, events, listener, filterfunc=lambda r: True):
+    def register_listener(self, listener, filterfunc=lambda r: True):
         """
         Allows you to specify event listeners for adding new features to the
         :class:`Replay` objects on :meth:`~Replay.play`. sc2reader comes with a
         small collection of :class:`Listener` classes that you can apply to your
-        replays as needed.
-
-        Events are sent to listeners in registration order as they come up. By
-        specifying a parent class you can register a listener to a set of events
-        at once instead of listing them out individually. See the tutorials for
-        more information.
-
-        :param events: A list of event classes you want sent to this listener.
-            Registration to a single event can be done by specifying a single
-            event class instead of a list. An isinstance() check is used so
-            you can catch sets of classes at once by supplying a parent class.
+        replays as needed. Events are sent to listeners in registration order as
+        they come up. See the tutorials for more information.
 
         :param listener: The :class:`Listener` object you want events sent to.
+            You must pass an instanciated object NOT a class. This gives you an
+            opportunity to configure the listener before registration.
 
         :param filterfunc: A function that accepts a partially loaded
             :class:`Replay` object as an argument and returns true if the
             reader should be used on this replay.
         """
-        try:
-            for event in events:
-                self.registered_listeners[event].append((filterfunc, listener))
-        except TypeError:
-            self.registered_listeners[events].append((filterfunc, listener))
+        self.registered_listeners.append((filterfunc, listener))
 
     def register_reader(self, data_file, reader, filterfunc=lambda r: True):
         """

@@ -72,13 +72,10 @@ class SelectionListener(ListenerBase):
         for player in replay.people:
             player.selections = GameState(PlayerSelection())
 
-    def __call__(self, event, replay):
-        # TODO: The whole register_listener thing is really clunky
-        #   right now. In some cases, listeners already know what
-        #   they want to listen to.
-        if not (isinstance(event, events.SelectionEvent) or isinstance(event, events.HotkeyEvent)):
-            return
+    def accepts(self, event):
+        return isinstance(event, events.SelectionEvent) or isinstance(event, events.HotkeyEvent)
 
+    def __call__(self, event, replay):
         if replay.opt.debug:
             self.logger.debug("Event bytes: "+event.bytes.encode("hex"))
 

@@ -355,15 +355,13 @@ class Replay(Resource):
     def start(self):
         self.stopped = False
 
-        for event_type, listeners in self.listeners.iteritems():
-            for listener in listeners:
-                listener.setup(self)
+        for listener in self.listeners:
+            listener.setup(self)
 
         for event in self.events:
-            for event_type, listeners in self.listeners.iteritems():
-                if isinstance(event, event_type):
-                    for listener in listeners:
-                        listener(event, self)
+            for listener in self.listeners:
+                if listener.accepts(event):
+                    listener(event, self)
 
 
 class Map(Resource):
