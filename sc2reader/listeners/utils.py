@@ -6,3 +6,6 @@ class ListenerBase(object):
 
     def accepts(self, event):
         return true
+
+    def setup(self, replay):
+        pass
