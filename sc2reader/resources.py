@@ -151,7 +151,7 @@ class Replay(Resource):
         if data:
             data_buffer = utils.ReplayBuffer(data)
             self.raw_data[data_file] = reader(data_buffer, self)
-        elif self.opt.debug:
+        elif self.opt.debug and data_file != 'replay.message.events':
             raise ValueError("{0} not found in archive".format(data_file))
         else:
             self.logger.error("{0} not found in archive".format(data_file))
@@ -349,7 +349,7 @@ class Replay(Resource):
             event.load_context(self)
             self.events_by_type[event.name].append(event)
             if event.pid != 16:
-                self.player[event.pid].events.append(event)
+                self.person[event.pid].events.append(event)
 
 
     def start(self):
