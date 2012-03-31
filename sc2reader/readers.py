@@ -415,14 +415,19 @@ class GameEventsReader_Base(Reader):
         return CameraMovementEvent(frames, pid, type, code)
 
     def parse_cameraX1_event(self, buffer, frames, type, code, pid):
-        #Get the X and Y,  last byte is also a flag
-        chunk = buffer.read_int(BIG_ENDIAN)
+        # TODO: Figure out what all this zoom and rotate stuff is about
+        x = ((code & 0xF0) << 8 | sum(buffer.read(bits=12)))/256.0
+        y = buffer.read_short()/256.0
 
-        if chunk & 0x10 != 0:
-            chunk = buffer.read_short(BIG_ENDIAN)
-        if chunk & 0x20 != 0:
-            chunk = buffer.read_short(BIG_ENDIAN)
-        if chunk & 0x40 != 0:
+        flags = buffer.shift(4) << 4
+        if flags & 0x10 != 0:
+            # zoom=?
+            flags = buffer.read_short(BIG_ENDIAN)
+        if flags & 0x20 != 0:
+            # zoom=?
+            flags = buffer.read_short(BIG_ENDIAN)
+        if flags & 0x40 != 0:
+            # rotate=?
             buffer.skip(2)
 
         return CameraMovementEvent(frames, pid, type, code)
