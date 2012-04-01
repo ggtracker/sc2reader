@@ -654,9 +654,7 @@ class GameEventsReader_19595(GameEventsReader_18574):
     def right_click_target(self, buffer, frames, type, code, pid, flag, atype):
         # ability (2), object id (4), object type (2), ?? (10)
         ability = buffer.read_short(endian=BIG_ENDIAN)
-        obj_id = buffer.read_object_id()
-        obj_type = buffer.read_object_type()
-        target = (obj_id, obj_type,)
-        # extra byte
-        buffer.skip(11)
+        buffer.shift(1) # weird shift..
+        target = (buffer.read_int(BIG_ENDIAN), buffer.read_short(BIG_ENDIAN))
+        buffer.skip(10)
         return TargetAbilityEvent(frames, pid, type, code, ability, target)
