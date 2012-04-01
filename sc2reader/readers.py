@@ -630,6 +630,14 @@ class GameEventsReader_18574(GameEventsReader_16561):
         buffer.skip(4)
         return LocationAbilityEvent(frames, pid, type, code, 0x3601, (x,y))
 
+    def right_click_target(self, buffer, frames, type, code, pid, flag, atype):
+        # ability (2), object id (4), object type (2), ?? (10)
+        ability = buffer.read_short(endian=BIG_ENDIAN)
+        buffer.shift(1) # weird shift..
+        target = (buffer.read_int(BIG_ENDIAN), buffer.read_short(BIG_ENDIAN))
+        buffer.skip(9)
+        return TargetAbilityEvent(frames, pid, type, code, ability, target)
+
     def command_card(self, buffer, frames, type, code, pid, flag, atype):
         # ability flags one longer now and shifted << 1
         ability = buffer.read_short(endian=BIG_ENDIAN)
