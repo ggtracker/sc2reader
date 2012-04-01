@@ -603,10 +603,10 @@ class GameEventsReader_16561(GameEventsReader_Base):
     def right_click_move(self, buffer, frames, type, code, pid, flag, atype):
         #10 bytes total, coordinates have a different format?
         #X coordinate definitely is the first byte, with (hopefully) y next
-        location = buffer.read_coordinate()
-        buffer.skip(5)
-        return LocationAbilityEvent(frames, pid, type, code, None, location)
-
+        x = buffer.read_short(BIG_ENDIAN)/256.0
+        y = buffer.read_short(BIG_ENDIAN)/256.0
+        buffer.skip(6)
+        return LocationAbilityEvent(frames, pid, type, code, None, (x,y))
 
 
 class GameEventsReader_18574(GameEventsReader_16561):
@@ -626,6 +626,15 @@ class GameEventsReader_18574(GameEventsReader_16561):
 
         raise ParseError()
 
+    def right_click_move(self, buffer, frames, type, code, pid, flag, atype):
+        # This may port back to previous versions. Haven't checked
+        # 10 bytes total, coordinates have a different format?
+        x = buffer.read_short(BIG_ENDIAN)/256.0
+        buffer.shift(5) # what is this for, why 5 bits instead of 4?
+        y = buffer.read_short(BIG_ENDIAN)/256.0
+        buffer.read(bits=5) # I'll just assume we should do it again
+        buffer.skip(4)
+        return LocationAbilityEvent(frames, pid, type, code, 0x3601, (x,y))
 
 
 class GameEventsReader_19595(GameEventsReader_18574):
