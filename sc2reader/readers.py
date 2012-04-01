@@ -558,19 +558,18 @@ class GameEventsReader_16561(GameEventsReader_Base):
             ability = ability << 8 | ability_flags
 
             if ability_flags & 0x10:
-                # ability(3), coordinates (4), ?? (4)
-                location = buffer.read_coordinate()
-                buffer.skip(4)
-                return LocationAbilityEvent(frames, pid, type, code, ability, location)
+                x = buffer.read_short(BIG_ENDIAN)/256.0
+                buffer.read(bits=5) # what is this for?
+                y = buffer.read_short(BIG_ENDIAN)/256.0
+                buffer.read(bits=5) # I'll just assume we should do it again
+                buffer.read_hex(4)
+                return LocationAbilityEvent(frames, pid, type, code, ability, (x,y))
 
             elif ability_flags & 0x20:
                 # ability(3), object id (4),  object type (2), ?? (10)
                 code = buffer.read_short() # code??
-                obj_id = buffer.read_object_id()
-                obj_type = buffer.read_object_type()
-                target = (obj_id, obj_type,)
-                switch = buffer.read_byte()
-                buffer.read_hex(9)
+                target = (buffer.read_object_id(), buffer.read_object_type())
+                buffer.read_hex(10)
                 return TargetAbilityEvent(frames, pid, type, code, ability, target)
 
             else:
