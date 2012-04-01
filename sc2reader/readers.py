@@ -594,15 +594,24 @@ class GameEventsReader_16561(GameEventsReader_Base):
 
 
 class GameEventsReader_18574(GameEventsReader_16561):
+    def cancel(self, buffer, frames, type, code, pid, flag, atype):
+        ability = buffer.read_short(endian=BIG_ENDIAN)
+        ability = ability << 8 | buffer.read_byte()
+
+        # creation autoid number / object id
+        created_id = buffer.read_object_id()
+        # TODO : expose the id
+        return AbilityEvent(frames, pid, type, code, ability)
+
     def parse_ability_event(self, buffer, frames, type, code, pid):
         """Moves the right click move to the top level"""
         flag = buffer.read_byte()
         atype = buffer.read_byte()
 
-        if atype & 0x20: # command card
+        if atype & 0x20: # cancels only now
+            return self.cancel(buffer, frames, type, code, pid, flag, atype)
+        elif atype & 0x40: # all command card abilities?
             return self.command_card(buffer, frames, type, code, pid, flag, atype)
-        elif atype & 0x40: # location/move ??
-            return self.location_move(buffer, frames, type, code, pid, flag, atype)
         elif atype & 0x80: # right-click on target?
             return self.right_click_target(buffer, frames, type, code, pid, flag, atype)
         elif atype < 0x10: #new to patch 1.3.3, location now??
@@ -612,13 +621,76 @@ class GameEventsReader_18574(GameEventsReader_16561):
 
     def right_click_move(self, buffer, frames, type, code, pid, flag, atype):
         # This may port back to previous versions. Haven't checked
-        # 10 bytes total, coordinates have a different format?
+        # Can differ by up to (+/-1, +/-8) from sc2gears readings
+        # See command_card implementation for details
         x = buffer.read_short(BIG_ENDIAN)/256.0
         buffer.shift(5) # what is this for, why 5 bits instead of 4?
         y = buffer.read_short(BIG_ENDIAN)/256.0
         buffer.read(bits=5) # I'll just assume we should do it again
         buffer.skip(4)
         return LocationAbilityEvent(frames, pid, type, code, 0x3601, (x,y))
+
+    def command_card(self, buffer, frames, type, code, pid, flag, atype):
+        # ability flags one longer now and shifted << 1
+        ability = buffer.read_short(endian=BIG_ENDIAN)
+        ability = ability << 8 | buffer.shift(7)
+
+        if ability & 0x20:
+            # Matches sc2gears, but has crazy alignments. Example:
+            #   0c210b0440002a20b000546ab600007c3f
+            #   88.0,87.3 ~ (0x58,0x57)
+            #   20 0 010000
+            #   b0 10110000
+            #   00 00000000
+            #   54 01010100
+            #   6a 01101010
+            #   b6 10110110
+            #
+            #   00000000.                |
+            #    1011000.0               |
+            #          0.0000000         |
+            #   01011000.0000000         |
+            #
+            #   01010100.                |
+            #        011.01010           |
+            #           .      10110110  |
+            #
+            # TODO: Check if these are actually (somehow) the right numbers
+            #x = ((buffer.shift(1) << 23) | (buffer.read_byte() << 15) | (buffer.read_byte() << 9)
+            #y = (buffer.read_byte() << 16) | (buffer.read_byte() << 11) | (buffer.read_byte() << 2)
+            #x = x/2.0**16
+            #y = y/2.0**16
+            #buffer.skip(4)
+            #
+            # This doesn't match sc2gears, but makes a hell of a lot more sense
+            #   0c210b0440002a20b000546ab600007c3f
+            #   (Xx/256.0, Yy/256.0)
+            #
+            #   20 X 010000
+            #   b0 XXXXXXXx
+            #   00 ?xxxxxxx
+            #   54 YYYY????
+            #   6a YYYYyyyy
+            #   b6 ????yyyy
+            #
+            # Can differ by up to (+/-1, +/-8) from sc2gears readings
+            x = buffer.read_short(BIG_ENDIAN)/256.0
+            buffer.read(bits=5) # what is this for?
+            y = buffer.read_short(BIG_ENDIAN)/256.0
+            buffer.read(bits=4) # I'll just assume we should do it again
+            buffer.skip(4)
+            return LocationAbilityEvent(frames, pid, type, code, ability, (x,y))
+
+        elif ability & 0x40:
+            buffer.read_short()
+            target = (buffer.read_int(BIG_ENDIAN),buffer.read_short(BIG_ENDIAN))
+            buffer.skip(10)
+            return TargetAbilityEvent(frames, pid, type, code, ability, target)
+
+        else:
+            pass
+
+        return UnknownLocationAbilityEvent(frames, pid, type, code, ability)
 
 
 class GameEventsReader_19595(GameEventsReader_18574):
