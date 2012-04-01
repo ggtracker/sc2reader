@@ -702,21 +702,35 @@ class GameEventsReader_18574(GameEventsReader_16561):
 
 
 class GameEventsReader_19595(GameEventsReader_18574):
-    def location_move(self, buffer, frames, type, code, pid, flag, atype):
+    def command_card(self, buffer, frames, type, code, pid, flag, atype):
+        # Why only read 7 of the bits?
         ability = buffer.read_short(endian=BIG_ENDIAN)
-        ability = ability << 8 | buffer.read_byte()
+        ability = ability << 8 | buffer.shift(7)
+
         if ability & 0x20:
-            buffer.read_hex(9)
+            # Can differ by up to (+/-1, +/-8) from sc2gears readings
+            # See 18574 implementation for details
+            x = buffer.read_short(BIG_ENDIAN)/256.0
+            buffer.read(bits=5) # we could do some creative addition here
+            y = buffer.read_short(BIG_ENDIAN)/256.0
+            buffer.shift(4) # we could do some creative addition here
+            buffer.skip(4)
+            return LocationAbilityEvent(frames, pid, type, code, ability, (x,y))
+
         elif ability & 0x40:
-            # extra byte
-            buffer.read_hex(19)
+            # extra byte long
+            buffer.read_short()
+            target = (buffer.read_int(BIG_ENDIAN),buffer.read_short(BIG_ENDIAN))
+            buffer.skip(11)
+            return TargetAbilityEvent(frames, pid, type, code, ability, target)
+
         else:
             pass
 
         return UnknownLocationAbilityEvent(frames, pid, type, code, ability)
 
     def right_click_target(self, buffer, frames, type, code, pid, flag, atype):
-        # ability (2), object id (4), object type (2), ?? (10)
+        # extra byte long
         ability = buffer.read_short(endian=BIG_ENDIAN)
         buffer.shift(1) # weird shift..
         target = (buffer.read_int(BIG_ENDIAN), buffer.read_short(BIG_ENDIAN))
