@@ -133,7 +133,7 @@ class SC2Factory(object):
             if re.match(r'https?://',resources):
                 yield resource_loader(resources, options=options)
             else:
-                for resource in utils.get_replay_files(full_path, **options):
+                for resource in utils.get_replay_files(resources, **options):
                     yield resource_loader(resource, options=options)
 
         # File like object?
