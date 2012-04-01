@@ -238,6 +238,7 @@ class SC2Factory(object):
 
         :rtype: :class:`Replay`
         """
+        self.logger.info("Reading {0}".format(replay_file))
         options = options or utils.merged_dict(self.options, new_options)
         resource, name = self.load_resource(replay_file, options=options)
         replay = Replay(resource, name, **options)
