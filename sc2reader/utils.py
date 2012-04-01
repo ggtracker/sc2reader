@@ -680,7 +680,7 @@ class Length(timedelta):
     @property
     def mins(self):
         """The number of minutes in excess of the hours."""
-        return self.seconds/60
+        return (self.seconds/60)%60
 
     @property
     def secs(self):
