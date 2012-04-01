@@ -537,10 +537,7 @@ class GameEventsReader_16561(GameEventsReader_Base):
         if atype & 0x20: # command card
             return self.command_card(buffer, frames, type, code, pid, flag, atype)
         elif atype & 0x40: # location/move
-            if flag == 0x08:
-                return self.right_click_move(buffer, frames, type, code, pid, flag, atype)
-            elif flag in (0x04,0x05,0x07):
-                return self.location_move(buffer, frames, type, code, pid, flag, atype)
+            return self.right_click_move(buffer, frames, type, code, pid, flag, atype)
         elif atype & 0x80: # right-click on target?
             return self.right_click_target(buffer, frames, type, code, pid, flag, atype)
 
@@ -578,18 +575,6 @@ class GameEventsReader_16561(GameEventsReader_Base):
 
             else:
                 return AbilityEvent(frames,pid,type,code,ability)
-
-    def location_move(self, buffer, frames, type, code, pid, flag, atype):
-        ability = buffer.read_short(endian=BIG_ENDIAN)
-        ability = ability << 8 | buffer.read_byte()
-        if ability & 0x20:
-            buffer.read_hex(9)
-        elif ability & 0x40:
-            buffer.read_hex(18)
-        else:
-            pass
-
-        return UnknownLocationAbilityEvent(frames, pid, type, code, ability)
 
     def right_click_target(self, buffer, frames, type, code, pid, flag, atype):
         # ability (2), object id (4), object type (2), ?? (10)
