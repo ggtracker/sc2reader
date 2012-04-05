@@ -166,7 +166,7 @@ class TargetAbilityEvent(AbilityEvent):
             if isinstance(self.target, DataObject):
                 target = "{0} [{1:0>8X}]".format(self.target.name, self.target.id)
             else:
-                target = "{0:X} [{1:0>8X}".format(self.target[1], self.target[0])
+                target = "{0:X} [{1:0>8X}]".format(self.target[1], self.target[0])
         else:
             target = "NONE"
 
