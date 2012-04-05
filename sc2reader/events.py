@@ -166,11 +166,7 @@ class TargetAbilityEvent(AbilityEvent):
             if isinstance(self.target, DataObject):
                 target = "{0} [{1:0>8X}]".format(self.target.name, self.target.id)
             else:
-                if self.target[1] in self.data.types:
-                    target = "{0} [{1:0>8X}]".format(self.data.types[self.target[1]].name,self.target[0])
-                else:
-                    target = "UNKNOWN {0}".format(hex(self.target[1]))
-
+                target = "{0:X} [{1:0>8X}".format(self.target[1], self.target[0])
         else:
             target = "NONE"
 
