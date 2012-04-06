@@ -375,3 +375,29 @@ class SC2Factory(object):
         self.register_datapack(data.Data_17326, lambda r: 17326 <= r.build < 18317)
         self.register_datapack(data.Data_18317, lambda r: 18317 <= r.build < 19595)
         self.register_datapack(data.Data_19595, lambda r: 19595 <= r.build)
+
+class SC2Cache(SC2Factory):
+
+    def __init__(self, **options):
+        super(SC2Cache, self).__init__(self, **options)
+        self.cache = IntitializeCache(**options)
+
+    def load_map(self, map_file, options=None, **new_options):
+        options = options or utils.merged_dict(self.options, new_options)
+
+        if self.cache.has(map_file):
+            return self.cache.get(map_file)
+        else:
+            map = super(SC2Cache, self).load_map(map_file, options=options)
+            self.cache.set(map_file, map)
+            return map
+
+    def load_replay(self, replay_file, options=None, **new_options):
+        options = options or utils.merged_dict(self.options, new_options)
+
+        if self.cache.has(replay_file):
+            return self.cache.get(replay_file)
+        else:
+            replay = super(SC2Cache, self).load_replay(replay_file, options=options)
+            self.cache.set(replay_file, replay)
+            return replay
