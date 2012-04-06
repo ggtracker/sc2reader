@@ -183,12 +183,6 @@ class LocationAbilityEvent(AbilityEvent):
 class SelfAbilityEvent(AbilityEvent):
     pass
 
-class UnknownAbilityEvent(AbilityEvent):
-    pass
-
-class UnknownLocationAbilityEvent(AbilityEvent):
-    pass
-
 class HotkeyEvent(PlayerActionEvent):
     def __init__(self, framestamp, player, type, code, hotkey, deselect):
         super(HotkeyEvent, self).__init__(framestamp, player, type, code)
