@@ -7,7 +7,7 @@ from collections import defaultdict
 from sc2reader.constants import REGIONS, LOCALIZED_RACES
 from sc2reader.objects import Player, Message, Color, Observer, Team, Packet
 from sc2reader.utils import windows_to_unix
-
+from sc2reader import config
 
 def Full(replay):
     # Populate replay with details
@@ -104,7 +104,7 @@ def Full(replay):
         # We need initData for the gateway which is required to build the url!
         if 'initData' in replay.raw and replay.gateway:
             player.gateway = replay.gateway
-            if player.type == 'Human':
+            if player.type == 'Human' and player.subregion:
                 player.region = REGIONS[replay.gateway][player.subregion]
                 default_region = player.region
 
@@ -171,6 +171,7 @@ def Full(replay):
 
     # Copy the events over
     # TODO: the events need to be fixed both on the reader and processor side
+    data = config.build_data[replay.build]
     replay.events = replay.raw.game_events
     for event in replay.events:
         if event.is_local:
@@ -179,7 +180,7 @@ def Full(replay):
             event.player.events.append(event)
 
         # Because applying the events is slow, make it configurable
-        if replay.opt.apply: event.apply()
+        if replay.opt.apply: event.apply(data)
 
         l = replay.events_by_type[event.name]
         l.append(event)

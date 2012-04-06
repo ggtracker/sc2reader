@@ -1,11 +1,23 @@
 from __future__ import absolute_import
 
+from collections import defaultdict
+from itertools import chain
+
 from sc2reader.exceptions import ParseError, ReadError
 from sc2reader.objects import *
-from sc2reader.parsers import *
-from sc2reader.utils import AttributeDict, LITTLE_ENDIAN
+from sc2reader.events import *
+from sc2reader.utils import AttributeDict, BIG_ENDIAN, LITTLE_ENDIAN
 
-class InitDataReader(object):
+
+
+class Reader(object):
+    def __init__(self, **options):
+        self.options = options
+
+    def __call__(self, buffer, replay):
+        raise NotImplementedError
+
+class InitDataReader_Base(Reader):
     def __call__(self,buffer, replay):
         # The first block of the replay.initData file represents a list of
         # human player names; computers are no recorded. This list appears to
@@ -42,6 +54,7 @@ class InitDataReader(object):
         while buffer.read_chars(4).lower() == 's2ma':
             unknown = buffer.read_chars(2)
             gateway = buffer.read_string(2).lower()
+            # There must be a better way to get this little endian
             map_hash = buffer.read_chars(32)
             map_data.append(MapData(unknown,gateway,map_hash))
 
@@ -53,7 +66,7 @@ class InitDataReader(object):
         )
 
 
-class AttributeEventsReader(object):
+class AttributesEventsReader_Base(Reader):
     header_length = 4
 
     def __call__(self, buffer, replay):
@@ -78,12 +91,12 @@ class AttributeEventsReader(object):
         return attribute_events
 
 
-class AttributeEventsReader_17326(AttributeEventsReader):
+class AttributesEventsReader_17326(AttributesEventsReader_Base):
     # The header length is increased from 4 to 5 bytes from patch 17326 and on.
     header_length = 5
 
 
-class DetailsReader(object):
+class DetailsReader_Base(Reader):
     def __call__(self, buffer, replay):
         # The entire details file is just a serialized data structure
         #
@@ -115,6 +128,7 @@ class DetailsReader(object):
         #   Unknown2
         #   Unknown3
         #   file_time - Time file was created/replay was made
+        #   utc_adjustment
         #   Unknown4
         #   Unknown5
         #   Unknown6
@@ -122,7 +136,6 @@ class DetailsReader(object):
         #   Unknown8
         #   Unknown9
         #   Unknown10
-        #   Unknown11
         #
         data = buffer.read_data_struct()
 
@@ -149,7 +162,7 @@ class DetailsReader(object):
         return Details(*ordered_values(data))
 
 
-class MessageEventsReader(object):
+class MessageEventsReader_Base(Reader):
     def __call__(self, buffer, replay):
         # The replay.message.events file is a single long list containing three
         # different element types (minimap pings, player messages, and some sort
@@ -158,38 +171,24 @@ class MessageEventsReader(object):
         messages = list()
         packets = list()
 
-        time = 0
+        frame = 0
         while(buffer.left):
             # All the element types share the same time, pid, flags header.
-            time += buffer.read_timestamp()
+            frame += buffer.read_timestamp()
             pid = buffer.read_byte() & 0x0F
             flags = buffer.read_byte()
 
-            # The 0x83 flag indicates a minimap ping and contains the x and
-            # y coordinates of that ping as the payload.
             if flags == 0x83:
-                x = buffer.read_int(LITTLE_ENDIAN)
-                y = buffer.read_int(LITTLE_ENDIAN)
-                pings.append(PingData(time,pid,flags,x,y))
-
-            # The 0x80 flag marks a network packet. I believe these mark packets
-            # send over the network to establish latency or connectivity.
+                pings.append(PingEvent(frame, pid, flags, buffer))
             elif flags == 0x80:
-                packet = PacketData(time,pid,flags,buffer.read_chars(4))
-                packets.append(packet)
-
-            # A flag set without the 0x80 bit set is a player message. Messages
-            # store a target (allies or all) as well as the message text.
+                packets.append(PacketEvent(frame, pid, flags, buffer))
             elif flags & 0x80 == 0:
-                target,extension = flags & 0x03, (flags & 0x18) << 3
-                text = buffer.read_chars(buffer.read_byte() + extension)
-                message = MessageData(time, pid, flags, target, text)
-                messages.append(message)
+                messages.append(ChatEvent(frame, pid, flags, buffer))
 
         return AttributeDict(pings=pings, messages=messages, packets=packets)
 
 
-class GameEventsBase(object):
+class GameEventsReader_Base(Reader):
 
     def __call__(self, buffer, replay):
         # The game events file is a single long list of game events identified
@@ -205,19 +204,29 @@ class GameEventsBase(object):
         }
 
         game_events, frames = list(), 0
-        while not buffer.empty:
+
+        # Locals are faster!
+        tell = buffer.io.tell
+        read_timestamp = buffer.read_timestamp
+        shift = buffer.shift
+        read_byte = buffer.read_byte
+        debug = replay.opt.debug
+        append = game_events.append
+        align = buffer.align
+
+        while buffer.left:
             #Save the start so we can trace for debug purposes
-            start = buffer.cursor
+            start = tell()
 
             # Each event has the same header which consists of 1-3 bytes for a
             # count of the number of frames since the last recorded event, a
             # byte split 5-3 bitwise for the player id (0-16) and the event
             # type (0-4). A final header byte representing the code uniquely
             # identifies the class of event we are handling.
-            frames += buffer.read_timestamp()
-            pid = buffer.shift(5)
-            type = buffer.shift(3)
-            code = buffer.read_byte()
+            frames += read_timestamp()
+            pid = shift(5)
+            type = shift(3)
+            code = read_byte()
 
 
             try:
@@ -228,12 +237,17 @@ class GameEventsBase(object):
                 parser = PARSERS[type](code)
                 event = parser(buffer, frames, type, code, pid)
 
+                # Because events are parsed in a bitwise fashion, they sometimes
+                # leave the buffer in a bitshifted state. Each new event always
+                # starts byte aligned so make sure that the buffer does too.
+                align()
+
                 # For debugging purposes, we may wish to record the event.bytes
                 # associated with this event; including the event header bytes.
-                if replay.opt.debug:
+                if debug:
                     event.bytes = buffer.read_range(start, buffer.cursor)
 
-                game_events.append(event)
+                append(event)
 
             except KeyError:
                 # If the type is not a key in the PARSERS lookup table we
@@ -249,11 +263,6 @@ class GameEventsBase(object):
 
             except ReadError as e:
                 raise ReadError(e.msg, replay, game_events, buffer, start)
-
-            # Because events are parsed in a bitwise fashion, they sometimes
-            # leave the buffer in a bitshifted state. Each new event always
-            # starts byte aligned so make sure that the buffer does too.
-            buffer.align()
 
         return game_events
 
@@ -317,22 +326,410 @@ class GameEventsBase(object):
         else:
             raise ParseError("Unknown Unknown4 Parser Code {0}".format(code))
 
-# The storage format for many of the game events has changed, sometimes
-# dramatically, over time. To handle this inconsistency sc2reader uses mixins
-# on the base class defined above to assemble the correct parsing functions
-# based on the replay build number.
-class GameEventsReader( GameEventsBase, Unknown2Parser, Unknown4Parser,
-                        ActionParser, SetupParser, CameraParser ):
-    pass
+    def parse_join_event(self, buffer, frames, type, code, pid):
+        return PlayerJoinEvent(frames, pid, type, code)
 
-class GameEventsReader_16561( GameEventsBase, Unknown2Parser, Unknown4Parser,
-                              ActionParser_16561, SetupParser, CameraParser ):
-    pass
+    def parse_start_event(self, buffer, frames, type, code, pid):
+        return GameStartEvent(frames, pid, type, code)
 
-class GameEventsReader_18574( GameEventsBase, Unknown2Parser, Unknown4Parser,
-                              ActionParser_18574, SetupParser, CameraParser ):
-    pass
+    def parse_leave_event(self, buffer, frames, type, code, pid):
+        return PlayerLeaveEvent(frames, pid, type, code)
 
-class GameEventsReader_19595( GameEventsBase, Unknown2Parser, Unknown4Parser,
-                              ActionParser_19595, SetupParser, CameraParser ):
-    pass
+    def parse_ability_event(self, buffer, frames, type, code, pid):
+        buffer.skip(7)
+        switch = buffer.read_byte()
+        if switch in (0x30,0x50):
+            buffer.read_byte()
+        buffer.skip(24)
+        return AbilityEvent(frames, pid, type, code, None)
+
+    def parse_selection_event(self, buffer, frames, type, code, pid):
+        bank = code >> 4
+        selFlags = buffer.read_byte()
+        dsuCount = buffer.read_byte()
+        buffer.read(bits=dsuCount)
+
+        # <count> (<type_id>, <count>,)*
+        object_types = [ (buffer.read_object_type(read_modifier=True), buffer.read_byte(), ) for i in range(buffer.read_byte()) ]
+        # <count> (<object_id>,)*
+        object_ids = [ buffer.read_object_id() for i in range(buffer.read_byte()) ]
+
+        # repeat types count times
+        object_types = chain(*[[object_type,]*count for (object_type, count) in object_types])
+        objects = zip(object_ids, object_types)
+
+        return SelectionEvent(frames, pid, type, code, bank, objects, None)
+
+    def parse_hotkey_event(self, buffer, frames, type, code, pid):
+        hotkey = code >> 4
+        action, read = buffer.shift(2), buffer.shift(1)
+
+        if read:
+            mask = buffer.read(bits=buffer.read_byte())
+            overlay = lambda a: Selection.mask(a, mask)
+        else:
+            overlay = None
+
+        if action == 0:
+            return SetToHotkeyEvent(frames, pid, type, code, hotkey, overlay)
+        elif action == 1:
+            return AddToHotkeyEvent(frames, pid, type, code, hotkey, overlay)
+        elif action == 2:
+            return GetFromHotkeyEvent(frames, pid, type, code, hotkey, overlay)
+
+    def parse_transfer_event(self, buffer, frames, type, code, pid):
+        def read_resource(buffer):
+            block = buffer.read_int(BIG_ENDIAN)
+            base, multiplier, extension = block >> 8, block & 0xF0, block & 0x0F
+            return base*multiplier+extension
+
+        target = code >> 4
+        buffer.skip(1) #Always 84
+        minerals,vespene = read_resource(buffer), read_resource(buffer)
+        buffer.skip(8)
+
+        return ResourceTransferEvent(frames, pid, type, code, target, minerals, vespene)
+
+    def parse_camera87_event(self, buffer, frames, type, code, pid):
+        #There are up to 3 pieces to read depending on values encountered
+        for i in range(3):
+            if buffer.read_int(BIG_ENDIAN) & 0xF0 == 0:
+                break
+
+        return CameraMovementEvent(frames, pid, type, code)
+
+    def parse_cameraX8_event(self, buffer, frames, type, code, pid):
+        # No idea why these two cases are ever so slightly different. There
+        # must be a pattern in here somewhere that I haven't found yet.
+        #
+        # TODO: Find out why we occasionally shift by 2 instead of 3
+        if code == 0x88:
+            flags = buffer.read_byte()
+            extra = buffer.read_byte()
+            buffer.skip( (code & 0xF0 | flags & 0x0F) << 2 )
+
+        else:
+            flags = buffer.read_byte()
+            extra = buffer.read_byte()
+            buffer.skip( (code & 0xF0 | flags & 0x0F) << 3 )
+
+        return CameraMovementEvent(frames, pid, type, code)
+
+    def parse_cameraX1_event(self, buffer, frames, type, code, pid):
+        # TODO: Figure out what all this zoom and rotate stuff is about
+        x = ((code & 0xF0) << 8 | sum(buffer.read(bits=12)))/256.0
+        y = buffer.read_short()/256.0
+
+        flags = buffer.shift(4) << 4
+        if flags & 0x10 != 0:
+            # zoom=?
+            flags = buffer.read_short(BIG_ENDIAN)
+        if flags & 0x20 != 0:
+            # zoom=?
+            flags = buffer.read_short(BIG_ENDIAN)
+        if flags & 0x40 != 0:
+            # rotate=?
+            buffer.skip(2)
+
+        return CameraMovementEvent(frames, pid, type, code)
+
+    def parse_camera0A_event(self, buffer, frames, type, code, pid):
+        # Not really sure wtf is up with this event
+        # I've only seen it a dozen times. Always (?) a custom game
+        for i in range(6):
+            if not buffer.read_int(BIG_ENDIAN) & 0xF0:
+                break
+
+        return CameraMovementEvent(frames, pid, type, code)
+
+    def parse_0206_event(self, buffer, frames, type, code, pid):
+        buffer.skip(8)
+        return UnknownEvent(frames, pid, type, code)
+
+    def parse_0207_event(self, buffer, frames, type, code, pid):
+        buffer.skip(4)
+        return UnknownEvent(frames, pid, type, code)
+
+    def parse_020E_event(self, buffer, frames, type, code, pid):
+        buffer.skip(4)
+        return UnknownEvent(frames, pid, type, code)
+
+    def parse_0416_event(self, buffer, frames, type, code, pid):
+        buffer.skip(24)
+        return UnknownEvent(frames, pid, type, code)
+
+    def parse_04C6_event(self, buffer, frames, type, code, pid):
+        buffer.skip(16)
+        return UnknownEvent(frames, pid, type, code)
+
+    def parse_0487_event(self, buffer, frames, type, code, pid):
+        buffer.skip(4) #Always 00 00 00 01 ??
+        return UnknownEvent(frames, pid, type, code)
+
+    def parse_0400_event(self, buffer, frames, type, code, pid):
+        buffer.skip(10)
+        return UnknownEvent(frames, pid, type, code)
+
+    def parse_04X2_event(self, buffer, frames, type, code, pid):
+        buffer.skip(2)
+        return UnknownEvent(frames, pid, type, code)
+
+    def parse_0488_event(self, buffer, frames, type, code, pid):
+        buffer.skip(4) #Always 00 00 00 01 ?? or 00 00 00 03
+        return UnknownEvent(frames, pid, type, code)
+
+    def parse_04XC_event(self, buffer, frames, type, code, pid):
+        #no body
+        return UnknownEvent(frames, pid, type, code)
+
+
+
+
+class GameEventsReader_16561(GameEventsReader_Base):
+    def parse_overlay(self, buffer, mode):
+        if mode == 0x01: # deselect overlay mask
+            data = buffer.read_bitmask()
+        elif mode == 0x02: # deselect mask
+            data = [buffer.read_byte() for i in range(buffer.read_byte())]
+        elif mode == 0x03: # replace mask
+            data = [buffer.read_byte() for i in range(buffer.read_byte())]
+        else:
+            data=None
+
+        return mode, data
+
+    def parse_selection_event(self, buffer, frames, type, code, pid):
+
+        bank = code >> 4
+        first = buffer.read_byte() # TODO ?
+
+        deselect = self.parse_overlay(buffer, buffer.shift(2))
+
+        # <count> (<type_id>, <count>,)*
+        object_types = [ (buffer.read_object_type(read_modifier=True), buffer.read_byte(), ) for i in range(buffer.read_byte()) ]
+        # <count> (<object_id>,)*
+        object_ids = [ buffer.read_object_id() for i in range(buffer.read_byte()) ]
+
+        # repeat types count times
+        object_types = chain(*[[object_type,]*count for (object_type, count) in object_types])
+        objects = zip(object_ids, object_types)
+
+        return SelectionEvent(frames, pid, type, code, bank, objects, deselect)
+
+    def parse_hotkey_event(self, buffer, frames, type, code, pid):
+        hotkey = code >> 4
+        action = buffer.shift(2)
+
+        deselect = self.parse_overlay(buffer, buffer.shift(2))
+
+        if action == 0:
+            return SetToHotkeyEvent(frames, pid, type, code, hotkey, deselect)
+        elif action == 1:
+            return AddToHotkeyEvent(frames, pid, type, code, hotkey, deselect)
+        elif action == 2:
+            return GetFromHotkeyEvent(frames, pid, type, code, hotkey, deselect)
+        else:
+            raise ParseError("Hotkey Action '{0}' unknown")
+
+    def parse_ability_event(self, buffer, frames, type, code, pid):
+        flag = buffer.read_byte()
+        atype = buffer.read_byte()
+
+        if atype & 0x20: # command card
+            return self.command_card(buffer, frames, type, code, pid, flag, atype)
+        elif atype & 0x40: # location/move
+            return self.right_click_move(buffer, frames, type, code, pid, flag, atype)
+        elif atype & 0x80: # right-click on target?
+            return self.right_click_target(buffer, frames, type, code, pid, flag, atype)
+
+        raise ParseError()
+
+    def command_card(self, buffer, frames, type, code, pid, flag, atype):
+        ability = buffer.read_short(endian=BIG_ENDIAN)
+
+        if flag in (0x29, 0x19, 0x14, 0x0c): # cancels
+            # creation autoid number / object id
+            ability = ability << 8 | buffer.read_byte()
+            created_id = buffer.read_object_id()
+            # TODO : expose the id
+            return AbilityEvent(frames, pid, type, code, ability)
+
+        else:
+            ability_flags = buffer.shift(6)
+            ability = ability << 8 | ability_flags
+
+            if ability_flags & 0x10:
+                x = buffer.read_short(BIG_ENDIAN)/256.0
+                buffer.read(bits=5) # what is this for?
+                y = buffer.read_short(BIG_ENDIAN)/256.0
+                buffer.read(bits=5) # I'll just assume we should do it again
+                buffer.read_hex(4)
+                return LocationAbilityEvent(frames, pid, type, code, ability, (x,y))
+
+            elif ability_flags & 0x20:
+                # ability(3), object id (4),  object type (2), ?? (10)
+                code = buffer.read_short() # code??
+                target = (buffer.read_object_id(), buffer.read_object_type())
+                buffer.read_hex(10)
+                return TargetAbilityEvent(frames, pid, type, code, ability, target)
+
+            else:
+                return SelfAbilityEvent(frames,pid,type,code,ability)
+
+    def right_click_target(self, buffer, frames, type, code, pid, flag, atype):
+        # ability (2), object id (4), object type (2), ?? (10)
+        ability = buffer.read_short(endian=BIG_ENDIAN)
+        obj_id = buffer.read_object_id()
+        obj_type = buffer.read_object_type()
+        target = (obj_id, obj_type,)
+        buffer.skip(10)
+        return TargetAbilityEvent(frames, pid, type, code, ability, target)
+
+    def right_click_move(self, buffer, frames, type, code, pid, flag, atype):
+        #10 bytes total, coordinates have a different format?
+        #X coordinate definitely is the first byte, with (hopefully) y next
+        x = buffer.read_short(BIG_ENDIAN)/256.0
+        y = buffer.read_short(BIG_ENDIAN)/256.0
+        buffer.skip(6)
+        return LocationAbilityEvent(frames, pid, type, code, None, (x,y))
+
+
+class GameEventsReader_18574(GameEventsReader_16561):
+    def cancel(self, buffer, frames, type, code, pid, flag, atype):
+        ability = buffer.read_short(endian=BIG_ENDIAN)
+        ability = ability << 8 | buffer.read_byte()
+
+        # creation autoid number / object id
+        created_id = buffer.read_object_id()
+        # TODO : expose the id
+        return AbilityEvent(frames, pid, type, code, ability)
+
+    def parse_ability_event(self, buffer, frames, type, code, pid):
+        """Moves the right click move to the top level"""
+        flag = buffer.read_byte()
+        atype = buffer.read_byte()
+
+        if atype & 0x20: # cancels only now
+            return self.cancel(buffer, frames, type, code, pid, flag, atype)
+        elif atype & 0x40: # all command card abilities?
+            return self.command_card(buffer, frames, type, code, pid, flag, atype)
+        elif atype & 0x80: # right-click on target?
+            return self.right_click_target(buffer, frames, type, code, pid, flag, atype)
+        elif atype < 0x10: #new to patch 1.3.3, location now??
+            return self.right_click_move(buffer, frames, type, code, pid, flag, atype)
+
+        raise ParseError()
+
+    def right_click_move(self, buffer, frames, type, code, pid, flag, atype):
+        # This may port back to previous versions. Haven't checked
+        # Can differ by up to (+/-1, +/-8) from sc2gears readings
+        # See command_card implementation for details
+        x = buffer.read_short(BIG_ENDIAN)/256.0
+        buffer.shift(5) # what is this for, why 5 bits instead of 4?
+        y = buffer.read_short(BIG_ENDIAN)/256.0
+        buffer.read(bits=5) # I'll just assume we should do it again
+        buffer.skip(4)
+        return LocationAbilityEvent(frames, pid, type, code, 0x3601, (x,y))
+
+    def right_click_target(self, buffer, frames, type, code, pid, flag, atype):
+        # ability (2), object id (4), object type (2), ?? (10)
+        ability = buffer.read_short(endian=BIG_ENDIAN)
+        buffer.shift(1) # weird shift..
+        target = (buffer.read_int(BIG_ENDIAN), buffer.read_short(BIG_ENDIAN))
+        buffer.skip(9)
+        return TargetAbilityEvent(frames, pid, type, code, ability, target)
+
+    def command_card(self, buffer, frames, type, code, pid, flag, atype):
+        # ability flags one longer now and shifted << 1
+        ability = buffer.read_short(endian=BIG_ENDIAN)
+        ability = ability << 8 | buffer.shift(7)
+
+        if ability & 0x20:
+            # Matches sc2gears, but has crazy alignments. Example:
+            #   0c210b0440002a20b000546ab600007c3f
+            #   88.0,87.3 ~ (0x58,0x57)
+            #   20 0 010000
+            #   b0 10110000
+            #   00 00000000
+            #   54 01010100
+            #   6a 01101010
+            #   b6 10110110
+            #
+            #   00000000.                |
+            #    1011000.0               |
+            #          0.0000000         |
+            #   01011000.0000000         |
+            #
+            #   01010100.                |
+            #        011.01010           |
+            #           .      10110110  |
+            #
+            # TODO: Check if these are actually (somehow) the right numbers
+            #x = ((buffer.shift(1) << 23) | (buffer.read_byte() << 15) | (buffer.read_byte() << 9)
+            #y = (buffer.read_byte() << 16) | (buffer.read_byte() << 11) | (buffer.read_byte() << 2)
+            #x = x/2.0**16
+            #y = y/2.0**16
+            #buffer.skip(4)
+            #
+            # This doesn't match sc2gears, but makes a hell of a lot more sense
+            #   0c210b0440002a20b000546ab600007c3f
+            #   (Xx/256.0, Yy/256.0)
+            #
+            #   20 X 010000
+            #   b0 XXXXXXXx
+            #   00 ?xxxxxxx
+            #   54 YYYY????
+            #   6a YYYYyyyy
+            #   b6 ????yyyy
+            #
+            # Can differ by up to (+/-1, +/-8) from sc2gears readings
+            x = buffer.read_short(BIG_ENDIAN)/256.0
+            buffer.read(bits=5) # what is this for?
+            y = buffer.read_short(BIG_ENDIAN)/256.0
+            buffer.read(bits=4) # I'll just assume we should do it again
+            buffer.skip(4)
+            return LocationAbilityEvent(frames, pid, type, code, ability, (x,y))
+
+        elif ability & 0x40:
+            buffer.read_short()
+            target = (buffer.read_int(BIG_ENDIAN),buffer.read_short(BIG_ENDIAN))
+            buffer.skip(10)
+            return TargetAbilityEvent(frames, pid, type, code, ability, target)
+
+        else:
+            return SelfAbilityEvent(frames, pid, type, code, ability)
+
+
+class GameEventsReader_19595(GameEventsReader_18574):
+    def command_card(self, buffer, frames, type, code, pid, flag, atype):
+        # Why only read 7 of the bits?
+        ability = buffer.read_short(endian=BIG_ENDIAN)
+        ability = ability << 8 | buffer.shift(7)
+
+        if ability & 0x20:
+            # Can differ by up to (+/-1, +/-8) from sc2gears readings
+            # See 18574 implementation for details
+            x = buffer.read_short(BIG_ENDIAN)/256.0
+            buffer.read(bits=5) # we could do some creative addition here
+            y = buffer.read_short(BIG_ENDIAN)/256.0
+            buffer.shift(4) # we could do some creative addition here
+            buffer.skip(4)
+            return LocationAbilityEvent(frames, pid, type, code, ability, (x,y))
+
+        elif ability & 0x40:
+            # extra byte long
+            buffer.read_short()
+            target = (buffer.read_int(BIG_ENDIAN),buffer.read_short(BIG_ENDIAN))
+            buffer.skip(11)
+            return TargetAbilityEvent(frames, pid, type, code, ability, target)
+
+        else:
+            return SelfAbilityEvent(frames, pid, type, code, ability)
+
+    def right_click_target(self, buffer, frames, type, code, pid, flag, atype):
+        # extra byte long
+        ability = buffer.read_short(endian=BIG_ENDIAN)
+        buffer.shift(1) # weird shift..
+        target = (buffer.read_int(BIG_ENDIAN), buffer.read_short(BIG_ENDIAN))
+        buffer.skip(10)
+        return TargetAbilityEvent(frames, pid, type, code, ability, target)

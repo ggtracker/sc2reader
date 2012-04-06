@@ -1,16 +1,18 @@
 from __future__ import absolute_import
 
-import argparse
 import cStringIO
 import fnmatch
 import os
 import re
 import struct
 import textwrap
-
+import sys
+import mpyq
 from itertools import groupby
+from datetime import timedelta
 
-from sc2reader.exceptions import FileError
+from sc2reader import exceptions
+from sc2reader.constants import COLOR_CODES
 
 LITTLE_ENDIAN,BIG_ENDIAN = '<','>'
 
@@ -147,25 +149,71 @@ class ReplayBuffer(object):
         if self.bit_shift==0:
             return ord(self.read_basic(1))
         else:
-            return self.read(1)[0]
+            extra_bits = self.bit_shift
+            hi_bits = self.last_byte >> extra_bits
+            last_byte = ord(self.read_basic(1))
+            lo_bits = last_byte & self.lo_masks[extra_bits]
+            self.last_byte = last_byte
+            return hi_bits << extra_bits | lo_bits
+
 
     def read_int(self, endian=LITTLE_ENDIAN):
-        """ int32 read """
-        chars = self.read_basic(4) if self.bit_shift==0 else self.read_chars(4)
-        return struct.unpack(endian+'I', chars)[0]
+        if self.bit_shift == 0:
+            return struct.unpack(endian+'I', self.read_basic(4))[0]
+
+        else:
+            old_bit_shift = self.bit_shift
+
+            # Get all the bytes at once
+            hi_bits = self.shift(8 - old_bit_shift)
+            block = struct.unpack('>I', self.read_basic(4))[0]
+
+            # Reformat them according to the rules
+            number = (block >> 8) << old_bit_shift | (block & self.lo_masks[old_bit_shift])
+            number += hi_bits << (24 + old_bit_shift)
+
+            # If the number is little endian, repack it
+            if endian == LITTLE_ENDIAN:
+                number = (number & 0xFF000000) >> 24 | (number & 0xFF0000) >> 8 | (number & 0xFF00) << 8 | (number & 0xFF) << 24
+
+            # Reset the shift
+            self.last_byte = block & 0xFF
+            self.bit_shift = old_bit_shift
+
+            return number
 
     def read_short(self, endian=LITTLE_ENDIAN):
         """ short16 read """
-        chars = self.read_basic(2) if self.bit_shift==0 else self.read_chars(2)
-        return struct.unpack(endian+'H', chars)[0]
+        if self.bit_shift == 0:
+            return struct.unpack(endian+'H', self.read_basic(2))[0]
+
+        else:
+            old_bit_shift = self.bit_shift
+
+            # Get all the bytes at once
+            hi_bits = self.shift(8 - old_bit_shift)
+            block = struct.unpack('>H', self.read_basic(2))[0]
+
+            # Reformat them according to the rules
+            number = (block >> 8) << old_bit_shift | (block & self.lo_masks[old_bit_shift])
+            number += hi_bits << (8 + old_bit_shift)
+
+            # If the number is little endian, repack it
+            if endian == LITTLE_ENDIAN:
+                number = (number & 0xFF00) >> 8 | (number & 0xFF) << 8
+
+            # Reset the shift
+            self.last_byte = block & 0xFF
+            self.bit_shift = old_bit_shift
+
+            return number
 
     def read_chars(self, length=0):
         if self.bit_shift==0:
             return self.read_basic(length)
         else:
             self.char_buffer.truncate(0)
-            for byte in self.read(length):
-                self.char_buffer.write(chr(byte))
+            self.char_buffer.writelines(map(chr,self.read(length)))
             return self.char_buffer.getvalue()
 
     def read_hex(self, length=0):
@@ -266,18 +314,34 @@ class ReplayBuffer(object):
         return self.read_int(endian=BIG_ENDIAN)
 
     def read_coordinate(self):
-        # Combine coordinate whole and fraction
-        def _coord_to_float(coord):
-            fraction = 0
-            for mask,quotient in self.coord_convert:
-                if (coord[1] & mask):
-                    fraction = fraction + quotient
-            return coord[0] + fraction
-
+        # TODO: This seems unreasonably percise....
         # Read an x or y coordinate dimension
         def _coord_dimension():
-            coord = self.read(bits=20)
-            return _coord_to_float([coord[0], coord[1] << 4 | coord[2],])
+            if self.bit_shift == 0:
+                return (self.read_short() << 4 | self.shift(4))/4096.0
+
+            else:
+                old_bit_shift = self.bit_shift
+                new_bit_shift = (20 + old_bit_shift) % 8
+
+                # Get all the bytes at once
+                hi_bits = self.shift(8 - old_bit_shift)
+                block = struct.unpack('>H', self.read_basic(2))[0]
+
+                if old_bit_shift > 4:
+                    block = block << 8 | ord(self.read_basic(1))
+
+                    number = (block >> 8) << old_bit_shift | (block & self.lo_masks[new_bit_shift])
+                    number += hi_bits << (16 + new_bit_shift)
+                else:
+                    number = (block >> 8) << old_bit_shift | (block & self.lo_masks[new_bit_shift])
+                    number += hi_bits << (8 + new_bit_shift)
+
+                # Reset the shift
+                self.last_byte = block & 0xFF
+                self.bit_shift = new_bit_shift
+
+                return number/4096.0
 
         # TODO?: Handle optional z dimension
         return (_coord_dimension(), _coord_dimension())
@@ -358,7 +422,7 @@ class ReplayBuffer(object):
 
             #check special case of byte-aligned reads, performance booster
             if self.bit_shift == 0:
-                base = [ord(self.read_basic(1)) for byte in range(bytes)]
+                base = map(ord, map(self.read_basic, [1]*bytes))
                 if bits != 0:
                     return base+[self.shift(bits)]
                 return base
@@ -392,8 +456,8 @@ class ReplayBuffer(object):
                         first = first >> abs(adjustment)
                         raw_bytes.append(first | last)
                     elif adjustment > 0:
-                        raw_bytes.append(first | (last & lo_mask))
-                        raw_bytes.append(last >> old_bit_shift)
+                        raw_bytes.append(first | (last >> adjustment))
+                        raw_bytes.append(last & adjustment_mask)
                     else:
                         raw_bytes.append(first | last)
 
@@ -418,17 +482,26 @@ class ReplayBuffer(object):
             raise EOFError("Cannot read requested bits/bytes. End of buffer reached")
 
 class PersonDict(dict):
-    """Delete is supported on the pid index only"""
+    """
+    Supports lookup on both the player name and player id
+
+    ::
+
+        person = PersonDict()
+        person[1] = Player(1,"ShadesofGray")
+        me = person["ShadesofGray"]
+        del person[me.pid]
+
+    Delete is supported on the player id only
+    """
     def __init__(self, *args, **kwargs):
         self._key_map = dict()
 
         if args:
-            print args
             for arg in args[0]:
                 self[arg[0]] = arg[1]
 
         if kwargs:
-            print kwargs
             for key, value in kwargs.iteritems():
                 self[key] = value
 
@@ -448,86 +521,11 @@ class PersonDict(dict):
         super(PersonDict, self).__setitem__(value.pid, value)
 
 
-
-class TimeDict(dict):
-    """ Dict with frames as key """
-
-    def __init__(self, *args, **kwargs):
-        dict.__init__(self, *args, **kwargs)
-        self.current = None
-        self.current_key = None
-
-    def __getitem__(self, key):
-        if key == self.current_key:
-            return self.current
-        try:
-            return dict.__getitem__(self, key)
-        except KeyError:
-            stamps = filter(lambda x: x<=key, sorted(self.keys()))
-            if stamps:
-                return dict.__getitem__(self, stamps[-1])
-            else:
-                return self.current
-
-    def __setitem__(self, key, value):
-        if self.current_key is not None and key < self.current_key:
-            raise ValueError("Cannot assign before last item (%s)" % (max(self.keys()),))
-        else:
-            self.current = value
-            self.current_key = key
-            dict.__setitem__(self, key, value)
-
-
-
-class Selection(TimeDict):
-    """ Buffer for tracking selections in-game """
-
-    def __init__(self):
-        super(Selection, self).__init__()
-        self[0] = []
-
-    @classmethod
-    def replace(cls, selection, indexes):
-        """ Deselect objects according to indexes """
-        return [ selection[i] for i in indexes ]
-
-    @classmethod
-    def deselect(cls, selection, indexes):
-        """ Deselect objects according to indexes """
-        return [ selection[i] for i in range(len(selection)) if i not in indexes ]
-
-    @classmethod
-    def mask(cls, selection, mask):
-        """ Deselect objects according to deselect mask """
-        if len(mask) < len(selection):
-            # pad to the right
-            mask = mask+[False,]*(len(selection)-len(mask))
-        return [ obj for (slct, obj) in filter(lambda (slct, obj): not slct, zip(mask, selection)) ]
-
-    def __setitem__(self, key, value):
-        # keep things sorted by id
-        super(Selection, self).__setitem__(key, list(sorted(value, key=lambda obj: obj.id)))
-
-    def __repr__(self):
-        return '<Selection %s>' % (', '.join([str(obj) for obj in self.current]),)
-
-    def get_types(self):
-        return ', '.join([ u'%s %sx' % (name.name, len(list(objs))) for (name, objs) in groupby(self.current, lambda obj: obj.__class__)])
-
 def windows_to_unix(windows_time):
     # This windows timestamp measures the number of 100 nanosecond periods since
     # January 1st, 1601. First we subtract the number of nanosecond periods from
     # 1601-1970, then we divide by 10^7 to bring it back to seconds.
     return (windows_time-116444735995904000)/10**7
-
-import inspect
-def key_in_bases(key,bases):
-    bases = list(bases)
-    for base in list(bases):
-        bases.extend(inspect.getmro(base))
-    for clazz in set(bases):
-        if key in clazz.__dict__: return True
-    return False
 
 class AttributeDict(dict):
     def __getattr__(self, name):
@@ -542,49 +540,117 @@ class AttributeDict(dict):
     def copy(self):
         return AttributeDict(super(AttributeDict,self).copy())
 
-def read_header(file):
-    ''' Read the file as a byte stream according to the documentation found at:
-            http://wiki.devklog.net/index.php?title=The_MoPaQ_Archive_Format
+class Color(AttributeDict):
+    """
+    Stores the string and rgba representation of a color. Individual components
+    of the color can be retrieved with the dot operator::
 
-        Return the release array and frame count for sc2reader use. For more
-        detailed header information, access mpyq directly.
-    '''
-    buffer = ReplayBuffer(file)
+        color = Color(r=255, g=0, b=0, a=75)
+        tuple(color.r,color.g, color.b, color.a) = color.rgba
+
+    Because Color is an implementation of an AttributeDict you must specify
+    each component by name in the constructor.
+
+    Can print the string representation with str(Color)
+    """
+
+    @property
+    def rgba(self):
+        """Tuple containing the (r,g,b,a) representation of the color"""
+        return tuple(self.r,self.g,self.b,self.a)
+
+    @property
+    def hex(self):
+        """The hexadecimal representation of the color"""
+        return "{0.r:02X}{0.g:02X}{0.b:02X}".format(self)
+
+    def __str__(self):
+        if not hasattr(self,'name'):
+            self.name = COLOR_CODES[self.hex]
+        return self.name
+
+def open_archive(replay_file):
+    # Don't read the listfile because some replays have corrupted listfiles
+    # due  to tampering by 3rd parties.
+    #
+    # In order to wrap mpyq in exceptions we have to do this try hack.
+    try:
+        replay_file.seek(0)
+        return  mpyq.MPQArchive(replay_file, listfile=False)
+    except KeyboardInterrupt:
+        raise
+    except Exception as e:
+        trace = sys.exc_info()[2]
+        raise exceptions.MPQError("Unable to construct the MPQArchive",e), None, trace
+
+def extract_data_file(data_file, archive):
+    # To wrap mpyq exceptions we have to do this try hack again.
+    try:
+        # Some sites tamper with the message events file so
+        # Catch decompression errors and try again before giving up
+        if data_file == 'replay.message.events':
+            try:
+                file_data = archive.read_file(data_file, force_decompress=True)
+            except IndexError as e:
+                if str(e) == "string index out of range":
+                    file_data = archive.read_file(data_file, force_decompress=False)
+                else:
+                    raise
+        else:
+            file_data = archive.read_file(data_file)
+
+        return file_data
+
+    except KeyboardInterrupt:
+        raise
+    except Exception as e:
+        trace = sys.exc_info()[2]
+        raise exceptions.MPQError("Unable to extract file: {0}".format(data_file),e), None, trace
+
+def read_header(replay_file):
+    # Extract useful header information from the MPQ files. This information
+    # can be used to configure the rest of the program to correctly parse
+    # the archived data files.
+    replay_file.seek(0)
+    buffer = ReplayBuffer(replay_file)
 
     #Sanity check that the input is in fact an MPQ file
     if buffer.empty or buffer.read_hex(4).upper() != "4D50511B":
-        raise FileError("File '%s' is not an MPQ file" % file.name)
+        msg = "File '{0}' is not an MPQ file";
+        raise exceptions.FileError(msg.format(replay_file.name))
 
-    #Extract replay header data, we are unlikely to ever use most of this
     max_data_size = buffer.read_int(LITTLE_ENDIAN)
     header_offset = buffer.read_int(LITTLE_ENDIAN)
     data_size = buffer.read_int(LITTLE_ENDIAN)
-    header_data = buffer.read_data_struct()
 
     #array [unknown,version,major,minor,build,unknown] and frame count
-    return header_data[1].values(),header_data[3]
+    header_data = buffer.read_data_struct()
+    versions = header_data[1].values()
+    frames = header_data[3]
+    build = versions[4]
+    release_string = "%s.%s.%s.%s" % tuple(versions[1:5])
+    length = Length(seconds=frames/16)
 
+    keys = ('versions', 'frames', 'build', 'release_string', 'length')
+    return filter(lambda item: item[0] in keys, locals().iteritems())
 
+def merged_dict(a, b):
+    c = a.copy()
+    c.update(b)
+    return c
 
-def _allow(filename, regex=None, allow=True):
+def sc2replay_ext(filename):
     name, ext = os.path.splitext(filename)
-    if ext.lower() != ".sc2replay": return False
-    return allow == re.match(regex, name) if regex else allow
+    return ext.lower() == ".sc2replay"
 
-def get_files( path, regex=None, allow=True, exclude=[],
-               depth=-1, followlinks=False, **extras):
-
-
+def get_replay_files(path, exclude=[], depth=-1, followlinks=False, **extras):
     #os.walk and os.path.isfile fail silently. We want to be loud!
     if not os.path.exists(path):
         raise ValueError("Location `{0}` does not exist".format(path))
 
-    # Curry the function to prime it for use in the filter function
-    allow = lambda filename: _allow(filename, regex, allow)
-
-    # You can't get more than one file from a file name!
+    # os.walk can't handle file paths, only directories
     if os.path.isfile(path):
-        return [path] if allow(os.path.basename(path)) else []
+        return [path] if sc2replay_ext(path) else []
 
     files = list()
     for root, directories, filenames in os.walk(path, followlinks=followlinks):
@@ -594,24 +660,31 @@ def get_files( path, regex=None, allow=True, exclude=[],
                 directories.remove(directory)
 
         # Extend our return value only with the allowed file type and regex
-        allowed_files = filter(allow, filenames)
-        files.extend(os.path.join(root,file) for file in allowed_files)
+        allowed_files = filter(sc2replay_ext, filenames)
+        files.extend(os.path.join(root, filename) for filename in allowed_files)
         depth -= 1
 
     return files
 
-from datetime import timedelta
 class Length(timedelta):
+    """
+        Extends the builtin timedelta class. See python docs for more info on
+        what capabilities this gives you.
+    """
+
     @property
     def hours(self):
+        """The number of hours in represented."""
         return self.seconds/3600
 
     @property
     def mins(self):
-        return self.seconds/60
+        """The number of minutes in excess of the hours."""
+        return (self.seconds/60)%60
 
     @property
     def secs(self):
+        """The number of seconds in excess of the minutes."""
         return self.seconds%60
 
     def __str__(self):
@@ -619,76 +692,3 @@ class Length(timedelta):
             return "{0:0>2}.{1:0>2}.{2:0>2}".format(self.hours,self.mins,self.secs)
         else:
             return "{0:0>2}.{1:0>2}".format(self.mins,self.secs)
-
-class RangeMap(dict):
-    def add_range(self, start, end, reader_set):
-        self.ranges.append((start, end, reader_set))
-
-    def __init__(self):
-        self.ranges = list()
-
-    def __getitem__(self,key):
-        for start, end, range_set in self.ranges:
-            if end:
-                if (start <= key < end):
-                    return range_set
-            else:
-                if start <= key:
-                    return range_set
-        raise KeyError(key)
-
-class Formatter(argparse.RawTextHelpFormatter):
-    """FlexiFormatter which respects new line formatting and wraps the rest
-
-    Example:
-        >>> parser = argparse.ArgumentParser(formatter_class=FlexiFormatter)
-        >>> parser.add_argument('a',help='''\
-        ...     This argument's help text will have this first long line\
-        ...     wrapped to fit the target window size so that your text\
-        ...     remains flexible.
-        ...
-        ...         1. This option list
-        ...         2. is still persisted
-        ...         3. and the option strings get wrapped like this\
-        ...            with an indent for readability.
-        ...
-        ...     You must use backslashes at the end of lines to indicate that\
-        ...     you want the text to wrap instead of preserving the newline.
-        ... ''')
-
-    Only the name of this class is considered a public API. All the methods
-    provided by the class are considered an implementation detail.
-    """
-
-    @classmethod
-    def new(cls, **options):
-        return lambda prog: Formatter(prog, **options)
-
-    def _split_lines(self, text, width):
-        lines = list()
-        main_indent = len(re.match(r'( *)',text).group(1))
-        # Wrap each line individually to allow for partial formatting
-        for line in text.splitlines():
-
-            # Get this line's indent and figure out what indent to use
-            # if the line wraps. Account for lists of small variety.
-            indent = len(re.match(r'( *)',line).group(1))
-            list_match = re.match(r'( *)(([*-+>]+|\w+\)|\w+\.) +)',line)
-            if(list_match):
-                sub_indent = indent + len(list_match.group(2))
-            else:
-                sub_indent = indent
-
-            # Textwrap will do all the hard work for us
-            line = self._whitespace_matcher.sub(' ', line).strip()
-            new_lines = textwrap.wrap(
-                text=line,
-                width=width,
-                initial_indent=' '*(indent-main_indent),
-                subsequent_indent=' '*(sub_indent-main_indent),
-            )
-
-            # Blank lines get eaten by textwrap, put it back with [' ']
-            lines.extend(new_lines or [' '])
-
-        return lines

@@ -407,7 +407,7 @@ def main():
     parser = argparse.ArgumentParser(
         description='Automatically copy new replays to directory',
         fromfile_prefix_chars='@',
-        formatter_class=sc2reader.utils.Formatter.new(max_help_position=35),
+        formatter_class=sc2reader.scripts.utils.Formatter.new(max_help_position=35),
         epilog="And that's all folks")
 
     required = parser.add_argument_group('Required Arguments')
