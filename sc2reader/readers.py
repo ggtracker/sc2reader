@@ -335,6 +335,9 @@ class GameEventsReader_Base(Reader):
     def parse_leave_event(self, buffer, frames, type, code, pid):
         return PlayerLeaveEvent(frames, pid, type, code)
 
+    def parse_game_save_event(self, buffer, frames, type, code, pid):
+        raise ParseError("Unparsable game save event found.");
+
     def parse_ability_event(self, buffer, frames, type, code, pid):
         buffer.skip(7)
         switch = buffer.read_byte()
