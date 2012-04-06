@@ -573,7 +573,7 @@ class GameEventsReader_16561(GameEventsReader_Base):
                 return TargetAbilityEvent(frames, pid, type, code, ability, target)
 
             else:
-                return AbilityEvent(frames,pid,type,code,ability)
+                return SelfAbilityEvent(frames,pid,type,code,ability)
 
     def right_click_target(self, buffer, frames, type, code, pid, flag, atype):
         # ability (2), object id (4), object type (2), ?? (10)
@@ -696,9 +696,7 @@ class GameEventsReader_18574(GameEventsReader_16561):
             return TargetAbilityEvent(frames, pid, type, code, ability, target)
 
         else:
-            pass
-
-        return UnknownLocationAbilityEvent(frames, pid, type, code, ability)
+            return SelfAbilityEvent(frames, pid, type, code, ability)
 
 
 class GameEventsReader_19595(GameEventsReader_18574):
@@ -725,9 +723,7 @@ class GameEventsReader_19595(GameEventsReader_18574):
             return TargetAbilityEvent(frames, pid, type, code, ability, target)
 
         else:
-            pass
-
-        return UnknownLocationAbilityEvent(frames, pid, type, code, ability)
+            return SelfAbilityEvent(frames, pid, type, code, ability)
 
     def right_click_target(self, buffer, frames, type, code, pid, flag, atype):
         # extra byte long

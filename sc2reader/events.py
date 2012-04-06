@@ -180,6 +180,9 @@ class LocationAbilityEvent(AbilityEvent):
     def __str__(self):
         return AbilityEvent.__str__(self) + "; Location: %s" % str(self.location)
 
+class SelfAbilityEvent(AbilityEvent):
+    pass
+
 class UnknownAbilityEvent(AbilityEvent):
     pass
 
