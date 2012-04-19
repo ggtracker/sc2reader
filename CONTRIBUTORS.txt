@@ -7,4 +7,5 @@ Contributors:
     Jason Dana - sheutka @ github
     Cameron Zemek (grom) - grom358 @ github
     Fabien Reboia (srounet) - srounet @ github
+    Daniele Zannotti (Durrza)
     Mike Anderson
