@@ -268,18 +268,32 @@ class ReplayBuffer(object):
         """
         #The first byte serves as a flag for the type of data to follow
         datatype = self.read_byte()
+
+        if datatype == 0x00:
+            #0x00 is an array where the first X bytes mark the number of entries in
+            #the array. See variable int documentation for details.
+            entries = self.read_variable_int()
+            return [self.read_data_struct() for i in range(entries)]
+
         if datatype == 0x02:
             #0x02 is a byte string with the first byte indicating
             #the length of the byte string to follow
-            count = self.read_count()
-            return self.read_string(count)
+            return self.read_string(self.read_count())
+
+        elif datatype == 0x03:
+            #0x03 is an unknown data type where the first byte appears
+            #to have no effect and kicks back the next instruction
+            flag = self.read_byte()
+            return self.read_data_struct()
 
         elif datatype == 0x04:
-            #0x04 is an serialized data list with first two bytes always 01 00
-            #and the next byte indicating the number of elements in the list
-            #each element is a serialized data structure
-            self.skip(2)    #01 00
-            return [self.read_data_struct() for i in range(self.read_count())]
+            #0x04 is an unknown data type where the first byte of information
+            #is a switch (1 or 0) that can trigger another structure to be
+            #read.
+            if self.read_byte():
+                return self.read_data_struct()
+            else:
+                return 0
 
         elif datatype == 0x05:
             #0x05 is a serialized key,value structure with the first byte
@@ -288,15 +302,14 @@ class ReplayBuffer(object):
             #followed by the serialized data object value
             data = dict()
             for i in range(self.read_count()):
-                count = self.read_count()
-                key,value = count, self.read_data_struct()
-                data[key] = value #Done like this to keep correct parse order
+                key = self.read_count()
+                data[key] = self.read_data_struct() #Done like this to keep correct parse order
             return data
 
         elif datatype == 0x06:
             return self.read_byte()
         elif datatype == 0x07:
-            return self.read_int()
+            return self.read_chars(4)
         elif datatype == 0x09:
             return self.read_variable_int()
 
