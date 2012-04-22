@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import zlib
 import hashlib
 from datetime import datetime
 from StringIO import StringIO
@@ -22,7 +23,6 @@ class Resource(object):
         file_object.seek(0)
         self.filehash = hashlib.sha256(file_object.read()).hexdigest()
         file_object.seek(0)
-
 
 class Replay(Resource):
 
@@ -395,3 +395,17 @@ class Map(Resource):
                 self.author = parts[1]
             elif parts[0] == 'DocInfo/DescLong':
                 self.description = parts[1]
+
+class Summary(Resource):
+    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
+
+    def __init__(self, summary_file, filename=None, **options):
+        super(Summary, self).__init__(summary_file, filename,**options)
+        self.data = zlib.decompress(summary_file.read()[16:])
+        self.parts = list()
+        buffer = utils.ReplayBuffer(self.data)
+        while buffer.left:
+            part = buffer.read_data_struct()
+            print str(part)+"\n\n\n"
+            self.parts.append(buffer.read_data_struct())
+        print len(self.parts)

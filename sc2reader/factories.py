@@ -14,7 +14,7 @@ from sc2reader import data
 from sc2reader import exceptions
 from sc2reader import utils
 from sc2reader import log_utils
-from sc2reader.resources import Replay, Map
+from sc2reader.resources import Replay, Map, Summary
 
 class SC2Factory(object):
     """
@@ -175,6 +175,40 @@ class SC2Factory(object):
 
         return (resource, resource_name)
 
+    def load_summaries(self, gs, options=None, **new_options):
+        """
+        Loads a collection of replays. See load_resources for detailed parameter
+        documentation.
+
+        :rtype: generator(:class:`Map`)
+        """
+        for s in self.load_resources(gs, self.load_summary, options=options, **new_options):
+            yield s
+
+    def load_summary(self, summary_file, options=None, **new_options):
+        """
+        Loads the specified summary using the current factory settings with the
+        specified overrides.
+
+        :param summary_file: An open file object or path/url to a single file
+
+        :param None options: When options are passed directly into the options
+            parameter the current factory settings are ignored and only the
+            specified options are used during replay load.
+
+        :param new_options: Options values to override current factory settings
+            while loading this map.
+
+        :rtype: :class:`Replay`
+        """
+        options = options or utils.merged_dict(self.options, new_options)
+        resource, name = self.load_resource(summary_file, options=options)
+        s = Summary(resource, name, **options)
+
+        # Load summary procedure here!
+        #
+
+        return s
 
     def load_maps(self, maps, options=None, **new_options):
         """
