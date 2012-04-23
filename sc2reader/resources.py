@@ -396,11 +396,10 @@ class Map(Resource):
             elif parts[0] == 'DocInfo/DescLong':
                 self.description = parts[1]
 
-class Summary(Resource):
+class GameSummary(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
-
     def __init__(self, summary_file, filename=None, **options):
-        super(Summary, self).__init__(summary_file, filename,**options)
+        super(GameSummary, self).__init__(summary_file, filename,**options)
         self.data = zlib.decompress(summary_file.read()[16:])
         self.parts = list()
         buffer = utils.ReplayBuffer(self.data)
@@ -409,3 +408,16 @@ class Summary(Resource):
             print str(part)+"\n\n\n"
             self.parts.append(buffer.read_data_struct())
         print len(self.parts)
+
+class MatchInfo(Resource):
+    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
+    def __init__(self, info_file, filename=None, **options):
+        super(MatchInfo, self).__init__(info_file, filename,**options)
+        self.data = utils.ReplayBuffer(info_file).read_data_struct()
+
+
+class MatchHistory(Resource):
+    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
+    def __init__(self, history_file, filename=None, **options):
+        super(MatchHistory, self).__init__(history_file, filename,**options)
+        self.data = utils.ReplayBuffer(history_file).read_data_struct()

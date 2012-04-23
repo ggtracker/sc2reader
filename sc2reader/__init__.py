@@ -26,8 +26,13 @@ load_replays = __defaultSC2Reader.load_replays
 load_replay = __defaultSC2Reader.load_replay
 load_maps = __defaultSC2Reader.load_maps
 load_map = __defaultSC2Reader.load_map
-load_summaries = __defaultSC2Reader.load_summaries
-load_summary = __defaultSC2Reader.load_summary
+load_game_summaries = __defaultSC2Reader.load_game_summaries
+load_game_summary = __defaultSC2Reader.load_game_summary
+load_match_infos = __defaultSC2Reader.load_match_infos
+load_match_info = __defaultSC2Reader.load_match_info
+load_match_histories = __defaultSC2Reader.load_match_histories
+load_match_history = __defaultSC2Reader.load_match_history
+
 
 configure = __defaultSC2Reader.configure
 reset = __defaultSC2Reader.reset

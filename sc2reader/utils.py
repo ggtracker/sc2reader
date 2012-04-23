@@ -261,19 +261,36 @@ class ReplayBuffer(object):
         else:
             raise ValueError()
 
-    def read_data_struct(self):
+    def read_data_struct(self, indent=0, key=None):
         """
         Read a Blizzard data-structure. Structure can contain strings, lists,
         dictionaries and custom integer types.
         """
         #The first byte serves as a flag for the type of data to follow
         datatype = self.read_byte()
+        prefix = hex(self.tell())+"\t"*indent
+        if key != None:
+            prefix+="{0}: {1}".format(key, datatype)
+
+        #print prefix
 
         if datatype == 0x00:
             #0x00 is an array where the first X bytes mark the number of entries in
             #the array. See variable int documentation for details.
             entries = self.read_variable_int()
-            return [self.read_data_struct() for i in range(entries)]
+            #print "Entries, ",entries
+            #print self.peek(10)
+            return [self.read_data_struct(indent+1,i) for i in range(entries)]
+
+        if datatype == 0x01:# or datatype == 0x0A:
+            #0x01 is an array where the first X bytes mark the number of entries in
+            #the array. See variable int documentation for details.
+            #print self.peek(10)
+            self.read_chars(2).encode("hex")
+            #print self.peek(10)
+            entries = self.read_variable_int()
+            #print "Entries, ",entries
+            return [self.read_data_struct(indent+1,i) for i in range(entries)]
 
         if datatype == 0x02:
             #0x02 is a byte string with the first byte indicating
@@ -284,14 +301,17 @@ class ReplayBuffer(object):
             #0x03 is an unknown data type where the first byte appears
             #to have no effect and kicks back the next instruction
             flag = self.read_byte()
-            return self.read_data_struct()
+            return self.read_data_struct(indent,key)
 
         elif datatype == 0x04:
             #0x04 is an unknown data type where the first byte of information
             #is a switch (1 or 0) that can trigger another structure to be
             #read.
-            if self.read_byte():
-                return self.read_data_struct()
+            flag = self.read_byte()
+            #if flag == 0x04:
+            #    flag = self.read_byte()
+            if flag:
+                return self.read_data_struct(indent,key)
             else:
                 return 0
 
@@ -301,9 +321,12 @@ class ReplayBuffer(object):
             #When looping through the pairs, the first byte is the key,
             #followed by the serialized data object value
             data = dict()
-            for i in range(self.read_count()):
+            #print self.peek(10)
+            entries = self.read_count()
+            #print "Key Entries, ",entries
+            for i in range(entries):
                 key = self.read_count()
-                data[key] = self.read_data_struct() #Done like this to keep correct parse order
+                data[key] = self.read_data_struct(indent+1,key) #Done like this to keep correct parse order
             return data
 
         elif datatype == 0x06:
@@ -311,8 +334,12 @@ class ReplayBuffer(object):
         elif datatype == 0x07:
             return self.read_chars(4)
         elif datatype == 0x09:
+            #print self.peek(10)
             return self.read_variable_int()
-
+        """
+        elif datatype == 0x0A:
+            return self.read_byte()
+        """
         raise TypeError("Unknown Data Structure: '%s'" % datatype)
 
     def read_object_type(self, read_modifier=False):
@@ -652,18 +679,21 @@ def merged_dict(a, b):
     c.update(b)
     return c
 
-def sc2replay_ext(filename):
+def extension_filter(filename, extensions):
     name, ext = os.path.splitext(filename)
-    return ext.lower() == ".sc2replay"
+    return ext.lower() in extensions
 
-def get_replay_files(path, exclude=[], depth=-1, followlinks=False, **extras):
+import functools
+def get_files(path, extensions=['.sc2replay'], exclude=[], depth=-1, followlinks=False, **extras):
     #os.walk and os.path.isfile fail silently. We want to be loud!
     if not os.path.exists(path):
         raise ValueError("Location `{0}` does not exist".format(path))
 
+    filtr_func = functools.partial(extension_filter, extensions=extensions)
+
     # os.walk can't handle file paths, only directories
     if os.path.isfile(path):
-        return [path] if sc2replay_ext(path) else []
+        return [path] if filtr_func(path,extensions) else []
 
     files = list()
     for root, directories, filenames in os.walk(path, followlinks=followlinks):
@@ -673,7 +703,7 @@ def get_replay_files(path, exclude=[], depth=-1, followlinks=False, **extras):
                 directories.remove(directory)
 
         # Extend our return value only with the allowed file type and regex
-        allowed_files = filter(sc2replay_ext, filenames)
+        allowed_files = filter(filtr_func, filenames)
         files.extend(os.path.join(root, filename) for filename in allowed_files)
         depth -= 1
 

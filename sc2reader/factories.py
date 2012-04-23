@@ -14,7 +14,7 @@ from sc2reader import data
 from sc2reader import exceptions
 from sc2reader import utils
 from sc2reader import log_utils
-from sc2reader.resources import Replay, Map, Summary
+from sc2reader.resources import Replay, Map, GameSummary, MatchInfo, MatchHistory
 
 class SC2Factory(object):
     """
@@ -133,8 +133,12 @@ class SC2Factory(object):
             if re.match(r'https?://',resources):
                 yield resource_loader(resources, options=options)
             else:
-                for resource in utils.get_replay_files(resources, **options):
-                    yield resource_loader(resource, options=options)
+                for resource in utils.get_files(resources, **options):
+                    try:
+                        yield resource_loader(resource, options=options)
+                    except Exception as e:
+                        print "\n\n\nFAILURE!!!\n\n\n"
+                        yield None
 
         # File like object?
         elif hasattr(resources,'read'):
@@ -175,17 +179,17 @@ class SC2Factory(object):
 
         return (resource, resource_name)
 
-    def load_summaries(self, gs, options=None, **new_options):
+    def load_game_summaries(self, gs, options=None, **new_options):
         """
-        Loads a collection of replays. See load_resources for detailed parameter
+        Loads a collection of game summaries. See load_resources for detailed parameter
         documentation.
 
-        :rtype: generator(:class:`Map`)
+        :rtype: generator(:class:`GameSummary`)
         """
-        for s in self.load_resources(gs, self.load_summary, options=options, **new_options):
+        for s in self.load_resources(gs, self.load_game_summary, options=options, extensions=['.s2gs'], **new_options):
             yield s
 
-    def load_summary(self, summary_file, options=None, **new_options):
+    def load_game_summary(self, summary_file, options=None, **new_options):
         """
         Loads the specified summary using the current factory settings with the
         specified overrides.
@@ -199,16 +203,87 @@ class SC2Factory(object):
         :param new_options: Options values to override current factory settings
             while loading this map.
 
-        :rtype: :class:`Replay`
+        :rtype: :class:`GameSummary`
         """
         options = options or utils.merged_dict(self.options, new_options)
         resource, name = self.load_resource(summary_file, options=options)
-        s = Summary(resource, name, **options)
+        s2gs = GameSummary(resource, name, **options)
 
         # Load summary procedure here!
         #
 
-        return s
+        return s2gs
+
+    def load_match_infos(self, infos, options=None, **new_options):
+        """
+        Loads a collection of MatchInfos. See load_resources for detailed
+        parameter documentation.
+
+        :rtype: generator(:class:`MatchInfo`)
+        """
+        for s2mi in self.load_resources(infos, self.load_match_info, options=options, extensions=['.s2mi'], **new_options):
+            yield s2mi
+
+    def load_match_info(self, info_file, options=None, **new_options):
+        """
+        Loads the specified match info using the current factory settings with
+        the specified overrides.
+
+        :param info_file: An open file object or path/url to a single file
+
+        :param None options: When options are passed directly into the options
+            parameter the current factory settings are ignored and only the
+            specified options are used during replay load.
+
+        :param new_options: Options values to override current factory settings
+            while loading this map.
+
+        :rtype: :class:`MatchInfo`
+        """
+        options = options or utils.merged_dict(self.options, new_options)
+        resource, name = self.load_resource(info_file, options=options)
+        s2mi = MatchInfo(resource, name, **options)
+
+        # Load summary procedure here!
+        #
+
+        return s2mi
+
+    def load_match_histories(self, histories, options=None, **new_options):
+        """
+        Loads a collection of match history files. See load_resources for
+        detailed parameter documentation.
+
+        :rtype: generator(:class:`MatchHistory`)
+        """
+        for s2mh in self.load_resources(histories, self.load_match_history, options=options, extensions=['.s2mh'], **new_options):
+            yield s2mh
+
+    def load_match_history(self, history_file, options=None, **new_options):
+        """
+        Loads the specified match info using the current factory settings with
+        the specified overrides.
+
+        :param history_file: An open file object or path/url to a single file
+
+        :param None options: When options are passed directly into the options
+            parameter the current factory settings are ignored and only the
+            specified options are used during replay load.
+
+        :param new_options: Options values to override current factory settings
+            while loading this map.
+
+        :rtype: :class:`MatchHistory`
+        """
+        options = options or utils.merged_dict(self.options, new_options)
+        resource, name = self.load_resource(history_file, options=options)
+        print name
+        s2mh = MatchHistory(resource, name, **options)
+
+        # Load summary procedure here!
+        #
+
+        return s2mh
 
     def load_maps(self, maps, options=None, **new_options):
         """
@@ -217,7 +292,7 @@ class SC2Factory(object):
 
         :rtype: generator(:class:`Map`)
         """
-        for m in self.load_resources(maps, self.load_map, options=options, **new_options):
+        for m in self.load_resources(maps, self.load_map, options=options, extensions=['.s2ma'], **new_options):
             yield m
 
     def load_map(self, map_file, options=None, **new_options):
@@ -253,7 +328,7 @@ class SC2Factory(object):
 
         :rtype: generator(:class:`Replay`)
         """
-        for r in self.load_resources(replays, self.load_replay, options=options, **new_options):
+        for r in self.load_resources(replays, self.load_replay, options=options, extensions=['.sc2replay'], **new_options):
             yield r
 
     def load_replay(self, replay_file, options=None, **new_options):
