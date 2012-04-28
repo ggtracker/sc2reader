@@ -2,11 +2,11 @@ from __future__ import absolute_import
 
 from sc2reader.utils import Length, LITTLE_ENDIAN
 from sc2reader.data.utils import DataObject
-from sc2reader import log_utils
+from sc2reader.log_utils import loggable
 
+@loggable
 class Event(object):
     def __init__(self, frame, pid):
-        self.logger = log_utils.get_logger(self.__class__)
         self.pid = pid
         self.frame = frame
         self.second = frame >> 4
@@ -18,6 +18,7 @@ class Event(object):
         if self.pid != 16:
             self.player = replay.person[self.pid]
 
+@loggable
 class GameEvent(Event):
     """Abstract Event Type, should not be directly instanciated"""
     def __init__(self, frame, pid, event_type, event_code):
@@ -43,11 +44,13 @@ class GameEvent(Event):
 # Message Events
 #########################
 
+@loggable
 class MessageEvent(Event):
     def __init__(self, frame, pid, flags):
         super(MessageEvent, self).__init__(frame, pid)
         self.flags=flags
 
+@loggable
 class ChatEvent(MessageEvent):
     def __init__(self, frame, pid, flags, buffer):
         super(ChatEvent, self).__init__(frame, pid, flags)
@@ -60,6 +63,7 @@ class ChatEvent(MessageEvent):
         self.to_all = (self.target == 0)
         self.to_allies = (self.target == 2)
 
+@loggable
 class PacketEvent(MessageEvent):
     def __init__(self, frame, pid, flags, buffer):
         super(PacketEvent, self).__init__(frame, pid, flags)
@@ -68,6 +72,7 @@ class PacketEvent(MessageEvent):
         # send over the network to establish latency or connectivity.
         self.data = buffer.read_chars(4)
 
+@loggable
 class PingEvent(MessageEvent):
     def __init__(self, frame, pid, flags, buffer):
         super(PingEvent, self).__init__(frame, pid, flags)
@@ -100,6 +105,7 @@ class CameraMovementEvent(GameEvent):
 class PlayerActionEvent(GameEvent):
     pass
 
+@loggable
 class ResourceTransferEvent(PlayerActionEvent):
     def __init__(self, frames, pid, type, code, target, minerals, vespene):
         super(ResourceTransferEvent, self).__init__(frames, pid, type, code)
@@ -116,6 +122,7 @@ class ResourceTransferEvent(PlayerActionEvent):
         self.sender = replay.player[self.sender]
         self.reciever = replay.player[self.reciever]
 
+@loggable
 class AbilityEvent(PlayerActionEvent):
     def __init__(self, framestamp, player, type, code, ability):
         super(AbilityEvent, self).__init__(framestamp, player, type, code)
@@ -144,6 +151,7 @@ class AbilityEvent(PlayerActionEvent):
         else:
             return self._str_prefix() + "Ability (%s) - %s" % (hex(self.ability_code), self.ability_name)
 
+@loggable
 class TargetAbilityEvent(AbilityEvent):
     def __init__(self, framestamp, player, type, code, ability, target):
         super(TargetAbilityEvent, self).__init__(framestamp, player, type, code, ability)
@@ -179,6 +187,7 @@ class TargetAbilityEvent(AbilityEvent):
 
         return AbilityEvent.__str__(self) + "; Target: {0}".format(target)
 
+@loggable
 class LocationAbilityEvent(AbilityEvent):
     def __init__(self, framestamp, player, type, code, ability, location):
         super(LocationAbilityEvent, self).__init__(framestamp, player, type, code, ability)
@@ -190,6 +199,7 @@ class LocationAbilityEvent(AbilityEvent):
 class SelfAbilityEvent(AbilityEvent):
     pass
 
+@loggable
 class HotkeyEvent(PlayerActionEvent):
     def __init__(self, framestamp, player, type, code, hotkey, deselect):
         super(HotkeyEvent, self).__init__(framestamp, player, type, code)
@@ -205,6 +215,7 @@ class AddToHotkeyEvent(HotkeyEvent):
 class GetFromHotkeyEvent(HotkeyEvent):
     pass
 
+@loggable
 class SelectionEvent(PlayerActionEvent):
     def __init__(self, framestamp, player, type, code, bank, objects, deselect):
         super(SelectionEvent, self).__init__(framestamp, player, type, code)
