@@ -399,6 +399,7 @@ class Map(Resource):
 
 
 class GameSummary(Resource):
+    base_url_template = 'http://{0}.depot.battle.net:1119/{1}.{2}'
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2gs'
 
     stats_keys = [
@@ -421,6 +422,12 @@ class GameSummary(Resource):
     #: Players, a list of :class`PlayerSummary` from the game
     players = list()
 
+    #: Map image urls
+    image_urls = list()
+
+    #: Map localization urls
+    localization_urls = dict()
+    
     def __init__(self, summary_file, filename=None, **options):
         super(GameSummary, self).__init__(summary_file, filename,**options)
         self.data = zlib.decompress(summary_file.read()[16:])
@@ -472,8 +479,24 @@ class GameSummary(Resource):
                 p.stats[self.stats_keys[i]] = stats_struct[i][1][p.pid][0][0]
             # The last piece of stats is in parts[4][0][0][1]
             p.stats[self.stats_keys[len(stats_struct)]] = self.parts[4][0][0][1][p.pid][0][0]
-            
+        
+        # Parse map localization data
+        for l in self.parts[0][6][8]:
+            lang = l[0]
+            urls = list()
+            for hash in l[1]:
+                parsed_hash = utils.parse_hash(hash)
+                if parsed_hash['server'] == '\x00\x00':
+                    continue
+                urls.append(self.base_url_template.format(parsed_hash['server'], parsed_hash['hash'], parsed_hash['type']))
                     
+            self.localization_urls[lang] = urls
+
+        # Parse map images
+        for hash in self.parts[0][6][7]:
+            parsed_hash = utils.parse_hash(hash)
+            self.image_urls.append(self.base_url_template.format(parsed_hash['server'], parsed_hash['hash'], parsed_hash['type']))
+
 class MapInfo(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mi'
 
