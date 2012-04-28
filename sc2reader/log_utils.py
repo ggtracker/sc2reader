@@ -47,3 +47,7 @@ def get_logger(entity):
     except AttributeError as e:
         msg = "Cannot retrieve logger for {0}. Only strings, classes, and functions supported."
         raise TypeError(msg.format(entity))
+
+def loggable(cls):
+    cls.logger = get_logger(cls)
+    return cls
