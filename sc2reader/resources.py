@@ -480,6 +480,9 @@ class MapInfo(Resource):
     #: Name of the Map
     map_name = str()
 
+    #: Language
+    language = str()
+
     #: Hash of referenced s2mh file
     s2mh_hash = str()
 
@@ -487,15 +490,65 @@ class MapInfo(Resource):
     s2mh_url = str()
 
     def __init__(self, info_file, filename=None, **options):
-        super(MapInfo, self).__init__(info_file, filename,**options)
+        super(MapInfo, self).__init__(info_file, filename, **options)
         self.data = utils.ReplayBuffer(info_file).read_data_struct()
         self.map_name = self.data[0][7]
         self.language = self.data[0][13]
-        self.s2mh_hash = ''.join([hex(ord(x))[2:] for x in self.data[0][1][8:]])
-        self.s2mh_url = MapHeader.url_template.format(self.data[0][1][6:8], self.s2mh_hash)
+        parsed_hash = utils.parse_hash(self.data[0][1])
+        self.s2mh_hash =  parsed_hash['hash']
+        self.s2mh_url = MapHeader.url_template.format(parsed_hash['server'], self.s2mh_hash)
+
+    def __str__(self):
+        return self.map_name
 
 class MapHeader(Resource):
+    base_url_template = 'http://{0}.depot.battle.net:1119/{1}.{2}'
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mh'
+    image_url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mv'
+
+    #: The name of the map
+    name = str()
+
+    #: Hash of map file
+    map_hash = str()
+
+    #: Link to the map file
+    map_url = str()
+    
+    #: Hash of the map image
+    image_hash = str()
+
+    #: Link to the image of the map (.s2mv)
+    image_url = str()
+
+    #: Localization dictionary, {language, url}
+    localization_urls = dict()
+
+    #: Blizzard map
+    blizzard = False
+
     def __init__(self, header_file, filename=None, **options):
-        super(MapHeader, self).__init__(header_file, filename,**options)
+        super(MapHeader, self).__init__(header_file, filename, **options)
         self.data = utils.ReplayBuffer(header_file).read_data_struct()
+
+        # Name
+        self.name = self.data[0][1]
+
+        # Blizzard
+        self.blizzard = (self.data[0][11] == 'BLIZ')
+        
+        # Parse image hash
+        parsed_hash = utils.parse_hash(self.data[0][1])
+        self.image_hash = parsed_hash['hash']
+        self.image_url = self.image_url_template.format(parsed_hash['server'], parsed_hash['hash'])
+        
+        # Parse map hash
+        parsed_hash = utils.parse_hash(self.data[0][2])
+        self.map_hash = parsed_hash['hash']
+        self.map_url = self.base_url_template.format(parsed_hash['server'], parsed_hash['hash'], parsed_hash['type'])
+        
+        # Parse localization hashes
+        l18n_struct = self.data[0][4][8]
+        for l in l18n_struct:
+            parsed_hash = utils.parse_hash(l[1][0])
+            self.localization_urls[l[0]] = self.base_url_template.format(parsed_hash['server'], parsed_hash['hash'], parsed_hash['type'])

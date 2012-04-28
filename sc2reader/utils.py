@@ -720,6 +720,23 @@ def get_files(path, extensions=['.sc2replay'], exclude=[], depth=-1, followlinks
 
     return files
 
+def parse_hash(hash_string):
+    """
+    Parse a hash to useful data
+    {
+    'server',
+    'hash',
+    'type'
+    }
+    """
+    server = hash_string[6:8]
+    hash = hash_string[8:]
+    return {
+        'server': server, 
+        'hash' : ''.join([('%02x' % ord(x)) for x in hash]),
+        'type' : hash_string[0:4]
+        }
+
 class Length(timedelta):
     """
         Extends the builtin timedelta class. See python docs for more info on
