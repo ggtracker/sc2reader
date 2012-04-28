@@ -11,7 +11,7 @@ from mpyq import MPQArchive
 
 from sc2reader import utils
 from sc2reader import log_utils
-from sc2reader.objects import Player, Observer, Team
+from sc2reader.objects import Player, Observer, Team, PlayerSummary
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR
 
 
@@ -407,6 +407,18 @@ s2gsmap = [[4, "Average Unspent Resources"],
 
 class GameSummary(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2gs'
+
+    race_map = {
+        'Zerg' : 'Zerg',
+        'Terr' : 'Terran',
+        'Prot' : 'Protoss',
+        'RAND' : 'Random'
+        }
+
+
+    #: Players, a list of :class`PlayerSummary` from the game
+    players = list()
+
     def __init__(self, summary_file, filename=None, **options):
         super(GameSummary, self).__init__(summary_file, filename,**options)
         self.data = zlib.decompress(summary_file.read()[16:])
@@ -414,13 +426,23 @@ class GameSummary(Resource):
         buffer = utils.ReplayBuffer(self.data)
         while buffer.left:
             part = buffer.read_data_struct()
-#            print str(part)+"\n\n\n"
             self.parts.append(part)
-#        print len(self.parts)
-#        pprint.PrettyPrinter(indent=2).pprint(self.parts)
-        for index, name in s2gsmap:
-            for player in [0, 1]:
-                print "Player", player, name, self.parts[3][0][index][1][player][0][0]
+
+        #Parse players, 16 is the maximum amount of players
+        for i in range(16):
+            player = None
+            # Check if player, break if not
+            if self.parts[0][3][i][2] == '\x00\x00\x00\x00':
+                break
+            player_struct = self.parts[0][3][i]
+
+            player = PlayerSummary(i)
+            player.race = self.race_map[player_struct[2]]
+            player.bnetid = player_struct[0][1][0][3]
+            player.subregion = player_struct[0][1][0][2]
+
+            self.players.append(player)
+        
 
 class MapInfo(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mi'

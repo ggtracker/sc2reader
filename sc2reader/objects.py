@@ -207,3 +207,31 @@ class Player(Person):
 
     def __repr__(self):
         return str(self)
+
+class PlayerSummary():
+    """
+    A class to represent a player in the game summary (.s2gs)
+    """
+    #: The index of the player in the game
+    pid = int()
+
+    #: The race the player used
+    race = str()
+
+    #: Battle.Net id of the player
+    bnetid = int()
+
+    #: Subregion id of player
+    subregion = int()
+
+    #: unknown1
+    unknown1 = int()
+    
+    #: unknown2
+    unknown2 = dict()
+
+    def __init__(self, pid):
+        self.pid = pid
+        
+    def __str__(self):
+        return '{} - {}/{}/'.format(self.race, self.subregion, self.bnetid)
