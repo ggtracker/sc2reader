@@ -11,8 +11,8 @@ from mpyq import MPQArchive
 
 from sc2reader import utils
 from sc2reader import log_utils
-from sc2reader.objects import Player, Observer, Team
-from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR
+from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph
+from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, GAME_SPEED_CODES, RACE_CODES
 
 
 class Resource(object):
@@ -397,16 +397,30 @@ class Map(Resource):
             elif parts[0] == 'DocInfo/DescLong':
                 self.description = parts[1]
 
-s2gsmap = [[4, "Average Unspent Resources"],
-           [5, "Resource Collection Rate"],
-           [6, "Workers Created"],
-           [7, "Units Trained"],
-           [8, "Killed Unit Count"],
-           [9, "Structure Built"],
-          ]
 
 class GameSummary(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2gs'
+
+    stats_keys = [
+        'R',
+        'U',
+        'S',
+        'O',
+        'AUR',
+        'RCR',
+        'WC',
+        'UT',
+        'KUC',
+        'SB',
+        'SRC',
+        ]
+    
+    #: Game speed
+    game_speed = str()
+
+    #: Players, a list of :class`PlayerSummary` from the game
+    players = list()
+
     def __init__(self, summary_file, filename=None, **options):
         super(GameSummary, self).__init__(summary_file, filename,**options)
         self.data = zlib.decompress(summary_file.read()[16:])
@@ -414,23 +428,74 @@ class GameSummary(Resource):
         buffer = utils.ReplayBuffer(self.data)
         while buffer.left:
             part = buffer.read_data_struct()
-#            print str(part)+"\n\n\n"
             self.parts.append(part)
-#        print len(self.parts)
-#        pprint.PrettyPrinter(indent=2).pprint(self.parts)
-        for index, name in s2gsmap:
-            for player in [0, 1]:
-                print "Player", player, name, self.parts[3][0][index][1][player][0][0]
 
-class MatchInfo(Resource):
-    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
+        # Parse basic info
+        self.game_speed = GAME_SPEED_CODES[''.join(reversed(self.parts[0][0][1]))]
+
+        # Parse player structs, 16 is the maximum amount of players
+        for i in range(16):
+            player = None
+            # Check if player, break if not
+            if self.parts[0][3][i][2] == '\x00\x00\x00\x00':
+                break
+            player_struct = self.parts[0][3][i]
+
+            player = PlayerSummary(player_struct[0][0])
+            player.race = RACE_CODES[''.join(reversed(player_struct[2]))]
+            player.bnetid = player_struct[0][1][0][3]
+            player.subregion = player_struct[0][1][0][2]
+
+            # int
+            player.unknown1 = player_struct[0][1][0]
+            # {0:long1, 1:long2}
+            # Example:
+            # { 0: 3405691582L, 1: 11402158793782460416L}
+            player.unknown2 = player_struct[0][1][1]
+
+            self.players.append(player)
+        
+        # Parse graph and stats stucts, for each player
+        for p in self.players:
+
+            # Graph stuff
+            xy = [(o[2], o[0]) for o in self.parts[4][0][2][1][p.pid]]
+            p.army_graph = Graph([], [], xy_list=xy)
+
+            xy = [(o[2], o[0]) for o in self.parts[4][0][1][1][p.pid]]
+            p.income_graph = Graph([], [], xy_list=xy)
+            
+            # Stats stuff
+            stats_struct = self.parts[3][0]
+            # The first group of stats is located in parts[3][0]
+            for i in range(len(stats_struct)):
+                p.stats[self.stats_keys[i]] = stats_struct[i][1][p.pid][0][0]
+            # The last piece of stats is in parts[4][0][0][1]
+            p.stats[self.stats_keys[len(stats_struct)]] = self.parts[4][0][0][1][p.pid][0][0]
+            
+                    
+class MapInfo(Resource):
+    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mi'
+
+    #: Name of the Map
+    map_name = str()
+
+    #: Hash of referenced s2mh file
+    s2mh_hash = str()
+
+    #: URL of referenced s2mh file
+    s2mh_url = str()
+
     def __init__(self, info_file, filename=None, **options):
-        super(MatchInfo, self).__init__(info_file, filename,**options)
+        super(MapInfo, self).__init__(info_file, filename,**options)
         self.data = utils.ReplayBuffer(info_file).read_data_struct()
+        self.map_name = self.data[0][7]
+        self.language = self.data[0][13]
+        self.s2mh_hash = ''.join([hex(ord(x))[2:] for x in self.data[0][1][8:]])
+        self.s2mh_url = MapHeader.url_template.format(self.data[0][1][6:8], self.s2mh_hash)
 
-
-class MatchHistory(Resource):
-    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
-    def __init__(self, history_file, filename=None, **options):
-        super(MatchHistory, self).__init__(history_file, filename,**options)
-        self.data = utils.ReplayBuffer(history_file).read_data_struct()
+class MapHeader(Resource):
+    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mh'
+    def __init__(self, header_file, filename=None, **options):
+        super(MapHeader, self).__init__(header_file, filename,**options)
+        self.data = utils.ReplayBuffer(header_file).read_data_struct()
