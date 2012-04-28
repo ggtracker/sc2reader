@@ -214,19 +214,19 @@ class SC2Factory(object):
 
         return s2gs
 
-    def load_match_infos(self, infos, options=None, **new_options):
+    def load_map_infos(self, infos, options=None, **new_options):
         """
-        Loads a collection of MatchInfos. See load_resources for detailed
+        Loads a collection of MapInfos. See load_resources for detailed
         parameter documentation.
 
-        :rtype: generator(:class:`MatchInfo`)
+        :rtype: generator(:class:`MapInfo`)
         """
-        for s2mi in self.load_resources(infos, self.load_match_info, options=options, extensions=['.s2mi'], **new_options):
+        for s2mi in self.load_resources(infos, self.load_map_info, options=options, extensions=['.s2mi'], **new_options):
             yield s2mi
 
-    def load_match_info(self, info_file, options=None, **new_options):
+    def load_map_info(self, info_file, options=None, **new_options):
         """
-        Loads the specified match info using the current factory settings with
+        Loads the specified map info using the current factory settings with
         the specified overrides.
 
         :param info_file: An open file object or path/url to a single file
@@ -238,33 +238,33 @@ class SC2Factory(object):
         :param new_options: Options values to override current factory settings
             while loading this map.
 
-        :rtype: :class:`MatchInfo`
+        :rtype: :class:`MapInfo`
         """
         options = options or utils.merged_dict(self.options, new_options)
         resource, name = self.load_resource(info_file, options=options)
-        s2mi = MatchInfo(resource, name, **options)
+        s2mi = MapInfo(resource, name, **options)
 
         # Load summary procedure here!
         #
 
         return s2mi
 
-    def load_match_histories(self, histories, options=None, **new_options):
+    def load_map_headers(self, headers, options=None, **new_options):
         """
-        Loads a collection of match history files. See load_resources for
+        Loads a collection of map header files. See load_resources for
         detailed parameter documentation.
 
-        :rtype: generator(:class:`MatchHistory`)
+        :rtype: generator(:class:`MapHeader`)
         """
-        for s2mh in self.load_resources(histories, self.load_match_history, options=options, extensions=['.s2mh'], **new_options):
+        for s2mh in self.load_resources(headers, self.load_map_header, options=options, extensions=['.s2mh'], **new_options):
             yield s2mh
 
-    def load_match_history(self, history_file, options=None, **new_options):
+    def load_map_header(self, header_file, options=None, **new_options):
         """
         Loads the specified match info using the current factory settings with
         the specified overrides.
 
-        :param history_file: An open file object or path/url to a single file
+        :param header_file: An open file object or path/url to a single file
 
         :param None options: When options are passed directly into the options
             parameter the current factory settings are ignored and only the
@@ -273,12 +273,12 @@ class SC2Factory(object):
         :param new_options: Options values to override current factory settings
             while loading this map.
 
-        :rtype: :class:`MatchHistory`
+        :rtype: :class:`MapHeader`
         """
         options = options or utils.merged_dict(self.options, new_options)
-        resource, name = self.load_resource(history_file, options=options)
+        resource, name = self.load_resource(header_file, options=options)
         print name
-        s2mh = MatchHistory(resource, name, **options)
+        s2mh = MapHeader(resource, name, **options)
 
         # Load summary procedure here!
         #
