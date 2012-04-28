@@ -266,54 +266,60 @@ class ReplayBuffer(object):
         Read a Blizzard data-structure. Structure can contain strings, lists,
         dictionaries and custom integer types.
         """
+        debug = False
+
         #The first byte serves as a flag for the type of data to follow
         datatype = self.read_byte()
         prefix = hex(self.tell())+"\t"*indent
         if key != None:
-            prefix+="{0}: {1}".format(key, datatype)
-
-        #print prefix
+            prefix+="{0}:".format(key)
+        prefix+=" {0}".format(datatype)
 
         if datatype == 0x00:
             #0x00 is an array where the first X bytes mark the number of entries in
             #the array. See variable int documentation for details.
             entries = self.read_variable_int()
-            #print "Entries, ",entries
-            #print self.peek(10)
-            return [self.read_data_struct(indent+1,i) for i in range(entries)]
+            prefix+=" ({0})".format(entries)
+            if debug: print prefix
+            data = [self.read_data_struct(indent+1,i) for i in range(entries)]
 
-        if datatype == 0x01:# or datatype == 0x0A:
+        elif datatype == 0x01:
             #0x01 is an array where the first X bytes mark the number of entries in
             #the array. See variable int documentation for details.
             #print self.peek(10)
             self.read_chars(2).encode("hex")
-            #print self.peek(10)
             entries = self.read_variable_int()
-            #print "Entries, ",entries
-            return [self.read_data_struct(indent+1,i) for i in range(entries)]
+            prefix+=" ({0})".format(entries)
+            if debug: print prefix
+            data = [self.read_data_struct(indent+1,i) for i in range(entries)]
 
-        if datatype == 0x02:
+        elif datatype == 0x02:
             #0x02 is a byte string with the first byte indicating
             #the length of the byte string to follow
-            return self.read_string(self.read_count())
+            entries = self.read_count()
+            data = self.read_string(entries)
+            prefix+=" ({0}) - {1}".format(entries,data)
+            if debug: print prefix
 
         elif datatype == 0x03:
             #0x03 is an unknown data type where the first byte appears
             #to have no effect and kicks back the next instruction
             flag = self.read_byte()
-            return self.read_data_struct(indent,key)
+            if debug: print prefix
+            data = self.read_data_struct(indent,key)
 
         elif datatype == 0x04:
             #0x04 is an unknown data type where the first byte of information
             #is a switch (1 or 0) that can trigger another structure to be
             #read.
             flag = self.read_byte()
-            #if flag == 0x04:
-            #    flag = self.read_byte()
             if flag:
-                return self.read_data_struct(indent,key)
+                if debug: print prefix
+                data = self.read_data_struct(indent,key)
             else:
-                return 0
+                data = 0
+                prefix+=" - {0}".format(data)
+                if debug: print prefix
 
         elif datatype == 0x05:
             #0x05 is a serialized key,value structure with the first byte
@@ -321,26 +327,31 @@ class ReplayBuffer(object):
             #When looping through the pairs, the first byte is the key,
             #followed by the serialized data object value
             data = dict()
-            #print self.peek(10)
             entries = self.read_count()
-            #print "Key Entries, ",entries
+            prefix+=" ({0})".format(entries)
+            if debug: print prefix
             for i in range(entries):
                 key = self.read_count()
                 data[key] = self.read_data_struct(indent+1,key) #Done like this to keep correct parse order
-            return data
 
         elif datatype == 0x06:
-            return self.read_byte()
+            data = self.read_byte()
+            prefix+=" - {0}".format(data)
+            if debug: print prefix
         elif datatype == 0x07:
-            return self.read_chars(4)
+            data = self.read_chars(4)
+            prefix+=" - {0}".format(data)
+            if debug: print prefix
         elif datatype == 0x09:
-            #print self.peek(10)
-            return self.read_variable_int()
-        """
-        elif datatype == 0x0A:
-            return self.read_byte()
-        """
-        raise TypeError("Unknown Data Structure: '%s'" % datatype)
+            data = self.read_variable_int()
+            prefix+=" - {0}".format(data)
+            if debug: print prefix
+        else:
+            if debug: print prefix
+            raise TypeError("Unknown Data Structure: '%s'" % datatype)
+
+        return data
+
 
     def read_object_type(self, read_modifier=False):
         """ Object type is big-endian short16 """
@@ -693,7 +704,7 @@ def get_files(path, extensions=['.sc2replay'], exclude=[], depth=-1, followlinks
 
     # os.walk can't handle file paths, only directories
     if os.path.isfile(path):
-        return [path] if filtr_func(path,extensions) else []
+        return [path] if filtr_func(path) else []
 
     files = list()
     for root, directories, filenames in os.walk(path, followlinks=followlinks):
