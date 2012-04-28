@@ -422,15 +422,28 @@ class GameSummary(Resource):
             for player in [0, 1]:
                 print "Player", player, name, self.parts[3][0][index][1][player][0][0]
 
-class MatchInfo(Resource):
-    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
-    def __init__(self, info_file, filename=None, **options):
-        super(MatchInfo, self).__init__(info_file, filename,**options)
-        self.data = utils.ReplayBuffer(info_file).read_data_struct()
+class MapInfo(Resource):
+    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mi'
 
+    #: Name of the Map
+    map_name = str()
+
+    #: Hash of referenced s2mh file
+    s2mh_hash = str()
+
+    #: URL of referenced s2mh file
+    s2mh_url = str()
+
+    def __init__(self, info_file, filename=None, **options):
+        super(MapInfo, self).__init__(info_file, filename,**options)
+        self.data = utils.ReplayBuffer(info_file).read_data_struct()
+        self.map_name = self.data[0][7]
+        self.language = self.data[0][13]
+        self.s2mh_hash = ''.join([hex(ord(x))[2:] for x in self.data[0][1][8:]])
+        self.s2mh_url = MatchHistory.url_template.format(self.data[0][1][6:8], self.s2mh_hash)
 
 class MatchHistory(Resource):
-    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
+    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mh'
     def __init__(self, history_file, filename=None, **options):
         super(MatchHistory, self).__init__(history_file, filename,**options)
         self.data = utils.ReplayBuffer(history_file).read_data_struct()
