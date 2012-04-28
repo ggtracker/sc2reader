@@ -492,10 +492,10 @@ class MapInfo(Resource):
         self.map_name = self.data[0][7]
         self.language = self.data[0][13]
         self.s2mh_hash = ''.join([hex(ord(x))[2:] for x in self.data[0][1][8:]])
-        self.s2mh_url = MatchHistory.url_template.format(self.data[0][1][6:8], self.s2mh_hash)
+        self.s2mh_url = MapHeader.url_template.format(self.data[0][1][6:8], self.s2mh_hash)
 
-class MatchHistory(Resource):
+class MapHeader(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mh'
-    def __init__(self, history_file, filename=None, **options):
-        super(MatchHistory, self).__init__(history_file, filename,**options)
-        self.data = utils.ReplayBuffer(history_file).read_data_struct()
+    def __init__(self, header_file, filename=None, **options):
+        super(MapHeader, self).__init__(header_file, filename,**options)
+        self.data = utils.ReplayBuffer(header_file).read_data_struct()

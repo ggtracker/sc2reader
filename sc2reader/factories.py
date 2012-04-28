@@ -14,7 +14,7 @@ from sc2reader import data
 from sc2reader import exceptions
 from sc2reader import utils
 from sc2reader import log_utils
-from sc2reader.resources import Replay, Map, GameSummary, MapInfo, MatchHistory
+from sc2reader.resources import Replay, Map, GameSummary, MapInfo, MapHeader
 
 class SC2Factory(object):
     """
