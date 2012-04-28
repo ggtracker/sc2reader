@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import zlib
+import pprint
 import hashlib
 from datetime import datetime
 from StringIO import StringIO
@@ -396,8 +397,16 @@ class Map(Resource):
             elif parts[0] == 'DocInfo/DescLong':
                 self.description = parts[1]
 
+s2gsmap = [[4, "Average Unspent Resources"],
+           [5, "Resource Collection Rate"],
+           [6, "Workers Created"],
+           [7, "Units Trained"],
+           [8, "Killed Unit Count"],
+           [9, "Structure Built"],
+          ]
+
 class GameSummary(Resource):
-    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
+    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2gs'
     def __init__(self, summary_file, filename=None, **options):
         super(GameSummary, self).__init__(summary_file, filename,**options)
         self.data = zlib.decompress(summary_file.read()[16:])
@@ -405,9 +414,13 @@ class GameSummary(Resource):
         buffer = utils.ReplayBuffer(self.data)
         while buffer.left:
             part = buffer.read_data_struct()
-            print str(part)+"\n\n\n"
-            self.parts.append(buffer.read_data_struct())
-        print len(self.parts)
+#            print str(part)+"\n\n\n"
+            self.parts.append(part)
+#        print len(self.parts)
+#        pprint.PrettyPrinter(indent=2).pprint(self.parts)
+        for index, name in s2gsmap:
+            for player in [0, 1]:
+                print "Player", player, name, self.parts[3][0][index][1][player][0][0]
 
 class MatchInfo(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
