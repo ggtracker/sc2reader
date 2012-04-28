@@ -4,6 +4,7 @@ import zlib
 import pprint
 import hashlib
 from datetime import datetime
+import time
 from StringIO import StringIO
 from collections import defaultdict
 
@@ -419,6 +420,12 @@ class GameSummary(Resource):
     #: Game speed
     game_speed = str()
 
+    #: ? time, unknown what this represents, but it's close to game completion time
+    #: unix
+    time1 = int()
+    #: time2 seems to be more accurate than time1
+    time2 = int()
+
     #: Players, a list of :class`PlayerSummary` from the game
     players = list()
 
@@ -439,6 +446,15 @@ class GameSummary(Resource):
 
         # Parse basic info
         self.game_speed = GAME_SPEED_CODES[''.join(reversed(self.parts[0][0][1]))]
+
+        # time struct looks like this:
+        # { 0: 11987, 1: 283385849, 2: 1334719793L}
+        # 0, 1 might be an adjustment of some sort
+        self.time1 = self.parts[0][2][2]
+        
+        # this one is alone
+        # but there is an int above it @ parts[0][7]
+        self.time2 = self.parts[0][8]
 
         # Parse player structs, 16 is the maximum amount of players
         for i in range(16):
@@ -496,6 +512,10 @@ class GameSummary(Resource):
         for hash in self.parts[0][6][7]:
             parsed_hash = utils.parse_hash(hash)
             self.image_urls.append(self.base_url_template.format(parsed_hash['server'], parsed_hash['hash'], parsed_hash['type']))
+
+    def __str__(self):
+        return "{} - {}".format(time.ctime(self.time2), 
+                               ''.join(p.race[0] for p in self.players))
 
 class MapInfo(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mi'
