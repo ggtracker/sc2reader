@@ -736,6 +736,21 @@ def parse_hash(hash_string):
         'hash' : ''.join([('%02x' % ord(x)) for x in hash]),
         'type' : hash_string[0:4]
         }
+def flip_int(num, b):
+    """
+    Flips the b first bytes in num
+    Example:
+    (0x12345, 3) -> 0x452301
+    (0x00112233, 4) -> 0x33221100
+    """
+    o = 0
+    for i in range(b/2):
+        o |= ((num & (0xff << i*8)) << (b-(2*i+1))*8)
+        o |= ((num & (0xff << (b-(i+1))*8)) >> (b-(2*i+1)) * 8)
+    if b % 2 == 1:
+        o |= (num & (0xff << (b/2)*8))
+    return o
+
 
 class Length(timedelta):
     """

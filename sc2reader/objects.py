@@ -219,6 +219,9 @@ class Graph():
     values = list()
 
     def __init__(self, x, y, xy_list=None):
+        self.times = list()
+        self.values = list()
+
         if xy_list:
             for x, y in xy_list:
                 self.times.append(x)
@@ -286,6 +289,9 @@ class PlayerSummary():
     stats = dict()
 
     def __init__(self, pid):
+        unknown2 = dict()
+        stats = dict()
+        
         self.pid = pid
         
     def __str__(self):
