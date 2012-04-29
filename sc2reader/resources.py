@@ -426,7 +426,7 @@ class GameSummary(Resource):
     #: time2 seems to be more accurate than time1
     time2 = int()
 
-    #: Players, a list of :class`PlayerSummary` from the game
+    #: Players, a dict of :class`PlayerSummary` from the game
     players = list()
 
     #: Map image urls
@@ -437,6 +437,11 @@ class GameSummary(Resource):
     
     def __init__(self, summary_file, filename=None, **options):
         super(GameSummary, self).__init__(summary_file, filename,**options)
+
+        self.players = list()
+        self.image_urls = list()
+        self.localization_urls = dict()
+
         self.data = zlib.decompress(summary_file.read()[16:])
         self.parts = list()
         buffer = utils.ReplayBuffer(self.data)
@@ -466,18 +471,26 @@ class GameSummary(Resource):
 
             player = PlayerSummary(player_struct[0][0])
             player.race = RACE_CODES[''.join(reversed(player_struct[2]))]
-            player.bnetid = player_struct[0][1][0][3]
-            player.subregion = player_struct[0][1][0][2]
+            player.teamid = player_struct[1][0]
 
-            # int
-            player.unknown1 = player_struct[0][1][0]
-            # {0:long1, 1:long2}
-            # Example:
-            # { 0: 3405691582L, 1: 11402158793782460416L}
-            player.unknown2 = player_struct[0][1][1]
+            # Is the player an ai?
+            if type(player_struct[0][1]) == type(int()):
+                player.is_ai = True
+            else:
+                player.is_ai = False
+                
+                player.bnetid = player_struct[0][1][0][3]
+                player.subregion = player_struct[0][1][0][2]
 
+                # int
+                player.unknown1 = player_struct[0][1][0]
+                # {0:long1, 1:long2}
+                # Example:
+                # { 0: 3405691582L, 1: 11402158793782460416L}
+                player.unknown2 = player_struct[0][1][1]
+            
             self.players.append(player)
-        
+
         # Parse graph and stats stucts, for each player
         for p in self.players:
 

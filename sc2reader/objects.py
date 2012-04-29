@@ -254,9 +254,15 @@ class PlayerSummary():
 
     #: The index of the player in the game
     pid = int()
+    
+    #: The index of the players team in the game
+    teamid = int()
 
     #: The race the player used
     race = str()
+
+    #: If the player is a computer
+    is_ai = False
 
     #: Battle.Net id of the player
     bnetid = int()
@@ -283,8 +289,11 @@ class PlayerSummary():
         self.pid = pid
         
     def __str__(self):
-        return '{} - {}/{}/'.format(self.race, self.subregion, self.bnetid)
-
+        if not self.is_ai:
+            return '{} - {} - {}/{}/'.format(self.teamid, self.race, self.subregion, self.bnetid)
+        else:
+            return '{} - {} - AI'.format(self.teamid, self.race) 
+        
     def get_stats(self):
         s = ''
         for k in self.stats:
