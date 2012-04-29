@@ -420,11 +420,14 @@ class GameSummary(Resource):
     #: Game speed
     game_speed = str()
 
-    #: ? time, unknown what this represents, but it's close to game completion time
-    #: unix
-    time1 = int()
-    #: time2 seems to be more accurate than time1
-    time2 = int()
+    #: Game length (real-time)
+    game_length = int()
+
+    #: Game length (in-game)
+    game_length_ingame = int()
+
+    #: Game completion time
+    time = int()
 
     #: Players, a dict of :class`PlayerSummary` from the game
     players = list()
@@ -455,11 +458,13 @@ class GameSummary(Resource):
         # time struct looks like this:
         # { 0: 11987, 1: 283385849, 2: 1334719793L}
         # 0, 1 might be an adjustment of some sort
-        self.time1 = self.parts[0][2][2]
+        self.unknown_time = self.parts[0][2][2]
         
         # this one is alone
-        # but there is an int above it @ parts[0][7]
-        self.time2 = self.parts[0][8]
+        self.time = self.parts[0][8]
+
+        self.game_length_ingame = self.parts[0][7]
+        self.game_length = self.game_length_ingame / GAME_SPEED_FACTOR[self.game_speed]
 
         # Parse player structs, 16 is the maximum amount of players
         for i in range(16):
@@ -527,8 +532,11 @@ class GameSummary(Resource):
             self.image_urls.append(self.base_url_template.format(parsed_hash['server'], parsed_hash['hash'], parsed_hash['type']))
 
     def __str__(self):
-        return "{} - {}".format(time.ctime(self.time2), 
-                               ''.join(p.race[0] for p in self.players))
+        return "{} - {}:{}:{} {}".format(time.ctime(self.time),
+                                         int(self.game_length)/3600,
+                                         int(self.game_length)/60,
+                                         int(self.game_length)%60,
+                                         ''.join(p.race[0] for p in self.players))
 
 class MapInfo(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mi'
