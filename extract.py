@@ -34,10 +34,42 @@ data_names_pretty = [
 ]
 # Obviously not complete
 abilities = {
-    0x5602 : 'Warp Gate',
-    0x3402 : 'Extended Thermal Lance',
-    0x4402 : 'Metabolic Boost',
+    # Protoss
+    ## Twilight
+    0x5902 : 'Blink',
+    # Charge
     
+    ## Cyber core
+    0x5602 : 'Warp Gate',
+    0x5702 : 'Hallucination',
+    # Air Weapons 1-3
+    # Air Armor 1-3
+    # Hallucination
+
+    ## Robo bay
+    # Obs, speed
+    # Prism, speed
+    0x3402 : 'Extended Thermal Lance',
+    
+    #Zerg
+    ## Pool
+    0x4402 : 'Metabolic Boost',
+    # Adrenal glands
+    
+    ## Evo. chamber
+    0x3a02 : 'Zerg Ground Carapace Level 1',
+    0x3b02 : 'Zerg Ground Carapace Level 2', #extrapolated
+    0x3c02 : 'Zerg Ground Carapace Level 3', #extrapolated
+    0x3d02 : 'Zerg Missile Attacks Level 1',
+    0x3e02 : 'Zerg Missile Attacks Level 2', #extrapolated
+    0x3f02 : 'Zerg Missile Attacks Level 3', #extrapolated
+    
+    ## Lair
+    0x4202 : 'Burrow',
+    
+    #Terran
+    ## Factory tech lab
+    0x1402 : 'Siege tech'
     }
 lobby_properties = {
     3000 : 'game_speed',
@@ -60,10 +92,7 @@ player_properties = {
 }
 
 def getRealm(str):
-    if str == '\x00\x00S2':
-        return "EU"
-    
-    return "?"
+    return ""
 def loadPlayerPropTemplate(prop_struct):
     ret = dict()
     for prop in prop_struct:
@@ -164,13 +193,13 @@ def toUnit(bo_unit):
     #print(hex(flip_int(bo_unit, 4)))
     i = ((bo_unit & 0xff) << 8) | 0x01
     if bo_unit >> 24 == 1:
-        return {'name':unitData.type(i).name, 'id':hex(i)}
+        return {'name':unitData.type(i).name, 'type':hex(i), 'id':hex(bo_unit)}
     return None
 def toAbility(bo_ability):
     #print(hex(flip_int(bo_unit, 4)))
     i = ((bo_ability & 0xff) << 8) | 0x02
     if bo_ability >> 24 == 2:
-        return {'name':abilities[i] if i in abilities else "Unknown ability", 'type':hex(i), 'id':hex(bo_ability)}
+        return {'name':abilities[i] if i in abilities else "Unknown ability ({})".format(hex(i)), 'type':hex(i), 'id':hex(bo_ability)}
         
     return None
 def getBuildOrder(unit_structs, index):
@@ -184,6 +213,7 @@ def getBuildOrder(unit_structs, index):
             elif u[0][1] >> 24 == 2:
                 unit = toAbility(u[0][1])
             if not unit:
+                print("Unknown code {}".format(u))
                 continue
             for entry in u[1][index]:
                 bo.append({
@@ -217,6 +247,7 @@ def getBuildOrderOthers(struct):
 
 def getBuildOrders(data):
     unit_structs = [x[0] for x in data[5:]]
+    unit_structs.append(data[4][0][3:])
     players = {}
     for i in range(15):
             bo = getBuildOrder(unit_structs, i)
@@ -246,11 +277,13 @@ def main():
             pprint.PrettyPrinter(indent=2).pprint(getBuildOrders(data))
         elif arg == "bo2":
             bos = getBuildOrders(data)[0]
+            players = getPlayers(data)
             for p in bos:
+                print("== {} - {} ==".format(players[p]['race'], players[p]['id']))
                 for u in bos[p]:
-                    print("{}:{}  {}  {}/{}".format(u['time'] / 60,
+                    print("{:0>2}:{:0>2}  {:<25} {:>2}/{}".format(u['time'] / 60,
                                                     u['time'] % 60,
-                                                    u['unit']['name'],
+                                                    u['order']['name'],
                                                     u['supply'],
                                                     u['total_supply']))
 main()
