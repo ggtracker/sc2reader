@@ -155,52 +155,123 @@ COLOR_CODES = {
     'E55BB0': 'Pink'
 }
 
-# Obviously not complete
-# TODO: Complete this!
 BUILD_ORDER_UPGRADES = {
     # Protoss
     
     ## Forge
     0x2902 : 'Protoss Ground Weapons Level 1',
-    0x2a02 : 'Protoss Ground Weapons Level 2', #extrapolated
-    0x2b02 : 'Protoss Ground Weapons Level 3', #extrapolated 
-    
-    ## Twilight
-    0x5902 : 'Blink',
-    # Charge
-    
+    0x2a02 : 'Protoss Ground Weapons Level 2',
+    0x2b02 : 'Protoss Ground Weapons Level 3',
+    0x2c02 : 'Protoss Ground Armor Level 1',
+    0x2d02 : 'Protoss Ground Armor Level 2',
+    0x2e02 : 'Protoss Ground Armor Level 3',
+    0x2f02 : 'Protoss Shields Level 1',
+    0x3002 : 'Protoss Shields Level 2',
+    0x3102 : 'Protoss Shields Level 3',
+    ## Robo bay
+    0x3202 : 'Gravitic Boosters',
+    0x3302 : 'Gravitic Drive',
+    0x3402 : 'Extended Thermal Lance',
     ## Cyber core
+    0x5002 : 'Protoss Air Weapons Level 1',
+    0x5102 : 'Protoss Air Weapons Level 2',
+    0x5202 : 'Protoss Air Weapons Level 3',
+    0x5302 : 'Protoss Air Armor Level 1',
+    0x5402 : 'Protoss Air Armor Level 2',
+    0x5502 : 'Protoss Air Armor Level 3',
     0x5602 : 'Warp Gate Research',
     0x5702 : 'Hallucination',
-    # Air Weapons 1-3
-    # Air Armor 1-3
-    # Hallucination
-
-    ## Robo bay
-    # Obs, speed
-    # Prism, speed
-    0x3402 : 'Extended Thermal Lance',
+    ## Twilight
+    0x5802 : 'Charge',
+    0x5902 : 'Blink',
+    ## Fleet Beacon
+    0x0302 : 'Graviton Catapult',
+    0x7102 : 'Anion Pulse-Crystals',
     
-    #Zerg
-    ## Pool
-    0x4402 : 'Metabolic Boost',
-    # Adrenal glands
+    #Zerg    
     
+    ## Roach Warren
+    0x0402 : 'Gial Reconstitution',
+    0x0502 : 'Tunneling Claws',
+    ## Ultralisk Cavern
+    0x0602 : 'Chitinous Plating', 
     ## Evo. chamber
-    
+    0x3702 : 'Zerg Melee Attacks Level 1',
+    0x3802 : 'Zerg Melee Attacks Level 2',
+    0x3902 : 'Zerg Melee Attacks Level 3',
     0x3a02 : 'Zerg Ground Carapace Level 1',
-    0x3b02 : 'Zerg Ground Carapace Level 2', #extrapolated
-    0x3c02 : 'Zerg Ground Carapace Level 3', #extrapolated
+    0x3b02 : 'Zerg Ground Carapace Level 2',
+    0x3c02 : 'Zerg Ground Carapace Level 3',
     0x3d02 : 'Zerg Missile Attacks Level 1',
-    0x3e02 : 'Zerg Missile Attacks Level 2', #extrapolated
-    0x3f02 : 'Zerg Missile Attacks Level 3', #extrapolated
-    
+    0x3e02 : 'Zerg Missile Attacks Level 2',
+    0x3f02 : 'Zerg Missile Attacks Level 3',
     ## Lair
+    0x4002 : 'Pneumatized Carapace',
+    0x4102 : 'Ventral Sacs',
     0x4202 : 'Burrow',
-    
+    ## Pool
+    0x4302 : 'Adrenal Glands',
+    0x4402 : 'Metabolic Boost',
+    ## Hydra den
+    0x4502 : 'Grooved Spines',
+    ## Spire
+    0x4602 : 'Zerg Flyer Attacks Level 1',    
+    0x4702 : 'Zerg Flyer Attacks Level 2',
+    0x4802 : 'Zerg Flyer Attacks Level 3',
+    0x4902 : 'Zerg Flyer Carapace Level 1',    
+    0x4a02 : 'Zerg Flyer Carapace Level 2',
+    0x4b02 : 'Zerg Flyer Carapace Level 3',
+    ## Infestation pit
+    0x4c02 : 'Pathogen Glands',
+    0x7202 : 'Neural Parasite',
+    ## Baneling Nest
+    0x4d02 : 'Centrifugal Hooks',
+
     #Terran
+    ## Engineering bay
+    0x702 : 'Hi-Sec Auto Tracking',
+    0x802 : 'Terran Building Armor',
+    0x902 : 'Terran Infantry Weapons Level 1',
+    0xa02 : 'Terran Infantry Weapons Level 2',
+    0xb02 : 'Terran Infantry Weapons Level 3',
+    0xc02 : 'Neosteel Frame',
+    0xd02 : 'Terran Infantry Armor Level 1',
+    0xe02 : 'Terran Infantry Armor Level 2',
+    0xf02 : 'Terran Infantry Armor Level 3',
+    ## Barracks tech lab
+    0x1002 : 'Nitro Packs',
+    0x1102 : 'Stimpack',
+    0x1202 : 'Combat Shields',
+    0x1302 : 'Concussive Shells',
     ## Factory tech lab
-    0x1402 : 'Siege Tech'
+    0x1402 : 'Siege Tech',
+    0x1502 : 'Infernal Pre-igniter',
+    0x7002 : '250mm Strike Cannons',
+    ## Starport tech lab
+    0x1602 : 'Cloaking Field',
+    0x1702 : 'Caduceus Reactor',
+    0x1902 : 'Seeker Missile',
+    0x1a02 : 'Durable Materials',
+    0x4e02 : 'Corvid Reactor',
+    ## Fusion Core
+    0x1802 : 'Behemoth Reactor',
+    0x4f02 : 'Weapon Refit',
+    ## Ghost Academy
+    0x1b02 : 'Personal Cloaking',
+    0x1c02 : 'Moebiue Reactor',
+    ## Armory
+    0x1d02 : 'Terran Vehicle Plating Level 1',
+    0x1e02 : 'Terran Vehicle Plating Level 2',
+    0x1f02 : 'Terran Vehicle Plating Level 3',
+    0x2002 : 'Terran Vehicle Weapons Level 1',
+    0x2102 : 'Terran Vehicle Weapons Level 2',
+    0x2202 : 'Terran Vehicle Weapons Level 3',
+    0x2302 : 'Terran Ship Plating Level 1',
+    0x2402 : 'Terran Ship Plating Level 2',
+    0x2502 : 'Terran Ship Plating Level 3',
+    0x2602 : 'Terran Ship Weapons Level 1',
+    0x2702 : 'Terran Ship Weapons Level 2',
+    0x2802 : 'Terran Ship Weapons Level 3'
     }
 
 # TODO: Not sure if this is a complete mapping
