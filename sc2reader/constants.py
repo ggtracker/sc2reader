@@ -155,6 +155,54 @@ COLOR_CODES = {
     'E55BB0': 'Pink'
 }
 
+# Obviously not complete
+# TODO: Complete this!
+BUILD_ORDER_UPGRADES = {
+    # Protoss
+    
+    ## Forge
+    0x2902 : 'Protoss Ground Weapons Level 1',
+    0x2a02 : 'Protoss Ground Weapons Level 2', #extrapolated
+    0x2b02 : 'Protoss Ground Weapons Level 3', #extrapolated 
+    
+    ## Twilight
+    0x5902 : 'Blink',
+    # Charge
+    
+    ## Cyber core
+    0x5602 : 'Warp Gate Research',
+    0x5702 : 'Hallucination',
+    # Air Weapons 1-3
+    # Air Armor 1-3
+    # Hallucination
+
+    ## Robo bay
+    # Obs, speed
+    # Prism, speed
+    0x3402 : 'Extended Thermal Lance',
+    
+    #Zerg
+    ## Pool
+    0x4402 : 'Metabolic Boost',
+    # Adrenal glands
+    
+    ## Evo. chamber
+    
+    0x3a02 : 'Zerg Ground Carapace Level 1',
+    0x3b02 : 'Zerg Ground Carapace Level 2', #extrapolated
+    0x3c02 : 'Zerg Ground Carapace Level 3', #extrapolated
+    0x3d02 : 'Zerg Missile Attacks Level 1',
+    0x3e02 : 'Zerg Missile Attacks Level 2', #extrapolated
+    0x3f02 : 'Zerg Missile Attacks Level 3', #extrapolated
+    
+    ## Lair
+    0x4202 : 'Burrow',
+    
+    #Terran
+    ## Factory tech lab
+    0x1402 : 'Siege Tech'
+    }
+
 # TODO: Not sure if this is a complete mapping
 #
 # Assuming only 1 Public Test Realm subregion on the following basis:

@@ -429,8 +429,11 @@ class GameSummary(Resource):
     #: Game completion time
     time = int()
 
-    #: Players, a dict of :class`PlayerSummary` from the game
+    #: Players, a list of :class`PlayerSummary` from the game
     players = list()
+
+    #: Build orders, a dict of build orders indexed by player id
+    build_orders = dict()
 
     #: Map image urls
     image_urls = list()
@@ -442,6 +445,7 @@ class GameSummary(Resource):
         super(GameSummary, self).__init__(summary_file, filename,**options)
 
         self.players = list()
+        self.build_orders = dict()
         self.image_urls = list()
         self.localization_urls = dict()
 
@@ -530,6 +534,37 @@ class GameSummary(Resource):
         for hash in self.parts[0][6][7]:
             parsed_hash = utils.parse_hash(hash)
             self.image_urls.append(self.base_url_template.format(parsed_hash['server'], parsed_hash['hash'], parsed_hash['type']))
+
+
+        # Parse build orders
+        
+        bo_structs = [x[0] for x in self.parts[5:]]
+        bo_structs.append(self.parts[4][0][3:])
+
+        # This might not be the most effective way, but it works
+        for p in self.players:
+            bo = list()
+            for bo_struct in bo_structs:
+                for order in bo_struct:
+                    
+                    if order[0][1] >> 24 == 0x01:
+                        # unit
+                        parsed_order = utils.get_unit(order[0][1])
+                    elif order[0][1] >> 24 == 0x02:
+                        # research
+                        parsed_order = utils.get_research(order[0][1])
+                    
+                    for entry in order[1][p.pid]:
+                        bo.append({
+                                'supply' : entry[0],
+                                'total_supply' : entry[1]&0xff,
+                                'time' : (entry[2] >> 8) / 16,
+                                'order' : parsed_order,
+                                'build_index' : entry[1] >> 16,
+                                })
+            bo.sort(key=lambda x: x['build_index'])
+            self.build_orders[p.pid] = bo
+                        
 
     def __str__(self):
         return "{} - {}:{}:{} {}".format(time.ctime(self.time),

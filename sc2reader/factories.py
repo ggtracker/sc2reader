@@ -277,7 +277,7 @@ class SC2Factory(object):
         """
         options = options or utils.merged_dict(self.options, new_options)
         resource, name = self.load_resource(header_file, options=options)
-        print name
+        #print name
         s2mh = MapHeader(resource, name, **options)
 
         # Load summary procedure here!

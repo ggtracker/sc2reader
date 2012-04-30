@@ -12,7 +12,8 @@ from itertools import groupby
 from datetime import timedelta
 
 from sc2reader import exceptions
-from sc2reader.constants import COLOR_CODES
+from sc2reader.constants import COLOR_CODES, BUILD_ORDER_UPGRADES
+from sc2reader.data.build19595 import Data_19595 as Data
 
 LITTLE_ENDIAN,BIG_ENDIAN = '<','>'
 
@@ -719,6 +720,38 @@ def get_files(path, extensions=['.sc2replay'], exclude=[], depth=-1, followlinks
         depth -= 1
 
     return files
+
+def get_unit(type_int):
+    """
+    Takes an int, i, with (i & 0xff000000) = 0x01000000
+    and returns the corresponding unit/structure
+    """
+    # Test if we have used data_obj before
+    try:
+        data_obj
+    except:
+        #Nope, create
+        data_obj = Data()
+    
+    # Try to parse a unit
+    try:
+        unit = data_obj.type(((type_int & 0xff) << 8) | 0x01)
+    except:
+        unit = None
+    
+    return {
+        'name': unit.name if unit else "Unknown unit ({})".format(hex(type_int)) ,
+        'type_int':hex(type_int)
+        }
+def get_research(type_int):
+    """
+    Takes an int, i, with (i & 0xff000000) = 0x02000000
+    and returns the corresponding research/upgrade
+    """
+    t = ((type_int & 0xff) << 8) | 0x02
+    return {
+        'name': BUILD_ORDER_UPGRADES[t] if t in BUILD_ORDER_UPGRADES else "Unknown upgrade ({})".format(hex(t)),
+        'type_int': hex(type_int)}
 
 def parse_hash(hash_string):
     """
