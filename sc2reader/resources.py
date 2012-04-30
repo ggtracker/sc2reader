@@ -567,10 +567,10 @@ class GameSummary(Resource):
                         
 
     def __str__(self):
-        return "{} - {}:{}:{} {}".format(time.ctime(self.time),
+        return "{} - {:0>2}:{:0>2}:{:0>2} {}".format(time.ctime(self.time),
                                          int(self.game_length)/3600,
-                                         int(self.game_length)/60,
-                                         int(self.game_length)%60,
+                                         (int(self.game_length)%3600)/60,
+                                         (int(self.game_length)%3600)%60,
                                          ''.join(p.race[0] for p in self.players))
 
 class MapInfo(Resource):
