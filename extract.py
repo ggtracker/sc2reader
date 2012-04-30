@@ -39,18 +39,82 @@ abilities = {
     0x4402 : 'Metabolic Boost',
     
     }
+lobby_properties = {
+    3000 : 'game_speed',
+    2001 : 'game_type', #1v1/2v2/3v3/4v4/5v5/6v6/FFA
+    3010 : 'unknown1', #yes/no
+    3006 : 'unknown2', #3/5/7/10/15/20/25/30
+    1001 : 'unknown3', #yes/no
+    1000 : 'unknown4', #Dflt
+    2000 : 'unknown5', #t2/t3/FFA/Cust
+    3009 : 'lobby_type' #Priv/Pub/Amm (Auto MatchMaking)
+    
+}
+player_properties = {
+    500 : 'slot_state', #Clsd/Open/Humn/Comp
+    3001 : 'race',
+    3003 : 'energy',
+    3002 : 'color',
+    3004 : 'difficulty',
+    3008 : 'nonplayer_mode' #Obs/Ref        
+}
 
 def getRealm(str):
     if str == '\x00\x00S2':
         return "EU"
     
     return "?"
+def loadPlayerPropTemplate(prop_struct):
+    ret = dict()
+    for prop in prop_struct:
+        if not prop[0][1] in player_properties:
+            continue
+        
+        ret[prop[0][1]] = [o[0] for o in prop[1]]
+    return ret
+def loadLobbyPropTemplate(prop_struct):
+    ret = dict()
+    for prop in prop_struct:
+        if not prop[0][1] in lobby_properties:
+            continue
+        ret[prop[0][1]] = [o[0] for o in prop[1]]
+    return ret
+def getLobbyProperties(prop_struct, prop_template):
+    ret = dict()
+    for p in prop_struct:
+        if not p[0][1] in prop_template:
+            continue
+        ret[lobby_properties[p[0][1]]] =(
+            prop_template[p[0][1]][p[1][0]])
+    return ret
+
+def getLobby(data):
+    props = loadLobbyPropTemplate(data[0][5])
+    
+    return {
+        'properties':getLobbyProperties(data[0][6][6], props)
+            }
+
+def getPlayerProperties(pindex, prop_struct, prop_template):
+    ret = dict()
+    for p in prop_struct:
+        if not p[0][1] in prop_template:
+            continue
+        ret[player_properties[p[0][1]]] =(
+            prop_template[p[0][1]][p[1][pindex][0]])
+    return ret
+
 def getPlayers(data):
+
+    props = loadPlayerPropTemplate(data[0][5])
+
     players = []
     parr = data[0][3]
     for i in range(16):
         if not (parr[i][0][1] == 0):
-            players.append(getPlayer(data, i))
+            player = getPlayer(data, i)
+            player['properties'] = getPlayerProperties(i, data[0][6][6], props)
+            players.append(player)
 
     return players
 def getIncomeGraph(data, index):
@@ -174,6 +238,8 @@ def main():
                 
         if arg == "players":
             pprint.PrettyPrinter(indent=2).pprint(getPlayers(data))
+        elif arg == "lobby":
+            pprint.PrettyPrinter(indent=2).pprint(getLobby(data))
         elif arg == "pprint":
             pprint.PrettyPrinter(indent=2).pprint(data)
         elif arg == "bo":
