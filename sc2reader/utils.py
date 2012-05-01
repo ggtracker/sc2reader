@@ -874,8 +874,10 @@ def get_lobby_properties(data):
             }
     
     lobby_ids = [k for k in defs if defs[k]['lobby_prop']]
+    lobby_ids.sort()
     player_ids = [k for k in defs if not defs[k]['lobby_prop']]
-    
+    player_ids.sort()
+
     left_lobby = deque([k for k in defs if defs[k]['lobby_prop']])
     
     lobby_props = dict()
@@ -906,8 +908,7 @@ def get_lobby_properties(data):
     player_props = [dict() for pid in range(16)]
     # Parse each player separately (this is required :( )
     for pid in range(16):
-        # The most required value, 500, is in the back, change this
-        left_players = deque(reversed([a for a in player_ids]))
+        left_players = deque([a for a in player_ids])
         player = dict()
         
         # Use this to avoid an infinite loop
