@@ -416,30 +416,6 @@ class GameSummary(Resource):
         'SB',
         'SRC',
         ]
-    lobby_keys = {
-        3000 : ('game_speed', GAME_SPEED_CODES),
-        2001 : ('game_type', GAME_FORMAT_CODES), #1v1/2v2/3v3/4v4/5v5/6v6/FFA
-        3010 : ('unknown1', {'sey':'yes', 'on':'no'} ), #yes/no
-        3006 : ('unknown2', {'3':'3','5':'5','7':'7','01':'10','51':'15','02':'20','52':'25','03':'30'}), #3',5/7/10/15/20/25/30
-        1001 : ('unknown3', {'sey':'yes', 'on':'no'}), #yes/no
-        1000 : ('unknown4', {'tlfD':'Default'}), #Dflt
-        2000 : ('unknown5', {'2t':'t2', '3t':'t3', 'AFF':'FFA', 'tsuC':'Custom'}), #t2/t3/FFA/Cust
-        3007 : ('unknown6', {'traP':'Part'}),
-        3009 : ('lobby_type', GAME_TYPE_CODES) #Priv/Pub/Amm (Auto MatchMaking)
-        }
-    lobby_player_keys = {
-        500 : ('slot_state', PLAYER_TYPE_CODES), #Clsd/Open/Humn/Comp
-        3001 : ('race', RACE_CODES),
-        3003 : ('energy', {'05':'50','06':'60','07':'70','08':'80','09':'90','001':'100'}),
-        3002 : ('color', TEAM_COLOR_CODES),
-        3004 : ('difficulty', DIFFICULTY_CODES),
-        3008 : ('nonplayer_mode', {'sbO':'Observer','feR':'Ref'}), #Obs/Ref        
-        
-        #Team properties
-        2012 : ('team_t3', {'1T':'T1', '2T':'T2', '3T':'T3'}),
-        
-        
-        }
     
     #: Game speed
     game_speed = str()
@@ -523,8 +499,10 @@ class GameSummary(Resource):
 
             player = PlayerSummary(player_struct[0][0])
             player.race = RACE_CODES[''.join(reversed(player_struct[2]))]
-            # I haven't found how to get the teams yet
-            player.teamid = 0
+            
+            # TODO: Grab team id from lobby_player_properties
+            player.teamid = 0 
+
             player.is_winner = (player_struct[1][0] == 0)
             if player.is_winner:
                 self.winners.append(player.pid)
@@ -585,9 +563,7 @@ class GameSummary(Resource):
             parsed_hash = utils.parse_hash(hash)
             self.image_urls.append(self.base_url_template.format(parsed_hash['server'], parsed_hash['hash'], parsed_hash['type']))
 
-
-        # Parse build orders
-        
+        # Parse build orders        
         bo_structs = [x[0] for x in self.parts[5:]]
         bo_structs.append(self.parts[4][0][3:])
 
