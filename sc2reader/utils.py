@@ -769,6 +769,8 @@ def parse_hash(hash_string):
         'hash' : ''.join([('%02x' % ord(x)) for x in hash]),
         'type' : hash_string[0:4]
         }
+def reverse_str(s):
+    return ''.join(reversed(s))
 def flip_int(num, b):
     """
     Flips the b first bytes in num
