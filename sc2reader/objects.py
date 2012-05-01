@@ -267,6 +267,9 @@ class PlayerSummary():
     #: If the player is a computer
     is_ai = False
 
+    #: If the player won the game
+    is_winner = False
+
     #: Battle.Net id of the player
     bnetid = int()
 

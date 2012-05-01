@@ -424,6 +424,7 @@ class GameSummary(Resource):
         1001 : ('unknown3', {'sey':'yes', 'on':'no'}), #yes/no
         1000 : ('unknown4', {'tlfD':'Default'}), #Dflt
         2000 : ('unknown5', {'2t':'t2', '3t':'t3', 'AFF':'FFA', 'tsuC':'Custom'}), #t2/t3/FFA/Cust
+        3007 : ('unknown6', {'traP':'Part'}),
         3009 : ('lobby_type', GAME_TYPE_CODES) #Priv/Pub/Amm (Auto MatchMaking)
         }
     lobby_player_keys = {
@@ -432,7 +433,12 @@ class GameSummary(Resource):
         3003 : ('energy', {'05':'50','06':'60','07':'70','08':'80','09':'90','001':'100'}),
         3002 : ('color', TEAM_COLOR_CODES),
         3004 : ('difficulty', DIFFICULTY_CODES),
-        3008 : ('nonplayer_mode', {'sbO':'Observer','feR':'Ref'}) #Obs/Ref        
+        3008 : ('nonplayer_mode', {'sbO':'Observer','feR':'Ref'}), #Obs/Ref        
+        
+        #Team properties
+        2012 : ('team_t3', {'1T':'T1', '2T':'T2', '3T':'T3'}),
+        
+        
         }
     
     #: Game speed
@@ -446,6 +452,9 @@ class GameSummary(Resource):
 
     #: Lobby properties
     lobby_properties = dict()
+    
+    #: Lobby player properties
+    lobby_player_properties = dict()
 
     #: Game completion time
     time = int()
@@ -455,6 +464,9 @@ class GameSummary(Resource):
 
     #: Teams, a dict of pids
     teams = dict()
+
+    #: Winners, a list of the pids of the winning players
+    winners = list()
 
     #: Build orders, a dict of build orders indexed by player id
     build_orders = dict()
@@ -473,7 +485,9 @@ class GameSummary(Resource):
         self.image_urls = list()
         self.localization_urls = dict()
         self.lobby_properties = dict()
+        self.lobby_player_properties = dict()
         self.teams = dict()
+        self.winners = list()
 
         self.data = zlib.decompress(summary_file.read()[16:])
         self.parts = list()
@@ -497,24 +511,7 @@ class GameSummary(Resource):
         self.game_length = self.game_length_ingame / GAME_SPEED_FACTOR[self.game_speed]
 
         # parse lobby properties
-        lobby_template = dict()
-        for prop in self.parts[0][5]:
-            if not prop[0][1] in self.lobby_keys:
-                continue
-            lobby_template[prop[0][1]] = [o[0].strip('\x00') for o in prop[1]]
-        for prop in self.parts[0][6][6]:
-            if not prop[0][1] in lobby_template:
-                continue
-            key = self.lobby_keys[prop[0][1]][0]
-            val = lobby_template[prop[0][1]][prop[1][0]]
-            self.lobby_properties[key] = self.lobby_keys[prop[0][1]][1][utils.reverse_str(val)]
-
-        # Prepare player lobby properties
-        lobby_player_template =  dict()
-        for prop in self.parts[0][5]:
-            if not prop[0][1] in self.lobby_player_keys:
-                continue
-            lobby_player_template[prop[0][1]] = [o[0].strip().strip('\x00') for o in prop[1]]
+        (self.lobby_properties, self.lobby_player_properties) = utils.get_lobby_properties(self.parts)
 
         # Parse player structs, 16 is the maximum amount of players
         for i in range(16):
@@ -526,7 +523,11 @@ class GameSummary(Resource):
 
             player = PlayerSummary(player_struct[0][0])
             player.race = RACE_CODES[''.join(reversed(player_struct[2]))]
-            player.teamid = player_struct[1][0]
+            # I haven't found how to get the teams yet
+            player.teamid = 0
+            player.is_winner = (player_struct[1][0] == 0)
+            if player.is_winner:
+                self.winners.append(player.pid)
 
             # Is the player an ai?
             if type(player_struct[0][1]) == type(int()):
@@ -544,21 +545,11 @@ class GameSummary(Resource):
                 # { 0: 3405691582L, 1: 11402158793782460416L}
                 player.unknown2 = player_struct[0][1][1]
             
-            # Parse lobby properties
-            player.lobby_properties = dict()
-            for prop in self.parts[0][6][6]:
-                if not prop[0][1] in lobby_player_template:
-                    continue
-                key = self.lobby_player_keys[prop[0][1]][0]
-                val = lobby_player_template[prop[0][1]][prop[1][player.pid][0]]
-                player.lobby_properties[key] = self.lobby_player_keys[prop[0][1]][1][utils.reverse_str(val)]
-
             self.players[player.pid] = player
             if not player.teamid in self.teams:
                 self.teams[player.teamid] = list()
             self.teams[player.teamid].append(player.pid)
             
-
         # Parse graph and stats stucts, for each player
         for pid in self.players:
             p = self.players[pid]
@@ -631,7 +622,9 @@ class GameSummary(Resource):
                                          int(self.game_length)/3600,
                                          (int(self.game_length)%3600)/60,
                                          (int(self.game_length)%3600)%60,
-                                         ''.join(self.players[p].race[0] for p in self.players))
+                                         'v'.join(''.join(self.players[p].race[0] for p in self.teams[tid]) for tid in self.teams))
+
+    
 
 class MapInfo(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mi'
