@@ -363,6 +363,9 @@ class Replay(Resource):
                 if listener.accepts(event):
                     listener(event, self)
 
+        for listener in self.listeners:
+            listener.finish(self)
+
 
 class Map(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'

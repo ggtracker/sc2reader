@@ -22,5 +22,8 @@ class APMTracker(ListenerBase):
             # Count up the APS, APM
             minute =  event.second/60.0
             player.aps[event.second] += 1
-            player.apm[int(minutes)] += 1
-            player.avg_apm = sum(player.apm.values())/minutes
+            player.apm[int(minute)] += 1
+
+    def finish(self, replay):
+        for player in replay.players:
+            player.avg_apm = sum(player.apm.values())/len(player.apm.keys())
