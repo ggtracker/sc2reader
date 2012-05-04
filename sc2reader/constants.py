@@ -180,7 +180,7 @@ LOBBY_PROPERTY_NAMES = {
     3002 : 'Color',          #tc01/tc02/tc03/tc04/tc05/tc06/tc07/tc08
     3003 : 'Handicap',       #50/60/70/80/90/100
     3004 : 'Difficulty',     #VyEy/Easy/Medi/Hard/VyHd/Insa
-    3006 : 'unknown2',       #3/5/7/10/15/20/25/30   (stalemate timer?)
+    3006 : 'Game countdown', #3/5/7/10/15/20/25/30   (countdown timer in lobby (seconds))
     3007 : 'Player mode',    #Part/Watch     (Participating/Watching) Watch->3008
     3008 : 'Spectate mode',  #Obs/Ref
     3009 : 'Lobby type',     #Priv/Pub/Amm
