@@ -551,7 +551,9 @@ class Data_17326(BaseData):
     class Baneling(Moveable, Attacker):
         abilities = {
             0x003500: 'Explode',
-            0x011d00: 'Attack Structure'
+            0x011d00: 'Attack Structure',
+            0x21c00: 'Enable Building Attack',
+            0x0: 'Disable Building Attack',
         }
 
     @Burrows(0x023a00, 0x023b00)
