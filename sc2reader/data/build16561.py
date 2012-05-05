@@ -508,6 +508,7 @@ class Data_16561(BaseData):
     class Drone(Worker):
         abilities = {
             0x0: 'Return cargo',
+            0x0: 'Gather resources',
             0x0: 'Burrow',
             0x0: 'Hatchery',
             0x0: 'Spawning Pool',
@@ -541,7 +542,9 @@ class Data_16561(BaseData):
     class Baneling(Moveable, Attacker):
         abilities = {
             0x0: 'Explode',
-            0x0: 'Attack Structure'
+            0x0: 'Attack Structure',
+            0x0: 'Enable Building Attack',
+            0x0: 'Disable Building Attack',
         }
 
     @Burrows(0x0, 0x0)
