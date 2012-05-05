@@ -552,7 +552,7 @@ class Data_17326(BaseData):
         abilities = {
             0x003500: 'Explode',
             0x011d00: 'Attack Structure',
-            0x21c00: 'Enable Building Attack',
+            0x0: 'Enable Building Attack',
             0x0: 'Disable Building Attack',
         }
 

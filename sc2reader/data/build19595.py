@@ -658,8 +658,8 @@ class Data_19595(BaseData):
         abilities = {
             0x3600: 'Explode',
             0x5e40: 'Attack Structure',
-            0x0: 'Attack Structure',
             0x21c00: 'Enable Building Attack',
+            0x0: 'Disable Building Attack',
         }
 
     @Burrows(0x13b00, 0x13c00)
