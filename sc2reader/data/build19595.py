@@ -190,7 +190,7 @@ class Data_19595(BaseData):
 
     @Lifts(0x10300, 0x10420)
     @Lifts(0x0, 0x104a0)
-    @Transports(0x10201, None, 0x10623, 0x10204)
+    @Transports(0x10201, None, 0x10263, 0x10204)
     class CommandCenter(TerranMain, Production):
         pass
 
