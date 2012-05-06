@@ -138,7 +138,7 @@ class AbilityEvent(PlayerActionEvent):
                 self.logger.error("Release String: "+replay.release_string)
                 for player in replay.players:
                     self.logger.error("\t"+str(player))
-            self.logger.error("{0}\t{1}\tMissing ability {2} from {3}".format(self.frame, self.player.name, hex(self.ability_code), replay.datapack.__class__.__name__))
+            self.logger.error("{0} ({1})\t{2}\tMissing ability {3} from {4}".format(self.time, self.frame, self.player.name, hex(self.ability_code), replay.datapack.__class__.__name__))
             self.ability = "UNKNOWN"
         else:
             self.ability = replay.datapack.abilities[self.ability_code]
