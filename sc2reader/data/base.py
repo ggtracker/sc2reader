@@ -320,6 +320,9 @@ class BaseData(object):
     class Archon(Protoss, Moveable, Attacker):
         code = 0xa801
 
+    class ArchonHallucinated(Protoss, Moveable, Attacker):
+        code = 0xa802
+
     class Colossus(Protoss, Moveable, Attacker):
         code = 0x1d01
 
