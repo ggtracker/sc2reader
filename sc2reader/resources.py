@@ -8,10 +8,12 @@ import time
 from StringIO import StringIO
 from collections import defaultdict
 
+import urllib2
 from mpyq import MPQArchive
 
 from sc2reader import utils
 from sc2reader import log_utils
+from sc2reader import readers, data
 from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, GAME_SPEED_CODES, RACE_CODES, PLAYER_TYPE_CODES, TEAM_COLOR_CODES, GAME_FORMAT_CODES, GAME_TYPE_CODES, DIFFICULTY_CODES
 
@@ -107,14 +109,10 @@ class Replay(Resource):
     #: If there is a valid winning team this will contain a :class:`Team` otherwise it will be :class:`None`
     winner = None
 
-    def __init__(self, replay_file, filename=None, **options):
+    def __init__(self, replay_file, filename=None, load_level=4, **options):
         super(Replay, self).__init__(replay_file, filename, **options)
         self.datapack = None
         self.raw_data = dict()
-        self.listeners = defaultdict(list)
-
-        self.__dict__.update(utils.read_header(replay_file))
-        self.archive = utils.open_archive(replay_file)
 
         #default values, filled in during file read
         self.player_names = list()
@@ -144,26 +142,52 @@ class Replay(Resource):
 
         self.objects = {}
 
+        # Bootstrap the readers.
+        self.registered_readers = defaultdict(list)
+        self.register_default_readers()
 
-    def add_listener(self, event_class, listener):
-        self.listeners[event_class].append(listener)
+        # Bootstrap the datapacks.
+        self.registered_datapacks= list()
+        self.register_default_datapacks()
 
-    def read_data(self, data_file, reader):
-        data = utils.extract_data_file(data_file,self.archive)
-        if data:
-            data_buffer = utils.ReplayBuffer(data)
-            self.raw_data[data_file] = reader(data_buffer, self)
-        elif self.opt.debug and data_file != 'replay.message.events':
-            raise ValueError("{0} not found in archive".format(data_file))
-        else:
-            self.logger.error("{0} not found in archive".format(data_file))
+        # Unpack the MPQ and read header data if requested
+        if load_level >= 0:
+            self.__dict__.update(utils.read_header(replay_file))
+            self.archive = utils.open_archive(replay_file)
+
+        # Load basic details if requested
+        if load_level >= 1:
+            for data_file in ('replay.initData','replay.details','replay.attributes.events'):
+                self._read_data(data_file, self._get_reader(data_file))
+            self.load_details()
+            self.datapack = self._get_datapack()
+
+            # Can only be effective if map data has been loaded
+            if options.get('load_map', False):
+                map_url = Map.get_url(self.gateway, self.map_hash)
+                print map_url
+                map_file = StringIO(urllib2.urlopen(map_url).read())
+                replay.map = Map(map_file, filename=self.map, gateway=self.gateway, map_hash=self.map_hash)
+
+
+        # Load players if requested
+        if load_level >= 2:
+            for data_file in ('replay.message.events'):
+                self._read_data(data_file, self._get_reader(data_file))
+            self.load_players()
+
+        # Load events if requested
+        if load_level >= 3:
+            for data_file in ('replay.game.events'):
+                self._read_data(data_file, self._get_reader(data_file))
+            self.load_events()
 
     def load_details(self):
         if 'replay.initData' in self.raw_data:
             initData = self.raw_data['replay.initData']
             if initData.map_data:
                 self.gateway = initData.map_data[0].gateway
-                self.map_hash = initData.map_data[-1].map_hash
+                self.map_hash = initData.map_data[-1].map_hash.encode('hex')
 
                 #Expand this special case mapping
                 if self.gateway == 'sg':
@@ -331,9 +355,7 @@ class Replay(Resource):
         hash_input = self.gateway+":"+','.join(player_names)
         self.people_hash = hashlib.sha256(hash_input).hexdigest()
 
-    def load_events(self, datapack=None):
-        self.datapack = datapack
-
+    def load_events(self):
         # Copy the events over
         # TODO: the events need to be fixed both on the reader and processor side
         if 'replay.game.events' in self.raw_data:
@@ -353,18 +375,88 @@ class Replay(Resource):
             if event.pid != 16:
                 self.person[event.pid].events.append(event)
 
+    def register_reader(self, data_file, reader, filterfunc=lambda r: True):
+        """
+        Allows you to specify your own reader for use when reading the data
+        files packed into the .SC2Replay archives. Datapacks are checked for
+        use with the supplied filterfunc in reverse registration order to give
+        user registered datapacks preference over factory default datapacks.
 
-    def start(self):
-        self.stopped = False
+        Don't use this unless you know what you are doing.
 
-        for listener in self.listeners:
-            listener.setup(self)
+        :param data_file: The full file name that you would like this reader to
+            parse.
 
-        for event in self.events:
-            for listener in self.listeners:
-                if listener.accepts(event):
-                    listener(event, self)
+        :param reader: The :class:`Reader` object you wish to use to read the
+            data file.
 
+        :param filterfunc: A function that accepts a partially loaded
+            :class:`Replay` object as an argument and returns true if the
+            reader should be used on this replay.
+        """
+        self.registered_readers[data_file].insert(0,(filterfunc, reader))
+
+    def register_datapack(self, datapack, filterfunc=lambda r: True):
+        """
+        Allows you to specify your own datapacks for use when loading replays.
+        Datapacks are checked for use with the supplied filterfunc in reverse
+        registration order to give user registered datapacks preference over
+        factory default datapacks.
+
+        This is how you would add mappings for your favorite custom map.
+
+        :param datapack: A :class:`BaseData` object to use for mapping unit
+            types and ability codes to their corresponding classes.
+
+        :param filterfunc: A function that accepts a partially loaded
+            :class:`Replay` object as an argument and returns true if the
+            datapack should be used on this replay.
+        """
+        self.registered_datapacks.insert(0,(filterfunc, datapack))
+
+
+    # Override points
+    def register_default_readers(self):
+        """Registers factory default readers."""
+        self.register_reader('replay.details', readers.DetailsReader_Base())
+        self.register_reader('replay.initData', readers.InitDataReader_Base())
+        self.register_reader('replay.message.events', readers.MessageEventsReader_Base())
+        self.register_reader('replay.attributes.events', readers.AttributesEventsReader_Base(), lambda r: r.build <  17326)
+        self.register_reader('replay.attributes.events', readers.AttributesEventsReader_17326(), lambda r: r.build >= 17326)
+        self.register_reader('replay.game.events', readers.GameEventsReader_Base(), lambda r: r.build <  16561)
+        self.register_reader('replay.game.events', readers.GameEventsReader_16561(), lambda r: 16561 <= r.build < 18574)
+        self.register_reader('replay.game.events', readers.GameEventsReader_18574(), lambda r: 18574 <= r.build < 19595)
+        self.register_reader('replay.game.events', readers.GameEventsReader_19595(), lambda r: 19595 <= r.build)
+
+    def register_default_datapacks(self):
+        """Registers factory default datapacks."""
+        self.register_datapack(data.Data_16561, lambda r: 16561 <= r.build < 17326)
+        self.register_datapack(data.Data_17326, lambda r: 17326 <= r.build < 18317)
+        self.register_datapack(data.Data_18317, lambda r: 18317 <= r.build < 19595)
+        self.register_datapack(data.Data_19595, lambda r: 19595 <= r.build)
+
+
+    # Internal Methods
+    def _get_reader(self, data_file):
+        for callback, reader in self.registered_readers[data_file]:
+            if callback(self):
+                return reader
+
+    def _get_datapack(self):
+        for callback, datapack in self.registered_datapacks:
+            if callback(self):
+                return datapack
+        return None
+
+    def _read_data(self, data_file, reader):
+        data = utils.extract_data_file(data_file,self.archive)
+        if data:
+            data_buffer = utils.ReplayBuffer(data)
+            self.raw_data[data_file] = reader(data_buffer, self)
+        elif self.opt.debug and data_file != 'replay.message.events':
+            raise ValueError("{0} not found in archive".format(data_file))
+        else:
+            self.logger.error("{0} not found in archive".format(data_file))
 
 class Map(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
