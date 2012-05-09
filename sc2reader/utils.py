@@ -692,35 +692,41 @@ def merged_dict(a, b):
     c.update(b)
     return c
 
-def extension_filter(filename, extensions):
+def extension_filter(filename, extension):
     name, ext = os.path.splitext(filename)
-    return ext.lower() in extensions
+    return ext.lower()[1:] == extension.lower()
 
-import functools
-def get_files(path, extensions=['.sc2replay'], exclude=[], depth=-1, followlinks=False, **extras):
-    #os.walk and os.path.isfile fail silently. We want to be loud!
+def get_files(path, exclude=list(), depth=-1, followlinks=False, extension=None, **extras):
+    # os.walk and os.path.isfile fail silently. We want to be loud!
     if not os.path.exists(path):
         raise ValueError("Location `{0}` does not exist".format(path))
 
-    filtr_func = functools.partial(extension_filter, extensions=extensions)
+    # If an extension is supplied, use it to do a type check
+    if extension == None:
+        type_check = lambda n: True
+    else:
+        type_check = functools.partial(extension_filter, extension=extension)
 
     # os.walk can't handle file paths, only directories
     if os.path.isfile(path):
-        return [path] if filtr_func(path) else []
+        if type_check(path):
+            yield path
+        else:
+            pass # return and halt the generator
 
-    files = list()
-    for root, directories, filenames in os.walk(path, followlinks=followlinks):
-        # Exclude the indicated directories by removing them from `directories`
-        for directory in list(directories):
-            if directory in exclude or depth == 0:
-                directories.remove(directory)
+    else:
+        for root, directories, filenames in os.walk(path, followlinks=followlinks):
+            # Exclude the indicated directories by removing them from `directories`
+            for directory in list(directories):
+                if directory in exclude or depth == 0:
+                    directories.remove(directory)
 
-        # Extend our return value only with the allowed file type and regex
-        allowed_files = filter(filtr_func, filenames)
-        files.extend(os.path.join(root, filename) for filename in allowed_files)
-        depth -= 1
+            # Extend our return value only with the allowed file type and regex
+            for filename in filter(type_check, filenames):
+                yield os.path.join(root, filename)
 
-    return files
+            depth -= 1
+
 
 def get_unit(type_int):
     """
