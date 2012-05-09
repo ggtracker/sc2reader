@@ -739,13 +739,13 @@ def get_unit(type_int):
     except:
         #Nope, create
         data_obj = Data()
-    
+
     # Try to parse a unit
     try:
         unit = data_obj.type(((type_int & 0xff) << 8) | 0x01)
     except:
         unit = None
-    
+
     return {
         'name': unit.name if unit else "Unknown unit ({})".format(hex(type_int)) ,
         'type_int':hex(type_int)
@@ -772,7 +772,7 @@ def parse_hash(hash_string):
     server = hash_string[6:8]
     hash = hash_string[8:]
     return {
-        'server': server, 
+        'server': server,
         'hash' : ''.join([('%02x' % ord(x)) for x in hash]),
         'type' : hash_string[0:4]
         }
@@ -826,24 +826,24 @@ class Length(timedelta):
 def get_lobby_properties(data):
     ###
     # The definition of each lobby property is in data[0][5] with the structure
-    # 
-    # id = def[0][1] # The unique property id  
+    #
+    # id = def[0][1] # The unique property id
     # vals = def[1]  # A list with the values the property can be
     # reqs = def[3]  # A list of requirements the property has
     # dflt = def[8]  # The default value(s) of the property
     #                this is a single entry for a global property
     #                and a list() of entries for a player property
-    
+
     # The def-values is structured like this
     #
     # id = `the index in the vals list`
     # name = v[0]    # The name of the value
-    
+
     # The requirement structure looks like this
-    # 
+    #
     # id = r[0][1][1] # The property id of this requirement
     # vals = r[1]     # A list of names of valid values for this requirement
-    
+
     ###
     # The values of each property is in data[0][6][6] with the structure
     #
@@ -856,7 +856,7 @@ def get_lobby_properties(data):
     # A value-entry looks like this
     #
     # index = v[0]  # The index in the def.vals array representing the value
-    # unknown = v[1] 
+    # unknown = v[1]
 
     # First get the definitions in data[0][5]
     defs = dict()
@@ -867,7 +867,7 @@ def get_lobby_properties(data):
             'vals':d[1],
             'reqs':d[3],
             'dflt':d[8],
-            'lobby_prop':type(d[8]) == type(dict()) 
+            'lobby_prop':type(d[8]) == type(dict())
             }
     vals = dict()
 
@@ -878,14 +878,14 @@ def get_lobby_properties(data):
             'id':k,
             'vals':v[1]
             }
-    
+
     lobby_ids = [k for k in defs if defs[k]['lobby_prop']]
     lobby_ids.sort()
     player_ids = [k for k in defs if not defs[k]['lobby_prop']]
     player_ids.sort()
 
     left_lobby = deque([k for k in defs if defs[k]['lobby_prop']])
-    
+
     lobby_props = dict()
     # We cycle through all property values 'til we're done
     while len(left_lobby) > 0:
@@ -900,7 +900,7 @@ def get_lobby_properties(data):
                 break
             # Is this requirement fullfilled?
             active = active and (lobby_props[req[0][1][1]] in req[1])
-            
+
         if not can_be_parsed:
             # Try parse this later
             left_lobby.append(propid)
@@ -916,7 +916,7 @@ def get_lobby_properties(data):
     for pid in range(16):
         left_players = deque([a for a in player_ids])
         player = dict()
-        
+
         # Use this to avoid an infinite loop
         last_success = 0
         max = len(left_players)
@@ -935,7 +935,7 @@ def get_lobby_properties(data):
                     if not can_be_parsed:
                         break
                     active = active and (player[req[0][1][1]] in req[1])
-                
+
             if not can_be_parsed:
                 left_players.append(propid)
                 continue
@@ -946,4 +946,4 @@ def get_lobby_properties(data):
 
         player_props[pid] = player
 
-    return (lobby_props, player_props) 
+    return (lobby_props, player_props)

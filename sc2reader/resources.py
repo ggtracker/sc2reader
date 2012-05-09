@@ -508,7 +508,7 @@ class GameSummary(Resource):
         'SB',
         'SRC',
         ]
-    
+
     #: Game speed
     game_speed = str()
 
@@ -520,7 +520,7 @@ class GameSummary(Resource):
 
     #: Lobby properties
     lobby_properties = dict()
-    
+
     #: Lobby player properties
     lobby_player_properties = dict()
 
@@ -544,7 +544,7 @@ class GameSummary(Resource):
 
     #: Map localization urls
     localization_urls = dict()
-    
+
     def __init__(self, summary_file, filename=None, **options):
         super(GameSummary, self).__init__(summary_file, filename,**options)
 
@@ -571,7 +571,7 @@ class GameSummary(Resource):
         # { 0: 11987, 1: 283385849, 2: 1334719793L}
         # 0, 1 might be an adjustment of some sort
         self.unknown_time = self.parts[0][2][2]
-        
+
         # this one is alone
         self.time = self.parts[0][8]
 
@@ -591,9 +591,9 @@ class GameSummary(Resource):
 
             player = PlayerSummary(player_struct[0][0])
             player.race = RACE_CODES[''.join(reversed(player_struct[2]))]
-            
+
             # TODO: Grab team id from lobby_player_properties
-            player.teamid = 0 
+            player.teamid = 0
 
             player.is_winner = (player_struct[1][0] == 0)
             if player.is_winner:
@@ -604,7 +604,7 @@ class GameSummary(Resource):
                 player.is_ai = True
             else:
                 player.is_ai = False
-                
+
                 player.bnetid = player_struct[0][1][0][3]
                 player.subregion = player_struct[0][1][0][2]
 
@@ -614,12 +614,12 @@ class GameSummary(Resource):
                 # Example:
                 # { 0: 3405691582L, 1: 11402158793782460416L}
                 player.unknown2 = player_struct[0][1][1]
-            
+
             self.players[player.pid] = player
             if not player.teamid in self.teams:
                 self.teams[player.teamid] = list()
             self.teams[player.teamid].append(player.pid)
-            
+
         # Parse graph and stats stucts, for each player
         for pid in self.players:
             p = self.players[pid]
@@ -629,7 +629,7 @@ class GameSummary(Resource):
 
             xy = [(o[2], o[0]) for o in self.parts[4][0][1][1][p.pid]]
             p.income_graph = Graph([], [], xy_list=xy)
-            
+
             # Stats stuff
             stats_struct = self.parts[3][0]
             # The first group of stats is located in parts[3][0]
@@ -637,7 +637,7 @@ class GameSummary(Resource):
                 p.stats[self.stats_keys[i]] = stats_struct[i][1][p.pid][0][0]
             # The last piece of stats is in parts[4][0][0][1]
             p.stats[self.stats_keys[len(stats_struct)]] = self.parts[4][0][0][1][p.pid][0][0]
-        
+
         # Parse map localization data
         for l in self.parts[0][6][8]:
             lang = l[0]
@@ -647,7 +647,7 @@ class GameSummary(Resource):
                 if parsed_hash['server'] == '\x00\x00':
                     continue
                 urls.append(self.base_url_template.format(parsed_hash['server'], parsed_hash['hash'], parsed_hash['type']))
-                    
+
             self.localization_urls[lang] = urls
 
         # Parse map images
@@ -655,7 +655,7 @@ class GameSummary(Resource):
             parsed_hash = utils.parse_hash(hash)
             self.image_urls.append(self.base_url_template.format(parsed_hash['server'], parsed_hash['hash'], parsed_hash['type']))
 
-        # Parse build orders        
+        # Parse build orders
         bo_structs = [x[0] for x in self.parts[5:]]
         bo_structs.append(self.parts[4][0][3:])
 
@@ -665,14 +665,14 @@ class GameSummary(Resource):
             bo = list()
             for bo_struct in bo_structs:
                 for order in bo_struct:
-                    
+
                     if order[0][1] >> 24 == 0x01:
                         # unit
                         parsed_order = utils.get_unit(order[0][1])
                     elif order[0][1] >> 24 == 0x02:
                         # research
                         parsed_order = utils.get_research(order[0][1])
-                    
+
                     for entry in order[1][p.pid]:
                         bo.append({
                                 'supply' : entry[0],
@@ -683,7 +683,7 @@ class GameSummary(Resource):
                                 })
             bo.sort(key=lambda x: x['build_index'])
             self.build_orders[p.pid] = bo
-                        
+
 
     def __str__(self):
         return "{} - {:0>2}:{:0>2}:{:0>2} {}".format(time.ctime(self.time),
@@ -692,7 +692,7 @@ class GameSummary(Resource):
                                          (int(self.game_length)%3600)%60,
                                          'v'.join(''.join(self.players[p].race[0] for p in self.teams[tid]) for tid in self.teams))
 
-    
+
 
 class MapInfo(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mi'
@@ -734,7 +734,7 @@ class MapHeader(Resource):
 
     #: Link to the map file
     map_url = str()
-    
+
     #: Hash of the map image
     image_hash = str()
 
@@ -756,17 +756,17 @@ class MapHeader(Resource):
 
         # Blizzard
         self.blizzard = (self.data[0][11] == 'BLIZ')
-        
+
         # Parse image hash
         parsed_hash = utils.parse_hash(self.data[0][1])
         self.image_hash = parsed_hash['hash']
         self.image_url = self.image_url_template.format(parsed_hash['server'], parsed_hash['hash'])
-        
+
         # Parse map hash
         parsed_hash = utils.parse_hash(self.data[0][2])
         self.map_hash = parsed_hash['hash']
         self.map_url = self.base_url_template.format(parsed_hash['server'], parsed_hash['hash'], parsed_hash['type'])
-        
+
         # Parse localization hashes
         l18n_struct = self.data[0][4][8]
         for l in l18n_struct:
