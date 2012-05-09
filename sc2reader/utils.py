@@ -728,72 +728,6 @@ def get_files(path, exclude=list(), depth=-1, followlinks=False, extension=None,
             depth -= 1
 
 
-def get_unit(type_int):
-    """
-    Takes an int, i, with (i & 0xff000000) = 0x01000000
-    and returns the corresponding unit/structure
-    """
-    # Test if we have used data_obj before
-    try:
-        data_obj
-    except:
-        #Nope, create
-        data_obj = Data()
-
-    # Try to parse a unit
-    try:
-        unit = data_obj.type(((type_int & 0xff) << 8) | 0x01)
-    except:
-        unit = None
-
-    return {
-        'name': unit.name if unit else "Unknown unit ({})".format(hex(type_int)) ,
-        'type_int':hex(type_int)
-        }
-def get_research(type_int):
-    """
-    Takes an int, i, with (i & 0xff000000) = 0x02000000
-    and returns the corresponding research/upgrade
-    """
-    t = ((type_int & 0xff) << 8) | 0x02
-    return {
-        'name': BUILD_ORDER_UPGRADES[t] if t in BUILD_ORDER_UPGRADES else "Unknown upgrade ({})".format(hex(t)),
-        'type_int': hex(type_int)}
-
-def parse_hash(hash_string):
-    """
-    Parse a hash to useful data
-    {
-    'server',
-    'hash',
-    'type'
-    }
-    """
-    server = hash_string[6:8]
-    hash = hash_string[8:]
-    return {
-        'server': server,
-        'hash' : ''.join([('%02x' % ord(x)) for x in hash]),
-        'type' : hash_string[0:4]
-        }
-def reverse_str(s):
-    return ''.join(reversed(s))
-def flip_int(num, b):
-    """
-    Flips the b first bytes in num
-    Example:
-    (0x12345, 3) -> 0x452301
-    (0x00112233, 4) -> 0x33221100
-    """
-    o = 0
-    for i in range(b/2):
-        o |= ((num & (0xff << i*8)) << (b-(2*i+1))*8)
-        o |= ((num & (0xff << (b-(i+1))*8)) >> (b-(2*i+1)) * 8)
-    if b % 2 == 1:
-        o |= (num & (0xff << (b/2)*8))
-    return o
-
-
 class Length(timedelta):
     """
         Extends the builtin timedelta class. See python docs for more info on
@@ -947,3 +881,40 @@ def get_lobby_properties(data):
         player_props[pid] = player
 
     return (lobby_props, player_props)
+
+def get_unit(type_int):
+    """
+    Takes an int, i, with (i & 0xff000000) = 0x01000000
+    and returns the corresponding unit/structure
+    """
+    # Try to parse a unit
+    unit_code = ((type_int & 0xff) << 8) | 0x01
+    if unit_code in Data.types:
+        unit_name = Data.type(unit_code).name
+    else:
+        unit_name = "Unknown Unit ({0:X})".format(type_int)
+
+    return dict(name=unit_name, type_int=hex(type_int))
+
+
+def get_research(type_int):
+    """
+    Takes an int, i, with (i & 0xff000000) = 0x02000000
+    and returns the corresponding research/upgrade
+    """
+    research_code = ((type_int & 0xff) << 8) | 0x02
+    if research_code in BUILD_ORDER_UPGRADES:
+        research_name = BUILD_ORDER_UPGRADES[research_code]
+    else:
+        "Unknown upgrade ({0:X})".format(research_code)
+
+    return dict(name=research_name, type_int=hex(type_int))
+
+def parse_hash(hash_string):
+    """Parse a hash to useful data"""
+    # TODO: this could be used when processing replays.initData as well
+    return {
+        'server': hash_string[4:8].strip(),
+        'hash' : hash_string[8:].encode('hex'),
+        'type' : hash_string[0:4]
+        }
