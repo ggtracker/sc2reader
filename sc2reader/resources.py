@@ -165,9 +165,8 @@ class Replay(Resource):
             # Can only be effective if map data has been loaded
             if options.get('load_map', False):
                 map_url = Map.get_url(self.gateway, self.map_hash)
-                print map_url
                 map_file = StringIO(urllib2.urlopen(map_url).read())
-                replay.map = Map(map_file, filename=self.map, gateway=self.gateway, map_hash=self.map_hash)
+                self.map = Map(map_file, filename=self.map, gateway=self.gateway, map_hash=self.map_hash)
 
 
         # Load players if requested
@@ -466,7 +465,7 @@ class Map(Resource):
         self.hash = map_hash
         self.gateway = gateway
         self.url = Map.get_url(gateway, map_hash)
-        self.archive = MPQArchive(StringIO(map_file))
+        self.archive = MPQArchive(map_file)
         self.minimap = self.archive.read_file('Minimap.tga')
 
     @classmethod
