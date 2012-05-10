@@ -907,7 +907,7 @@ def get_research(type_int):
     if research_code in BUILD_ORDER_UPGRADES:
         research_name = BUILD_ORDER_UPGRADES[research_code]
     else:
-        "Unknown upgrade ({0:X})".format(research_code)
+        research_name = "Unknown upgrade ({0:X})".format(research_code)
 
     return dict(name=research_name, type_int=hex(type_int))
 
