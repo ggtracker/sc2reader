@@ -100,28 +100,32 @@ class SC2Factory(object):
     def reset(self):
         self.options = defaultdict(dict)
 
-    def register_plugin(self, cls, *plugins):
+    def register_plugin(self, cls, plugin):
         if isinstance(cls, basestring):
             cls = self._resource_name_map.get(cls.lower(),Resource)
-        self.plugins.extend(zip([cls]*len(plugins), plugins))
+        self.plugins.append((cls, plugin))
 
 
     # Support Functions
     def load(self, cls, source, options=None, **new_options):
         options = options or self._get_options(cls, **new_options)
         resource, filename = self._load_resource(source, options=options)
-        obj = cls(resource, filename=filename, **options)
-        for plugin in options.get('plugins',self._get_plugins(cls)):
-            obj = plugin(obj)
-        return obj
+        return self._load(cls, resource, filename=filename, options=options)
 
     def load_all(self, cls, sources, options=None, **new_options):
         options = options or self._get_options(cls, **new_options)
-        for source in self.load_resources(sources, options=options):
-            yield self.load(cls, source, options=options)
+        for resource, filename in self._load_resources(sources, options=options):
+            yield self._load(cls, resource, filename=filename, options=options)
 
 
     # Internal Functions
+    def _load(self, cls, resource, filename, options):
+        obj = cls(resource, filename=filename, **options)
+        for plugin in options.get('plugins',self._get_plugins(cls)):
+            # TODO: What if you want to do a transform?
+            plugin(obj)
+        return obj
+
     def _get_plugins(self, cls):
         plugins = list()
         for ext_cls, plugin in self.plugins:
@@ -137,7 +141,7 @@ class SC2Factory(object):
         options.update(new_options)
         return options
 
-    def _load_resources(self, resources, resource_loader, options=None, **new_options):
+    def _load_resources(self, resources, options=None, **new_options):
         """Collections of resources or a path to a directory"""
         options = options or self._get_options(Resource, **new_options)
 
@@ -151,7 +155,7 @@ class SC2Factory(object):
     def _load_resource(self, resource, options=None, **new_options):
         """http links, filesystem locations, and file-like objects"""
         options = options or self._get_options(Resource, **new_options)
-
+        print resource
         if isinstance(resource, basestring):
             if re.match(r'https?://',resource):
                 self.logger.info("Fetching remote resource: "+resource)

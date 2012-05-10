@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 # import submodules
-from sc2reader import listeners, data, scripts
+from sc2reader import plugins, data, scripts
 
 from sc2reader import factories, log_utils
 

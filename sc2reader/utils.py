@@ -8,6 +8,7 @@ import struct
 import textwrap
 import sys
 import mpyq
+import functools
 from itertools import groupby
 from datetime import timedelta
 from collections import deque
