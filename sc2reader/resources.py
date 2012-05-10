@@ -547,14 +547,16 @@ class GameSummary(Resource):
     def __init__(self, summary_file, filename=None, **options):
         super(GameSummary, self).__init__(summary_file, filename,**options)
 
-        self.players = dict()
+        self.team = dict()
+        self.teams = list()
+        self.players = list()
+        self.winners = list()
+        self.player = dict()
         self.build_orders = dict()
         self.image_urls = list()
         self.localization_urls = dict()
         self.lobby_properties = dict()
         self.lobby_player_properties = dict()
-        self.teams = dict()
-        self.winners = list()
 
         self.data = zlib.decompress(summary_file.read()[16:])
         self.parts = list()
@@ -614,14 +616,18 @@ class GameSummary(Resource):
                 # { 0: 3405691582L, 1: 11402158793782460416L}
                 player.unknown2 = player_struct[0][1][1]
 
-            self.players[player.pid] = player
+            self.players.append(player)
+            self.player[player.pid] = player
+
             if not player.teamid in self.teams:
-                self.teams[player.teamid] = list()
-            self.teams[player.teamid].append(player.pid)
+                self.team[player.teamid] = list()
+            self.team[player.teamid].append(player.pid)
+        self.teams = [self.team[tid] for tid in sorted(self.team.keys())]
+
 
         # Parse graph and stats stucts, for each player
-        for pid in self.players:
-            p = self.players[pid]
+        for pid, p in self.player.items():
+            print type(pid), type(p)
             # Graph stuff
             xy = [(o[2], o[0]) for o in self.parts[4][0][2][1][p.pid]]
             p.army_graph = Graph([], [], xy_list=xy)
@@ -659,8 +665,7 @@ class GameSummary(Resource):
         bo_structs.append(self.parts[4][0][3:])
 
         # This might not be the most effective way, but it works
-        for pid in self.players:
-            p = self.players[pid]
+        for pid, p in self.player.items():
             bo = list()
             for bo_struct in bo_structs:
                 for order in bo_struct:
