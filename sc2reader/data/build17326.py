@@ -89,6 +89,8 @@ class Data_17326(BaseData):
         abilities = {
             0x003900: 'Toggle Auto-Repair',
             0x003920: 'Repair',
+            0x0: 'Return Cargo',
+            0x0: 'Gather',
         }
 
     class Marine(Moveable, Attacker):
@@ -475,7 +477,7 @@ class Data_17326(BaseData):
 
     class FleetBeacon(Research):
         abilities = {
-            0x003601: 'Graviton Catapult',
+            0x003601: 'Graviton Catapult'
         }
 
     class TemplarArchive(Research):

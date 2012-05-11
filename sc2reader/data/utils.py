@@ -190,6 +190,12 @@ def Cloaks(cls, cloak, decloak):
 
 @Wrapped
 def Channels(cls, ability, start, cancel):
+    """
+    A Channel is an ability that can be canceled
+    """
+    if not hasattr(cls, 'abilities'):
+        cls.__dict__['abilities'] = dict()
+
     cls.abilities[start] = ability
     cls.abilities[cancel] = "Cancel "+ability
 

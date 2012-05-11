@@ -114,6 +114,8 @@ class Data_19595(BaseData):
         abilities = {
             0x3a00: 'Toggle Auto-Repair',
             0x3a40: 'Repair',
+            0x4a01: 'Return Cargo',
+            0x4a40: 'Gather',
         }
 
     class Marine(Moveable, Attacker):
@@ -143,7 +145,7 @@ class Data_19595(BaseData):
     class SiegeTank(Moveable, Attacker):
         pass
 
-    @Channels('250mm Strike Cannons',0x11802,None)
+    @Channels('250mm Strike Cannons', 0x6440, 0x6401)
     class Thor(Moveable, Attacker):
         pass
 
@@ -211,7 +213,8 @@ class Data_19595(BaseData):
     @UpgradeFrom(CommandCenter, 0x15000, 0x15001)
     class PlanetaryFortress(TerranMain, Production):
         abilties = {
-            0x0: 'Cancel (PF ONLY)', #????
+            0x6f61: 'Cancel (PF ONLY)',
+            0x6f00: 'Cancel (PF ONLY)',
         }
 
     @Lowers(0x10f00, 0x11000)
@@ -293,7 +296,7 @@ class Data_19595(BaseData):
                 0x11701: 'Combat Shields',
                 0x11702: 'Concussive Shells',
                 0x0: 'Cancel Research',
-                0x0: 'Cancel specific Research',
+                0x7061: 'Cancel Specific Research',
             }
 
         class Reactor(TerranBuilding):
@@ -329,7 +332,7 @@ class Data_19595(BaseData):
                 0x11801: 'Infernal Pre-igniter',
                 0x11802: '250mm Strike Cannons',
                 0x0: 'Cancel Research',
-                0x0: 'Cancel specific Research',
+                0x7061: 'Cancel Specific Research',
             }
 
         class Reactor(TerranBuilding):
@@ -370,7 +373,7 @@ class Data_19595(BaseData):
                 0x11906: 'Seeker Missile',
                 0x11907: 'Durable Materials',
                 0x0: 'Cancel Research',
-                0x0: 'Cancel specific Research',
+                0x7061: 'Cancel Specific Research',
             }
 
         class Reactor(TerranBuilding):
@@ -567,6 +570,7 @@ class Data_19595(BaseData):
     class FleetBeacon(Research):
         abilities = {
             0x3701: 'Graviton Catapult',
+            0x3702: 'Anion Crystals'
         }
 
     class TemplarArchive(Research):
