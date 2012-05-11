@@ -127,7 +127,7 @@ class SC2Factory(object):
         :rtype: generator(Resource)
         """
         options = options or utils.merged_dict(self.options, new_options)
-
+        print "Resources: "+str(resources)
         # Path to a resource?
         if isinstance(resources, basestring):
             if re.match(r'https?://',resources):
@@ -143,7 +143,9 @@ class SC2Factory(object):
         # Collection of the above
         else:
             for resource in resources:
-                yield resource_loader(resource, options=options)
+                # Allow for nested collections and collections of directories
+                for r in self.load_resources(resource, resource_loader, options=options):
+                    yield r
 
     def load_resource(self, resource, options=None, **new_options):
         options = options or utils.merged_dict(self.options, new_options)
