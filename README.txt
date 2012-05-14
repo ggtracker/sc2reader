@@ -1,356 +1,215 @@
 What is sc2reader?
 ====================
 
-sc2reader is a library for extracting game information from Starcraft II
-replay files into a structured replay object. sc2reader aims to give anyone
-and everyone the power to construct their own tools and hack on their own
-Starcraft II projects under the open MIT license.
+sc2reader is a python library for extracting information from various different
+Starcraft II resources. These resources currently include Replays, Maps, and
+Game Summaries; we will eventually include BNet profiles and possibly adapters
+to the more entrenched SCII sites like sc2ranks.
 
+Our goal is to give anyone and everyone the power to construct their own
+tools, do their own analysis, and hack on their own Starcraft II projects
+under the open MIT license. Currently powering:
 
+* Websites: `ggtracker.com`_
+* Research: `Build Order Classification`
 
-Supports Python 2.6+, Python 3 isn't tested but probably won't work. If you want
-to make it work, drop a proposal on the `mailing list`_. Python 3.0 support
-would be awesome.
+Our secondary goal is to become a reference implementation for people looking
+to implement parsers in other languages. There are currently implementations
+under development in:
 
-Special thanks to the people of the awesome `phpsc2replay`_ project whose
-public documentation and source code made starting this library possible.
+* C++: `sc2pp`_
+* Javascript: `comsat`_
+* PHP: `phpsc2replay`_ (the original open implementation!)
+
+If you'd like your tool, site, project, or implementation listed above, drop
+us a line on our mailing list or stop by our #sc2reader IRC channel and say hi!
 
 
 Current Status
 =================
 
-sc2reader can parse basic replay information out of all official releases of
-Starcraft II from 1.1.0 to 1.4.1. This means that the following information can
-be extracted:
-
-- Replay details (map, length, version, date, game type, game speed, ...)
-- Player details (name, race, team, color, bnet url, ...)
-- Message details (text, time, player, target, ...)
-- Game details (winners, losers, unit abilities, unit selections, hotkeys, ...)
-
-Unfortunately, the area around game details is still very rough. Most of the
-available builds do not map the parsed ability codes to the corresponding unit
-ability which really limits its usability for anything beyond apm type
-calculations. Filling out the ability codes mapping is the primary task right now
-and hopefully improve support can be added in the near future.
-
-1.0.x is also supported via code more or less copied from the `phpsc2replay`_
-project. While it appears to work, there are no guarantees and getting support
-for any issues will probably be difficult. If you have 1.0.x replays laying
-around it would be great if you could post them to the mailing list for testing
-purposes. We would require permission to upload and distribute them through our
-Github repository.
+sc2reader is currently capable of parsing varying levels of information out of
+the three primary resource types listed below. For a more detailed and exact
+description of the information that can be extracted please consult the
+`documentation`_ hosted on Read the Docs and packaged with the source.
 
 
-Examples
-===================
-
-The example below demonstrates some of the most basic usage. For more detailed
-examples consult the official `documentation`_.
-
-::
-
-    >>> import sc2reader
-    >>> r = sc2reader.read_file('test_replays/1.4.0.19679/36663.SC2Replay')
-    >>> print "Duration: {0} on {1}, played {2} ".format(r.length, r.map, r.date)
-    Duration: 10.59 on Xel'Naga Caverns, played 2011-09-21 02:49:47
-    >>> for player in r.players:
-    ...     print "[{0}] {1}, {2} APM".format(player.result,player,player.avg_apm)
-    ...
-    [Win] Player 1 - MaNNErCHOMP (Terran), 148.13353566 APM
-    [Loss] Player 2 - vVvHasuu (Protoss), 143.525835866 APM
-    >>> r.player[1].result
-    'Win'
-    >>> r.player['vVvHasuu'].url
-    'http://us.battle.net/sc2/en/profile/493391/1/vVvHasuu/'
-
-
-For web services, dumping to json might be a common operation.
-
-::
-
-    >>> import sc2reader;
-    >>> from sc2reader.processors import jsonEncoder
-    >>> print sc2reader.read_file(
-    ...     'test_replays/1.4.0.19679/36663.SC2Replay',
-    ...     processors=[jsonEncoder(indent=4)]
-    ... )
-    {
-        "category": "Ladder",
-        "map": "Xel'Naga Caverns",
-        "players": [
-            {
-                "uid": 934659,
-                "play_race": "Terran",
-                "color": {
-                    "a": 255,
-                    "r": 180,
-                    "b": 30,
-                    "g": 20
-                },
-                "pick_race": "Terran",
-                "pid": 1,
-                "result": "Win",
-                "name": "MaNNErCHOMP",
-                "url": "http://us.battle.net/sc2/en/profile/934659/1/MaNNErCHOMP/",
-                "messages": [
-                    {
-                        "text": "lol",
-                        "is_public": true,
-                        "time": 9
-                    },
-                    {
-                        "text": "sup bra",
-                        "is_public": true,
-                        "time": 23
-                    },
-                    {
-                        "text": ":(",
-                        "is_public": true,
-                        "time": 48
-                    }
-                ],
-                "type": "Human",
-                "avg_apm": 148.13353566009107
-            },
-            {
-                "uid": 493391,
-                "play_race": "Protoss",
-                "color": {
-                    "a": 255,
-                    "r": 0,
-                    "b": 255,
-                    "g": 66
-                },
-                "pick_race": "Protoss",
-                "pid": 2,
-                "result": "Loss",
-                "name": "vVvHasuu",
-                "url": "http://us.battle.net/sc2/en/profile/493391/1/vVvHasuu/",
-                "messages": [],
-                "type": "Human",
-                "avg_apm": 143.52583586626139
-            }
-        ],
-        "type": "1v1",
-        "is_ladder": true,
-        "utc_date": "2011-09-21 06:49:47",
-        "file_time": 129610613871027307,
-        "observers": [],
-        "frames": 10552,
-        "build": 19679,
-        "date": "2011-09-21 02:49:47",
-        "unix_timestamp": 1316587787,
-        "filename": "test_replays/1.4.0.19679/36663.SC2Replay",
-        "speed": "Faster",
-        "gateway": "us",
-        "is_private": false,
-        "release": "1.4.0.19679"
-    }
-
-Seriously, consult the `documentation`_! Its for your own good.
-
-
-Example Scripts
-====================
-
-A couple simple scripts have been included in the sc2reader package to get you
-started and provide an example. While potentially useful on their own they are
-primarily there to demonstrate what can be done. As such, there are no
-guarantees that these scripts will be maintained or continue operating in the
-same way.
-
-Please modify them to your liking or create your own as necessary. If you are
-proud of your changes or would like to have your script distributed  let the
-`mailing list`_ know. Generally speaking, we'd be happy to distribute more
-useful example scripts and utilities.
-
-sc2printer
---------------
-
-The sc2printer script packaged with sc2reader provides a configurable printout
-of several key aspects of the replay(s) that its pointed at:
-
-::
-
-    graylin@graylin-laptop:/home/sc2reader$ sc2printer test_replays/1.4.0.19679/36663.SC2Replay --messages --date --map --length --teams
-
-    --------------------------------------
-    test_replays/1.4.0.19679/36663.SC2Replay
-
-       Map:      Xel'Naga Caverns
-       Length:   10.59
-       Date:     2011-09-21 02:49:47
-       Teams:    TvP
-          Team 1	MaNNErCHOMP (T)
-          Team 2	vVvHasuu (P)
-       Messages:
-          00.09 - MaNNErCHOMP    - lol
-          00.23 - MaNNErCHOMP    - sup bra
-          00.48 - MaNNErCHOMP    - :(
-       Version:  1.4.0.19679
-
-
-sc2autosave
-------------------
-
-sc2autosave is a utility script that you could run in cycle mode in the
-background or hook up to a cron job in batch mode to autosave your replay files
-with configurable naming conventions into a structured file hierarchy.
-
-Its got a lot of options, so make sure to use the ``--help`` command before you
-get started.
-
-::
-
-    graylin@graylin-laptop:/home/sc2reader$ sc2autosave test_replays test_autosave --mode BATCH --action COPY --exclude-dirs problem_replays mine
-    Loading state from file: test_autosave/sc2autosave.dat
-    SCANNING: test_replays
-    COPY:
-	    Source: /149414-nSkENNY-VS-aflubin.sc2replay
-	    Dest: /18.12 1v1 on Abyssal Caverns.SC2Replay
-    COPY:
-	    Source: /1.2.1.17682/VTPokebunny_vs_LuckyFool_5768.SC2Replay
-	    Dest: /16.48 1v1 on Shakuras Plateau.SC2Replay
-    COPY:
-	    Source: /1.2.1.17682/Froadac_vs_BattleOtter_6040.SC2Replay
-	    Dest: /20.20 1v1 on Lost Temple.SC2Replay
-    COPY:
-	    Source: /1.2.1.17682/2v2_Scorched Haven_6473.SC2Replay
-	    Dest: /27.14 2v2 on Scorched Haven.SC2Replay
-    COPY:
-	    Source: /1.2.1.17682/Laegoose_vs_nitrousx_4626.SC2Replay
-	    Dest: /21.04 1v1 on Мусоросборник.SC2Replay
-    COPY:
-	    Source: /1.2.1.17682/Deadiam_vs_McSwagger_6474.SC2Replay
-	    Dest: /19.22 1v1 on Steppes of War.SC2Replay
-    COPY:
-	    Source: /1.2.1.17682/1v1_Lost Temple_3969.SC2Replay
-	    Dest: /16.46 1v1 on Lost Temple.SC2Replay
-    COPY:
-	    Source: /1.2.1.17682/BowmanSX_vs_nubington_8614.SC2Replay
-	    Dest: /22.04 1v1 on Metalopolis.SC2Replay
-    COPY:
-	    Source: /1.2.1.17682/Sharky_vs_trolli_4792.SC2Replay
-	    Dest: /09.04 1v1 on Blistering Sands.SC2Replay
-
-    .... #There are hundreds of test replays...
-
-
-sc2store
+Replays
 -------------
 
-sc2store is a really cool idea that I probably won't get around to finishing. It
-uses sqlAlchemy to stuff the target replays into a target SQL database. The
-models could definitely use some work and there might be a couple bugs to shake
-out but it demonstrates a pretty solid approach to working with sc2reader from
-other languages. Drop.sc used a script similar to this for a long time to work
-with sc2reader from his Ruby on Rails web application.
+Almost all the basic contextual information can be extracted from any post-beta
+replays. This information includes:
 
-If you don't specify a storage string it just uses sqlite in memory.
+- Replay details (map, length, version, datetime, game type, game speed, ...)
+- Player details (name, race, team, color, bnet url, win/loss, ...)
+- Message details (text, time, player, target, pings, ...)
 
-::
+Additional information can be parsed from ladder replays and replays from basic
+unmodded private "custom" games. This information includes:
 
-    graylin@graylin-laptop:/home/sc2reader$ sc2store test_replays/mine
-    #LOTS OF SQLAlchemy output...
-    2011-10-02 14:28:11,892 INFO sqlalchemy.engine.base.Engine SELECT DISTINCT person.name AS anon_1
-    FROM person
-    2011-10-02 14:28:11,892 INFO sqlalchemy.engine.base.Engine ()
-    [(u'AMartinez',), (u'Adelscott',), (u'AintNoThang',), (u'Amanda',),
-     (u'Blue',), (u'BurnemDown',), (u'ByTheNumbers',), (u'CDUB',), (u'CuP',),
-     (u'Davidal',), (u'DrMandrake',), (u'Ender',), (u'ExAn',), (u'FalconPunch',),
-     (u'Fertile',), (u'Geph',), (u'HaRibO',), (u'HaZeN',), (u'HarshCougar',),
-     (u'HeLeCoPtEr',), (u'Jakrom',), (u'James',), (u'Jeff',), (u'Kamron',),
-     (u'Kevin',), (u'Manny',), (u'Merveilles',), (u'Mort',), (u'NELLYSON',),
-     (u'NerdHerder',), (u'Onjai',), (u'OrangeBottle',), (u'PandaFeather',),
-     (u'PatsyCake',), (u'Peonz',), (u'Pille',), (u'Reaganomics',), (u'Red',),
-     (u'Remedy',), (u'Saladrael',), (u'ShadesofGray',), (u'SourDiesel',),
-     (u'TAG',), (u'TheBoss',), (u'ThisBryanFoo',), (u'TigerGosu',), (u'Tyrak',),
-     (u'UniqueRubber',), (u'Violet',), (u'Wukasz',), (u'YoungPhoenix',),
-     (u'ZORN',), (u'ZeroHero',), (u'agility',), (u'dante',), (u'haoster',),
-     (u'marmot',), (u'mouzMaNa',), (u'neosmatrix',), (u'oobugoo',),
-     (u'reddawn',), (u'rostin',), (u'rubbernutzz',), (u'wildcard',), (u'yenoMenO',)]
+- Unit Selection and Hotkey events.
+- Resource Transfers (but not collection or unspent values!)
+- Unfiltered Unit commands (attack, move, train, build, psi storm, etc)
+- Camera Movements for all players and observers.
+
+In some cases, further information can be extracted from this raw information:
+
+- All unit selections and hotkey values for every frame of the game.
+- APM/EPM and its untold variations.
+
+We are in the process of building data dictionaries for all the SC2 units and
+abilities which should enable much more creative and robust analysis of the
+raw event stream found in replay files.
+
+
+Maps
+-------
+
+Maps are currently parsed in the most minimal way possible and are an area for
+big improvement in the future. Currently the enUS Name, Author, Description,
+and Minimap.tga are the only extracted values.
+
+There's a lot more in here to be had for the adventurous.
+
+
+Game Summaries
+-----------------
+
+Tons of data parsed. Thank you Prillan and `Team Liquid`_.
+
+* Lobby Properties (game speed, game type, ...)
+* Player Information (Race, Team, Result, bnet info, ...)
+* Player Graphs & Stats (Army Graph, Income Graph, Avg Unspent Resources, ...)
+* URLs to map localization files and images
+* Player build orders up to 64 (real) actions
+
+This isn't 100% reliable yet. Some s2gs files may fail during processing. If you find
+these files and could upload there somewhere we can get them it'd be extremely helpful. Just drop us a line on the mailing list or stop by the IRC channel.
+
+
+Example Usage
+=====================
+
+To demonstrate how you might use sc2reader in practice I've included some short
+contrived scripts below. For more elaborate examples, checkout the docs and the
+sc2reader.scripts package on github.
+
+Downloading Maps
+--------------------
+
+Grabbing all the map files for all the games you've ever played::
+
+    import sc2reader, os
+
+    for replay in sc2reader.load_replays('my/replays'):
+        map_path = os.path.join('map_files', replay.map_name)
+        if not os.path.exists(map_path):
+            os.makedirs(map_path)
+
+        map_file = os.path.join(map_path, replay.map_hash+'.s2ma')
+        if not os.path.exists(map_file):
+            with open(map_file, 'w') as map:
+                replay.load_map()
+                map.write(replay.map.minimap)
+            print "Found New Map: {0} [{1]]".format(replay.map_name, replay.map_hash)
+
+
+Organizing Replays
+----------------------
+
+Organizing your 1v1 replays by race played and matchup and sortable by length::
+
+    import sc2reader, os, shutil
+
+    sorted_base = 'sorted'
+    path_to_replays = 'my/replays'
+
+    for replay in sc2reader.load_replays(path_to_replays):
+        if replay.type != '1v1':
+            continue
+
+        try:
+            me = replay.player['ShadesofGray']
+            you = team[(me.team.number+1)%2].players[0]
+
+            matchup = "{}v{}".format(me.play_race[0], you.play_race[1])
+
+            sorted_path = os.path.join(sorted_base,me.play_race[0],matchup)
+            if not os.path.exists(sorted_path):
+                os.makedirs(sorted_path)
+
+            filename = "{0} - {1}".format(replay.game_length, replay.filename)
+            src = os.join(path_to_replays,replay.filename)
+            dst = os.join(sorted_path, filename)
+            shutil.copyfile(src, dst)
+
+        except KeyError as e:
+            continue # A game I didn't play in!
 
 
 Installation
 ================
 
-Okay, I've convinced you to give sc2reader a shot. Next you need to install it.
-If you are on windows you can cheat and just run the .exe download at the bottom
-of this page.
+From PyPI (stable)
+---------------------
 
-If you are on sane system like the rest of us you can try one of the following
-magic incantations on the shell. If you are a developer and want the latest and
-greatest at all times, you can skip to the advanced installation section.
-
-::
+Install from the latest release on PyPI with pip::
 
     pip install sc2reader
 
-If you don't have `pip`_, you should consider getting it, but I digress. You can
-use easy_install instead.
-
-::
+or easy_install::
 
     easy_install sc2reader
 
-If you don't have `easy_install`_ you probably have your reasons. If you don't,
-then I really think you should consider getting it. Or better yet, get `pip`_!
-Never fear though, when all else fails you can still do things the old fashioned
-way.
+or with setuptools (specify a valid x.x.x)::
 
-::
-
-    wget http://pypi.python.org/packages/source/s/sc2reader/sc2reader-0.3.0.tar.gz
-    tar -xzf sc2reader-0.3.0.tar.gz
-    cd sc2reader-0.3.0
+    wget http://pypi.python.org/packages/source/s/sc2reader/sc2reader-x.x.x.tar.gz
+    tar -xzf sc2reader-x.x.x.tar.gz
+    cd sc2reader-x.x.x
     python setup.py install
 
 
-Advanced Installation
-============================
+From Github (unstable)
+--------------------------
 
-Master is at times a bit unstable and the interface might change in (mostly)
-minor ways without warning. That being said, its where all the best stuff is.
-If you are going to do this install you should definitely be on the
-`developers mailing list`_ and it would be great if you stopped by #sc2reader on
-FreeNode.net and said Hi. We can help you get up to speed and get started.
+Install from the latest source on github with pip::
 
-::
+    pip install -e git+git://github.com/GraylinKim/sc2reader#egg=sc2reader
 
-	git clone https://github.com/GraylinKim/sc2reader.git
-	cd sc2reader
-	python setup.py install
+or with setuptools::
 
-If you intend on making local modifications it'd be better to use develop mode
-instead:
+    wget -O sc2reader-master.tar.gz https://github.com/GraylinKim/sc2reader/tarball/master
+    tar -xzf sc2reader-master.tar.gz
+    cd sc2reader-master
+    python setup.py install
 
-::
 
+For Contributors
+-------------------
+
+Contributors should install from an active git repository using setuptools in
+`develop`_ mode. This will install links to the live code so that local edits
+are available to external modules automatically::
+
+    git clone https://github.com/GraylinKim/sc2reader.git
+    cd sc2reader
     python setup.py develop
 
+Contributions can be sent via pull request or by `mailing list`_ with attached
+patch files. It is highly recommended you get in touch with us before working
+on patches.
 
-You can test your install to verify that things are working correctly using
-`pytest`_, an automated testing solution. Just run the following from the root
-folder of the sc2reader source code:
-
-::
-
-    pip install pytest
-    py.test
-
-If they don't all pass, something went wrong. Panic. If that doesn't work, reach
-out on IRC or on our `mailing list`_ for assistance.
 
 Community
 ==============
 
 sc2reader has a small but growing community of people looking to make tools and
-websites with Starcraft II replay data. If that sounds like something you'd like
-to be a part of please join our underused `mailing list`_ and start a conversation
+websites with Starcraft II data. If that sounds like something you'd like to be
+a part of please join our underused `mailing list`_ and start a conversation
 or stop by #sc2reader on FreeNode and say 'Hi'. We have members from all over
 Europe, Australia, and the United States currently, so regardless of the time,
 you can probably find someone to talk to.
+
 
 Issues and Support
 =====================
@@ -358,14 +217,27 @@ Issues and Support
 We have an `issue tracker`_ on Github that all bug reports and feature requests
 should be directed to. We have a `mailing list`_ with Google Groups that you can
 use to reach out for support. We are generally on FreeNode in the #sc2reader
-and may be able to provide support and address issues there as well.
+and can generally provide live support and address issues there as well.
 
 
+Acknowledgements
+=======================
+
+Thanks to all the awesome developers in the SC2 community that helped out
+and kept this project going. Special thanks to the people of the awesome
+`phpsc2replay`_ project whose public documentation and source code made
+starting this library possible.
+
+.. _Build Order Classification: https://github.com/grahamjenson/sc2reader
+.. _ggtracker.com: http://ggtracker.com
+.. _PyPy: http://pypy.org/
+.. _sc2pp: https://github.com/zsol/sc2pp
+.. _comsat: https://github.com/tec27/comsat
+.. _phpsc2replay: http://code.google.com/p/phpsc2replay/
+.. _Team Liquid: http://www.teamliquid.net/forum/viewmessage.php?topic_id=330926
+.. _develop: http://peak.telecommunity.com/DevCenter/setuptools#development-mode
 .. _documentation: http://sc2reader.rtfd.org/
 .. _mailing list: http://groups.google.com/group/sc2reader
 .. _developers mailing list: http://groups.google.com/group/sc2reader-dev
 .. _phpsc2replay: http://code.google.com/p/phpsc2replay/
-.. _pytest: http://pytest.org/
 .. _issue tracker: https://github.com/GraylinKim/sc2reader/issues
-.. _pip: http://pypi.python.org/pypi/pip
-.. _easy_install: http://pypi.python.org/pypi/setuptools
