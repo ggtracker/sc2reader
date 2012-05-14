@@ -470,19 +470,9 @@ class Map(Resource):
         self.archive = MPQArchive(map_file)
         self.minimap = self.archive.read_file('Minimap.tga')
 
-    @classmethod
-    def get_url(cls, gateway, map_hash):
-        if gateway and map_hash:
-            return cls.url_template.format(gateway, map_hash)
-        else:
-            return None
-
-    def load(self):
-        self.read_game_strings()
-
-    def read_game_strings(self):
-        self.game_strings = self.archive.read_file('enUS.SC2Data\LocalizedData\GameStrings.txt')
-        for line in self.game_strings.split('\r\n'):
+        # TODO: We probably shouldn't favor enUS here?
+        game_strings = self.archive.read_file('enUS.SC2Data\LocalizedData\GameStrings.txt')
+        for line in game_strings.split('\r\n'):
             parts = line.split('=')
             if parts[0] == 'DocInfo/Name':
                 self.name = parts[1]
@@ -490,6 +480,14 @@ class Map(Resource):
                 self.author = parts[1]
             elif parts[0] == 'DocInfo/DescLong':
                 self.description = parts[1]
+
+    @classmethod
+    def get_url(cls, gateway, map_hash):
+        """Builds a download URL for the map from its components."""
+        if gateway and map_hash:
+            return cls.url_template.format(gateway, map_hash)
+        else:
+            return None
 
 
 class GameSummary(Resource):
