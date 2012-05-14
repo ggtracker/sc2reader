@@ -164,10 +164,7 @@ class Replay(Resource):
 
             # Can only be effective if map data has been loaded
             if options.get('load_map', False):
-                map_url = Map.get_url(self.gateway, self.map_hash)
-                map_file = StringIO(urllib2.urlopen(map_url).read())
-                self.map = Map(map_file, filename=self.map, gateway=self.gateway, map_hash=self.map_hash)
-
+                self.load_map()
 
         # Load players if requested
         if load_level >= 2:
@@ -220,6 +217,11 @@ class Replay(Resource):
             self.real_length = utils.Length(seconds=int(self.length.seconds/GAME_SPEED_FACTOR[self.speed]))
             self.start_time = datetime.utcfromtimestamp(self.unix_timestamp-self.real_length.seconds)
             self.date = self.end_time #backwards compatibility
+
+    def load_map(self):
+        map_url = Map.get_url(self.gateway, self.map_hash)
+        map_file = StringIO(urllib2.urlopen(map_url).read())
+        self.map = Map(map_file, filename=self.map, gateway=self.gateway, map_hash=self.map_hash)
 
     def load_players(self):
         #If we don't at least have details and attributes_events we can go no further
