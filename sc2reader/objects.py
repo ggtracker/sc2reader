@@ -116,6 +116,9 @@ class Person(object):
     #: Really just a shortcut for isinstance(obj, Observer).
     is_observer = bool()
 
+    #: A flag indicating if the person is a human or computer
+    is_human = bool()
+
     #: A list of :class:`ChatEvent` objects representing all of the chat
     #: messages the person sent during the game
     messages = list()
@@ -130,13 +133,17 @@ class Person(object):
     #: A flag indicating if the person is a computer or human
     is_human = bool()
 
+    #: The player's region.
+    region = str()
+
     def __init__(self, pid, name):
         self.pid = pid
         self.name = name
-        self.is_observer = None
+        self.is_observer = bool()
         self.messages = list()
         self.events = list()
         self.is_human = bool()
+        self.region = str()
         self.recorder = False # Actual recorder will be determined using the replay.message.events file
 
 class Observer(Person):
@@ -146,6 +153,7 @@ class Observer(Person):
 
     All Observers are human.
     """
+
     def __init__(self, pid, name):
         super(Observer,self).__init__(pid, name)
         self.is_observer = True
@@ -179,11 +187,12 @@ class Player(Person):
     #: The player's handicap as set prior to game start, ranges from 50-100
     handicap = int()
 
-    #: The player's region
-    region = str()
-
     #: The subregion with in the player's region
     subregion = int()
+
+    #: The player's bnet uid for his region/subregion.
+    #: Used to construct the bnet profile url.
+    uid = int()
 
     def __init__(self, pid, name):
         super(Player,self).__init__(pid, name)
@@ -199,8 +208,8 @@ class Player(Person):
 
     @property
     def result(self):
-        """The game result for this player"""
-        return self.team.result
+        """The game result for this player: Win, Loss, Unknown"""
+        return self.team.result if self.team else "Unknown"
 
     def format(self, format_string):
         return format_string.format(**self.__dict__)
@@ -208,10 +217,83 @@ class Player(Person):
     def __repr__(self):
         return str(self)
 
+
+class PlayerSummary():
+    """
+    A class to represent a player in the game summary (.s2gs)
+    """
+    stats_pretty_names = {
+        'R' : 'Resources',
+        'U' : 'Units',
+        'S' : 'Structures',
+        'O' : 'Overview',
+        'AUR' : 'Average Unspent Resources',
+        'RCR' : 'Resource Collection Rate',
+        'WC' : 'Workers Created',
+        'UT' : 'Units Trained',
+        'KUC' : 'Killed Unit Count',
+        'SB' : 'Structures Built',
+        'SRC' : 'Structures Razed Count'
+        }
+
+    #: The index of the player in the game
+    pid = int()
+
+    #: The index of the players team in the game
+    teamid = int()
+
+    #: The race the player used
+    race = str()
+
+    #: If the player is a computer
+    is_ai = False
+
+    #: If the player won the game
+    is_winner = False
+
+    #: Battle.Net id of the player
+    bnetid = int()
+
+    #: Subregion id of player
+    subregion = int()
+
+    #: unknown1
+    unknown1 = int()
+
+    #: unknown2
+    unknown2 = dict()
+
+    #: :class:`Graph` of player army values over time (seconds)
+    army_graph = None
+
+    #: :class:`Graph` of player income over time (seconds)
+    income_graph = None
+
+    #: Stats from the game in a dictionary
+    stats = dict()
+
+    def __init__(self, pid):
+        unknown2 = dict()
+        stats = dict()
+
+        self.pid = pid
+
+    def __str__(self):
+        if not self.is_ai:
+            return '{} - {} - {}/{}/'.format(self.teamid, self.race, self.subregion, self.bnetid)
+        else:
+            return '{} - {} - AI'.format(self.teamid, self.race)
+
+    def get_stats(self):
+        s = ''
+        for k in self.stats:
+            s += '{}: {}\n'.format(self.stats_pretty_names[k], self.stats[k])
+        return s.strip()
+
+# TODO: Are there libraries with classes like this in them
 class Graph():
-    """
-    A class to represent a graph on the score screen
-    """
+    """A class to represent a graph on the score screen."""
+
     #: Times in seconds on the x-axis of the graph
     times = list()
 
@@ -236,75 +318,3 @@ class Graph():
 
     def __str__(self):
         return "Graph with {0} values".format(len(self.times))
-
-class PlayerSummary():
-    """
-    A class to represent a player in the game summary (.s2gs)
-    """
-    stats_pretty_names = {
-        'R' : 'Resources',
-        'U' : 'Units',
-        'S' : 'Structures',
-        'O' : 'Overview',
-        'AUR' : 'Average Unspent Resources',
-        'RCR' : 'Resource Collection Rate',
-        'WC' : 'Workers Created',
-        'UT' : 'Units Trained',
-        'KUC' : 'Killed Unit Count',
-        'SB' : 'Structures Built',
-        'SRC' : 'Structures Razed Count'
-        }
-
-    #: The index of the player in the game
-    pid = int()
-    
-    #: The index of the players team in the game
-    teamid = int()
-
-    #: The race the player used
-    race = str()
-
-    #: If the player is a computer
-    is_ai = False
-
-    #: If the player won the game
-    is_winner = False
-
-    #: Battle.Net id of the player
-    bnetid = int()
-
-    #: Subregion id of player
-    subregion = int()
-
-    #: unknown1
-    unknown1 = int()
-    
-    #: unknown2
-    unknown2 = dict()
-
-    #: :class:`Graph` of player army values over time (seconds)
-    army_graph = None
-    
-    #: :class:`Graph` of player income over time (seconds)
-    income_graph = None
-
-    #: Stats from the game in a dictionary
-    stats = dict()
-
-    def __init__(self, pid):
-        unknown2 = dict()
-        stats = dict()
-        
-        self.pid = pid
-        
-    def __str__(self):
-        if not self.is_ai:
-            return '{} - {} - {}/{}/'.format(self.teamid, self.race, self.subregion, self.bnetid)
-        else:
-            return '{} - {} - AI'.format(self.teamid, self.race) 
-        
-    def get_stats(self):
-        s = ''
-        for k in self.stats:
-            s += '{}: {}\n'.format(self.stats_pretty_names[k], self.stats[k])
-        return s.strip()

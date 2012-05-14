@@ -30,6 +30,11 @@ class Resource(object):
 
 class Replay(Resource):
 
+    #: A nested dictionary of player => { attr_name : attr_value } for
+    #: known attributes. Player 16 represents the global context and
+    #: contains attributes like game speed.
+    attributes = defaultdict(dict)
+
     #: Fully qualified filename of the replay file represented.
     filename = str()
 
@@ -42,10 +47,10 @@ class Replay(Resource):
     #: The full version release string as seen on Battle.net
     release_string = str()
 
-    #: The :class:`Length` of the replay as an alternative to :attr:`frames`
-    length = utils.Length()
+    #: A tuple of the individual pieces of the release string
+    versions = tuple()
 
-    #: The effective game speed when the game was played.
+    #: The game speed: Slower, Slow, Normal, Fast, Faster
     speed = str()
 
     #: The game type: 1v1, 2v2, 3v3, 4v4, FFA
@@ -60,8 +65,41 @@ class Replay(Resource):
     #: A flag for private non-ladder games
     is_private = bool()
 
+    #: The raw hash name of the s2ma resource as hosted on bnet depots
+    map_hash = str()
+
     #: The name of the map the game was played on
+    map_name = str()
+
+    #: A reference to the loaded :class:`Map` resource.
     map = None
+
+    #: The UTC time the game was ended as represented by the Windows OS
+    windows_timestamp = int()
+
+    #: The UTC time the game was ended as represented by the Unix OS
+    unix_timestamp = int()
+
+    #: The time zone adjustment for the location the replay was recorded at
+    time_zone= int()
+
+    #: Deprecated: See `end_time` below.
+    date = None
+
+    #: A datetime object representing the local time at the end of the game.
+    end_time = None
+
+    #: A datetime object representing the local time at the start of the game
+    start_time = None
+
+    #: Deprecated: See `game_length` below.
+    length = None
+
+    #: The :class:`Length` of the replay as an alternative to :attr:`frames`
+    game_length = None
+
+    #: The :class:`Length` of the replay in real time adjusted for the game speed
+    self.real_length = None
 
     #: The gateway the game was played on: us, eu, sea, etc
     gateway = str()
@@ -103,11 +141,26 @@ class Replay(Resource):
     #: A list of all the chat message events from the game
     messages = list()
 
+    #: A list of pings sent by all the different people in the game
+    pings = list()
+
+    #: A list of packets sent between the various game clients
+    packets = list()
+
     #: A reference to the :class:`Person` that recorded the game
     recorder = None
 
     #: If there is a valid winning team this will contain a :class:`Team` otherwise it will be :class:`None`
     winner = None
+
+    #: A dictionary mapping unit unique ids to their corresponding classes
+    objects = dict()
+
+    #: A sha256 hash uniquely representing the combination of people in the game.
+    #: Can be used in conjunction with date times to match different replays
+    #: of the game game.
+    people_hash = str()
+
 
     def __init__(self, replay_file, filename=None, load_level=4, **options):
         super(Replay, self).__init__(replay_file, filename, **options)
@@ -123,23 +176,20 @@ class Replay(Resource):
         self.is_ladder = False
         self.is_private = False
         self.map = ""
+        self.map_hash = ""
         self.gateway = ""
         self.events = list()
         self.events_by_type = defaultdict(list)
         self.results = dict()
-
         self.teams, self.team = list(), dict()
         self.players, self.player = list(), utils.PersonDict()
         self.observers = list() #Unordered list of Observer
-
         self.people, self.humans = list(), list() #Unordered list of Players+Observers
-
         self.person = utils.PersonDict() #Maps pid to Player/Observer
-        self.attributes = list()
+        self.attributes = defaultdict(dict)
         self.messages = list()
         self.recorder = None # Player object
         self.packets = list()
-
         self.objects = {}
 
         # Bootstrap the readers.
@@ -152,6 +202,7 @@ class Replay(Resource):
 
         # Unpack the MPQ and read header data if requested
         if load_level >= 0:
+            # Set ('versions', 'frames', 'build', 'release_string', 'length')
             self.__dict__.update(utils.read_header(replay_file))
             self.archive = utils.open_archive(replay_file)
 
@@ -331,7 +382,7 @@ class Replay(Resource):
                 if obs_name in all_players: continue
 
                 observer = Observer(obs_index,obs_name)
-                observer.gateway = self.gateway
+                observer.region = default_region
                 self.observers.append(observer)
                 self.people.append(observer)
                 self.person[obs_index] = observer
@@ -372,6 +423,7 @@ class Replay(Resource):
 
         for event in self.events:
             event.load_context(self)
+            # TODO: Should this be documented or removed? I don't like it.
             self.events_by_type[event.name].append(event)
             if event.pid != 16:
                 self.person[event.pid].events.append(event)
@@ -461,6 +513,28 @@ class Replay(Resource):
 
 class Map(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
+
+    #: The unique hash used to identify this map on bnet's depots.
+    hash = str()
+
+    #: The gateway this map was posted to.
+    #: Maps must be posted individually to each gateway.
+    gateway = str()
+
+    #: A URL reference to the location of this map on bnet's depots.
+    url = str()
+
+    #: The localized (only enUS supported right now) map name
+    name = str()
+
+    #: The map's author
+    author = str()
+
+    #: The map description as written by author
+    description = str()
+
+    #: A byte string representing the minimap in tga format.
+    minimap = str()
 
     def __init__(self, map_file, filename=None, gateway=None, map_hash=None, **options):
         super(Map, self).__init__(map_file, filename, **options)
