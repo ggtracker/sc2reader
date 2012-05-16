@@ -6,7 +6,7 @@ import hashlib
 from datetime import datetime
 import time
 from StringIO import StringIO
-from collections import defaultdict
+from collections import defaultdict, deque
 
 import urllib2
 from mpyq import MPQArchive
@@ -99,7 +99,7 @@ class Replay(Resource):
     game_length = None
 
     #: The :class:`Length` of the replay in real time adjusted for the game speed
-    self.real_length = None
+    real_length = None
 
     #: The gateway the game was played on: us, eu, sea, etc
     gateway = str()
