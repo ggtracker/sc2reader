@@ -132,18 +132,17 @@ class AbilityEvent(PlayerActionEvent):
                 self.logger.error("Release String: "+replay.release_string)
                 for player in replay.players:
                     self.logger.error("\t"+str(player))
-            self.logger.error("{0}\t{1}\tMissing ability {2} from {3}".format(self.frame, self.player.name, hex(self.ability), replay.datapack.__class__.__name__))
+            self.logger.error("{0}\t{1}\tMissing ability {2} from {3}".format(self.frame, self.player.name, hex(self.ability_code), replay.datapack.__class__.__name__))
 
         else:
             self.ability_name = replay.datapack.abilities[self.ability_code]
 
 
     def __str__(self):
-        if not self.ability:
+        if not self.ability_code:
             return self._str_prefix() + "Move"
         else:
-            ability_name = self.data.ability(self.ability) if self.ability in self.data.abilities else "UNKNOWN"
-            return self._str_prefix() + "Ability (%s) - %s" % (hex(self.ability), ability_name)
+            return self._str_prefix() + "Ability (%s) - %s" % (hex(self.ability_code), self.ability_name)
 
 class TargetAbilityEvent(AbilityEvent):
     def __init__(self, framestamp, player, type, code, ability, target):
