@@ -119,12 +119,13 @@ class ResourceTransferEvent(PlayerActionEvent):
 class AbilityEvent(PlayerActionEvent):
     def __init__(self, framestamp, player, type, code, ability):
         super(AbilityEvent, self).__init__(framestamp, player, type, code)
-        self.ability = ability
+        self.ability_code = ability
+        self.ability_name = 'Uknown'
 
     def load_context(self, replay):
         super(AbilityEvent, self).load_context(replay)
 
-        if self.ability not in replay.datapack.abilities:
+        if self.ability_code not in replay.datapack.abilities:
             if not getattr(replay, 'marked_error', None):
                 replay.marked_error=True
                 self.logger.error(replay.filename)
@@ -132,6 +133,10 @@ class AbilityEvent(PlayerActionEvent):
                 for player in replay.players:
                     self.logger.error("\t"+str(player))
             self.logger.error("{0}\t{1}\tMissing ability {2} from {3}".format(self.frame, self.player.name, hex(self.ability), replay.datapack.__class__.__name__))
+
+        else:
+            self.ability_name = replay.datapack.abilities[self.ability_code]
+
 
     def __str__(self):
         if not self.ability:
