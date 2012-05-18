@@ -162,10 +162,7 @@ class TargetAbilityEvent(AbilityEvent):
             else:
                 unit_class = replay.datapack.types[self.target_type]
                 self.target = unit_class(self.target_id)
-
-                # For units behind the fog of war, don't make an entry
-                if self.target.id:
-                    replay.objects[uid] = self.target
+                replay.objects[uid] = self.target
 
     def __str__(self):
         if self.target:
