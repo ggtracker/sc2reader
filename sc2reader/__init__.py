@@ -27,3 +27,5 @@ load_map_history = __defaultSC2Reader.load_map_header
 
 configure = __defaultSC2Reader.configure
 reset = __defaultSC2Reader.reset
+
+register_plugin = __defaultSC2Reader.register_plugin
