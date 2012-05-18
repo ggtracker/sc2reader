@@ -97,32 +97,35 @@ def SelectionTracker(replay):
     efilter = lambda e: isinstance(e, SelectionEvent) or isinstance(e, HotkeyEvent)
 
     for person in replay.people:
-        person.selections = GameState(PlayerSelection())
+        # TODO: A more robust person interface might be nice
+        person.selection = GameState(PlayerSelection())
         for event in filter(efilter, person.events):
             if replay.opt.debug:
                 logger.debug("Event bytes: "+event.bytes.encode("hex"))
 
-            selections = person.selections[event.frame]
+            selection = person.selection[event.frame]
 
             if isinstance(event, SetToHotkeyEvent):
                 # Make a copy to decouple the hotkey from primary selection
-                selections[event.hotkey] = selections[0x0A].copy()
+                selection[event.hotkey] = selection[0x0A].copy()
                 logger.info("[{0}] {1} set hotkey {2} to current selection".format(Length(seconds=event.second),person.name,event.hotkey))
 
             elif isinstance(event, AddToHotkeyEvent):
-                selections[event.hotkey].deselect(*event.deselect)
-                selections[event.hotkey].select(selections[0x0A].objects)
+                selection[event.hotkey].deselect(*event.deselect)
+                selection[event.hotkey].select(selection[0x0A].objects)
                 logger.info("[{0}] {1} added current selection to hotkey {2}".format(Length(seconds=event.second),person.name,event.hotkey))
 
             elif isinstance(event, GetFromHotkeyEvent):
                 # For some reason they leave the hotkey buffer unmodified so make a copy
-                selections[0x0A] = selections[event.hotkey].copy()
-                selections[0x0A].deselect(*event.deselect)
-                logger.info("[{0}] {1} retrieved hotkey {2}, {3} units: {4}".format(Length(seconds=event.second),person.name,event.hotkey,len(selections[0x0A].objects),selections[0x0A]))
+                selection[0x0A] = selection[event.hotkey].copy()
+                selection[0x0A].deselect(*event.deselect)
+                logger.info("[{0}] {1} retrieved hotkey {2}, {3} units: {4}".format(Length(seconds=event.second),person.name,event.hotkey,len(selection[0x0A].objects),selection[0x0A]))
 
             elif isinstance(event, SelectionEvent):
-                selections[0x0A].deselect(*event.deselect)
-                selections[0x0A].select(event.objects)
-                logger.info("[{0}] {1} selected {2} units: {3}".format(Length(seconds=event.second),person.name,len(selections[0x0A].objects),selections[0x0A]))
+                selection[0x0A].deselect(*event.deselect)
+                selection[0x0A].select(event.objects)
+                logger.info("[{0}] {1} selected {2} units: {3}".format(Length(seconds=event.second),person.name,len(selection[0x0A].objects),selection[0x0A]))
 
-            event.selected = selections[0x0A]
+            # TODO: The event level interface here should be improved
+            #       Possibly use 'added' and 'removed' unit lists as well
+            event.selected = selection[0x0A].objects
