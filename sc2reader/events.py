@@ -143,23 +143,29 @@ class AbilityEvent(PlayerActionEvent):
 class TargetAbilityEvent(AbilityEvent):
     def __init__(self, framestamp, player, type, code, ability, target):
         super(TargetAbilityEvent, self).__init__(framestamp, player, type, code, ability)
-        self.target = target
+        self.target = None
+        self.target_id, self.target_type = target
+        #Forgot why we have to munge this
+        self.target_type = self.target_type << 8 | 0x01
+
 
     def load_context(self, replay):
         super(TargetAbilityEvent, self).load_context(replay)
+        uid = (self.target_id, self.target_type)
 
-        obj_id, obj_type = self.target
-        obj_type = obj_type << 8 | 0x01 #Forgot why we have to munge this
+        if uid in replay.objects:
+            self.target = replay.objects[uid]
 
-        if (obj_id, obj_type) in replay.objects:
-            self.target = replay.objects[(obj_id, obj_type)]
-
-        elif obj_id:
-            if obj_type not in replay.datapack.types:
-                self.target = DataObject(0x00)
+        else:
+            if self.target_type not in replay.datapack.types:
+                self.target = None
             else:
-                self.target = replay.datapack.types[obj_type](obj_id)
-            replay.objects[(obj_id, obj_type)] = self.target
+                unit_class = replay.datapack.types[self.target_type]
+                self.target = unit_class(self.target_id)
+
+                # For units behind the fog of war, don't make an entry
+                if self.target.id:
+                    replay.objects[uid] = self.target
 
     def __str__(self):
         if self.target:
