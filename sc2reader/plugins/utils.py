@@ -1,8 +1,21 @@
 from __future__ import absolute_import
 
 import json
+from functools import wraps
 from datetime import datetime
 from sc2reader import log_utils
+
+from functools import wraps
+def plugin(func):
+    @wraps(func)
+    def wrapper(**options):
+        @wraps(func)
+        def call(*args, **kwargs):
+            opt = kwargs.copy()
+            opt.update(options)
+            return func(*args, **opt)
+        return call
+    return wrapper
 
 class JSONDateEncoder(json.JSONEncoder):
     def default(self, obj):

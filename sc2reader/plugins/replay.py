@@ -7,14 +7,15 @@ from collections import defaultdict
 from sc2reader import log_utils
 from sc2reader.utils import Length
 from sc2reader.events import SelectionEvent, HotkeyEvent, AddToHotkeyEvent, GetFromHotkeyEvent, SetToHotkeyEvent
-from sc2reader.plugins.utils import PlayerSelection, GameState, JSONDateEncoder
+from sc2reader.plugins.utils import PlayerSelection, GameState, JSONDateEncoder, plugin
 
+@plugin
 def toJSON(replay, **user_options):
     options = dict(cls=JSONDateEncoder)
     options.update(user_options)
     return json.dumps(toDict(replay), **options)
 
-
+@plugin
 def toDict(replay):
     # Build observers into dictionary
     observers = list()
@@ -79,7 +80,7 @@ def toDict(replay):
         'observers': observers
     }
 
-
+@plugin
 def APMTracker(replay):
     efilter = lambda event: getattr(event,'is_player_action',False)
     for player in replay.players:
@@ -90,7 +91,7 @@ def APMTracker(replay):
             player.apm[event.second/60] += 1
         player.avg_apm = sum(player.apm.values())/float(len(player.apm.keys()))
 
-
+@plugin
 def SelectionTracker(replay):
     logger = log_utils.get_logger(SelectionTracker)
     efilter = lambda e: isinstance(e, SelectionEvent) or isinstance(e, HotkeyEvent)
