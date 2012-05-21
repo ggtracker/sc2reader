@@ -175,7 +175,7 @@ class Replay(Resource):
         self.category = ""
         self.is_ladder = False
         self.is_private = False
-        self.map = ""
+        self.map = None
         self.map_hash = ""
         self.gateway = ""
         self.events = list()
