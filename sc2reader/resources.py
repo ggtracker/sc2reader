@@ -53,8 +53,16 @@ class Replay(Resource):
     #: The game speed: Slower, Slow, Normal, Fast, Faster
     speed = str()
 
-    #: The game type: 1v1, 2v2, 3v3, 4v4, FFA
+    #: Deprecated, use :member:`game_type` or :member:`real_type` instead
     type = str()
+
+    #: The game type choosen at game creation: 1v1, 2v2, 3v3, 4v4, FFA
+    game_type = str()
+
+    #: The real type of the replay as observed by counting players on teams.
+    #: For outmatched games, the smaller team numbers come first.
+    #: Example Values: 1v1, 2v2, 3v3, FFA, 2v4, etc.
+    real_type = str()
 
     #: The category of the game, Ladder and Private
     category = str()
@@ -172,6 +180,8 @@ class Replay(Resource):
         self.other_people = set()
         self.speed = ""
         self.type = ""
+        self.game_type = ""
+        self.real_type = ""
         self.category = ""
         self.is_ladder = False
         self.is_private = False
@@ -250,7 +260,7 @@ class Replay(Resource):
             # Populate replay with attributes
             self.speed = self.attributes[16]['Game Speed']
             self.category = self.attributes[16]['Category']
-            self.type = self.attributes[16]['Game Type']
+            self.type = self.game_type = self.attributes[16]['Game Type']
             self.is_ladder = (self.category == "Ladder")
             self.is_private = (self.category == "Private")
 
@@ -366,6 +376,13 @@ class Replay(Resource):
         #Create an store an ordered lineup string
         for team in self.teams:
             team.lineup = sorted(player.play_race[0].upper() for player in team)
+
+        # Special case FFA games and sort outmatched games in ascending order
+        team_sizes = [len(team.players) for team in self.teams]
+        if len(team_sizes) > 2 and sum(team_sizes) == len(team_sizes):
+            self.real_type = "FFA"
+        else:
+            self.real_type = "v".join(str(size) for size in sorted(team_sizes))
 
         if 'replay.initData' in self.raw_data:
             # Assign the default region to computer players for consistency
