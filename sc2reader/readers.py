@@ -383,8 +383,11 @@ class GameEventsReader_Base(Reader):
     def parse_transfer_event(self, buffer, frames, type, code, pid):
         def read_resource(buffer):
             block = buffer.read_int(BIG_ENDIAN)
-            base, multiplier, extension = block >> 8, block & 0xF0, block & 0x0F
-            return base*multiplier+extension
+            base, multiplier, extension = block >> 8, block & 0xF0 >> 4, block & 0x0F
+            if multiplier == 0:
+                return base+extension
+            else:
+                return base*multiplier+extension
 
         target = code >> 4
         buffer.skip(1) #Always 84
