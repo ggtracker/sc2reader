@@ -273,8 +273,8 @@ class PlayerSummary():
     stats = dict()
 
     def __init__(self, pid):
-        unknown2 = dict()
-        stats = dict()
+        self.unknown2 = dict()
+        self.stats = dict()
 
         self.pid = pid
 
