@@ -337,6 +337,11 @@ class Data_18317(BaseData):
             0x0: 'Cybernetics Core',
         }
 
+    class Zealot(Moveable, Attacker):
+        abilities = {
+            0x0: 'Charge (??)'
+        }
+
     class Stalker(Moveable, Attacker):
         abilities = {
             0x0: 'Blink',

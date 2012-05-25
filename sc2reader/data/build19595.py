@@ -425,6 +425,11 @@ class Data_19595(BaseData):
             0x11cae: 'Cybernetics Core',
         }
 
+    class Zealot(Moveable, Attacker):
+        abilities = {
+            0x20040: 'Charge (??)'
+        }
+
     class Stalker(Moveable, Attacker):
         abilities = {
             0x14c20: 'Blink',
