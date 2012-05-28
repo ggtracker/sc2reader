@@ -38,11 +38,33 @@ class Replay(Resource):
     #: The full version release string as seen on Battle.net
     release_string = str()
 
+    #: The UTC time the game was ended as represented by the Windows OS
+    windows_timestamp = int()
+
+    #: The UTC time the game was ended as represented by the Unix OS
+    unix_timestamp = int()
+
+    #: The time zone adjustment for the location the replay was recorded at
+    time_zone= int()
+
+    #: Deprecated: See `end_time` below.
+    date = None
+
+    #: A datetime object representing the local time at the end of the game.
+    end_time = None
+
+    #: A datetime object representing the local time at the start of the game
+    start_time = None
+
     #: The :class:`Length` of the replay as an alternative to :attr:`frames`
     length = utils.Length()
 
     #: The effective game speed when the game was played.
     speed = str()
+
+    #: The operating system the replay was recorded on.
+    #: Useful for interpretting certain kind of raw data.
+    os = str()
 
     #: The game type: 1v1, 2v2, 3v3, 4v4, FFA
     type = str()
@@ -119,6 +141,8 @@ class Replay(Resource):
         self.other_people = set()
         self.speed = ""
         self.type = ""
+
+        self.os = str()
         self.category = ""
         self.is_ladder = False
         self.is_private = False
@@ -186,11 +210,21 @@ class Replay(Resource):
 
             self.map_name = details.map
 
-            self.windows_timestamp = details.file_time-details.utc_adjustment
-            self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
-            self.time_zone = details.utc_adjustment/(10**7*60*60)
+            if details.os == 0:
+                self.os = "Windows"
+                self.windows_timestamp = details.file_time-details.utc_adjustment
+                self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
+                self.time_zone = details.utc_adjustment/(10**7*60*60)
+                self.end_time = datetime.utcfromtimestamp(self.unix_timestamp)
+            elif details.os == 1:
+                self.os = "Mac"
+                self.windows_timestamp = details.utc_adjustment
+                self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
+                self.time_zone = (details.utc_adjustment-details.file_time)/(10**7*60*60)
+                self.end_time = datetime.utcfromtimestamp(self.unix_timestamp)
+            else:
+                raise ValueError("Unknown operating system {} detected.".format(details.os))
 
-            self.end_time = datetime.utcfromtimestamp(self.unix_timestamp)
             self.game_length = self.length
             self.real_length = utils.Length(seconds=int(self.length.seconds/GAME_SPEED_FACTOR[self.speed]))
             self.start_time = datetime.utcfromtimestamp(self.unix_timestamp-self.real_length.seconds)
