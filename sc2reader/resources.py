@@ -801,7 +801,9 @@ class GameSummary(Resource):
             if not player.teamid in self.teams:
                 self.team[player.teamid] = list()
             self.team[player.teamid].append(player.pid)
-        self.teams = [self.team[tid] for tid in sorted(self.team.keys())]
+        
+        # What does this do?
+        #self.teams = [self.team[tid] for tid in sorted(self.team.keys())]
 
     def load_lobby_properties(self):
         #Monster function used to parse lobby properties in GameSummary
@@ -871,8 +873,11 @@ class GameSummary(Resource):
         left_lobby = deque([k for k in defs if defs[k]['lobby_prop']])
 
         lobby_props = dict()
+        last_success = 0
+        max = len(left_lobby)
         # We cycle through all property values 'til we're done
-        while len(left_lobby) > 0:
+        while len(left_lobby) > 0 and not (last_success > max+1):
+            last_success += 1
             propid = left_lobby.popleft()
             can_be_parsed = True
             active = True
@@ -889,6 +894,7 @@ class GameSummary(Resource):
                 # Try parse this later
                 left_lobby.append(propid)
                 continue
+            last_success = 0
             if not active:
                 # Ok, so the reqs weren't fullfilled, don't use this property
                 continue
@@ -930,8 +936,8 @@ class GameSummary(Resource):
 
             player_props[pid] = player
 
-        self.lobby_props = lobby_props
-        self.player_props = player_props
+        self.lobby_properties = lobby_props
+        self.lobby_player_properties = player_props
 
     def __str__(self):
         return "{} - {} {}".format(time.ctime(self.time),self.game_length,
