@@ -378,7 +378,7 @@ class Map(Resource):
         self.archive = MPQArchive(StringIO(self.file))
         self.minimap = self.archive.read_file('Minimap.tga')
 
-    @classmethod
+    @staticmethod
     def get_url(gateway, map_hash):
         if gateway and map_hash:
             return Map.url_template.format(gateway, map_hash)
