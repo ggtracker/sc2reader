@@ -1,4 +1,6 @@
 import argparse
+import re
+import textwrap
 
 class Formatter(argparse.RawTextHelpFormatter):
     """FlexiFormatter which respects new line formatting and wraps the rest
