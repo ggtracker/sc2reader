@@ -161,7 +161,7 @@ class Replay(Resource):
             initData = self.raw_data['replay.initData']
             if initData.map_data:
                 self.gateway = initData.map_data[0].gateway
-                self.map_hash = initData.map_data[-1].map_hash
+                self.map_hash = initData.map_data[-1].map_hash.encode("hex")
 
                 #Expand this special case mapping
                 if self.gateway == 'sg':
@@ -375,7 +375,7 @@ class Map(Resource):
         self.hash = map_hash
         self.gateway = gateway
         self.url = Map.get_url(gateway, map_hash)
-        self.archive = MPQArchive(StringIO(self.file))
+        self.archive = MPQArchive(StringIO(map_file))
         self.minimap = self.archive.read_file('Minimap.tga')
 
     @staticmethod
