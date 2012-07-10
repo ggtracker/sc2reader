@@ -59,6 +59,8 @@ class ReplayBuffer(object):
             left
             length
             cursor
+
+        All read_* functions throw EOFErrors
     """
 
     def __init__(self, file):
@@ -85,58 +87,69 @@ class ReplayBuffer(object):
         self.coord_convert = [(2**(12 - i),1.0/2**i) for i in range(1,13)]
 
         self.read_basic = self.io.read
+        self.tell = self.io.tell
+
+        self.skip = functools.partial(self.seek, whence=os.SEEK_CUR)
+        self.reset = functools.partial(self.seek, 0)
+
         self.char_buffer = cStringIO.StringIO()
 
         # Pre-generate the state for all reads, marginal time savings
-        self.read_state = dict()
+        def _load_state(old, new):
+            old_inv = 8-old
+
+            # Masks
+            lo_mask = 2**old-1
+            lo_mask_inv = 0xFF - 2**old_inv+1
+            hi_mask = 0xFF ^ lo_mask
+            hi_mask_inv = 0xFF ^ lo_mask_inv
+
+            #last byte parameters
+            if new == 0: #this means we filled the last byte (8)
+                last_mask = 0xFF
+                adjustment = 8-old
+                adjustment_mask = 2**adjustment-1
+            else:
+                last_mask = 2**new-1
+                adjustment = new-old
+                adjustment_mask = 2**adjustment-1
+
+            return (old_inv, lo_mask, lo_mask_inv, hi_mask, hi_mask_inv, last_mask, adjustment, adjustment_mask)
+
+        self._state = dict()
         for old in range(0,8):
             for new in range(0,8):
-                self.read_state[(old,new)] = self.load_state(old, new)
-
-    def load_state(self, old_bit_shift, new_bit_shift):
-        old_bit_shift_inv = 8-old_bit_shift
-
-        # Masks
-        lo_mask = 2**old_bit_shift-1
-        lo_mask_inv = 0xFF - 2**(8-old_bit_shift)+1
-        hi_mask = 0xFF ^ lo_mask
-        hi_mask_inv = 0xFF ^ lo_mask_inv
-
-        #last byte parameters
-        if new_bit_shift == 0: #this means we filled the last byte (8)
-            last_mask = 0xFF
-            adjustment = 8-old_bit_shift
-            adjustment_mask = 2**adjustment-1
-        else:
-            last_mask = 2**new_bit_shift-1
-            adjustment = new_bit_shift-old_bit_shift
-            adjustment_mask = 2**adjustment-1
-
-        return (old_bit_shift_inv, lo_mask, lo_mask_inv, hi_mask,
-                hi_mask_inv, last_mask, adjustment, adjustment_mask)
+                self._state[(old,new)] = _load_state(old, new)
 
     '''
-        Additional Properties
+        Derived properties
     '''
     @property
-    def left(self): return self.length - self.io.tell()
+    def left(self):
+        return self.length - self.tell()
+
     @property
-    def empty(self): return self.left==0
+    def empty(self):
+        return self.tell() != self.length
+
     @property
-    def cursor(self): return self.io.tell()
+    def cursor(self):
+        return self.tell()
 
     '''
         Stream manipulation functions
     '''
-    def tell(self): return self.io.tell()
-    def skip(self, amount): self.seek(amount, os.SEEK_CUR)
-    def reset(self): self.io.seek(0); self.bit_shift = 0
-    def align(self): self.bit_shift=0
+    def align(self):
+        """Discard the leftover bits and align to the next byte"""
+        self.bit_shift=0
+
     def seek(self, position, mode=os.SEEK_SET):
         self.io.seek(position, mode)
         if self.io.tell()!=0 and self.bit_shift!=0:
             self.io.seek(-1, os.SEEK_CUR)
             self.last_byte = ord(self.read_basic(1))
+        else:
+            self.bit_shift = 0
 
     def peek(self, length):
         start,last,ret = self.cursor,self.last_byte,self.read_hex(length)
@@ -145,10 +158,13 @@ class ReplayBuffer(object):
         return ret
 
     '''
-        Read "basic" structures
+        Basic read methods
     '''
     def read_byte(self):
-        """ Basic byte read """
+        """Throws EOFError"""
+        if self.left == 0:
+            raise EOFError("Cannot read byte; no bytes remaining")
+
         if self.bit_shift==0:
             return ord(self.read_basic(1))
         else:
@@ -161,6 +177,10 @@ class ReplayBuffer(object):
 
 
     def read_int(self, endian=LITTLE_ENDIAN):
+        """Throws EOFError"""
+        if self.left < 4:
+            raise EOFError("Cannot read int; only {} bytes left in buffer".format(self.left))
+
         if self.bit_shift == 0:
             return struct.unpack(endian+'I', self.read_basic(4))[0]
 
@@ -186,7 +206,10 @@ class ReplayBuffer(object):
             return number
 
     def read_short(self, endian=LITTLE_ENDIAN):
-        """ short16 read """
+        """Throws EOFError"""
+        if self.left < 2:
+            raise EOFError("Cannot read short; only {} bytes left in buffer".format(self.left))
+
         if self.bit_shift == 0:
             return struct.unpack(endian+'H', self.read_basic(2))[0]
 
@@ -211,6 +234,122 @@ class ReplayBuffer(object):
 
             return number
 
+    def shift(self, bits):
+        """
+        The only valid use of Buffer.shift is when you know that there are
+        enough bits left in the loaded byte to accommodate your request. This
+        is to reduce function complexity; use read(bits=7) instead if you want
+        to ignore byte boundries.
+
+        If there is no loaded byte, or the loaded byte has been exhausted,
+        then Buffer.shift(8) could technically be used to read a single
+        byte-aligned byte.
+
+        Throws EOFError at end of buffer
+        Throws ValueError if bits > bits left in byte
+        """
+        #declaring locals instead of accessing dict on multiple use seems faster
+        bit_shift = self.bit_shift
+        new_shift = bit_shift+bits
+
+        #make sure there are enough bits left in the byte
+        if new_shift > 8:
+            msg = "Cannot shift off %s bits. Only %s bits remaining."
+            raise ValueError(msg % (bits, 8-self.bit_shift))
+
+        try:
+            # Get the next byte if we are on a clean slate
+            if not bit_shift:
+                self.last_byte = ord(self.read_basic(1))
+
+            #using a bit_mask_array tested out to be 20% faster, go figure
+            ret = (self.last_byte >> bit_shift) & self.lo_masks[bits]
+            #using an if for the special case tested out to be faster, hrm
+            self.bit_shift = 0 if new_shift == 8 else new_shift
+            return ret
+
+        except TypeError:
+            msg = "Cannot shift requested bits. End of buffer reached"
+            raise EOFError(msg)
+
+
+    def read(self, bytes=0, bits=0):
+        """Throws EOFError"""
+        bytes, bits = bytes+bits/8, bits%8
+        bit_count = bytes*8+bits
+
+        #check special case of not having to do any work
+        if bit_count == 0: return []
+
+        #check sepcial case of intra-byte read
+        if bit_count <= (8-self.bit_shift):
+            return [self.shift(bit_count)]
+
+        # Check for the end of the buffer
+        if (bit_count-self.bit_shift)/8.0 > self.left:
+            raise EOFError("Cannot read requested bits/bytes. only {} bytes left in buffer.".format(self.left))
+
+        #check special case of byte-aligned reads, performance booster
+        if self.bit_shift == 0:
+            base = map(ord, map(self.read_basic, [1]*bytes))
+            if bits != 0:
+                return base+[self.shift(bits)]
+            return base
+
+        # Calculated shifts as our keys
+        old_bit_shift = self.bit_shift
+        new_bit_shift = (self.bit_shift+bits) % 8
+
+        # Load the precalculated state variables
+        (old_bit_shift_inv, lo_mask, lo_mask_inv,
+         hi_mask, hi_mask_inv, last_mask, adjustment,
+         adjustment_mask) = self._state[(old_bit_shift,new_bit_shift)]
+
+        #Set up for the looping with a list, the bytes, and an initial part
+        raw_bytes = list()
+        prev, next = self.last_byte, ord(self.read_basic(1))
+        first = prev & hi_mask
+        bit_count -= old_bit_shift_inv
+
+        while bit_count > 0:
+            if bit_count <= 8: #this is the last byte
+                #The bits in the last byte are included in order starting at
+                #the new_bit_shift boundary with extra bits bumped back a byte
+                #because we can have odd bit requests, the bit shift can change
+                last = (next & last_mask)
+
+                # we need to bring the first byte closer
+                # if the adjustment is lower than 0
+                if adjustment < 0:
+                    first = first >> abs(adjustment)
+                    raw_bytes.append(first | last)
+                elif adjustment > 0:
+                    raw_bytes.append(first | (last >> adjustment))
+                    raw_bytes.append(last & adjustment_mask)
+                else:
+                    raw_bytes.append(first | last)
+
+                bit_count = 0
+
+            if bit_count > 8: #We can do simple wrapping for middle bytes
+                second = (next & lo_mask_inv) >> old_bit_shift_inv
+                raw_bytes.append(first | second)
+
+                #To remain consistent, always shfit these bits into the hi_mask
+                first = (next & hi_mask_inv) << old_bit_shift
+                bit_count -= 8
+
+                #Cycle down to the next byte
+                prev,next = next,ord(self.read_basic(1))
+
+        self.last_byte = next
+        self.bit_shift = new_bit_shift
+        return raw_bytes
+
+
+    '''
+        Read replay-specific structures
+    '''
     def read_chars(self, length=0):
         if self.bit_shift==0:
             return self.read_basic(length)
@@ -222,9 +361,6 @@ class ReplayBuffer(object):
     def read_hex(self, length=0):
         return self.read_chars(length).encode("hex")
 
-    '''
-        Read replay-specific structures
-    '''
     def read_count(self):
         return self.read_byte()/2
 
@@ -261,8 +397,6 @@ class ReplayBuffer(object):
             return time << 16 | self.read_short()
         elif count == 3:
             return time << 24 | self.read_short() << 8 | self.read_byte()
-        else:
-            raise ValueError()
 
     def read_data_struct(self, indent=0, key=None):
         """
@@ -427,114 +561,6 @@ class ReplayBuffer(object):
         return ret
 
 
-    '''
-        Base read functions
-    '''
-    def shift(self, bits):
-        """
-        The only valid use of Buffer.shift is when you know that there are
-        enough bits left in the loaded byte to accommodate your request.
-
-        If there is no loaded byte, or the loaded byte has been exhausted,
-        then Buffer.shift(8) could technically be used to read a single
-        byte-aligned byte.
-        """
-        try:
-            #declaring locals instead of accessing dict on multiple use seems faster
-            bit_shift = self.bit_shift
-            new_shift = bit_shift+bits
-
-            #make sure there are enough bits left in the byte
-            if new_shift <= 8:
-                if not bit_shift:
-                    self.last_byte = ord(self.read_basic(1))
-
-                #using a bit_mask_array tested out to be 20% faster, go figure
-                ret = (self.last_byte >> bit_shift) & self.lo_masks[bits]
-                #using an if for the special case tested out to be faster, hrm
-                self.bit_shift = 0 if new_shift == 8 else new_shift
-                return ret
-
-            else:
-                msg = "Cannot shift off %s bits. Only %s bits remaining."
-                raise ValueError(msg % (bits, 8-self.bit_shift))
-
-        except TypeError:
-            raise EOFError("Cannot shift requested bits. End of buffer reached")
-
-    def read(self, bytes=0, bits=0):
-        try:
-            bytes, bits = bytes+bits/8, bits%8
-            bit_count = bytes*8+bits
-
-            #check special case of not having to do any work
-            if bit_count == 0: return []
-
-            #check sepcial case of intra-byte read
-            if bit_count <= (8-self.bit_shift):
-                return [self.shift(bit_count)]
-
-            #check special case of byte-aligned reads, performance booster
-            if self.bit_shift == 0:
-                base = map(ord, map(self.read_basic, [1]*bytes))
-                if bits != 0:
-                    return base+[self.shift(bits)]
-                return base
-
-            # Calculated shifts as our keys
-            old_bit_shift = self.bit_shift
-            new_bit_shift = (self.bit_shift+bits) % 8
-
-            # Load the precalculated state variables
-            (old_bit_shift_inv, lo_mask, lo_mask_inv,
-             hi_mask, hi_mask_inv, last_mask, adjustment,
-             adjustment_mask) = self.read_state[(old_bit_shift,new_bit_shift)]
-
-            #Set up for the looping with a list, the bytes, and an initial part
-            raw_bytes = list()
-            prev, next = self.last_byte, ord(self.read_basic(1))
-            first = prev & hi_mask
-            bit_count -= old_bit_shift_inv
-
-            while bit_count > 0:
-
-                if bit_count <= 8: #this is the last byte
-                    #The bits in the last byte are included in order starting at
-                    #the new_bit_shift boundary with extra bits bumped back a byte
-                    #because we can have odd bit requests, the bit shift can change
-                    last = (next & last_mask)
-
-                    # we need to bring the first byte closer
-                    # if the adjustment is lower than 0
-                    if adjustment < 0:
-                        first = first >> abs(adjustment)
-                        raw_bytes.append(first | last)
-                    elif adjustment > 0:
-                        raw_bytes.append(first | (last >> adjustment))
-                        raw_bytes.append(last & adjustment_mask)
-                    else:
-                        raw_bytes.append(first | last)
-
-                    bit_count = 0
-
-                if bit_count > 8: #We can do simple wrapping for middle bytes
-                    second = (next & lo_mask_inv) >> old_bit_shift_inv
-                    raw_bytes.append(first | second)
-
-                    #To remain consistent, always shfit these bits into the hi_mask
-                    first = (next & hi_mask_inv) << old_bit_shift
-                    bit_count -= 8
-
-                    #Cycle down to the next byte
-                    prev,next = next,ord(self.read_basic(1))
-
-            self.last_byte = next
-            self.bit_shift = new_bit_shift
-            return raw_bytes
-
-        except TypeError:
-            raise EOFError("Cannot read requested bits/bytes. End of buffer reached")
-
 class PersonDict(dict):
     """
     Supports lookup on both the player name and player id
@@ -548,16 +574,14 @@ class PersonDict(dict):
 
     Delete is supported on the player id only
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, players=[]):
+        super(PersonDict, self).__init__()
         self._key_map = dict()
 
-        if args:
-            for arg in args[0]:
-                self[arg[0]] = arg[1]
+        # Support creation from iterables
+        for player in players:
+            self[player.pid] = player
 
-        if kwargs:
-            for key, value in kwargs.iteritems():
-                self[key] = value
 
     def __getitem__(self, key):
         if isinstance(key, str):
@@ -611,7 +635,7 @@ class Color(AttributeDict):
     @property
     def rgba(self):
         """Tuple containing the (r,g,b,a) representation of the color"""
-        return tuple(self.r,self.g,self.b,self.a)
+        return (self.r,self.g,self.b,self.a)
 
     @property
     def hex(self):
@@ -625,14 +649,13 @@ class Color(AttributeDict):
 
 def open_archive(replay_file):
     # Don't read the listfile because some replays have corrupted listfiles
-    # due  to tampering by 3rd parties.
+    # from tampering by 3rd parties.
     #
-    # In order to wrap mpyq in exceptions we have to do this try hack.
+    # In order to catch mpyq exceptions we have to do this hack because
+    # mypq could throw pretty much anything.
     try:
         replay_file.seek(0)
         return  mpyq.MPQArchive(replay_file, listfile=False)
-    except KeyboardInterrupt:
-        raise
     except Exception as e:
         trace = sys.exc_info()[2]
         raise exceptions.MPQError("Unable to construct the MPQArchive",e), None, trace
@@ -640,26 +663,20 @@ def open_archive(replay_file):
 def extract_data_file(data_file, archive):
     # To wrap mpyq exceptions we have to do this try hack again.
     try:
-        # Some sites tamper with the message events file so
+        # Some sites tamper with the replay archive files so
         # Catch decompression errors and try again before giving up
-        if data_file == 'replay.message.events':
-            try:
-                file_data = archive.read_file(data_file, force_decompress=True)
-            except IndexError as e:
-                if str(e) == "string index out of range":
-                    file_data = archive.read_file(data_file, force_decompress=False)
-                else:
-                    raise
-        else:
-            file_data = archive.read_file(data_file)
+        try:
+            file_data = archive.read_file(data_file, force_decompress=True)
+        except IndexError as e:
+            if str(e) != "string index out of range":
+                raise
+            file_data = archive.read_file(data_file, force_decompress=False)
 
         return file_data
 
-    except KeyboardInterrupt:
-        raise
     except Exception as e:
         trace = sys.exc_info()[2]
-        raise exceptions.MPQError("Unable to extract file: {0}".format(data_file),e), None, trace
+        raise exceptions.MPQError("Unable to extract file: {}".format(data_file),e), None, trace
 
 def read_header(replay_file):
     # Extract useful header information from the MPQ files. This information
@@ -668,9 +685,9 @@ def read_header(replay_file):
     replay_file.seek(0)
     buffer = ReplayBuffer(replay_file)
 
-    #Sanity check that the input is in fact an MPQ file
+    # Sanity check that the input is in fact an MPQ file
     if buffer.empty or buffer.read_hex(4).upper() != "4D50511B":
-        msg = "File '{0}' is not an MPQ file";
+        msg = "File '{}' is not an MPQ file";
         raise exceptions.FileError(msg.format(replay_file.name))
 
     max_data_size = buffer.read_int(LITTLE_ENDIAN)
