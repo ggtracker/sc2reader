@@ -89,7 +89,7 @@ class ReplayBuffer(object):
         self.read_basic = self.io.read
         self.tell = self.io.tell
 
-        self.skip = functools.partial(self.seek, whence=os.SEEK_CUR)
+        self.skip = functools.partial(self.seek, mode=os.SEEK_CUR)
         self.reset = functools.partial(self.seek, 0)
 
         self.char_buffer = cStringIO.StringIO()
