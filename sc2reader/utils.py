@@ -666,11 +666,11 @@ def extract_data_file(data_file, archive):
         # Some sites tamper with the replay archive files so
         # Catch decompression errors and try again before giving up
         try:
-            file_data = archive.read_file(data_file, force_decompress=True)
+            file_data = archive.read_file(data_file, force_decompress=False)
         except IndexError as e:
             if str(e) != "string index out of range":
                 raise
-            file_data = archive.read_file(data_file, force_decompress=False)
+            file_data = archive.read_file(data_file, force_decompress=True)
 
         return file_data
 
