@@ -69,22 +69,34 @@ class UnitSelection(object):
         self.objects = sorted(new_set,key=lambda obj: obj.id)
 
     def deselect(self, mode, data):
+        """Returns false if there was a data error when deselecting"""
+        size = len(self.objects)
+
         if mode == 0x01:
             """ Deselect objects according to deselect mask """
             mask = data
-            if len(mask) < len(self.objects):
+            if len(mask) < size:
                 # pad to the right
                 mask = mask+[False,]*(len(self.objects)-len(mask))
+
             self.logger.debug("Deselection Mask: {0}".format(mask))
             self.objects = [ obj for (slct, obj) in filter(lambda (slct, obj): not slct, zip(mask, self.objects)) ]
+            return len(mask) <= size
 
         elif mode == 0x02:
             """ Deselect objects according to indexes """
-            self.objects = [ self.objects[i] for i in range(len(self.objects)) if i not in data ]
+            clean_data = filter(lambda i: i < size, data)
+            self.objects = [ self.objects[i] for i in range(len(self.objects)) if i not in clean_data ]
+            return len(clean_data) == len(data)
 
         elif mode == 0x03:
             """ Deselect objects according to indexes """
-            self.objects = [ self.objects[i] for i in data ]
+            clean_data = filter(lambda i: i < size, data)
+            self.objects = [ self.objects[i] for i in clean_data ]
+            return len(clean_data) == len(data)
+
+        else:
+            return True
 
     def __str__(self):
         return ', '.join(str(obj) for obj in self.objects)
