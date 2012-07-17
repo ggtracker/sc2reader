@@ -130,7 +130,7 @@ class ReplayBuffer(object):
 
     @property
     def empty(self):
-        return self.tell() != self.length
+        return self.tell() == self.length
 
     @property
     def cursor(self):

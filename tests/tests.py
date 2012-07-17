@@ -40,6 +40,12 @@ class ReplayBufferTests(unittest.TestCase):
 	"""All methods should throw EOFError when they hit the end of the
 	wrapped buffer."""
 
+	def test_empty(self):
+		buffer = sc2reader.utils.ReplayBuffer("T35T")
+		self.assertEquals(buffer.empty, False)
+		buffer.read(4)
+		self.assertEquals(buffer.empty, True)
+
 	def test_seek(self):
 		"""Should preserve the bitshift unless seeking back to beginning of
 		the file. Seeking to position 0 leaves no bits behind to shift.
