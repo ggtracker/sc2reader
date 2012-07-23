@@ -155,7 +155,6 @@ class SC2Factory(object):
     def _load_resource(self, resource, options=None, **new_options):
         """http links, filesystem locations, and file-like objects"""
         options = options or self._get_options(Resource, **new_options)
-        print resource
         if isinstance(resource, basestring):
             if re.match(r'https?://',resource):
                 self.logger.info("Fetching remote resource: "+resource)
