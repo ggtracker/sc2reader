@@ -236,9 +236,9 @@ def Uproots(uproot, root, cancel):
     return Mode('Uprooted',('Uproot',uproot,None),('Root',root,cancel))
 
 @Wrapped
-def UpgradeFrom(cls, target, start, cancel):
-    target.abilities[start] = 'Upgrade to {0}'.format(target.__name__)
-    target.abilities[cancel] = 'Cancel upgrade to {0}'.format(target.__name__)
+def UpgradeFrom(upgrade, base, start, cancel):
+    base.abilities[start] = 'Upgrade to {0}'.format(upgrade.__name__)
+    upgrade.abilities[cancel] = 'Cancel upgrade to {0}'.format(upgrade.__name__)
 
 @Wrapped
 def Transports(cls, all_code, all_moving_code, unload_unit_code, load_unit_code):
