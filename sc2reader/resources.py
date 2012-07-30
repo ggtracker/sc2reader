@@ -688,6 +688,9 @@ class GameSummary(Resource):
         self.game_length = utils.Length(seconds=self.parts[0][7])
         self.real_length = utils.Length(seconds=self.parts[0][7]/GAME_SPEED_FACTOR[self.game_speed])
 
+        # TODO: Is this the start or end time?
+        self.date = datetime.utcfromtimestamp(self.parts[0][8])
+
         self.load_lobby_properties()
         self.load_player_info()
         self.load_player_graphs()
@@ -744,7 +747,6 @@ class GameSummary(Resource):
     def load_player_graphs(self):
         # Parse graph and stats stucts, for each player
         for pid, p in self.player.items():
-            print type(pid), type(p)
             # Graph stuff
             xy = [(o[2], o[0]) for o in self.parts[4][0][2][1][p.pid]]
             p.army_graph = Graph([], [], xy_list=xy)
