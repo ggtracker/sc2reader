@@ -1,4 +1,4 @@
-.. currentmodule:: sc2reader.replay
+.. currentmodule:: sc2reader.resources
 
 Main Structures
 ======================
@@ -69,7 +69,7 @@ Person
 Observer
 ---------------
 
-.. autoclass:: Observer    
+.. autoclass:: Observer
 
 
 

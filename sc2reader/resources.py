@@ -57,7 +57,7 @@ class Replay(Resource):
     #: Useful for interpretting certain kind of raw data.
     os = str()
 
-    #: Deprecated, use :member:`game_type` or :member:`real_type` instead
+    #: Deprecated, use :attr:`game_type` or :attr:`real_type` instead
     type = str()
 
     #: The game type choosen at game creation: 1v1, 2v2, 3v3, 4v4, FFA
@@ -803,7 +803,7 @@ class GameSummary(Resource):
             if not player.teamid in self.teams:
                 self.team[player.teamid] = list()
             self.team[player.teamid].append(player.pid)
-        
+
         # What does this do?
         #self.teams = [self.team[tid] for tid in sorted(self.team.keys())]
 
