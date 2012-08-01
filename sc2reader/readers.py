@@ -97,6 +97,7 @@ class AttributesEventsReader_17326(AttributesEventsReader_Base):
 
 
 class DetailsReader_Base(Reader):
+    Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10'])
     def __call__(self, buffer, replay):
         # The entire details file is just a serialized data structure
         #
@@ -159,8 +160,10 @@ class DetailsReader_Base(Reader):
 
         # As a final touch, label all extracted information using the Details
         # named tuple from objects.py
-        return Details(*ordered_values(data))
+        return self.Details(*ordered_values(data))
 
+class DetailsReader_22612(DetailsReader_Base):
+    Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10', 'unknown11'])
 
 class MessageEventsReader_Base(Reader):
     def __call__(self, buffer, replay):
