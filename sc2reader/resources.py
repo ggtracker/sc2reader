@@ -512,7 +512,8 @@ class Replay(Resource):
         self.register_reader('replay.game.events', readers.GameEventsReader_Base(), lambda r: r.build <  16561)
         self.register_reader('replay.game.events', readers.GameEventsReader_16561(), lambda r: 16561 <= r.build < 18574)
         self.register_reader('replay.game.events', readers.GameEventsReader_18574(), lambda r: 18574 <= r.build < 19595)
-        self.register_reader('replay.game.events', readers.GameEventsReader_19595(), lambda r: 19595 <= r.build)
+        self.register_reader('replay.game.events', readers.GameEventsReader_19595(), lambda r: 19595 <= r.build < 22612)
+        self.register_reader('replay.game.events', readers.GameEventsReader_22612(), lambda r: 22612 <= r.build)
 
     def register_default_datapacks(self):
         """Registers factory default datapacks."""
