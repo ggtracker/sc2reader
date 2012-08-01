@@ -1,4 +1,5 @@
 """ Game Event Parsing Debugger
+    ===============================
 
     Recursively searches for unique replays specified by command line argument
     and attempts a parse in order to catch the ReadError. The ReadError will
@@ -29,16 +30,50 @@
         3) Alter the reader code to make it happen
         4) Repeat
 
+    In the example above:
+
+        00 22 ac 00 02 f4 00 00  | 00 0c a1 89 00 10 00 00 00 21 0b 01 00 01 5c 01 00 0c 22 0b
+
+    The boundaries should be here:
+
+        00 22 ac 00 02 f4 00 00 00 | 0c a1 89 00 10 00 00 | 00 21 0b 01 00 01 5c 01 00 | 0c 22 0b
+
+    So the correct bytes for the failed event are these:
+
+        00 22 ac 00 02 f4 00 00 00
+
     To figure out how to alter the reader code you'll probably need to compile
-    lists of failed events with the correct bytes and look for patterns that
-    would help you read them the right way. Sometimes it also helps to think
-    about what that event represents and what would make its content length
-    vary. Cross checking against a replay can also be useful.
+    lists of failed events with these correct bytes and look for patterns that
+    would help you read them the right way.
+
+    Sometimes it also helps to think about what that event represents and what
+    would make its content length vary. Cross checking against a replay can
+    also be useful.
 
     When altering the reader code, NEVER change code in an older game events
     reader unless you really really know what you are doing. Instead copy the
     function you'd like to change into the GameEventsReader_22612 class and
     make your changes there.
+
+
+    Pointers for finding boundaries
+    ==================================
+
+    The easiest way to find the right boundary is to scan the following bytes
+    until you see a clear marker for a different event and then work your way
+    backwards until you can't anymore.
+
+    The first part of a new event is always a timestamp and usually, maybe
+    9/10 times, the timestamp will only be 1 bye long and therefore a multiple
+    of 4 (including 0).
+
+    Immediately following the timestamp is a byte with bits split 3-5 for
+    event_type and player_id. The event type is never more than 5 and the
+    player_id is generally less than 4 for ladder games.
+
+    The next byte after that is the event code. Common event codes include:
+    AC, XD, 61, and XB where X is any number. You can find a list of event
+    codes in the sc2reader.readers.GameEventsReader_Base class.
 """
 import sys
 import sc2reader
