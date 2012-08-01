@@ -8,6 +8,7 @@
     Outputs the following information in the following format:
 
         ggtracker/ggtracker_replay_202597.SC2Replay
+          Cursor  Time  P# EventType             Bytes
           ....... 00:04 P2 AbilityEvent        - 00 22 0b 01 08 34 07 00 31 00 00 01 1f 0d 21 f8 00 8c c0 80 00 05 ff 00
           ....... 00:05 P1 SelectionEvent      - 38 21 ac 00 06 00 01 05 15 01 03 03 05 18 00 01 05 20 00 01 05 28 00 01
           0x000F5 00:05 P2 SelectionEvent      - 00 22 ac 00 02 f4 00 00  | 00 0c a1 89 00 10 00 00 00 21 0b 01 00 01 5c 01 00 0c 22 0b
@@ -105,7 +106,7 @@ for filename in set(sum((list(get_files(arg)) for arg in sys.argv[1:]),list())):
     except ReadError as e:
         print filename
         if len(e.game_events):
-            print " Location  Time P# EventType             Bytes"
+            print "  Cursor  Time  P# EventType             Bytes"
             for event in e.game_events[-3:-1]:
                 print "  ....... {:0>2}:{:0>2} P{} {: <19} - {}".format(event.second/60, event.second%60, event.pid, get_name(event), format_bytes(event.bytes))
             last_event = e.game_events[-1]
