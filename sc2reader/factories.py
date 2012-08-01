@@ -361,7 +361,8 @@ class SC2Factory(object):
 
     def register_default_readers(self):
         """Registers factory default readers."""
-        self.register_reader('replay.details', readers.DetailsReader_Base())
+        self.register_reader('replay.details', readers.DetailsReader_Base(), lambda r: r.build < 22612)
+        self.register_reader('replay.details', readers.DetailsReader_22612(), lambda r: r.build >= 22612)
         self.register_reader('replay.initData', readers.InitDataReader_Base())
         self.register_reader('replay.message.events', readers.MessageEventsReader_Base())
         self.register_reader('replay.attributes.events', readers.AttributesEventsReader_Base(), lambda r: r.build <  17326)
