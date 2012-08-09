@@ -509,7 +509,7 @@ class Replay(Resource):
         self.register_reader('replay.message.events', readers.MessageEventsReader_Base())
         self.register_reader('replay.attributes.events', readers.AttributesEventsReader_Base(), lambda r: r.build <  17326)
         self.register_reader('replay.attributes.events', readers.AttributesEventsReader_17326(), lambda r: r.build >= 17326)
-        self.register_reader('replay.game.events', readers.GameEventsReader_Base(), lambda r: r.build <  16561)
+        self.register_reader('replay.game.events', readers.GameEventsReader_16117(), lambda r: 16117 <= r.build < 16561)
         self.register_reader('replay.game.events', readers.GameEventsReader_16561(), lambda r: 16561 <= r.build < 18574)
         self.register_reader('replay.game.events', readers.GameEventsReader_18574(), lambda r: 18574 <= r.build < 19595)
         self.register_reader('replay.game.events', readers.GameEventsReader_19595(), lambda r: 19595 <= r.build < 22612)
@@ -528,12 +528,15 @@ class Replay(Resource):
         for callback, reader in self.registered_readers[data_file]:
             if callback(self):
                 return reader
+        else:
+            raise ValueError("Valid {} reader could not found for build {}".format(data_file, self.build))
 
     def _get_datapack(self):
         for callback, datapack in self.registered_datapacks:
             if callback(self):
                 return datapack
-        return None
+        else:
+            return None
 
     def _read_data(self, data_file, reader):
         data = utils.extract_data_file(data_file,self.archive)

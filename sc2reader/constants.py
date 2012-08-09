@@ -55,10 +55,10 @@ LOCALIZED_RACES = {
 #
 
 RACE_CODES = {
-    'rreT': 'Terran',
-    'greZ': 'Zerg',
-    'torP': 'Protoss',
-    'DNAR': 'Random',
+    'Terr': 'Terran',
+    'Zerg': 'Zerg',
+    'Prot': 'Protoss',
+    'RAND': 'Random',
 }
 MESSAGE_CODES = {
     '0': 'All',
@@ -67,35 +67,35 @@ MESSAGE_CODES = {
     '125': 'Ping',
 }
 TEAM_COLOR_CODES = {
-    '10ct': "Red",
-    '20ct': "Blue",
-    '30ct': "Teal",
-    '40ct': "Purple",
-    '50ct': "Yellow",
-    '60ct': "Orange",
-    '70ct': "Green",
-    '80ct': "Light Pink",
-    '90ct': "Violet",
-    '01ct': "Light Grey",
-    '11ct': "Dark Green",
-    '21ct': "Brown",
-    '31ct': "Light Green",
-    '41ct': "Dark Grey",
-    '51ct': "Pink",
-    '61ct': "??",
+    'tc01': "Red",
+    'tc02': "Blue",
+    'tc03': "Teal",
+    'tc04': "Purple",
+    'tc05': "Yellow",
+    'tc06': "Orange",
+    'tc07': "Green",
+    'tc08': "Light Pink",
+    'tc09': "Violet",
+    'tc10': "Light Grey",
+    'tc11': "Dark Green",
+    'tc12': "Brown",
+    'tc13': "Light Green",
+    'tc14': "Dark Grey",
+    'tc15': "Pink",
+    'tc16': "??",
 }
 DIFFICULTY_CODES = {
-    'yEyV': 'Very easy',
-    'ysaE': 'Easy',
-    'ideM': 'Medium',
-    'draH': 'Hard',
-    'dHyV': 'Very hard',
-    'asnI': 'Insane',
+    'VyEy': 'Very easy',
+    'Easy': 'Easy',
+    'Medi': 'Medium',
+    'Hard': 'Hard',
+    'VyHd': 'Very hard',
+    'Insa': 'Insane',
 }
 GAME_TYPE_CODES = {
-    'virP': 'Private',
-    'buP':  'Public',
-    'mmA':  'Ladder',
+    'Priv': 'Private',
+    'Pub':  'Public',
+    'Amm':  'Ladder',
     '':     'Single',
 }
 # (name, key for team ids)
@@ -106,14 +106,14 @@ GAME_FORMAT_CODES = {
     '4v4': '4v4',
     '5v5': '5v5',
     '6v6': '6v6',
-    'AFF': 'FFA',
+    'FFA': 'FFA',
 }
 GAME_SPEED_CODES = {
-    'rolS': 'Slower',
-    'wolS': 'Slow',
-    'mroN': 'Normal',
-    'tsaF': 'Fast',
-    'rsaF': 'Faster',
+    'Slor': 'Slower',
+    'Slow': 'Slow',
+    'Norm': 'Normal',
+    'Fast': 'Fast',
+    'Fasr': 'Faster',
 }
 
 GAME_SPEED_FACTOR = {
@@ -125,10 +125,10 @@ GAME_SPEED_FACTOR = {
 }
 
 PLAYER_TYPE_CODES = {
-    'nmuH': 'Human',
-    'pmoC': 'Computer',
-    'nepO': 'Open',
-    'dslC': 'Closed',
+    'Humn': 'Human',
+    'Comp': 'Computer',
+    'Open': 'Open',
+    'Clsd': 'Closed',
 }
 GATEWAY_CODES = {
     'US': 'Americas',
@@ -191,7 +191,7 @@ LOBBY_PROPERTY_NAMES = {
 
 BUILD_ORDER_UPGRADES = {
     # Protoss
-    
+
     ## Forge
     0x2902 : 'Protoss Ground Weapons Level 1',
     0x2a02 : 'Protoss Ground Weapons Level 2',
@@ -221,14 +221,14 @@ BUILD_ORDER_UPGRADES = {
     ## Fleet Beacon
     0x0302 : 'Graviton Catapult',
     0x7102 : 'Anion Pulse-Crystals',
-    
-    #Zerg    
-    
+
+    #Zerg
+
     ## Roach Warren
     0x0402 : 'Gial Reconstitution',
     0x0502 : 'Tunneling Claws',
     ## Ultralisk Cavern
-    0x0602 : 'Chitinous Plating', 
+    0x0602 : 'Chitinous Plating',
     ## Evo. chamber
     0x3702 : 'Zerg Melee Attacks Level 1',
     0x3802 : 'Zerg Melee Attacks Level 2',
@@ -249,10 +249,10 @@ BUILD_ORDER_UPGRADES = {
     ## Hydra den
     0x4502 : 'Grooved Spines',
     ## Spire
-    0x4602 : 'Zerg Flyer Attacks Level 1',    
+    0x4602 : 'Zerg Flyer Attacks Level 1',
     0x4702 : 'Zerg Flyer Attacks Level 2',
     0x4802 : 'Zerg Flyer Attacks Level 3',
-    0x4902 : 'Zerg Flyer Carapace Level 1',    
+    0x4902 : 'Zerg Flyer Carapace Level 1',
     0x4a02 : 'Zerg Flyer Carapace Level 2',
     0x4b02 : 'Zerg Flyer Carapace Level 3',
     ## Infestation pit

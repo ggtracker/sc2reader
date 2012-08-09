@@ -134,7 +134,7 @@ class SC2Factory(object):
         return plugins
 
     def _get_options(self, cls, **new_options):
-        options = dict()
+        options = utils.AttributeDict()
         for opt_cls, cls_options in self.options.items():
             if issubclass(cls, opt_cls):
                 options.update(cls_options)
@@ -155,6 +155,7 @@ class SC2Factory(object):
     def _load_resource(self, resource, options=None, **new_options):
         """http links, filesystem locations, and file-like objects"""
         options = options or self._get_options(Resource, **new_options)
+
         if isinstance(resource, basestring):
             if re.match(r'https?://',resource):
                 self.logger.info("Fetching remote resource: "+resource)
@@ -179,6 +180,9 @@ class SC2Factory(object):
                 resource = StringIO(resource.read())
 
             resource_name = getattr(resource, 'name', 'Unknown')
+
+        if options.get('verbose', None):
+            print resource_name
 
         return (resource, resource_name)
 
