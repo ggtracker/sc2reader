@@ -420,11 +420,10 @@ class GameEventsReader_16561(GameEventsReader_16117):
 
         default_ability = not data.read_bits(1)
         if not default_ability:
-            ability = data.read_bits(16)
-            button_index = data.read_bits(5)
+            ability = data.read_bits(16) << 5 | data.read_bits(5)
             default_actor = not data.read_bits(1)
         else:
-            ability = None
+            ability = 0
 
         target_type = data.read_bits(2)
         if target_type == 1:

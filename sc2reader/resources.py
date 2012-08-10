@@ -517,10 +517,11 @@ class Replay(Resource):
 
     def register_default_datapacks(self):
         """Registers factory default datapacks."""
-        self.register_datapack(data.Data_16561, lambda r: 16561 <= r.build < 17326)
-        self.register_datapack(data.Data_17326, lambda r: 17326 <= r.build < 18317)
-        self.register_datapack(data.Data_18317, lambda r: 18317 <= r.build < 19595)
-        self.register_datapack(data.Data_19595, lambda r: 19595 <= r.build)
+        self.register_datapack(data.build16117, lambda r: 16117 <= r.build < 17811)
+        self.register_datapack(data.build17811, lambda r: 17811 <= r.build < 18701)
+        self.register_datapack(data.build18701, lambda r: 18701 <= r.build < 21029)
+        self.register_datapack(data.build21029, lambda r: 21029 <= r.build < 22612)
+        self.register_datapack(data.build22612, lambda r: 22612 <= r.build)
 
 
     # Internal Methods

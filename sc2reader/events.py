@@ -155,10 +155,14 @@ class AbilityEvent(PlayerActionEvent):
                 self.logger.error("Release String: "+replay.release_string)
                 for player in replay.players:
                     self.logger.error("\t"+str(player))
+
+            print [hex(key) for key in replay.datapack.abilities.keys()]
+
             self.logger.error("{0}\t{1}\tMissing ability {2} from {3}".format(self.frame, self.player.name, hex(self.ability_code), replay.datapack.__class__.__name__))
+            print "{0}\t{1}\tMissing ability {2} from {3}".format(self.frame, self.player.name, hex(self.ability_code), replay.datapack.id)
 
         else:
-            self.ability_name = replay.datapack.abilities[self.ability_code]
+            self.ability_name = replay.datapack.abilities[self.ability_code].name
 
 
     def __str__(self):
@@ -173,13 +177,15 @@ class TargetAbilityEvent(AbilityEvent):
         super(TargetAbilityEvent, self).__init__(frame, pid, event_type, ability)
         self.target = None
         self.target_id, self.target_type = target
+
         self.target_owner = None
         self.target_owner_id = player
         self.target_team = None
         self.target_team_id = team
         self.location = location
-        #Forgot why we have to munge this so lets not for now
-        #self.target_type = self.target_type << 8 | 0x01
+
+        # We can't know if it is a hallucination or not so assume not
+        self.target_type = self.target_type << 8 | 0x01
 
 
     def load_context(self, replay):
@@ -201,10 +207,12 @@ class TargetAbilityEvent(AbilityEvent):
             self.target = replay.objects[uid]
 
         else:
-            if self.target_type not in replay.datapack.types:
+            if self.target_type not in replay.datapack.units:
                 self.target = None
+                print [hex(key) for key in replay.datapack.units]
+                print "{0}\t{1}\tMissing unit {2} from {3}".format(self.frame, self.player.name, hex(self.target_type), replay.datapack.id)
             else:
-                unit_class = replay.datapack.types[self.target_type]
+                unit_class = replay.datapack.units[self.target_type]
                 self.target = unit_class(self.target_id)
                 replay.objects[uid] = self.target
 
@@ -267,14 +275,14 @@ class SelectionEvent(PlayerActionEvent):
         objects = list()
         data = replay.datapack
         for (obj_id, obj_type) in self.objects:
-            if obj_type not in data.types:
+            if obj_type not in data.units:
                 msg = "Unit Type {0} not found in {1}"
                 self.logger.error(msg.format(hex(obj_type), data.__class__.__name__))
                 objects.append(DataObject(0x0))
 
             else:
                 if (obj_id, obj_type) not in replay.objects:
-                    obj = data.types[obj_type](obj_id)
+                    obj = data.units[obj_type](obj_id)
                     replay.objects[(obj_id,obj_type)] = obj
                 else:
                     obj = replay.objects[(obj_id,obj_type)]
