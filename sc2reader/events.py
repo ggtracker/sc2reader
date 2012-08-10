@@ -156,13 +156,13 @@ class AbilityEvent(PlayerActionEvent):
                 for player in replay.players:
                     self.logger.error("\t"+str(player))
 
-            print [hex(key) for key in replay.datapack.abilities.keys()]
-
+            #print [hex(key) for key in sorted(replay.datapack.abilities.keys())]
             self.logger.error("{0}\t{1}\tMissing ability {2} from {3}".format(self.frame, self.player.name, hex(self.ability_code), replay.datapack.__class__.__name__))
             print "{0}\t{1}\tMissing ability {2} from {3}".format(self.frame, self.player.name, hex(self.ability_code), replay.datapack.id)
 
         else:
-            self.ability_name = replay.datapack.abilities[self.ability_code].name
+            self.ability = replay.datapack.abilities[self.ability_code]
+            self.ability_name = self.ability.name
 
 
     def __str__(self):
@@ -191,8 +191,13 @@ class TargetAbilityEvent(AbilityEvent):
     def load_context(self, replay):
         super(TargetAbilityEvent, self).load_context(replay)
 
+        """ Disabled since this seems to have gone out of bounds
+            sc2reader/ggtracker/204927.SC2Replay
         if self.target_owner_id:
+            print replay.people
+            print self.target_owner_id
             self.target_owner = replay.player[self.target_owner_id]
+        """
 
         """ Disabled since team seems to always be the same player
         if self.target_team_id:
@@ -278,7 +283,8 @@ class SelectionEvent(PlayerActionEvent):
             if obj_type not in data.units:
                 msg = "Unit Type {0} not found in {1}"
                 self.logger.error(msg.format(hex(obj_type), data.__class__.__name__))
-                objects.append(Unit(0x0))
+                print msg.format(hex(obj_type), data.__class__.__name__)
+                objects.append(Unit(obj_id))
 
             else:
                 if (obj_id, obj_type) not in replay.objects:

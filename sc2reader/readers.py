@@ -239,13 +239,14 @@ class GameEventsReader_Base(object):
 
         try:
             while event_start != data_length:
+                event = None
                 fstamp += read_timestamp()
                 pid = read_bits(5)
                 event_type = read_bits(7)
 
                 # Check for a lookup
                 if event_type in EVENT_DISPATCH:
-                        event = EVENT_DISPATCH[event_type](data, fstamp, pid, event_type)
+                    event = EVENT_DISPATCH[event_type](data, fstamp, pid, event_type)
 
                 # Otherwise maybe it is an unknown chunk
                 elif event_type == 0x26:
@@ -257,6 +258,8 @@ class GameEventsReader_Base(object):
                 elif event_type == 0x38:
                     arr1 = [read_bits(32) for i in range(read_bits(8))]
                     arr2 = [read_bits(32) for i in range(read_bits(8))]
+                elif event_type == 0x3c:
+                    read_bytes(2)
                 elif event_type == 0x47:
                     read_bytes(4)
                 elif event_type == 0x4C:
@@ -273,9 +276,7 @@ class GameEventsReader_Base(object):
                 if event:
                     if debug:
                         event.bytes = data.read_range(event_start, data.tell())
-
                     append(event)
-                    event = None
 
                 event_start = data.tell()
 

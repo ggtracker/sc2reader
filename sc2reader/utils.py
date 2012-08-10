@@ -464,8 +464,8 @@ def extract_data_file(data_file, archive):
         if data_file == 'replay.message.events':
             try:
                 file_data = archive.read_file(data_file, force_decompress=True)
-            except IndexError as e:
-                if str(e) == "string index out of range":
+            except Exception as e:
+                if str(e) in ("string index out of range", "Unsupported compression type."):
                     file_data = archive.read_file(data_file, force_decompress=False)
                 else:
                     raise

@@ -7,8 +7,13 @@ from __future__ import absolute_import
 #from sc2reader.data.build19595 import Data_19595
 
 
+class Build(object):
+    def __init__(self, build_id, units, abilities):
+        self.id=build_id
+        self.units = units
+        self.abilities = abilities
+
 from collections import namedtuple
-Build = namedtuple('Build',['id','units','abilities'])
 UnitRow = namedtuple('UnitRow',['id','type','title'])
 AbilRow = namedtuple('AbilRow',['id','type','title'])
 
@@ -121,58 +126,209 @@ unit_lookup = {'Protoss':{
     'ultraliskcavern':[200,200,0],
 }}
 
+# There are known to be duplicate ability names now. Hrm
+train_commands = {
+    'RavenBuildPointDefenseDrone': 'PointDefenseDrone',
+    'CalldownMULE': 'MULE',
+    'BuildCommandCenter': 'CommandCenter',
+    'BuildSupplyDepot': 'SupplyDepot',
+    'BuildRefinery': 'Refinery',
+    'BuildBarracks': 'Barracks',
+    'BuildEngineeringBay': 'EngineeringBay',
+    'BuildMissileTurret': 'MissileTurret',
+    'BuildBunker': 'Bunker',
+    'BuildSensorTower': 'SensorTower',
+    'BuildGhostAcademy': 'GhostAcademy',
+    'BuildFactory': 'Factory',
+    'BuildStarport': 'Starport',
+    'BuildArmory': 'Armory',
+    'BuildFusionCore': 'FusionCore',
+    'RavenBuildAutoTurret': 'AutoTurret',
+    'TrainSCV': 'SCV',
+    'TrainMarine': 'Marine',
+    'TrainReaper': 'Reaper',
+    'TrainGhost': 'Ghost',
+    'TrainMarauder': 'Marauder',
+    'TrainSiegeTank': 'SiegeTank',
+    'TrainThor': 'Thor',
+    'TrainHellion': 'Hellion',
+    'TrainMedivac': 'Medivac',
+    'TrainBanshee': 'Banshee',
+    'TrainRaven': 'Raven',
+    'TrainBattlecruiser': 'Battlecruiser',
+    'TrainViking': 'VikingFighter',
+    'MorphToPlanetaryFortress': 'PlanetaryFortress',
+    'MorphToOrbitalCommand': 'OrbitalCommand',
+
+    'TrainMothership': 'Mothership',
+    'BuildNexus': 'Nexus',
+    'BuildPylon': 'Pylon',
+    'BuildAssimilator': 'Assimilator',
+    'BuildGateway': 'Gateway',
+    'BuildForge': 'Forge',
+    'BuildFleetBeacon': 'FleetBeacon',
+    'BuildTwilightCouncil': 'TwilightCouncil',
+    'BuildPhotonCannon': 'PhotonCannon',
+    'BuildStargate': 'Stargate',
+    'BuildTemplarArchive': 'TemplarArchive',
+    'BuildDarkShrine': 'DarkShrine',
+    'BuildRoboticsBay': 'RoboticsBay',
+    'BuildRoboticsFacility': 'RoboticsFacility',
+    'BuildCyberneticsCore': 'CyberneticsCore',
+    'TrainZealot': 'Zealot',
+    'TrainStalker': 'Stalker',
+    'TrainHighTemplar': 'HighTemplar',
+    'TrainDarkTemplar': 'DarkTemplar',
+    'TrainSentry': 'Sentry',
+    'TrainPhoenix': 'Phoenix',
+    'TrainCarrier': 'Carrier',
+    'TrainVoidRay': 'VoidRay',
+    'TrainWarpPrism': 'WarpPrism',
+    'TrainObserver': 'Observer',
+    'TrainColossus': 'Colossus',
+    'TrainImmortal': 'Immortal',
+    'TrainProbe': 'Probe',
+    'ArmInterceptor': 'Interceptor',
+    'WarpInZealot': 'Zealot',
+    'WarpInStalker': 'Stalker',
+    'WarpInHighTemplar': 'HighTemplar',
+    'WarpInDarkTemplar': 'DarkTemplar',
+    'WarpInSentry': 'Sentry',
+    'MorphToWarpGate': 'WarpGate',
+    'MergeArchon': 'Archon',
+    'SentryHallucinationArchon': 'HallucinatedArchon',
+    'SentryHallucinationColossus': 'HallucinatedColossus',
+    'SentryHallucinationHighTemplar': 'HallucinatedHighTemplar',
+    'SentryHallucinationImmortal': 'HallucinatedImmortal',
+    'SentryHallucinationPhoenix': 'HallucinatedPhoenix',
+    'SentryHallucinationProbe': 'HallucinatedProbe',
+    'SentryHallucinationStalker': 'HallucinatedStalker',
+    'SentryHallucinationVoidRay': 'HallucinatedVoidRay',
+    'SentryHallucinationWarpPrism': 'HallucinatedWarpPrism',
+    'SentryHallucinationZealot': 'HallucinatedZealot',
+    #'MorphToGateway': 'Gateway' #not safe for now, double counting
+
+    'MorphToBaneling': 'Baneling',
+    'BuildHatchery': 'Hatchery',
+    'BuildExtractor': 'Extractor',
+    'BuildSpawningPool': 'SpawningPool',
+    'BuildEvolutionChamber': 'EvolutionChamber',
+    'BuildHydraliskDen': 'HydraliskDen',
+    'BuildSpire': 'Spire',
+    'BuildUltraliskCavern': 'UltraliskCavern',
+    'BuildInfestationPit': 'InfestationPit',
+    'BuildNydusNetwork': 'NydusNetwork',
+    'BuildBanelingNest': 'BanelingNest',
+    'BuildRoachWarren': 'RoachWarren',
+    'BuildSpineCrawler': 'SpineCrawler',
+    'BuildSporeCrawler': 'SporeCrawler',
+    'MorphToLair': 'Lair',
+    'MorphToHive': 'Hive',
+    'MorphToGreaterSpire': 'GreaterSpire',
+    'TrainDrone': 'Drone',
+    'TrainZergling': 'Zergling',
+    'TrainOverlord': 'Overlord',
+    'TrainHydralisk': 'Hydralisk',
+    'TrainMutalisk': 'Mutalisk',
+    'TrainUltralisk': 'Ultralisk',
+    'TrainRoach': 'Roach',
+    'TrainInfestor': 'Infestor',
+    'TrainCorruptor': 'Corruptor',
+    'MorphToBroodLord': 'BroodLord',
+    'MorphToOverseer': 'Overseer',
+    'TrainQueen': 'Queen',
+    'QueenBuildCreepTumor': 'CreepTumor',
+    'BuildNydusCanal': 'NydusCanal',
+    'OverseerSpawnChangeling': 'Changeling',
+    'InfestorSpawnInfestedTerran': 'InfestorTerran',
+}
+
 class Unit(object):
-	def __init__(self, unit_id):
-		self.id = unit_id
+    def __init__(self, unit_id):
+        self.id = unit_id
 
 class Ability(object):
-	pass
+    pass
 
 def create_build(build):
-	units_file = path.join(BASE_PATH, "{}_{}.csv".format(build,"units"))
-	abils_file = path.join(BASE_PATH, "{}_{}.csv".format(build,"abilities"))
-	with open(units_file, 'r') as data_file:
-		units = dict()
-		for row in [UnitRow(*line.strip().split('|')[1:]) for line in data_file]:
-			unit_id = int(row.id, 10) << 8 | 1
-			race, minerals, vespene, supply = "Neutral", 0, 0, 0
-			for race in ('Protoss','Terran','Zerg'):
-				if row.type.lower() in unit_lookup[race]:
-					minerals, vespene, supply = unit_lookup[race][row.type.lower()]
-					break
+    units_file = path.join(BASE_PATH, "{}_{}.csv".format(build,"units"))
+    abils_file = path.join(BASE_PATH, "{}_{}.csv".format(build,"abilities"))
+    with open(units_file, 'r') as data_file:
+        units = dict()
+        for row in [UnitRow(*line.strip().split('|')[1:]) for line in data_file]:
+            unit_id = int(row.id, 10) << 8 | 1
+            race, minerals, vespene, supply = "Neutral", 0, 0, 0
+            for race in ('Protoss','Terran','Zerg'):
+                if row.type.lower() in unit_lookup[race]:
+                    minerals, vespene, supply = unit_lookup[race][row.type.lower()]
+                    break
 
-			units[unit_id] = type(row.title,(Unit,), dict(
-				type=unit_id,
-				name=row.title,
-				title=row.title,
-				race=race,
-				minerals=minerals,
-				vespene=vespene,
-				supply=supply,
-			))
+            units[unit_id] = type(row.title,(Unit,), dict(
+                type=unit_id,
+                name=row.title,
+                title=row.title,
+                race=race,
+                minerals=minerals,
+                vespene=vespene,
+                supply=supply,
+            ))
+
+            if row.title.lower() in ('probe','zealot','stalker','immortal','phoenix','hightemplar','warpprism','archon','colossus','voidray'):
+                units[unit_id+1] = type("Hallucinated"+row.title,(Unit,), dict(
+                    type=unit_id+1,
+                    name="Hallucinated"+row.title,
+                    title="Hallucinated"+row.title,
+                    race=race,
+                    minerals=0,
+                    vespene=0,
+                    supply=0,
+                ))
 
 
-	with open(abils_file, 'r') as data_file:
-		abilities = {0:type('RightClick',(Ability,), dict(type=0, name='RightClick', title='Right Click'))}
-		for row in [line.strip().split('|') for line in data_file]:
-			base = int(row[1],10) << 5
-			real_abils = [(base|i,t) for i,t in enumerate(row[3:]) if t!='']
-			for abil_id, title in real_abils:
-				abilities[abil_id] = type(title,(Ability,), dict(
-					type=abil_id,
-					name=title,
-					title=title,
-				))
+    with open(abils_file, 'r') as data_file:
+        abilities = {0:type('RightClick',(Ability,), dict(type=0, name='RightClick', title='Right Click'))}
+        for row in [line.strip().split('|') for line in data_file]:
+            base = int(row[1],10) << 5
+            if base == 0: continue
 
-			# Some abilities have missing entries..
-			if len(real_abils) == 0:
-				abilities[base] = type(row[2],(Ability,), dict(
-					type=base,
-					name=row[2],
-					title=row[2],
-				))
+            # Temporary Hack here.
+            if base == 0xe80:
+                real_abils = [(0xe80,"QueueCancel0"), (0xe81,"QueueCancel1")]
+            else:
+                real_abils = [(base|i,t) for i,t in enumerate(row[3:]) if t.strip()!='']
 
-	return  Build(build, units, abilities)
+            for abil_id, title in real_abils:
+                abilities[abil_id] = type(title,(Ability,), dict(
+                    type=abil_id,
+                    name=title,
+                    title=title,
+                ))
+
+
+            # Some abilities have missing entries..
+            if len(real_abils) == 0:
+                abilities[base] = type(row[2],(Ability,), dict(
+                    type=base,
+                    name=row[2],
+                    title=row[2],
+                ))
+
+            if int(row[1],10) == 249 and build==22612:
+                pass
+                #print row
+                #print abilities[0x1f20], abilities[0x1f21], abilities[0x1f22], abilities[0x1f23]
+
+    data = Build(build, units, abilities)
+    for unit in units.values():
+        setattr(data, unit.name, unit)
+    for ability in abilities.values():
+        if ability.name in train_commands:
+        	ability.is_build = True
+            ability.build_unit = getattr(data,train_commands[ability.name])
+        setattr(data, ability.name, ability)
+
+    return data
+
 
 build16117 = create_build(16117)
 build17811 = create_build(17811)

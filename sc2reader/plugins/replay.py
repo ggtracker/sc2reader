@@ -89,7 +89,11 @@ def APMTracker(replay):
         for event in filter(efilter, player.events):
             player.aps[event.second] += 1
             player.apm[event.second/60] += 1
-        player.avg_apm = sum(player.apm.values())/float(len(player.apm.keys()))
+        if len(player.apm.keys()) > 0:
+            player.avg_apm = sum(player.apm.values())/float(len(player.apm.keys()))
+        else:
+            player.avg_apm = 0
+
 
 @plugin
 def SelectionTracker(replay):
