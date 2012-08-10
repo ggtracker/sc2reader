@@ -133,7 +133,7 @@ def create_build(build):
 	abils_file = path.join(BASE_PATH, "{}_{}.csv".format(build,"abilities"))
 	with open(units_file, 'r') as data_file:
 		units = dict()
-		for row in [UnitRow(*line.strip().split(',')) for line in data_file]:
+		for row in [UnitRow(*line.strip().split('|')[1:]) for line in data_file]:
 			unit_id = int(row.id, 10) << 8 | 1
 			race, minerals, vespene, supply = "Neutral", 0, 0, 0
 			for race in ('Protoss','Terran','Zerg'):
@@ -154,7 +154,7 @@ def create_build(build):
 
 	with open(abils_file, 'r') as data_file:
 		abilities = {0:type('RightClick',(Ability,), dict(type=0, name='RightClick', title='Right Click'))}
-		for row in [line.strip().split(',') for line in data_file]:
+		for row in [line.strip().split('|') for line in data_file]:
 			base = int(row[1],10) << 5
 			real_abils = [(base|i,t) for i,t in enumerate(row[3:]) if t!='']
 			for abil_id, title in real_abils:
@@ -162,6 +162,14 @@ def create_build(build):
 					type=abil_id,
 					name=title,
 					title=title,
+				))
+
+			# Some abilities have missing entries..
+			if len(real_abils) == 0:
+				abilities[base] = type(row[2],(Ability,), dict(
+					type=base,
+					name=row[2],
+					title=row[2],
 				))
 
 	return  Build(build, units, abilities)
