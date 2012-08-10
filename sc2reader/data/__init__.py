@@ -323,7 +323,7 @@ def create_build(build):
         setattr(data, unit.name, unit)
     for ability in abilities.values():
         if ability.name in train_commands:
-        	ability.is_build = True
+            ability.is_build = True
             ability.build_unit = getattr(data,train_commands[ability.name])
         setattr(data, ability.name, ability)
 
