@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from sc2reader.utils import Length, LITTLE_ENDIAN
-from sc2reader.data.utils import DataObject
+from sc2reader.data import Unit
 from sc2reader.log_utils import loggable
 
 @loggable
@@ -218,7 +218,7 @@ class TargetAbilityEvent(AbilityEvent):
 
     def __str__(self):
         if self.target:
-            if isinstance(self.target, DataObject):
+            if isinstance(self.target, Unit):
                 target = "{0} [{1:0>8X}]".format(self.target.name, self.target.id)
             else:
                 target = "{0:X} [{1:0>8X}]".format(self.target[1], self.target[0])
@@ -278,7 +278,7 @@ class SelectionEvent(PlayerActionEvent):
             if obj_type not in data.units:
                 msg = "Unit Type {0} not found in {1}"
                 self.logger.error(msg.format(hex(obj_type), data.__class__.__name__))
-                objects.append(DataObject(0x0))
+                objects.append(Unit(0x0))
 
             else:
                 if (obj_id, obj_type) not in replay.objects:
