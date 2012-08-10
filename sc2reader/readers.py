@@ -316,7 +316,7 @@ class GameEventsReader_16117(GameEventsReader_Base):
         overlay = self._parse_selection_update(data)
 
         type_count = data.read_bits(self.UNIT_INDEX_BITS)
-        unit_types = [(data.read_bits(24),data.read_bits(self.UNIT_INDEX_BITS)) for index in range(type_count)]
+        unit_types = [(data.read_short(BIG_ENDIAN) << 8 | data.read_byte(),data.read_bits(self.UNIT_INDEX_BITS)) for index in range(type_count)]
 
         unit_count = data.read_bits(self.UNIT_INDEX_BITS)
         unit_ids = [data.read_bits(32) for index in range(unit_count)]
@@ -400,7 +400,7 @@ class GameEventsReader_16561(GameEventsReader_16117):
 
             # Represent the mask as a simple bit array with
             # True => Deselect, False => Keep
-            return [bit_mask & bit for bit in self.SINGLE_BIT_MASKS[:mask_length]]
+            mask = [bit_mask & bit for bit in self.SINGLE_BIT_MASKS[:mask_length]]
 
         elif update_type == 2:
             index_count = data.read_bits(self.UNIT_INDEX_BITS)
