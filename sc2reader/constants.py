@@ -22,8 +22,8 @@ LOCALIZED_RACES = {
     '프로토스': 'Protoss',
     '저그': 'Zerg',
 
-    # ???
-    'Terrani': 'Terran',
+    # ??eu
+    'Terranie': 'Terran',
     'Protosi': 'Protoss',
     'Zergi': 'Zerg',
 
