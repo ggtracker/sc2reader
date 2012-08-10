@@ -26,11 +26,11 @@ class GameEvent(Event):
 
         self.type = event_type
         self.is_local = (pid != 16)
-
-        self.is_init = (event_type == 0x00)
-        self.is_player_action = (event_type == 0x01)
-        self.is_camera_movement = (event_type == 0x03)
-        self.is_unknown = (event_type == 0x02 or event_type == 0x04 or event_type == 0x05)
+        event_class = event_type >> 4
+        self.is_init = (event_class == 0)
+        self.is_player_action = (event_class == 1)
+        self.is_camera_movement = (event_class == 3)
+        self.is_unknown = (event_class == 2 or event_class == 4 or event_class == 5)
 
     def _str_prefix(self):
         player_name = self.player.name if self.is_local else "Global"
