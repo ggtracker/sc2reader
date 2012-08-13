@@ -51,8 +51,7 @@ class InitDataReader_Base(Reader):
         map_data = list()
         while data.read(4) == 's2ma':
             gateway = data.read(4).strip('\00 ').lower()
-            # There must be a better way to get this little endian
-            map_hash = data.read(32).encode('hex')
+            map_hash = data.read(32)
             map_data.append(MapData(gateway,map_hash))
 
         # Return the extracted information inside an AttributeDict.
