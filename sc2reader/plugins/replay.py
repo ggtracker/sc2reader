@@ -97,45 +97,49 @@ def APMTracker(replay):
 
 @plugin
 def SelectionTracker(replay):
+    debug = replay.opt.debug
     logger = log_utils.get_logger(SelectionTracker)
     efilter = lambda e: isinstance(e, SelectionEvent) or isinstance(e, HotkeyEvent)
 
     for person in replay.people:
         # TODO: A more robust person interface might be nice
         person.selection_errors = 0
-        person.selection = GameState(PlayerSelection())
+        player_selection = GameState(PlayerSelection())
         for event in filter(efilter, person.events):
-            if replay.opt.debug:
-                logger.debug("Event bytes: "+event.bytes.encode("hex"))
+            if debug: logger.debug("Event bytes: "+event.bytes.encode("hex"))
 
             error = False
-            selection = person.selection[event.frame]
+            selection = player_selection[event.frame]
 
-            if isinstance(event, SetToHotkeyEvent):
-                # Make a copy to decouple the hotkey from primary selection
-                selection[event.hotkey] = selection[0x0A].copy()
-                logger.info("[{0}] {1} set hotkey {2} to current selection".format(Length(seconds=event.second),person.name,event.hotkey))
-
-            elif isinstance(event, AddToHotkeyEvent):
-                error = not selection[event.hotkey].deselect(*event.deselect)
-                selection[event.hotkey].select(selection[0x0A].objects)
-                logger.info("[{0}] {1} added current selection to hotkey {2}".format(Length(seconds=event.second),person.name,event.hotkey))
+            if isinstance(event, SelectionEvent):
+                error = not selection[0x0A].deselect(*event.deselect)
+                selection[0x0A].select(event.objects)
+                if debug: logger.info("[{0}] {1} selected {2} units: {3}".format(Length(seconds=event.second),person.name,len(selection[0x0A].objects),selection[0x0A]))
 
             elif isinstance(event, GetFromHotkeyEvent):
                 # For some reason they leave the hotkey buffer unmodified so make a copy
                 selection[0x0A] = selection[event.hotkey].copy()
                 error = not selection[0x0A].deselect(*event.deselect)
-                logger.info("[{0}] {1} retrieved hotkey {2}, {3} units: {4}".format(Length(seconds=event.second),person.name,event.hotkey,len(selection[0x0A].objects),selection[0x0A]))
+                if debug: logger.info("[{0}] {1} retrieved hotkey {2}, {3} units: {4}".format(Length(seconds=event.second),person.name,event.hotkey,len(selection[0x0A].objects),selection[0x0A]))
 
-            elif isinstance(event, SelectionEvent):
-                error = not selection[0x0A].deselect(*event.deselect)
-                selection[0x0A].select(event.objects)
-                logger.info("[{0}] {1} selected {2} units: {3}".format(Length(seconds=event.second),person.name,len(selection[0x0A].objects),selection[0x0A]))
+            elif isinstance(event, SetToHotkeyEvent):
+                # Make a copy to decouple the hotkey from primary selection
+                selection[event.hotkey] = selection[0x0A].copy()
+                if debug: logger.info("[{0}] {1} set hotkey {2} to current selection".format(Length(seconds=event.second),person.name,event.hotkey))
+
+            elif isinstance(event, AddToHotkeyEvent):
+                error = not selection[event.hotkey].deselect(*event.deselect)
+                selection[event.hotkey].select(selection[0x0A].objects)
+                if debug: logger.info("[{0}] {1} added current selection to hotkey {2}".format(Length(seconds=event.second),person.name,event.hotkey))
 
             # TODO: The event level interface here should be improved
             #       Possibly use 'added' and 'removed' unit lists as well
             event.selected = selection[0x0A].objects
             if error:
                 person.selection_errors += 1
-                if replay.opt.debug:
+                if debug:
                     logger.warn("Error detected in deselection mode {}.".format(event.deselect[0]))
+
+        person.selection = player_selection
+        # Not a real lock, so don't change it!
+        person.selection.locked = True

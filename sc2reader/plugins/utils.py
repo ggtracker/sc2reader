@@ -7,6 +7,7 @@ from sc2reader.log_utils import loggable
 
 from functools import wraps
 from bisect import bisect_left
+from collections import defaultdict
 
 def plugin(func):
     @wraps(func)
@@ -31,6 +32,7 @@ class GameState(dict):
         self._frames = list()
         self._frameset = set()
         self[0] = initial_state
+        self.locked = False
 
     def __getitem__(self, frame):
         if frame in self:
@@ -46,8 +48,13 @@ class GameState(dict):
         else:
             prev_frame = self._frames[key]
 
-        # Copy the previous state and use it as our basis here
-        state = self[prev_frame].copy()
+        # If we've locked the game state we don't need deep copies anymore
+        if self.locked:
+            state = self[prev_frame]
+        else:
+            # Copy the previous state and use it as our basis here
+            state = self[prev_frame].copy()
+
         self[frame] = state
         return state
 
@@ -105,10 +112,9 @@ class UnitSelection(object):
         return UnitSelection(self.objects[:])
 
 
-class PlayerSelection(dict):
+class PlayerSelection(defaultdict):
     def __init__(self):
-        for bank in range(0x00, 0x0B):
-            self[bank]=UnitSelection()
+        super(PlayerSelection, self).__init__(UnitSelection)
 
     def copy(self):
         new = PlayerSelection()
