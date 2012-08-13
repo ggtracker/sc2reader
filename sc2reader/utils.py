@@ -388,7 +388,7 @@ class PersonDict(dict):
 
         person = PersonDict()
         person[1] = Player(1,"ShadesofGray")
-        me = person["ShadesofGray"]
+        me = person.name("ShadesofGray")
         del person[me.pid]
 
     Delete is supported on the player id only
@@ -400,6 +400,9 @@ class PersonDict(dict):
         # Support creation from iterables
         for player in players:
             self[player.pid] = player
+
+    def name(self, player_name):
+        return self._key_map[player_name]
 
     def __setitem__(self, key, value):
         if isinstance(key, str):
