@@ -265,6 +265,8 @@ class GameEventsReader_Base(object):
                     read_bytes(2)
                 elif event_type == 0x47:
                     read_bytes(4)
+                elif event_type == 0x48:
+                    read_bytes(4)
                 elif event_type == 0x4C:
                     read_bits(4)
                 elif event_type == 0x59:
