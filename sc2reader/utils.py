@@ -401,13 +401,6 @@ class PersonDict(dict):
         for player in players:
             self[player.pid] = player
 
-
-    def __getitem__(self, key):
-        if isinstance(key, str):
-            key = self._key_map[key]
-
-        return super(PersonDict, self).__getitem__(key)
-
     def __setitem__(self, key, value):
         if isinstance(key, str):
             self._key_map[key] = value.pid

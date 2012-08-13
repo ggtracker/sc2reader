@@ -457,7 +457,6 @@ class Replay(Resource):
         for event in self.events:
             event.load_context(self)
             # TODO: Should this be documented or removed? I don't like it.
-            self.events_by_type[event.name].append(event)
             if event.pid != 16:
                 self.person[event.pid].events.append(event)
 
