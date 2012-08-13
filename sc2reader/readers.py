@@ -232,6 +232,7 @@ class GameEventsReader_Base(object):
         data_length = data.length
         read_timestamp =  data.read_timestamp
         read_bits = data.read_bits
+        read_byte = data.read_byte
         read_bytes = data.read_bytes
         byte_align = data.byte_align
         append = game_events.append
@@ -239,7 +240,6 @@ class GameEventsReader_Base(object):
 
         try:
             while event_start != data_length:
-                event = None
                 fstamp += read_timestamp()
                 pid = read_bits(5)
                 event_type = read_bits(7)
@@ -247,6 +247,9 @@ class GameEventsReader_Base(object):
                 # Check for a lookup
                 if event_type in EVENT_DISPATCH:
                     event = EVENT_DISPATCH[event_type](data, fstamp, pid, event_type)
+                    if debug:
+                        event.bytes = data.read_range(event_start, data.tell())
+                    append(event)
 
                 # Otherwise maybe it is an unknown chunk
                 elif event_type == 0x26:
@@ -272,12 +275,6 @@ class GameEventsReader_Base(object):
                     raise ReadError("Event type {} unknown at position {}.".format(hex(event_type),hex(event_start)), event_type, event_start, replay, game_events, data)
 
                 byte_align()
-
-                if event:
-                    if debug:
-                        event.bytes = data.read_range(event_start, data.tell())
-                    append(event)
-
                 event_start = data.tell()
 
             return game_events
@@ -320,7 +317,7 @@ class GameEventsReader_16117(GameEventsReader_Base):
         unit_types = [(data.read_short(BIG_ENDIAN) << 8 | data.read_byte(),data.read_bits(self.UNIT_INDEX_BITS)) for index in range(type_count)]
 
         unit_count = data.read_bits(self.UNIT_INDEX_BITS)
-        unit_ids = [data.read_bits(32) for index in range(unit_count)]
+        unit_ids = [data.read_int(BIG_ENDIAN) for index in range(unit_count)]
 
         unit_types = chain(*[[utype]*count for (utype, count) in unit_types])
         units = list(zip(unit_ids, unit_types))
@@ -364,21 +361,22 @@ class GameEventsReader_16117(GameEventsReader_Base):
 
     def camera_event(self, data, fstamp, pid, event_type):
         # From https://github.com/Mischanix/sc2replay-csharp/wiki/replay.game.events
-        x = data.read_bits(16)/256.0
-        y = data.read_bits(16)/256.0
+        block = data.read_int(BIG_ENDIAN)
+        x = (block >> 16)/256.0
+        y = (block & 0xFFFF)/256.0
         distance = pitch = yaw = height = 0
         if data.read_bits(1):
-            distance = data.read_bits(16)/256.0
+            distance = data.read_short(BIG_ENDIAN)/256.0
         if data.read_bits(1):
             #Note: this angle is relative to the horizontal plane, but the editor shows the angle relative to the vertical plane. Subtract from 90 degrees to convert.
-            pitch = data.read_bits(16) #?
+            pitch = data.read_short(BIG_ENDIAN) #?
             pitch = 45 * (((((pitch * 0x10 - 0x2000) << 17) - 1) >> 17) + 1) / 4096.0
         if data.read_bits(1):
             #Note: this angle is the vector from the camera head to the camera target projected on to the x-y plane in positive coordinates. So, default is 90 degrees, while insert and delete produce 45 and 135 degrees by default.
-            yaw = data.read_bits(16) #?
+            yaw = data.read_short(BIG_ENDIAN) #?
             yaw = 45 * (((((yaw * 0x10 - 0x2000) << 17) - 1) >> 17) + 1) / 4096.0
         if data.read_bits(1):
-            height_offset = data.read_bits(16)/256.0
+            height_offset = data.read_short(BIG_ENDIAN)/256.0
         return CameraEvent(fstamp, pid, event_type, x, y, distance, pitch, yaw, height)
 
 
@@ -421,7 +419,7 @@ class GameEventsReader_16561(GameEventsReader_16117):
 
         default_ability = not data.read_bits(1)
         if not default_ability:
-            ability = data.read_bits(16) << 5 | data.read_bits(5)
+            ability = data.read_short(BIG_ENDIAN) << 5 | data.read_bits(5)
             default_actor = not data.read_bits(1)
         else:
             ability = 0
@@ -430,7 +428,7 @@ class GameEventsReader_16561(GameEventsReader_16117):
         if target_type == 1:
             x = data.read_bits(20)/4096.0
             y = data.read_bits(20)/4096.0
-            z = data.read_bits(32)
+            z = data.read_int(BIG_ENDIAN)
             z = (z>>1)/8192.0 * pow(-1, z & 0x1)
             unknown = data.read_bits(1)
             return LocationAbilityEvent(fstamp, pid, event_type, ability, (x, y, z))
@@ -438,9 +436,9 @@ class GameEventsReader_16561(GameEventsReader_16117):
         elif target_type == 2:
             player = team = None
 
-            data.read_bits(8)
-            data.read_bits(8)
-            unit = (data.read_bits(32), data.read_bits(16))
+            data.read_byte()
+            data.read_byte()
+            unit = (data.read_int(BIG_ENDIAN), data.read_short(BIG_ENDIAN))
 
             if self.ABILITY_TEAM_FLAG and data.read_bits(1):
                 team = data.read_bits(4)
@@ -450,13 +448,13 @@ class GameEventsReader_16561(GameEventsReader_16117):
 
             x = data.read_bits(20)/4096.0
             y = data.read_bits(20)/4096.0
-            z = data.read_bits(32)
+            z = data.read_int(BIG_ENDIAN)
             z = (z>>1)/8192.0 * pow(-1, z & 0x1)
             unknown = data.read_bits(1)
             return TargetAbilityEvent(fstamp, pid, event_type, ability, unit, player, team, (x, y, z))
 
         elif target_type == 3:
-            unit_id = data.read_bits(32)
+            unit_id = data.read_int(BIG_ENDIAN)
             unknown = data.read_bits(1)
             return SelfAbilityEvent(fstamp, pid, event_type, ability, unit_id)
 

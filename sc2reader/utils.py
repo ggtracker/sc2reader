@@ -126,8 +126,8 @@ class ReplayBuffer(object):
         Optimized bit-shift aware read methods
     '''
     def read_byte(self):
-        if self.bytes_left() == 0:
-            raise EOFError("Cannot read byte; no bytes remaining")
+        #if self.bytes_left() == 0:
+        #    raise EOFError("Cannot read byte; no bytes remaining")
 
         if self.bit_shift==0:
             return ord(self.read(1))
@@ -139,8 +139,8 @@ class ReplayBuffer(object):
             return hi_bits | lo_bits
 
     def read_short(self, endian=LITTLE_ENDIAN):
-        if self.bytes_left() < 2:
-            raise EOFError("Cannot read short; only {} bytes left in buffer".format(self.left))
+        #if self.bytes_left() < 2:
+        #    raise EOFError("Cannot read short; only {} bytes left in buffer".format(self.left))
 
         if self.bit_shift == 0:
             return struct.unpack(endian+'H', self.read(2))[0]
@@ -156,8 +156,8 @@ class ReplayBuffer(object):
             return number
 
     def read_int(self, endian=LITTLE_ENDIAN):
-        if self.bytes_left() < 4:
-            raise EOFError("Cannot read int; only {} bytes left in buffer".format(self.left))
+        #if self.bytes_left() < 4:
+        #    raise EOFError("Cannot read int; only {} bytes left in buffer".format(self.left))
 
         if self.bit_shift == 0:
             return struct.unpack(endian+'I', self.read(4))[0]
@@ -173,34 +173,60 @@ class ReplayBuffer(object):
             return number
 
     def read_bits(self, bits):
-        if self.bytes_left()*8 < bits-(8-self.bit_shift):
-            raise EOFError("Cannot read {} bits. only {} bits left in buffer.".format(bits, (self.length-self.tell()+1)*8-self.bit_shift))
+        #if self.bytes_left()*8 < bits-(8-self.bit_shift):
+        #    raise EOFError("Cannot read {} bits. only {} bits left in buffer.".format(bits, (self.length-self.tell()+1)*8-self.bit_shift))
+        bit_shift = self.bit_shift
+        if bit_shift!=0:
+            bits_left = 8-bit_shift
 
-        if self.bit_shift!=0:
-            first_bits = min(8-self.bit_shift, bits)
-            bits = bits-first_bits
-            mask = self.lo_masks[first_bits] << self.bit_shift
-            result = ((self.bit_buffer & mask) >> self.bit_shift) << bits
-            self.bit_shift = (self.bit_shift + first_bits) % 8
+            # Read it all and continue
+            if bits_left < bits:
+                bits -= bits_left
+                result = (self.bit_buffer >> bit_shift) << bits
+
+            # Read part and return
+            elif bits_left > bits:
+                self.bit_shift+=bits
+                return (self.bit_buffer >> bit_shift) & self.lo_masks[bits]
+
+            # Read all and return
+            else:
+                self.bit_shift = 0
+                return self.bit_buffer >> bit_shift
+
         else:
             result = 0
 
-        if bits > 8:
+        if bits >= 8:
             bytes = bits/8
-            for byte in struct.unpack("B"*bytes, self.read(bytes)):
+
+            if bytes == 1:
                 bits -= 8
-                result |= byte << bits
+                result |= ord(self.read(1)) << bits
+
+            elif bytes == 2:
+                bits -= 16
+                result |= struct.unpack(">H",self.read(2))[0] << bits
+
+            elif bytes == 4:
+                bits -= 32
+                result |= struct.unpack(">I",self.read(4))[0] << bits
+
+            else:
+                for byte in struct.unpack("B"*bytes, self.read(bytes)):
+                    bits -= 8
+                    result |= byte << bits
 
         if bits != 0:
-            self.bit_shift = bits
             self.bit_buffer = ord(self.read(1))
             result |= self.bit_buffer & self.lo_masks[bits]
 
+        self.bit_shift = bits
         return result
 
     def read_bytes(self, bytes):
-        if self.bytes_left() < bytes:
-            raise EOFError("Cannot read {} bytes. only {} bytes left in buffer.".format(bytes, self.length-self.tell()))
+        #if self.bytes_left() < bytes:
+        #    raise EOFError("Cannot read {} bytes. only {} bytes left in buffer.".format(bytes, self.length-self.tell()))
 
         if self.bit_shift==0:
             return self.read(bytes)
@@ -251,8 +277,6 @@ class ReplayBuffer(object):
         The least significant 2 bits of the first byte specify how many extra
         bytes the timestamp has.
         """
-        return self.read_bits(self.read_bits(2)*8+6)
-        """faster???
         first = self.read_byte()
         time,count = first >> 2, first & 0x03
         if count == 0:
@@ -260,10 +284,9 @@ class ReplayBuffer(object):
         elif count == 1:
             return time << 8 | self.read_byte()
         elif count == 2:
-            return time << 16 | self.read_short()
+            return time << 16 | self.read_short(BIG_ENDIAN)
         elif count == 3:
-            return time << 24 | self.read_short() << 8 | self.read_byte()
-        """
+            return time << 24 | self.read_short(BIG_ENDIAN) << 8 | self.read_byte()
 
     def read_data_struct(self, indent=0, key=None):
         """
