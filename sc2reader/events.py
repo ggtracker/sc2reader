@@ -13,8 +13,6 @@ class Event(object):
         self.frame = frame
         self.second = frame >> 4
         self.time = Length(seconds=self.second)
-        if not hasattr(self, 'name'):
-            self.name = self.__class__.__name__
 
     def load_context(self, replay):
         if self.pid != 16:
