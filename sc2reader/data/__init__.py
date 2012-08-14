@@ -247,6 +247,9 @@ class Unit(object):
     def __init__(self, unit_id):
         self.id = unit_id
 
+    def __str__(self):
+        return "{} [{:X}]".format(self.name, self.id)
+
 class Ability(object):
     pass
 
@@ -329,9 +332,10 @@ def create_build(build):
 
     return data
 
-
-build16117 = create_build(16117)
-build17811 = create_build(17811)
-build18701 = create_build(18701)
-build21029 = create_build(21029)
+# His build numbers don't map at ALL to the first effective
+# build number so do the correct range mapping down here.
+build16117 = create_build(16939)
+build17326 = create_build(17811)
+build18092 = create_build(18701)
+build19458 = create_build(21029)
 build22612 = create_build(22612)
