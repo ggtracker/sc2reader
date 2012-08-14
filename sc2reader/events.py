@@ -6,6 +6,8 @@ from sc2reader.log_utils import loggable
 
 @loggable
 class Event(object):
+    name = 'Event'
+
     def __init__(self, frame, pid):
         self.pid = pid
         self.frame = frame
@@ -18,8 +20,17 @@ class Event(object):
         if self.pid != 16:
             self.player = replay.person[self.pid]
 
+    def _str_prefix(self):
+        player_name = self.player.name if getattr(self,'pid', 16)!=16 else "Global"
+        return "%s\t%-15s " % (Length(seconds=int(self.frame/16)), player_name)
+
+    def __str__(self):
+        return self._str_prefix() + self.name
+
 @loggable
 class GameEvent(Event):
+    name = 'GameEvent'
+
     """Abstract Event Type, should not be directly instanciated"""
     def __init__(self, frame, pid, event_type):
         super(GameEvent, self).__init__(frame, pid)
@@ -30,14 +41,7 @@ class GameEvent(Event):
         self.is_init = (event_class == 0)
         self.is_player_action = (event_class == 1)
         self.is_camera_movement = (event_class == 3)
-        self.is_unknown = (event_class == 2 or event_class == 4 or event_class == 5)
-
-    def _str_prefix(self):
-        player_name = self.player.name if self.is_local else "Global"
-        return "%s\t%-15s " % (Length(seconds=int(self.frame/16)), player_name)
-
-    def __str__(self):
-        return self._str_prefix() + self.name
+        #self.is_unknown = (event_class == 2 or event_class == 4 or event_class == 5)
 
 #############################################3
 # Message Events
@@ -45,12 +49,16 @@ class GameEvent(Event):
 
 @loggable
 class MessageEvent(Event):
+    name = 'MessageEvent'
+
     def __init__(self, frame, pid, flags):
         super(MessageEvent, self).__init__(frame, pid)
         self.flags=flags
 
 @loggable
 class ChatEvent(MessageEvent):
+    name = 'ChatEvent'
+
     def __init__(self, frame, pid, flags, target, text):
         super(ChatEvent, self).__init__(frame, pid, flags)
         self.target = target
@@ -61,12 +69,16 @@ class ChatEvent(MessageEvent):
 
 @loggable
 class PacketEvent(MessageEvent):
+    name = 'PacketEvent'
+
     def __init__(self, frame, pid, flags, info):
         super(PacketEvent, self).__init__(frame, pid, flags)
         self.info = info
 
 @loggable
 class PingEvent(MessageEvent):
+    name = 'PingEvent'
+
     def __init__(self, frame, pid, flags, x, y):
         super(PingEvent, self).__init__(frame, pid, flags)
         self.x, self.y = x, y
@@ -77,20 +89,24 @@ class PingEvent(MessageEvent):
 #########################
 
 class UnknownEvent(GameEvent):
-    pass
+    name = 'UnknownEvent'
 
 class PlayerJoinEvent(GameEvent):
+    name = 'PlayerJoinEvent'
+
     def __init__(self, frames, pid, event_type, flags):
         super(PlayerJoinEvent, self).__init__(frames, pid, event_type)
         self.flags = flags
 
 class GameStartEvent(GameEvent):
-    pass
+    name = 'GameStartEvent'
 
 class PlayerLeaveEvent(GameEvent):
-	pass
+    name = 'PlayerLeaveEvent'
 
 class CameraEvent(GameEvent):
+    name = 'CameraEvent'
+
     def __init__(self, frames, pid, event_type, x, y, distance, pitch, yaw, height_offset):
         super(CameraEvent, self).__init__(frames, pid, event_type)
         self.x, self.y = x, y
@@ -100,13 +116,15 @@ class CameraEvent(GameEvent):
         self.height_offset = height_offset
 
     def __str__(self):
-        return self._str_prefix() + " camera at ({}, {})".format(x,y)
+        return self._str_prefix() + "{} at ({}, {})".format(self.name, self.x,self.y)
 
 class PlayerActionEvent(GameEvent):
-    pass
+    name = 'PlayerActionEvent'
 
 @loggable
 class SendResourceEvent(PlayerActionEvent):
+    name = 'SendResourceEvent'
+
     def __init__(self, frames, pid, event_type, target, minerals, vespene, terrazine, custom):
         super(SendResourceEvent, self).__init__(frames, pid, event_type)
         self.sender = pid
@@ -126,6 +144,8 @@ class SendResourceEvent(PlayerActionEvent):
 
 @loggable
 class RequestResourceEvent(PlayerActionEvent):
+    name = 'RequestResourceEvent'
+
     def __init__(self, frames, pid, event_type, minerals, vespene, terrazine, custom):
         super(RequestResourceEvent, self).__init__(frames, pid, event_type)
         self.minerals = minerals
@@ -138,6 +158,8 @@ class RequestResourceEvent(PlayerActionEvent):
 
 @loggable
 class AbilityEvent(PlayerActionEvent):
+    name = 'AbilityEvent'
+
     def __init__(self, frame, pid, event_type, ability):
         super(AbilityEvent, self).__init__(frame, pid, event_type)
         self.ability_code = ability
@@ -166,13 +188,12 @@ class AbilityEvent(PlayerActionEvent):
 
 
     def __str__(self):
-        if not self.ability_code:
-            return self._str_prefix() + "Move"
-        else:
-            return self._str_prefix() + "Ability (%s) - %s" % (hex(self.ability_code), self.ability_name)
+        return self._str_prefix() + "Ability (%s) - %s" % (hex(self.ability_code), self.ability_name)
 
 @loggable
 class TargetAbilityEvent(AbilityEvent):
+    name = 'TargetAbilityEvent'
+
     def __init__(self, frame, pid, event_type, ability, target, player, team, location):
         super(TargetAbilityEvent, self).__init__(frame, pid, event_type, ability)
         self.target = None
@@ -234,6 +255,8 @@ class TargetAbilityEvent(AbilityEvent):
 
 @loggable
 class LocationAbilityEvent(AbilityEvent):
+    name = 'LocationAbilityEvent'
+
     def __init__(self, frame, pid, event_type, ability, location):
         super(LocationAbilityEvent, self).__init__(frame, pid, event_type, ability)
         self.location = location
@@ -243,28 +266,34 @@ class LocationAbilityEvent(AbilityEvent):
 
 @loggable
 class SelfAbilityEvent(AbilityEvent):
+    name = 'SelfAbilityEvent'
+
     def __init__(self, frame, pid, event_type, ability, info):
         super(SelfAbilityEvent, self).__init__(frame, pid, event_type, ability)
         self.info = info
 
 @loggable
 class HotkeyEvent(PlayerActionEvent):
+    name = 'HotkeyEvent'
+
     def __init__(self, frame, pid, event_type, hotkey, deselect):
         super(HotkeyEvent, self).__init__(frame, pid, event_type)
         self.hotkey = hotkey
         self.deselect = deselect
 
 class SetToHotkeyEvent(HotkeyEvent):
-    pass
+    name = 'SetToHotkeyEvent'
 
 class AddToHotkeyEvent(HotkeyEvent):
-    pass
+    name = 'AddToHotkeyEvent'
 
 class GetFromHotkeyEvent(HotkeyEvent):
-    pass
+    name = 'GetFromHotkeyEvent'
 
 @loggable
 class SelectionEvent(PlayerActionEvent):
+    name = 'SelectionEvent'
+
     def __init__(self, frame, pid, event_type, bank, objects, deselect):
         super(SelectionEvent, self).__init__(frame, pid, event_type)
         self.bank = bank
