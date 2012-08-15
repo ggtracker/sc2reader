@@ -250,6 +250,9 @@ class Unit(object):
     def __str__(self):
         return "{} [{:X}]".format(self.name, self.id)
 
+    def __repr__(self):
+        return str(self)
+
 class Ability(object):
     pass
 
