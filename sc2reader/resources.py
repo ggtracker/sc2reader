@@ -274,20 +274,25 @@ class Replay(Resource):
 
             self.map_name = details.map
 
+            # Keep this theory for now but it seems like it could be wrong
             if details.os == 0:
                 self.os = "Windows"
+            elif details.os == 1:
+                self.os = "Mac"
+            else:
+                raise ValueError("Unknown operating system {} detected.".format(details.os))
+
+            # can't find a flag for this so just check to see which is greater
+            if details.file_time > details.utc_adjustment:
                 self.windows_timestamp = details.file_time-details.utc_adjustment
                 self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
                 self.time_zone = details.utc_adjustment/(10**7*60*60)
                 self.end_time = datetime.utcfromtimestamp(self.unix_timestamp)
-            elif details.os == 1:
-                self.os = "Mac"
+            else:
                 self.windows_timestamp = details.utc_adjustment
                 self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
                 self.time_zone = (details.utc_adjustment-details.file_time)/(10**7*60*60)
                 self.end_time = datetime.utcfromtimestamp(self.unix_timestamp)
-            else:
-                raise ValueError("Unknown operating system {} detected.".format(details.os))
 
             self.game_length = self.length
             self.real_length = utils.Length(seconds=int(self.length.seconds/GAME_SPEED_FACTOR[self.speed]))
