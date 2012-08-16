@@ -282,14 +282,19 @@ class Replay(Resource):
             else:
                 raise ValueError("Unknown operating system {} detected.".format(details.os))
 
-            # can't find a flag for this so just check to see which is greater
-            if details.file_time > details.utc_adjustment:
+            # If the utc_adjustment is really an adjustment it's magnitude will be
+            # less than 24 hours in the unit of 1/10**7 of a second. Negative values
+            # must always be adjustments
+            if details.utc_adjustment < 10**7*60*60*24:
                 self.windows_timestamp = details.file_time-details.utc_adjustment
                 self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
                 self.time_zone = details.utc_adjustment/(10**7*60*60)
                 self.end_time = datetime.utcfromtimestamp(self.unix_timestamp)
+
+            # Otherwise the utc_adjustment is the windows timestamp of the local time
+            # And the file_time is the windows timestamp of the utc time.
             else:
-                self.windows_timestamp = details.utc_adjustment
+                self.windows_timestamp = details.file_time
                 self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
                 self.time_zone = (details.utc_adjustment-details.file_time)/(10**7*60*60)
                 self.end_time = datetime.utcfromtimestamp(self.unix_timestamp)
