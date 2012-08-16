@@ -588,16 +588,20 @@ class Map(Resource):
         self.archive = MPQArchive(map_file)
         self.minimap = self.archive.read_file('Minimap.tga')
 
-        # TODO: We probably shouldn't favor enUS here?
+        # This will only populate the fields for maps with enUS localizations.
+        # Clearly this isn't a great solution but we can't be throwing exceptions
+        # just because US English wasn't a concern of the map author.
+        # TODO: Make this work regardless of the localizations available.
         game_strings = self.archive.read_file('enUS.SC2Data\LocalizedData\GameStrings.txt')
-        for line in game_strings.split('\r\n'):
-            parts = line.split('=')
-            if parts[0] == 'DocInfo/Name':
-                self.name = parts[1]
-            elif parts[0] == 'DocInfo/Author':
-                self.author = parts[1]
-            elif parts[0] == 'DocInfo/DescLong':
-                self.description = parts[1]
+        if game_strings:
+            for line in game_strings.split('\r\n'):
+                parts = line.split('=')
+                if parts[0] == 'DocInfo/Name':
+                    self.name = parts[1]
+                elif parts[0] == 'DocInfo/Author':
+                    self.author = parts[1]
+                elif parts[0] == 'DocInfo/DescLong':
+                    self.description = parts[1]
 
     @classmethod
     def get_url(cls, gateway, map_hash):
