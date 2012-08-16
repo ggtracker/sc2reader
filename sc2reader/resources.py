@@ -282,22 +282,18 @@ class Replay(Resource):
             else:
                 raise ValueError("Unknown operating system {} detected.".format(details.os))
 
-            # If the utc_adjustment is really an adjustment it's magnitude will be
-            # less than 24 hours in the unit of 1/10**7 of a second. Negative values
-            # must always be adjustments
-            if details.utc_adjustment < 10**7*60*60*24:
-                self.windows_timestamp = details.file_time-details.utc_adjustment
-                self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
-                self.time_zone = details.utc_adjustment/(10**7*60*60)
-                self.end_time = datetime.utcfromtimestamp(self.unix_timestamp)
+            self.windows_timestamp = details.file_time
+            self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
+            self.end_time = datetime.utcfromtimestamp(self.unix_timestamp)
 
-            # Otherwise the utc_adjustment is the windows timestamp of the local time
-            # And the file_time is the windows timestamp of the utc time.
+            # The utc_adjustment is either the adjusted windows timestamp OR
+            # the value required to get the adjusted timestamp. We know the upper
+            # limit for any adjustment number so use that to distinguish between
+            # the two cases.
+            if details.utc_adjustment < 10**7*60*60*24:
+                self.time_zone = details.utc_adjustment/(10**7*60*60)
             else:
-                self.windows_timestamp = details.file_time
-                self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
                 self.time_zone = (details.utc_adjustment-details.file_time)/(10**7*60*60)
-                self.end_time = datetime.utcfromtimestamp(self.unix_timestamp)
 
             self.game_length = self.length
             self.real_length = utils.Length(seconds=int(self.length.seconds/GAME_SPEED_FACTOR[self.speed]))
