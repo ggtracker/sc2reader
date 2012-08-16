@@ -602,6 +602,8 @@ class Map(Resource):
     def get_url(cls, gateway, map_hash):
         """Builds a download URL for the map from its components."""
         if gateway and map_hash:
+            # it seems like sea maps are stored on us depots.
+            gateway = 'us' if gateway=='sea' else gateway
             return cls.url_template.format(gateway, map_hash)
         else:
             return None
