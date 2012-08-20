@@ -396,7 +396,7 @@ class Replay(Resource):
 
         #Create an store an ordered lineup string
         for team in self.teams:
-            team.lineup = sorted(player.play_race[0].upper() for player in team)
+            team.lineup = ''.join(sorted(player.play_race[0].upper() for player in team))
 
         # Special case FFA games and sort outmatched games in ascending order
         team_sizes = [len(team.players) for team in self.teams]

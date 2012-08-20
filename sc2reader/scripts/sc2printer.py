@@ -18,7 +18,7 @@ def doFile(filename, arguments):
         return
         prev = e.game_events[-1]
         print "\nVersion {0} replay:\n\t{1}".format(e.replay.release_string, e.replay.filename)
-        print "\t{0}, Type={1:X}, Code={2:X}".format(e.msg, e.type,e.code)
+        print "\t{0}, Type={1:X}".format(e.msg, e.type)
         print "\tPrevious Event: {0}".format(prev.name)
         print "\t\t"+prev.bytes.encode('hex')
         print "\tFollowing Bytes:"
@@ -43,11 +43,8 @@ def doFile(filename, arguments):
     if arguments.date:
         print "   Date:     {0}".format(replay.date)
     if arguments.teams:
-        races = list()
-        for team in replay.teams:
-            races.append(''.join([player.pick_race[0] for player in team.players]))
-        print "   Teams:    {0}".format("v".join(races))
-
+        lineups = [team.lineup for team in replay.teams]
+        print "   Teams:    {0}".format("v".join(lineups))
         for team in replay.teams:
             print "      Team {0}\t{1} ({2})".format(team.number,team.players[0].name,team.players[0].pick_race[0])
             for player in team.players[1:]:
@@ -84,7 +81,7 @@ def main():
 
     for path in arguments.paths:
         if arguments.recursive:
-            files = utils.get_replay_files(path)
+            files = utils.get_files(path, extension='SC2Replay')
         else:
             files = utils.get_replay_files(path, depth=0)
 
