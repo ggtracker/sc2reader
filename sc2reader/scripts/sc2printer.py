@@ -37,7 +37,7 @@ def doFile(filename, arguments):
         return
 
     if arguments.map:
-        print "   Map:      {0}".format(replay.map)
+        print "   Map:      {0}".format(replay.map_name)
     if arguments.length:
         print "   Length:   {0}".format(replay.length)
     if arguments.date:
