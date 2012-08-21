@@ -9,7 +9,7 @@ from sc2reader.utils import PersonDict, AttributeDict
 
 Location = namedtuple('Location',('x','y'))
 
-MapData = namedtuple('MapData',['unknown','gateway','map_hash'])
+MapData = namedtuple('MapData',['gateway','map_hash'])
 PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result'])
 ColorData = namedtuple('ColorData',['a','r','g','b'])
 BnetData = namedtuple('BnetData',['unknown1','unknown2','subregion','uid'])
@@ -57,30 +57,35 @@ class Team(object):
 
 class Attribute(object):
 
+    """ Still unknown
+        3e9: yes
+        bbe: 10
+        7d0: t2 (player 16) #Number of teams?
+        bbf: Part
+        3e8: Dflt
+        bc0: obs
+    """
     id_map = {
         0x01F4: ("Player Type", PLAYER_TYPE_CODES),
         0x07D1: ("Game Type", GAME_FORMAT_CODES),
         0x0BB8: ("Game Speed", GAME_SPEED_CODES),
         0x0BB9: ("Race", RACE_CODES),
         0x0BBA: ("Color", TEAM_COLOR_CODES),
-        0x0BBB: ("Handicap", None),
+        0x0BBB: ("Handicap", lambda value: value),
         0x0BBC: ("Difficulty", DIFFICULTY_CODES),
         0x0BC1: ("Category", GAME_TYPE_CODES),
-        0x07D2: ("Teams1v1", lambda value: int(value[0])),
-        0x07D3: ("Teams2v2", lambda value: int(value[0])),
-        0x07D4: ("Teams3v3", lambda value: int(value[0])),
-        0x07D5: ("Teams4v4", lambda value: int(value[0])),
-        0x07D6: ("TeamsFFA", lambda value: int(value[0])),
-        0x07D7: ("Teams5v5", lambda value: int(value[0]))
+        0x07D2: ("Teams1v1", lambda value: int(value[1])),
+        0x07D3: ("Teams2v2", lambda value: int(value[1])),
+        0x07D4: ("Teams3v3", lambda value: int(value[1])),
+        0x07D5: ("Teams4v4", lambda value: int(value[1])),
+        0x07D6: ("TeamsFFA", lambda value: int(value[1])),
+        0x07D7: ("Teams5v5", lambda value: int(value[1]))
     }
 
     def __init__(self, data):
         #Unpack the data values and add a default name of unknown to be
         #overridden by known attributes; acts as a flag for exclusion
         self.header, self.id, self.player, self.value, self.name = tuple(data+["Unknown"])
-
-        #Strip off the null bytes
-        while self.value[-1] == '\x00': self.value = self.value[:-1]
 
         if self.id in self.id_map:
             self.name, lookup = self.id_map[self.id]
@@ -115,6 +120,9 @@ class Person(object):
     #: Really just a shortcut for isinstance(obj, Observer).
     is_observer = bool()
 
+    #: A flag indicating if the person is a human or computer
+    is_human = bool()
+
     #: A list of :class:`ChatEvent` objects representing all of the chat
     #: messages the person sent during the game
     messages = list()
@@ -129,13 +137,17 @@ class Person(object):
     #: A flag indicating if the person is a computer or human
     is_human = bool()
 
+    #: The player's region.
+    region = str()
+
     def __init__(self, pid, name):
         self.pid = pid
         self.name = name
-        self.is_observer = None
+        self.is_observer = bool()
         self.messages = list()
         self.events = list()
         self.is_human = bool()
+        self.region = str()
         self.recorder = False # Actual recorder will be determined using the replay.message.events file
 
 class Observer(Person):
@@ -145,10 +157,16 @@ class Observer(Person):
 
     All Observers are human.
     """
+
     def __init__(self, pid, name):
         super(Observer,self).__init__(pid, name)
         self.is_observer = True
         self.is_human = True
+
+    def __repr__(self):
+        return str(self)
+    def __str__(self):
+        return "Player {} - {}".format(self.pid, self.name)
 
 class Player(Person):
     """
@@ -178,11 +196,12 @@ class Player(Person):
     #: The player's handicap as set prior to game start, ranges from 50-100
     handicap = int()
 
-    #: The player's region
-    region = str()
-
     #: The subregion with in the player's region
     subregion = int()
+
+    #: The player's bnet uid for his region/subregion.
+    #: Used to construct the bnet profile url.
+    uid = int()
 
     def __init__(self, pid, name):
         super(Player,self).__init__(pid, name)
@@ -198,11 +217,113 @@ class Player(Person):
 
     @property
     def result(self):
-        """The game result for this player"""
-        return self.team.result
+        """The game result for this player: Win, Loss, Unknown"""
+        return self.team.result if self.team else "Unknown"
 
     def format(self, format_string):
         return format_string.format(**self.__dict__)
 
     def __repr__(self):
         return str(self)
+
+
+class PlayerSummary():
+    """
+    A class to represent a player in the game summary (.s2gs)
+    """
+    stats_pretty_names = {
+        'R' : 'Resources',
+        'U' : 'Units',
+        'S' : 'Structures',
+        'O' : 'Overview',
+        'AUR' : 'Average Unspent Resources',
+        'RCR' : 'Resource Collection Rate',
+        'WC' : 'Workers Created',
+        'UT' : 'Units Trained',
+        'KUC' : 'Killed Unit Count',
+        'SB' : 'Structures Built',
+        'SRC' : 'Structures Razed Count'
+        }
+
+    #: The index of the player in the game
+    pid = int()
+
+    #: The index of the players team in the game
+    teamid = int()
+
+    #: The race the player used
+    race = str()
+
+    #: If the player is a computer
+    is_ai = False
+
+    #: If the player won the game
+    is_winner = False
+
+    #: Battle.Net id of the player
+    bnetid = int()
+
+    #: Subregion id of player
+    subregion = int()
+
+    #: unknown1
+    unknown1 = int()
+
+    #: unknown2
+    unknown2 = dict()
+
+    #: :class:`Graph` of player army values over time (seconds)
+    army_graph = None
+
+    #: :class:`Graph` of player income over time (seconds)
+    income_graph = None
+
+    #: Stats from the game in a dictionary
+    stats = dict()
+
+    def __init__(self, pid):
+        self.unknown2 = dict()
+        self.stats = dict()
+
+        self.pid = pid
+
+    def __str__(self):
+        if not self.is_ai:
+            return '{} - {} - {}/{}/'.format(self.teamid, self.race, self.subregion, self.bnetid)
+        else:
+            return '{} - {} - AI'.format(self.teamid, self.race)
+
+    def get_stats(self):
+        s = ''
+        for k in self.stats:
+            s += '{}: {}\n'.format(self.stats_pretty_names[k], self.stats[k])
+        return s.strip()
+
+# TODO: Are there libraries with classes like this in them
+class Graph():
+    """A class to represent a graph on the score screen."""
+
+    #: Times in seconds on the x-axis of the graph
+    times = list()
+
+    #: Values on the y-axis of the graph
+    values = list()
+
+    def __init__(self, x, y, xy_list=None):
+        self.times = list()
+        self.values = list()
+
+        if xy_list:
+            for x, y in xy_list:
+                self.times.append(x)
+                self.values.append(y)
+        else:
+            self.times = x
+            self.values = y
+
+    def as_points(self):
+        """ Get the graph as a list of (x, y) tuples """
+        return zip(self.times, self.values)
+
+    def __str__(self):
+        return "Graph with {0} values".format(len(self.times))

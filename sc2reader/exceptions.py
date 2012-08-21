@@ -11,12 +11,12 @@ class MultipleMatchingFilesError(SC2ReaderError):
     pass
 
 class ReadError(SC2ReaderError):
-    def __init__(self, msg, type, code, location, replay=None,  game_events=[], buffer=None):
+    def __init__(self, msg, type, location, replay=None,  game_events=[], buffer=None):
         self.__dict__.update(locals())
         super(ReadError, self).__init__(msg)
 
     def __str__(self):
-        return "{0}, Type: {1}, Code: {2}".format(self.msg, self.type, self.code)
+        return "{0}, Type: {1}".format(self.msg, self.type)
 
 class ParseError(SC2ReaderError):
     pass

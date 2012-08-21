@@ -185,7 +185,7 @@ def run(args):
         for path in scan(args, state):
             try:
                 #Read the file and expose useful aspects for renaming/filtering
-                replay = sc2reader.read_file(path)
+                replay = sc2reader.load_replay(path, load_level=2)
             except KeyboardInterrupt as e:
                 raise
             except:

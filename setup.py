@@ -2,7 +2,7 @@ import setuptools, sys
 
 setuptools.setup(
     name="sc2reader",
-    version='0.3.3',
+    version='0.4.0',
     license="MIT",
 
     author="Graylin Kim",
@@ -32,9 +32,10 @@ setuptools.setup(
             'sc2printer = sc2reader.scripts.sc2printer:main',
             'sc2store = sc2reader.scripts.sc2store:main',
             'sc2replayer = sc2reader.scripts.sc2replayer:main',
+            'sc2boprinter = sc2reader.scripts.sc2boprinter:main'
         ]
     },
     install_requires=['mpyq','argparse'] if float(sys.version[:3]) < 2.7 else ['mpyq'],
-    packages=['sc2reader', 'sc2reader.scripts', 'sc2reader.processors', 'sc2reader.listeners', 'sc2reader.data'],
+    packages=['sc2reader', 'sc2reader.scripts', 'sc2reader.plugins', 'sc2reader.data'],
     zip_safe=True
 )
