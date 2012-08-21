@@ -22,23 +22,23 @@ class SC2Factory(object):
     :class:`Replay` and :class:`Map` resources. These resources can be
     loaded in both singular and plural contexts with:
 
-        * :method:`load_replay` - :class:`Replay`
-        * :method:`load_replays` - generator<:class:`Replay`>
-        * :method:`load_map` - :class:`Map`
-        * :method:`load_maps` - : generator<:class:`Map`>
+        * :meth:`load_replay` - :class:`Replay`
+        * :meth:`load_replays` - generator<:class:`Replay`>
+        * :meth:`load_map` - :class:`Map`
+        * :meth:`load_maps` - : generator<:class:`Map`>
 
     The load behavior can be configured in three ways:
 
         # Passing options to the factory constructor
-        # Using the :method:`configure` method of a factory instance
+        # Using the :meth:`configure` method of a factory instance
         # Passing overried options into the load method
 
-    See the :method:`configure` method for more details on configuration
+    See the :meth:`configure` method for more details on configuration
     options.
 
     sc2reader comes with some post processing capabilities which, depending
     on your needs, may be useful. You can register these plugins to the load
-    process with the :method:`register_plugins` method.
+    process with the :meth:`register_plugins` method.
     """
 
     _resource_name_map = dict(replay=Replay,map=Map)
@@ -62,45 +62,59 @@ class SC2Factory(object):
 
     # Primary Interface
     def load_replay(self, source, options=None, **new_options):
+        """Loads a single sc2replay file. Accepts file path, url, or file object."""
         return self.load(Replay, source, options, **new_options)
 
     def load_replays(self, sources, options=None, **new_options):
+        """Loads a collection of sc2replay files, returns a generator."""
         return self.load_all(Replay, sources, options, extension='SC2Replay', **new_options)
 
     def load_map(self, source, options=None, **new_options):
+        """Loads a single s2ma file. Accepts file path, url, or file object."""
         return self.load(Map, source, options, **new_options)
 
     def load_maps(self, sources, options=None, **new_options):
+        """Loads a collection of s2ma files, returns a generator."""
         return self.load_all(Map, sources, options, extension='s2ma', **new_options)
 
     def load_game_summary(self, source, options=None, **new_options):
+        """Loads a single s2gs file. Accepts file path, url, or file object."""
         return self.load(GameSummary, source, options, **new_options)
 
     def load_game_summaries(self, sources, options=None, **new_options):
+        """Loads a collection of s2gs files, returns a generator."""
         return self.load_all(GameSummary, sources, options, extension='s2gs', **new_options)
 
     def load_map_info(self, source, options=None, **new_options):
+        """Loads a single s2mi file. Accepts file path, url, or file object."""
         return self.load(MapInfo, source, options, **new_options)
 
     def load_map_infos(self, sources, options=None, **new_options):
+        """Loads a collection of s2mi files, returns a generator."""
         return self.load_all(MapInfo, sources, options, extension='s2mi', **new_options)
 
     def load_map_header(self, source, options=None, **new_options):
+        """Loads a single s2mh file. Accepts file path, url, or file object."""
         return self.load(MapHeader, source, options, **new_options)
 
     def load_map_headers(self, sources, options=None, **new_options):
+        """Loads a collection of s2mh files, returns a generator."""
         return plugins_all(MapHeader, sources, options, extension='s2mh', **new_options)
 
     def configure(self, cls=None, **options):
+        """ Configures the factory to use the supplied options. If cls is specified
+            the options will only be applied when loading that class"""
         if isinstance(cls, basestring):
             cls = self._resource_name_map.get[cls.lower()]
         cls = cls or Resource
         self.options[cls].update(options)
 
     def reset(self):
+        "Resets the options to factory defaults"
         self.options = defaultdict(dict)
 
     def register_plugin(self, cls, plugin):
+        "Registers the given Plugin to be run on classes of the supplied name."
         if isinstance(cls, basestring):
             cls = self._resource_name_map.get(cls.lower(),Resource)
         self.plugins.append((cls, plugin))

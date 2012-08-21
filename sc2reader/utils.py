@@ -20,46 +20,9 @@ from sc2reader.data import build22612 as Data
 LITTLE_ENDIAN,BIG_ENDIAN = '<','>'
 
 class ReplayBuffer(object):
-    """ The ReplayBuffer is a wrapper over the cStringIO object and provides
+    """ The ReplayBuffer is a wrapper over the a StringIO object and provides
         convenience functions for reading structured data from Starcraft II
-        replay files. These convenience functions can be sorted into several
-        different categories providing an interface as follows:
-
-        Stream Manipulation::
-            tell(self)
-            skip(self, amount)
-            reset(self)
-            align(self)
-            seek(self, position, mode=SEEK_CUR)
-
-        Data Retrieval::
-            read_variable_int(self)
-            read_string(self,additional)
-            read_timestamp(self)
-            read_count(self)
-            read_data_structure(self)
-            read_object_type(self, read_modifier=False)
-            read_object_id(self)
-            read_coordinate(self)
-            read_bitmask(self)
-            read_range(self, start, end)
-
-        Basic Reading::
-            read_byte(self)
-            read_int(self, endian=LITTLE_ENDIAN)
-            read_short(self, endian=LITTLE_ENDIAN)
-            read_chars(self,length)
-            read_hex(self,length)
-
-        Core Reading::
-            shift(self,bits)
-            read(bytes,bits)
-
-        The ReplayBuffer additionally defines the following properties:
-            left
-            length
-
-        All read_* functions throw EOFErrors
+        replay files.
     """
 
     def __init__(self, source):

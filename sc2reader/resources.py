@@ -615,6 +615,8 @@ class Map(Resource):
 
 
 class GameSummary(Resource):
+    """**Experimental**"""
+
     base_url_template = 'http://{0}.depot.battle.net:1119/{1}.{2}'
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2gs'
 
@@ -966,6 +968,8 @@ class GameSummary(Resource):
 
 
 class MapInfo(Resource):
+    """**Experimental**"""
+
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mi'
 
     #: Name of the Map
@@ -993,6 +997,8 @@ class MapInfo(Resource):
         return self.map_name
 
 class MapHeader(Resource):
+    """**Experimental**"""
+
     base_url_template = 'http://{0}.depot.battle.net:1119/{1}.{2}'
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mh'
     image_url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mv'

@@ -82,7 +82,7 @@ The replay object itself is a dumb data structure; there are no access methods o
     >>> replay.teams
     [<sc2reader.objects.Team object at 0x2b5e410>, <sc2reader.objects.Team object at 0x2b5e4d0>]
 
-Many of the replay attributes are nested data structures which are generally all pretty dumb as well. The idea being that you should be able to access almost anything with a mixture of indexes and dot notation. Clean and simple accessibility is one of the primary design goals for sc2reader. 
+Many of the replay attributes are nested data structures which are generally all pretty dumb as well. The idea being that you should be able to access almost anything with a mixture of indexes and dot notation. Clean and simple accessibility is one of the primary design goals for sc2reader.
 
 ::
 
@@ -125,7 +125,7 @@ Similar formatting written in a more verbose and less pythonic way:
         return output
 
 Next we need to format the teams for display. The :class:`Team` and :class:`Player` data structures are pretty straightforward as well so we can apply a bit of string formatting and produce this:
-    
+
 ::
 
     def formatTeams(replay):
@@ -230,4 +230,19 @@ Recognizing that most users will only ever need one active configuration at a ti
         followlinks=True
     )
 
-An ideal prettyPrinter script would let the user configure these options as arguments using the argparse library. Such an expansion is beyond the scope of sc2reader though, so we'll leave it as an exercise to the reader.
+Many of your replay files might be custom games for which events cannot be parsed. Since the pretty printer doesn't use game event information in its output we can limit the parse level of the replay to stop after loading the basic details. This will make the pretty printer work for custom games as well.
+
+::
+
+    import sc2reader
+
+    sc2reader.load_replay(path, load_level=1)
+
+There are 4 available load levels:
+
+* 0: Parses the replay header for version, build, and length information
+* 1: Also parses the replay.details file for player, team, winner, map, and time information
+* 2: Also parses the replay.message.events file for chat messages and player pings.
+* 3: Also parses the replay.events file for game event information.
+
+So that's it! An ideal prettyPrinter script might let the user configure these options as arguments using the argparse library. Such an expansion is beyond the scope of sc2reader though, so we'll leave it that one to you.
