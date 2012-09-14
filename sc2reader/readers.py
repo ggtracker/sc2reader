@@ -383,24 +383,42 @@ class GameEventsReader_16117(GameEventsReader_Base):
 
 class GameEventsReader_16561(GameEventsReader_16117):
     # Don't want to do this more than once
-    SINGLE_BIT_MASKS = [0x1 << i for i in range(500)]
+    SINGLE_BIT_MASKS = [0x1 << i for i in range(2**9)]
 
     def _parse_selection_update(self, data):
         update_type = data.read_bits(2)
         if update_type == 1:
-            mask_length = data.read_bits(self.UNIT_INDEX_BITS)
+            bits_left = mask_length = data.read_bits(self.UNIT_INDEX_BITS)
 
-            # Mask is written in byte chunks
-            mask = data.read_bytes(mask_length/8)
-            if mask_length%8:
-                mask += chr(data.read_bits(mask_length%8))
+            mask = list()
+            bits = data.read_bits(mask_length)
 
-            # And must be reversed to put the bits in order
-            bit_mask = sum([ord(c)<<(i*8) for i,c in enumerate(mask)])
+            # If the mask_length is not a multiple of 8 the bit_shift on
+            # the data buffer will change and cause the last byte to be
+            # an odd length. This correctly sizes the last byte.
+            shift_diff = (mask_length+data.bit_shift)%8 - data.bit_shift
+            if shift_diff > 0:
+                mask = [bits & data.lo_masks[shift_diff]]
+                bits = bits >> shift_diff
+                bits_left -= shift_diff
+            elif shift_diff < 0:
+                mask = [bits & data.lo_masks[8+shift_diff]]
+                bits = bits >> (8+shift_diff)
+                bits_left -= 8+shift_diff
 
-            # Represent the mask as a simple bit array with
-            # True => Deselect, False => Keep
-            mask = [bit_mask & bit for bit in self.SINGLE_BIT_MASKS[:mask_length]]
+            # Now shift the rest of the bits off into the mask in byte-sized
+            # chunks in reverse order. No idea why it'd be stored like this.
+            while bits_left!=0:
+                mask.insert(0,bits & 0xFF)
+                bits = bits >> 8
+                bits_left -= 8
+
+            # Compile the finished mask into a large integer for bit checks
+            bit_mask = sum([c<<(i*8) for i,c in enumerate(mask)])
+
+            # Change mask representation from an int to a bit array with
+            #   True => Deselect, False => Keep
+            mask = [(bit_mask & bit != 0) for bit in self.SINGLE_BIT_MASKS[:mask_length]]
 
         elif update_type == 2:
             index_count = data.read_bits(self.UNIT_INDEX_BITS)
