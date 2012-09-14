@@ -112,8 +112,8 @@ def SelectionTracker(replay):
             selection = player_selection[event.frame]
 
             if isinstance(event, SelectionEvent):
-                error = not selection[0x0A].deselect(*event.deselect)
-                selection[0x0A].select(event.objects)
+                error = not selection[event.bank].deselect(*event.deselect)
+                selection[event.bank].select(event.objects)
                 if debug: logger.info("[{0}] {1} selected {2} units: {3}".format(Length(seconds=event.second),person.name,len(selection[0x0A].objects),selection[0x0A]))
 
             elif isinstance(event, GetFromHotkeyEvent):
