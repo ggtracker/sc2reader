@@ -98,10 +98,10 @@ class Replay(Resource):
     #: Deprecated: See `end_time` below.
     date = None
 
-    #: A datetime object representing the local time at the end of the game.
+    #: A datetime object representing the utc time at the end of the game.
     end_time = None
 
-    #: A datetime object representing the local time at the start of the game
+    #: A datetime object representing the utc time at the start of the game
     start_time = None
 
     #: Deprecated: See `game_length` below.
