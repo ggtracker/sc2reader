@@ -296,7 +296,10 @@ class ReplayBuffer(object):
             #to have no effect and kicks back the next instruction
             flag = self.read_byte()
             if debug: print prefix
-            data = self.read_data_struct(indent,key)
+            if self.peek(2).encode('hex')!='0404':
+                data = self.read_data_struct(indent,key)
+            else:
+                data = 0
 
         elif datatype == 0x04:
             #0x04 is an unknown data type where the first byte of information
