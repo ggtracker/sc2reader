@@ -694,7 +694,7 @@ class GameSummary(Resource):
             self.parts.append(buffer.read_data_struct())
 
         # Parse basic info
-        self.game_speed = GAME_SPEED_CODES[''.join(reversed(self.parts[0][0][1]))]
+        self.game_speed = GAME_SPEED_CODES[self.parts[0][0][1]]
 
         # time struct looks like this:
         # { 0: 11987, 1: 283385849, 2: 1334719793L}
@@ -792,7 +792,7 @@ class GameSummary(Resource):
             player_struct = self.parts[0][3][i]
 
             player = PlayerSummary(player_struct[0][0])
-            player.race = RACE_CODES[''.join(reversed(player_struct[2]))]
+            player.race = RACE_CODES[player_struct[2]]
 
             # TODO: Grab team id from lobby_player_properties
             player.teamid = 0

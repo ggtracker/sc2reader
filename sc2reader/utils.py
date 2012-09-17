@@ -563,8 +563,8 @@ def get_unit(type_int):
     """
     # Try to parse a unit
     unit_code = ((type_int & 0xff) << 8) | 0x01
-    if unit_code in Data.types:
-        unit_name = Data.type(unit_code).name
+    if unit_code in Data.units:
+        unit_name = Data.units[unit_code].name
     else:
         unit_name = "Unknown Unit ({0:X})".format(type_int)
 
