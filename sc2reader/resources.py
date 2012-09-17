@@ -690,7 +690,7 @@ class GameSummary(Resource):
         # TODO: Is there a fixed number of entries?
         # TODO: Maybe the # of parts is recorded somewhere?
         self.parts = list()
-        while buffer.left:
+        while not buffer.is_empty:
             self.parts.append(buffer.read_data_struct())
 
         # Parse basic info
