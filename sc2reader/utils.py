@@ -586,12 +586,3 @@ def get_research(type_int):
         research_name = "Unknown upgrade ({0:X})".format(research_code)
 
     return dict(name=research_name, type_int=hex(type_int))
-
-def parse_hash(hash_string):
-    """Parse a hash to useful data"""
-    # TODO: this could be used when processing replays.initData as well
-    return {
-        'server': hash_string[4:8].strip(),
-        'hash' : hash_string[8:].encode('hex'),
-        'type' : hash_string[0:4]
-        }

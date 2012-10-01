@@ -14,6 +14,18 @@ PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','u
 ColorData = namedtuple('ColorData',['a','r','g','b'])
 BnetData = namedtuple('BnetData',['unknown1','unknown2','subregion','uid'])
 
+class DepotHash(object):
+    url_template = 'http://{0}.depot.battle.net:1119/{1}.{2}'
+
+    def __init__(self, bytes):
+        self.server = bytes[4:8].strip('\x00 ')
+        self.hash = bytes[8:].encode('hex')
+        self.type = bytes[0:4]
+
+    def __str__(self):
+        return self.url_template.format(self.server, self.hash, self.type)
+
+
 class Team(object):
     """
     The team object primarily a container object for organizing :class:`Player`
@@ -228,22 +240,6 @@ class Player(Person):
 
 
 class PlayerSummary():
-    """
-    A class to represent a player in the game summary (.s2gs)
-    """
-    stats_pretty_names = {
-        'R' : 'Resources',
-        'U' : 'Units',
-        'S' : 'Structures',
-        'O' : 'Overview',
-        'AUR' : 'Average Unspent Resources',
-        'RCR' : 'Resource Collection Rate',
-        'WC' : 'Workers Created',
-        'UT' : 'Units Trained',
-        'KUC' : 'Killed Unit Count',
-        'SB' : 'Structures Built',
-        'SRC' : 'Structures Razed Count'
-        }
 
     #: The index of the player in the game
     pid = int()
@@ -283,8 +279,6 @@ class PlayerSummary():
 
     def __init__(self, pid):
         self.unknown2 = dict()
-        self.stats = dict()
-
         self.pid = pid
 
     def __str__(self):

@@ -6,7 +6,8 @@ import hashlib
 from datetime import datetime
 import time
 from StringIO import StringIO
-from collections import defaultdict, deque
+from collections import defaultdict, deque, namedtuple
+from xml.etree import ElementTree
 
 import urllib2
 from mpyq import MPQArchive
@@ -14,7 +15,7 @@ from mpyq import MPQArchive
 from sc2reader import utils
 from sc2reader import log_utils
 from sc2reader import readers, data
-from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph
+from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotHash
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, GAME_SPEED_CODES, RACE_CODES, PLAYER_TYPE_CODES, TEAM_COLOR_CODES, GAME_FORMAT_CODES, GAME_TYPE_CODES, DIFFICULTY_CODES
 
 
@@ -615,24 +616,8 @@ class Map(Resource):
 
 
 class GameSummary(Resource):
-    """**Experimental**"""
 
-    base_url_template = 'http://{0}.depot.battle.net:1119/{1}.{2}'
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2gs'
-
-    stats_keys = [
-        'R',
-        'U',
-        'S',
-        'O',
-        'AUR',
-        'RCR',
-        'WC',
-        'UT',
-        'KUC',
-        'SB',
-        'SRC',
-        ]
 
     #: Game speed
     game_speed = str()
@@ -649,15 +634,6 @@ class GameSummary(Resource):
     #: A dictionary of Lobby player properties
     lobby_player_properties = dict()
 
-    #: Game completion time
-    time = int()
-
-    #: Players, a dict of :class`PlayerSummary` from the game
-    players = dict()
-
-    #: Teams, a dict of pids
-    teams = dict()
-
     #: Winners, a list of the pids of the winning players
     winners = list()
 
@@ -673,16 +649,31 @@ class GameSummary(Resource):
     def __init__(self, summary_file, filename=None, **options):
         super(GameSummary, self).__init__(summary_file, filename,**options)
 
+        #: A list of teams
         self.team = dict()
-        self.teams = list()
+
+        #: A dict of team# -> team
+        self.teams = dict()
+
+        #: Players, a dict of :class`PlayerSummary` from the game
         self.players = list()
+
+        self.observers = list()
+
+        #: Game completion time
+        self.time = None
+
         self.winners = list()
         self.player = dict()
-        self.build_orders = dict()
+        self.settings = dict()
+        self.player_stats = defaultdict(dict)
+        self.player_settings = defaultdict(dict)
+        self.build_orders = defaultdict(list)
         self.image_urls = list()
         self.localization_urls = dict()
         self.lobby_properties = dict()
         self.lobby_player_properties = dict()
+        self.teams = dict()
 
         # The first 16 bytes appear to be some sort of compression header
         buffer = utils.ReplayBuffer(zlib.decompress(summary_file.read()[16:]))
@@ -693,273 +684,283 @@ class GameSummary(Resource):
         while not buffer.is_empty:
             self.parts.append(buffer.read_data_struct())
 
-        # Parse basic info
-        self.game_speed = GAME_SPEED_CODES[self.parts[0][0][1]]
-
-        # time struct looks like this:
-        # { 0: 11987, 1: 283385849, 2: 1334719793L}
-        # 0, 1 might be an adjustment of some sort
-        self.unknown_time = self.parts[0][2][2]
-
-        # this one is alone as a unix timestamp
         self.time = self.parts[0][8]
-
-        # in seconds
+        self.date = datetime.utcfromtimestamp(self.parts[0][8])
+        self.game_speed = GAME_SPEED_CODES[self.parts[0][0][1]]
         self.game_length = utils.Length(seconds=self.parts[0][7])
         self.real_length = utils.Length(seconds=self.parts[0][7]/GAME_SPEED_FACTOR[self.game_speed])
 
-        # TODO: Is this the start or end time?
-        self.date = datetime.utcfromtimestamp(self.parts[0][8])
-
-        self.load_lobby_properties()
-        self.load_player_info()
-        self.load_player_graphs()
-        self.load_map_data()
+        self.load_translations()
+        self.load_settings()
+        self.load_player_stats()
         self.load_player_builds()
+        self.load_players()
+
+        # The s2gs file also keeps reference to a series of s2mv files
+        # Some of these appear to be encoded bytes and others appear to be
+        # the preview images that authors may bundle with their maps.
+        self.s2mv_urls = [str(DepotHash(file_hash)) for file_hash in self.parts[0][6][7]]
+
+
+
+    def load_translations(self):
+        # This section of the file seems to map numerical ids to their
+        # corresponding entries in the localization files (see below).
+        # Each mapping has 3 parts:
+        #   1: The id to be mapped
+        #   2: The localization sheet and entry index to map to
+        #   3: A list of ids for the summary tabs the value shows up in
+        #
+        # In some cases it seems that these ids don't map to an entry so
+        # there must be some additional purpose to this section as well.
+        #
+        self.id_map = dict()
+        for mapping in self.parts[1][0]:
+            if isinstance(mapping[2][0], dict):
+                self.id_map[mapping[1][1]] = (mapping[2][0][1],mapping[2][0][2])
+
+        # The id mappings for lobby and player properties are stored
+        # separately in the parts[0][5] entry.
+        #
+        # The values for each property are also mapped but the values
+        # don't have their own unique ids so we use a compound key
+        self.lobby_properties = dict()
+        for item in self.parts[0][5]:
+            uid = item[0][1]
+            sheet = item[2][0][1]
+            entry = item[2][0][2]
+            self.id_map[uid] = (sheet, entry)
+
+            for value in item[1]:
+                sheet = value[1][0][1]
+                entry = value[1][0][2]
+                self.id_map[(uid, value[0])] = (sheet, entry)
+
+        # Each localization is a pairing of a language id, e.g. enUS
+        # and a list of byte strings that can be decoded into urls for
+        # resources hosted on the battle.net depot servers.
+        #
+        # Sometimes these byte strings are all NULLed out and need to be ignored.
+        for localization in self.parts[0][6][8]:
+            language = localization[0]
+
+            files = list()
+            for file_hash in localization[1]:
+                if file_hash[:4] != '\x00\x00\x00\x00':
+                    files.append(DepotHash(file_hash))
+            self.localization_urls[language] = files
+
+        # Grab the gateway from the one of the files
+        self.region = self.localization_urls.values()[0][0].server
+
+        # Each of the localization urls points to an XML file with a set of
+        # localization strings and their unique ids. After reading these mappings
+        # into a lang_sheets variable we can use these sheets to make a direct
+        # map from internal id to localize string.
+        #
+        # For now we'll only do this for english localizations.
+        self.lang_sheets = dict()
+        self.translations =  dict()
+        for lang,urls in self.localization_urls.items():
+            if lang != 'enUS': continue
+
+            sheets = dict()
+            for sheet, url in enumerate(urls):
+                print "Opening ", str(url)
+                xml = ElementTree.parse(urllib2.urlopen(str(url)))
+                translation = dict((int(e.attrib['id']),e.text) for e in xml.findall('e'))
+                sheets[sheet] = translation
+
+            translation = dict()
+            for uid, (sheet, item) in self.id_map.items():
+                translation[uid] = sheets[sheet][item]
+
+            self.lang_sheets[lang] = sheets
+            self.translations[lang] = translation
+
+    def load_settings(self):
+        Property = namedtuple('Property',['id','values','requirements','defaults','is_lobby'])
+
+        properties = dict()
+        for p in self.parts[0][5]:
+            properties[p[0][1]] = Property(p[0][1],p[1],p[3],p[8],isinstance(p[8],dict))
+
+        settings = dict()
+        for setting in self.parts[0][6][6]:
+            prop = properties[setting[0][1]]
+            if prop.is_lobby:
+                settings[setting[0][1]] = setting[1][0]
+            else:
+                settings[setting[0][1]] = [p[0] for p in setting[1]]
+
+        activated = dict()
+        def use_property(prop, player=None):
+            # Check the cache before recomputing
+            if (prop.id, player) in activated:
+                return activated[(prop.id,player)]
+
+            # A property can only be used if it's requirements
+            # are both active and have one if the required settings.
+            # These settings can be player specific.
+            use = False
+            for req in prop.requirements:
+                requirement = properties[req[0][1][1]]
+                if not use_property(requirement, player):
+                    break
+
+                setting = settings[req[0][1][1]]
+                value = setting if requirement.is_lobby else setting[player]
+                if requirement.values[value][0] not in req[1]:
+                    break
+
+            else:
+                # Executes if we don't break out of the loop!
+                use = True
+
+            # Record the result for future reference and return
+            activated[(prop.id,player)] = use
+            return use
+
+        for uid, prop in properties.items():
+            name = self.translations['enUS'][uid]
+            if prop.is_lobby:
+                if use_property(prop):
+                    value = prop.values[settings[uid]][0]
+                    self.settings[name] = self.translations['enUS'][(uid,value)]
+            else:
+                for index, player_setting in enumerate(settings[uid]):
+                    if use_property(prop, index):
+                        value = prop.values[player_setting][0]
+                        self.player_settings[index][name] = self.translations['enUS'][(uid, value)]
+
+    def load_player_stats(self):
+        if len(self.parts) < 4: return
+
+        # Part[3][0][:] and Part[4][0][1] are filled with summary stats
+        # for the players in the game. Each stat item is laid out as follows
+        #
+        #   {0: {0:999, 1:translation_id}, 1: [ [{0: Value, 1:0, 2:871???}], [], ...]
+        #
+        # Value is as seen on the score screen in game.
+        stats_items = self.parts[3][0]
+        if len(self.parts) >= 4: stats_items.append(self.parts[4][0][1])
+
+        for item in stats_items:
+            stat_name = self.translations['enUS'][item[0][1]]
+            for index, value in enumerate(item[1]):
+                if value:
+                    self.player_stats[index][stat_name] = value[0][0]
+
+        if len(self.parts) < 5: return
+
+        # Part[4][0] has entries for the army and income graphs
+        # Each point entry for the graph is laid out as follows
+        #
+        #   {0:Value, 1:0, 2:Time}
+        #
+        # The 2nd part of the tuple appears to always be zero and
+        # the time is in seconds of game time.
+        for index, items in enumerate(self.parts[4][0][1][1]):
+            xy = [(o[2], o[0]) for o in items]
+            self.player_stats[index]['Income Graph'] = Graph([], [], xy_list=xy)
+
+        for index, items in enumerate(self.parts[4][0][1][1]):
+            xy = [(o[2], o[0]) for o in items]
+            self.player_stats[index]['Army Graph'] = Graph([], [], xy_list=xy)
 
     def load_player_builds(self):
-        # Parse build orders
-        bo_structs = [x[0] for x in self.parts[5:]]
-        bo_structs.append(self.parts[4][0][3:])
+        # Parse build orders only if it looks like we have build items
+        if len(self.parts) < 5: return
 
-        # This might not be the most effective way, but it works
-        for pid, p in self.player.items():
-            bo = list()
-            for bo_struct in bo_structs:
-                for order in bo_struct:
+        # All the parts after part 5 appear to be designated for
+        # build order entries with a max of 10 per part
+        build_items = sum([x[0] for x in self.parts[5:]], [])
+        build_items.extend(self.parts[4][0][3:])
 
-                    if order[0][1] >> 24 == 0x01:
-                        # unit
-                        parsed_order = utils.get_unit(order[0][1])
-                    elif order[0][1] >> 24 == 0x02:
-                        # research
-                        parsed_order = utils.get_research(order[0][1])
+        # Each build item represents one ability and contains
+        # a list of all the uses of that ability by each player
+        # up to the first 64 successful actions in the game.
+        BuildEntry = namedtuple('BuildEntry',['supply','total_supply','time','order','build_index'])
+        for build_item in build_items:
+            order_name = self.translations['enUS'][build_item[0][1]]
+            for pindex, commands in enumerate(build_item[1]):
+                for command in commands:
+                    self.build_orders[pindex].append(BuildEntry(
+                            supply=command[0],
+                            total_supply=command[1]&0xff,
+                            time=(command[2] >> 8) / 16,
+                            order=order_name,
+                            build_index=command[1] >> 16
+                        ))
 
-                    for entry in order[1][p.pid]:
-                        bo.append({
-                                'supply' : entry[0],
-                                'total_supply' : entry[1]&0xff,
-                                'time' : (entry[2] >> 8) / 16,
-                                'order' : parsed_order,
-                                'build_index' : entry[1] >> 16,
-                                })
-            bo.sort(key=lambda x: x['build_index'])
-            self.build_orders[p.pid] = bo
+        # Once we've compiled all the build commands we need to make
+        # sure they are properly sorted for presentation.
+        for build_order in self.build_orders.values():
+            build_order.sort(key=lambda x: x.build_index)
 
-    def load_map_data(self):
-        # Parse map localization data
-        for l in self.parts[0][6][8]:
-            lang = l[0]
-            urls = list()
-            for hash in l[1]:
-                parsed_hash = utils.parse_hash(hash)
-                if not parsed_hash['server']:
-                    continue
-                urls.append(self.base_url_template.format(parsed_hash['server'], parsed_hash['hash'], parsed_hash['type']))
+    def load_players(self):
+        for index, struct in enumerate(self.parts[0][3]):
+            if not struct[0][1]: continue # Slot is closed
 
-            self.localization_urls[lang] = urls
+            player = PlayerSummary(struct[0][0])
+            stats = self.player_stats[index]
+            settings = self.player_settings[index]
+            print settings
+            print stats
+            player.is_ai = not isinstance(struct[0][1], dict)
+            if not player.is_ai:
+                player.region = self.region
+                player.subregion = struct[0][1][0][2]
+                player.bnetid = struct[0][1][0][3]
+                player.unknown1 = struct[0][1][0]
+                player.unknown2 = struct[0][1][1]
 
-        # Parse map images
-        for hash in self.parts[0][6][7]:
-            parsed_hash = utils.parse_hash(hash)
-            self.image_urls.append(self.base_url_template.format(parsed_hash['server'], parsed_hash['hash'], parsed_hash['type']))
-
-    def load_player_graphs(self):
-        # Parse graph and stats stucts, for each player
-        for pid, p in self.player.items():
-            # Graph stuff
-            xy = [(o[2], o[0]) for o in self.parts[4][0][2][1][p.pid]]
-            p.army_graph = Graph([], [], xy_list=xy)
-
-            xy = [(o[2], o[0]) for o in self.parts[4][0][1][1][p.pid]]
-            p.income_graph = Graph([], [], xy_list=xy)
-
-            # Stats stuff
-            stats_struct = self.parts[3][0]
-            # The first group of stats is located in parts[3][0]
-            for i in range(len(stats_struct)):
-                p.stats[self.stats_keys[i]] = stats_struct[i][1][p.pid][0][0]
-            # The last piece of stats is in parts[4][0][0][1]
-            p.stats[self.stats_keys[len(stats_struct)]] = self.parts[4][0][0][1][p.pid][0][0]
-
-    def load_player_info(self):
-        # Parse player structs, 16 is the maximum amount of players
-        for i in range(16):
-            # Check if player, skip if not
-            if self.parts[0][3][i][2] == '\x00\x00\x00\x00':
+            # Either a referee or a spectator, nothing else to do
+            if settings['Participant Role'] != 'Participant':
+                self.observers.append(player)
                 continue
 
-            player_struct = self.parts[0][3][i]
-
-            player = PlayerSummary(player_struct[0][0])
-            player.race = RACE_CODES[player_struct[2]]
-
-            # TODO: Grab team id from lobby_player_properties
-            player.teamid = 0
-
-            player.is_winner = (player_struct[1][0] == 0)
+            player.is_winner = isinstance(struct[1],dict) and struct[1][0] == 0
             if player.is_winner:
                 self.winners.append(player.pid)
 
-            # Is the player an ai?
-            if type(player_struct[0][1]) == type(int()):
-                player.is_ai = True
-            else:
-                player.is_ai = False
+            team_id = int(settings['Team'].split(' ')[1])
+            if team_id not in self.teams:
+                self.teams[team_id] = Team(team_id)
+            player.team = self.teams[team_id]
+            self.teams[team_id].players.append(player)
 
-                player.bnetid = player_struct[0][1][0][3]
-                player.subregion = player_struct[0][1][0][2]
+            # We can just copy these settings right over
+            # TODO: Get the hex from the color string?
+            player.color = settings.get('Color', None)
+            player.race = settings.get('Race', None)
+            player.handicap = settings.get('Handicap', None)
 
-                # int
-                player.unknown1 = player_struct[0][1][0]
-                # {0:long1, 1:long2}
-                # Example:
-                # { 0: 3405691582L, 1: 11402158793782460416L}
-                player.unknown2 = player_struct[0][1][1]
+            # Overview Tab
+            player.resource_score = stats.get('Resources', None)
+            player.structure_score = stats.get('Structures', None)
+            player.unit_score = stats.get('Units', None)
+            player.overview_score = stats.get('Overview', None)
+
+            # Economic Breakdown Tab
+            player.avg_unspent_resources = stats.get('Average Unspent Resources', None)
+            player.resource_collection_rate = stats.get('Resource Collection Rate', None)
+            player.workers_created = stats.get('Workers Created', None)
+
+            # Units Tab
+            player.units_killed = stats.get('Killed Unit Count', None)
+            player.structures_built = stats.get('Structures Built', None)
+            player.units_trained = stats.get('Units Trained', None)
+
+            # Graphs Tab
+            player.army_graph = stats.get('Army Graph')
+            player.income_graph = stats.get('Income Graph', None)
+
+            # Build Orders Tab
+            player.build_order = self.build_orders.get(index, None)
 
             self.players.append(player)
             self.player[player.pid] = player
-
-            if not player.teamid in self.teams:
-                self.team[player.teamid] = list()
-            self.team[player.teamid].append(player.pid)
-
-        # What does this do?
-        #self.teams = [self.team[tid] for tid in sorted(self.team.keys())]
-
-    def load_lobby_properties(self):
-        #Monster function used to parse lobby properties in GameSummary
-        #
-        # The definition of each lobby property is in data[0][5] with the structure
-        #
-        # id = def[0][1] # The unique property id
-        # vals = def[1]  # A list with the values the property can be
-        # reqs = def[3]  # A list of requirements the property has
-        # dflt = def[8]  # The default value(s) of the property
-        #                this is a single entry for a global property
-        #                and a list() of entries for a player property
-
-        # The def-values is structured like this
-        #
-        # id = `the index in the vals list`
-        # name = v[0]    # The name of the value
-
-        # The requirement structure looks like this
-        #
-        # id = r[0][1][1] # The property id of this requirement
-        # vals = r[1]     # A list of names of valid values for this requirement
-
-        ###
-        # The values of each property is in data[0][6][6] with the structure
-        #
-        # id = v[0][1]  # The property id of this value
-        # vals = v[1]   # The value(s) of this property
-        #                this is a single entry for a global property
-        #                and a list() of entries for a player property
-
-        ###
-        # A value-entry looks like this
-        #
-        # index = v[0]  # The index in the def.vals array representing the value
-        # unknown = v[1]
-
-        # TODO: this indirection is confusing, fix at some point..
-        data = self.parts
-
-        # First get the definitions in data[0][5]
-        defs = dict()
-        for d in data[0][5]:
-            k = d[0][1]
-            defs[k] = {
-                'id':k,
-                'vals':d[1],
-                'reqs':d[3],
-                'dflt':d[8],
-                'lobby_prop':type(d[8]) == type(dict())
-                }
-        vals = dict()
-
-        # Get the values in data[0][6][6]
-        for v in data[0][6][6]:
-            k = v[0][1]
-            vals[k] = {
-                'id':k,
-                'vals':v[1]
-                }
-
-        lobby_ids = [k for k in defs if defs[k]['lobby_prop']]
-        lobby_ids.sort()
-        player_ids = [k for k in defs if not defs[k]['lobby_prop']]
-        player_ids.sort()
-
-        left_lobby = deque([k for k in defs if defs[k]['lobby_prop']])
-
-        lobby_props = dict()
-        last_success = 0
-        max = len(left_lobby)
-        # We cycle through all property values 'til we're done
-        while len(left_lobby) > 0 and not (last_success > max+1):
-            last_success += 1
-            propid = left_lobby.popleft()
-            can_be_parsed = True
-            active = True
-            # Check the requirements
-            for req in defs[propid]['reqs']:
-                can_be_parsed = can_be_parsed and (req[0][1][1] in lobby_props)
-                # Have we parsed all req-fields?
-                if not can_be_parsed:
-                    break
-                # Is this requirement fullfilled?
-                active = active and (lobby_props[req[0][1][1]] in req[1])
-
-            if not can_be_parsed:
-                # Try parse this later
-                left_lobby.append(propid)
-                continue
-            last_success = 0
-            if not active:
-                # Ok, so the reqs weren't fullfilled, don't use this property
-                continue
-            # Nice! We've parsed a property
-            lobby_props[propid] = defs[propid]['vals'][vals[propid]['vals'][0]][0]
-
-        player_props = [dict() for pid in range(16)]
-        # Parse each player separately (this is required :( )
-        for pid in range(16):
-            left_players = deque([a for a in player_ids])
-            player = dict()
-
-            # Use this to avoid an infinite loop
-            last_success = 0
-            max = len(left_players)
-            while len(left_players) > 0 and not (last_success > max+1):
-                last_success += 1
-                propid = left_players.popleft()
-                can_be_parsed = True
-                active = True
-                for req in defs[propid]['reqs']:
-                    #req is a lobby prop
-                    if req[0][1][1] in lobby_ids:
-                        active = active and (req[0][1][1] in lobby_props) and (lobby_props[req[0][1][1]] in req[1])
-                    #req is a player prop
-                    else:
-                        can_be_parsed = can_be_parsed and (req[0][1][1] in player)
-                        if not can_be_parsed:
-                            break
-                        active = active and (player[req[0][1][1]] in req[1])
-
-                if not can_be_parsed:
-                    left_players.append(propid)
-                    continue
-                last_success = 0
-                if not active:
-                    continue
-                player[propid] = defs[propid]['vals'][vals[propid]['vals'][pid][0]][0]
-
-            player_props[pid] = player
-
-        self.lobby_properties = lobby_props
-        self.lobby_player_properties = player_props
 
     def __str__(self):
         return "{} - {} {}".format(time.ctime(self.time),self.game_length,
