@@ -232,6 +232,7 @@ class GameEventsReader_Base(object):
         read_timestamp =  data.read_timestamp
         read_bits = data.read_bits
         read_byte = data.read_byte
+        tell = data.tell
         read_bytes = data.read_bytes
         byte_align = data.byte_align
         append = game_events.append
@@ -247,7 +248,7 @@ class GameEventsReader_Base(object):
                 if event_type in EVENT_DISPATCH:
                     event = EVENT_DISPATCH[event_type](data, fstamp, pid, event_type)
                     if debug:
-                        event.bytes = data.read_range(event_start, data.tell())
+                        event.bytes = data.read_range(event_start, tell())
                     append(event)
 
                 # Otherwise maybe it is an unknown chunk
@@ -276,7 +277,7 @@ class GameEventsReader_Base(object):
                     raise ReadError("Event type {} unknown at position {}.".format(hex(event_type),hex(event_start)), event_type, event_start, replay, game_events, data)
 
                 byte_align()
-                event_start = data.tell()
+                event_start = tell()
 
             return game_events
         except ParseError as e:
@@ -302,12 +303,12 @@ class GameEventsReader_16117(GameEventsReader_Base):
 
     def player_ability_event(self, data, fstamp, pid, event_type):
         data.read_bits(4)
-        data.read_bytes(7)
-        switch = data.read_bits(8)
+        data.skip(7)
+        switch = data.read_byte()
         if switch in (0x30,0x50):
-            data.read_bytes(1)
-        data.read_bytes(24)
-        return AbilityEvent(fstamp, pid, event_type, None)
+            data.skip(1)
+        data.skip(24)
+        return AbilityEvent(fstamp, pid, event_type, None, None)
 
     def player_selection_event(self, data, fstamp, pid, event_type):
         bank = data.read_bits(4)
@@ -450,13 +451,12 @@ class GameEventsReader_16561(GameEventsReader_16117):
             z = data.read_int(BIG_ENDIAN)
             z = (z>>1)/8192.0 * pow(-1, z & 0x1)
             unknown = data.read_bits(1)
-            return LocationAbilityEvent(fstamp, pid, event_type, ability, (x, y, z))
+            return LocationAbilityEvent(fstamp, pid, event_type, ability, flags, (x, y, z))
 
         elif target_type == 2:
             player = team = None
 
-            data.read_byte()
-            data.read_byte()
+            data.skip(2)
             unit = (data.read_int(BIG_ENDIAN), data.read_short(BIG_ENDIAN))
 
             if self.ABILITY_TEAM_FLAG and data.read_bits(1):
@@ -470,15 +470,15 @@ class GameEventsReader_16561(GameEventsReader_16117):
             z = data.read_int(BIG_ENDIAN)
             z = (z>>1)/8192.0 * pow(-1, z & 0x1)
             unknown = data.read_bits(1)
-            return TargetAbilityEvent(fstamp, pid, event_type, ability, unit, player, team, (x, y, z))
+            return TargetAbilityEvent(fstamp, pid, event_type, ability, flags, unit, player, team, (x, y, z))
 
         elif target_type == 3:
             unit_id = data.read_int(BIG_ENDIAN)
             unknown = data.read_bits(1)
-            return SelfAbilityEvent(fstamp, pid, event_type, ability, unit_id)
+            return SelfAbilityEvent(fstamp, pid, event_type, ability, flags, unit_id)
 
         else:
-            return AbilityEvent(fstamp, pid, event_type, ability)
+            return AbilityEvent(fstamp, pid, event_type, ability, flags)
 
 
 class GameEventsReader_18574(GameEventsReader_16561):

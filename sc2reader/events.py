@@ -39,7 +39,6 @@ class GameEvent(Event):
         self.is_init = (event_class == 0)
         self.is_player_action = (event_class == 1)
         self.is_camera_movement = (event_class == 3)
-        #self.is_unknown = (event_class == 2 or event_class == 4 or event_class == 5)
 
 #############################################3
 # Message Events
@@ -158,10 +157,11 @@ class RequestResourceEvent(PlayerActionEvent):
 class AbilityEvent(PlayerActionEvent):
     name = 'AbilityEvent'
 
-    def __init__(self, frame, pid, event_type, ability):
+    def __init__(self, frame, pid, event_type, ability, flags):
         super(AbilityEvent, self).__init__(frame, pid, event_type)
         self.ability_code = ability
         self.ability_name = 'Uknown'
+        self.flags = flags
 
     def load_context(self, replay):
         super(AbilityEvent, self).load_context(replay)
@@ -192,8 +192,8 @@ class AbilityEvent(PlayerActionEvent):
 class TargetAbilityEvent(AbilityEvent):
     name = 'TargetAbilityEvent'
 
-    def __init__(self, frame, pid, event_type, ability, target, player, team, location):
-        super(TargetAbilityEvent, self).__init__(frame, pid, event_type, ability)
+    def __init__(self, frame, pid, event_type, ability, flags, target, player, team, location):
+        super(TargetAbilityEvent, self).__init__(frame, pid, event_type, ability, flags)
         self.target = None
         self.target_id, self.target_type = target
 
@@ -255,8 +255,8 @@ class TargetAbilityEvent(AbilityEvent):
 class LocationAbilityEvent(AbilityEvent):
     name = 'LocationAbilityEvent'
 
-    def __init__(self, frame, pid, event_type, ability, location):
-        super(LocationAbilityEvent, self).__init__(frame, pid, event_type, ability)
+    def __init__(self, frame, pid, event_type, ability, flags, location):
+        super(LocationAbilityEvent, self).__init__(frame, pid, event_type, ability, flags)
         self.location = location
 
     def __str__(self):
@@ -266,8 +266,8 @@ class LocationAbilityEvent(AbilityEvent):
 class SelfAbilityEvent(AbilityEvent):
     name = 'SelfAbilityEvent'
 
-    def __init__(self, frame, pid, event_type, ability, info):
-        super(SelfAbilityEvent, self).__init__(frame, pid, event_type, ability)
+    def __init__(self, frame, pid, event_type, ability, flags, info):
+        super(SelfAbilityEvent, self).__init__(frame, pid, event_type, ability, flags)
         self.info = info
 
 @loggable
