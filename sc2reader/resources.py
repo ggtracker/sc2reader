@@ -843,7 +843,8 @@ class GameSummary(Resource):
         #
         # Value is as seen on the score screen in game.
         stats_items = self.parts[3][0]
-        if len(self.parts) >= 4: stats_items.append(self.parts[4][0][1])
+        if len(self.parts) > 4:
+            stats_items.append(self.parts[4][0][1])
 
         for item in stats_items:
             stat_name = self.translations['enUS'][item[0][1]]
