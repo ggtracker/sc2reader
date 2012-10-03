@@ -920,6 +920,8 @@ class GameSummary(Resource):
                 self.observers.append(player)
                 continue
 
+            player.play_race = RACE_CODES[struct[2]]
+
             player.is_winner = isinstance(struct[1],dict) and struct[1][0] == 0
             if player.is_winner:
                 self.winners.append(player.pid)
@@ -933,7 +935,7 @@ class GameSummary(Resource):
             # We can just copy these settings right over
             # TODO: Get the hex from the color string?
             player.color = settings.get('Color', None)
-            player.race = settings.get('Race', None)
+            player.pick_race = settings.get('Race', None)
             player.handicap = settings.get('Handicap', None)
 
             # Overview Tab
