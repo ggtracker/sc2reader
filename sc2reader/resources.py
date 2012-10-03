@@ -34,9 +34,10 @@ class Resource(object):
         self.logger = log_utils.get_logger(self.__class__)
         self.filename = filename or getattr(file_object,'name','Unavailable')
 
-        file_object.seek(0)
-        self.filehash = hashlib.sha256(file_object.read()).hexdigest()
-        file_object.seek(0)
+        if hasattr(file_object, 'seek'):
+            file_object.seek(0)
+            self.filehash = hashlib.sha256(file_object.read()).hexdigest()
+            file_object.seek(0)
 
 class Replay(Resource):
 
