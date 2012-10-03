@@ -247,8 +247,11 @@ class PlayerSummary():
     #: The index of the players team in the game
     teamid = int()
 
-    #: The race the player used
-    race = str()
+    #: The race the player played in the game.
+    play_race = str()
+
+    #: The race the player picked in the lobby.
+    pick_race = str()
 
     #: If the player is a computer
     is_ai = False
