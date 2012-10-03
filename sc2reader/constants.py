@@ -309,13 +309,6 @@ BUILD_ORDER_UPGRADES = {
     }
 
 # TODO: Not sure if this is a complete mapping
-#
-# Assuming only 1 Public Test Realm subregion on the following basis:
-#
-#   Q: Is there only one PTR server or there will be one for each region?
-#   A: There's only one PTR server and it's located in North American.
-#      There are no current plans to have multiple PTR servers.
-#   Source: http://us.blizzard.com/support/article.xml?locale=en_US&articleId=36109
 REGIONS = {
     # United States
     'us': {
