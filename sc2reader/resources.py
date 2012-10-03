@@ -19,6 +19,15 @@ from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, Depo
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, GAME_SPEED_CODES, RACE_CODES, PLAYER_TYPE_CODES, TEAM_COLOR_CODES, GAME_FORMAT_CODES, GAME_TYPE_CODES, DIFFICULTY_CODES
 
 
+def real_type(teams):
+    # Special case FFA games and sort outmatched games in ascending order
+    team_sizes = [len(team.players) for team in teams]
+    if len(team_sizes) > 2 and sum(team_sizes) == len(team_sizes):
+        return "FFA"
+    else:
+        return "v".join(str(size) for size in sorted(team_sizes))
+
+
 class Resource(object):
     def __init__(self, file_object, filename=None, **options):
         self.opt = utils.AttributeDict(options)
@@ -399,12 +408,7 @@ class Replay(Resource):
         for team in self.teams:
             team.lineup = ''.join(sorted(player.play_race[0].upper() for player in team))
 
-        # Special case FFA games and sort outmatched games in ascending order
-        team_sizes = [len(team.players) for team in self.teams]
-        if len(team_sizes) > 2 and sum(team_sizes) == len(team_sizes):
-            self.real_type = "FFA"
-        else:
-            self.real_type = "v".join(str(size) for size in sorted(team_sizes))
+        self.real_type = real_type(self.teams)
 
         if 'replay.initData' in self.raw_data:
             # Assign the default region to computer players for consistency
@@ -660,8 +664,9 @@ class GameSummary(Resource):
 
         self.observers = list()
 
-        #: Game completion time
-        self.time = None
+        #: Game start and end times
+        self.start_time = None
+        self.end_time = None
 
         self.winners = list()
         self.player = dict()
@@ -674,6 +679,8 @@ class GameSummary(Resource):
         self.lobby_properties = dict()
         self.lobby_player_properties = dict()
         self.teams = dict()
+        self.game_type = str()
+        self.real_type = str()
 
         # The first 16 bytes appear to be some sort of compression header
         buffer = utils.ReplayBuffer(zlib.decompress(summary_file.read()[16:]))
@@ -684,17 +691,20 @@ class GameSummary(Resource):
         while not buffer.is_empty:
             self.parts.append(buffer.read_data_struct())
 
-        self.time = self.parts[0][8]
-        self.date = datetime.utcfromtimestamp(self.parts[0][8])
+        self.end_time = datetime.utcfromtimestamp(self.parts[0][8])
         self.game_speed = GAME_SPEED_CODES[self.parts[0][0][1]]
         self.game_length = utils.Length(seconds=self.parts[0][7])
         self.real_length = utils.Length(seconds=self.parts[0][7]/GAME_SPEED_FACTOR[self.game_speed])
+        self.start_time = datetime.utcfromtimestamp(self.parts[0][8] - self.real_length.seconds)
 
         self.load_translations()
         self.load_settings()
         self.load_player_stats()
         self.load_player_builds()
         self.load_players()
+
+        self.game_type = self.settings['Teams'].replace(" ","")
+        self.real_type = real_type(self.teams.values())
 
         # The s2gs file also keeps reference to a series of s2mv files
         # Some of these appear to be encoded bytes and others appear to be
@@ -966,7 +976,7 @@ class GameSummary(Resource):
             self.player[player.pid] = player
 
     def __str__(self):
-        return "{} - {} {}".format(time.ctime(self.time),self.game_length,
+        return "{} - {} {}".format(time.ctime(self.start_time),self.game_length,
                                          'v'.join(''.join(self.players[p].race[0] for p in self.teams[tid]) for tid in self.teams))
 
 
