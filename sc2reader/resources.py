@@ -883,7 +883,7 @@ class GameSummary(Resource):
             xy = [(o[2], o[0]) for o in items]
             self.player_stats[index]['Income Graph'] = Graph([], [], xy_list=xy)
 
-        for index, items in enumerate(self.parts[4][0][1][1]):
+        for index, items in enumerate(self.parts[4][0][2][1]):
             xy = [(o[2], o[0]) for o in items]
             self.player_stats[index]['Army Graph'] = Graph([], [], xy_list=xy)
 
