@@ -14,7 +14,7 @@ PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','u
 ColorData = namedtuple('ColorData',['a','r','g','b'])
 BnetData = namedtuple('BnetData',['unknown1','unknown2','subregion','uid'])
 
-class DepotHash(object):
+class DepotFile(object):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.{2}'
 
     def __init__(self, bytes):
@@ -22,8 +22,15 @@ class DepotHash(object):
         self.hash = bytes[8:].encode('hex')
         self.type = bytes[0:4]
 
-    def __str__(self):
+    @property
+    def url(self):
         return self.url_template.format(self.server, self.hash, self.type)
+
+    def __hash__(self):
+        return hash(self.url)
+
+    def __str__(self):
+        return self.url
 
 
 class Team(object):

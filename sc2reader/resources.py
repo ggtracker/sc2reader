@@ -15,7 +15,7 @@ from mpyq import MPQArchive
 from sc2reader import utils
 from sc2reader import log_utils
 from sc2reader import readers, data
-from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotHash
+from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotFile
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, GAME_SPEED_CODES, RACE_CODES, PLAYER_TYPE_CODES, TEAM_COLOR_CODES, GAME_FORMAT_CODES, GAME_TYPE_CODES, DIFFICULTY_CODES
 
 
@@ -29,7 +29,8 @@ def real_type(teams):
 
 
 class Resource(object):
-    def __init__(self, file_object, filename=None, **options):
+    def __init__(self, file_object, filename=None, factory=None, **options):
+        self.factory = factory
         self.opt = utils.AttributeDict(options)
         self.logger = log_utils.get_logger(self.__class__)
         self.filename = filename or getattr(file_object,'name','Unavailable')
@@ -619,6 +620,17 @@ class Map(Resource):
         else:
             return None
 
+class Localization(Resource):
+
+    def __init__(self, s2ml_file, **options):
+        super(Localization, self).__init__(s2ml_file, **options)
+        self.mapping = dict()
+        xml = ElementTree.parse(s2ml_file)
+        for entry in xml.findall('e'):
+            self.mapping[int(entry.attrib['id'])] = entry.text
+
+    def __getitem__(self, key):
+        return self.mapping[key]
 
 class GameSummary(Resource):
 
@@ -710,9 +722,7 @@ class GameSummary(Resource):
         # The s2gs file also keeps reference to a series of s2mv files
         # Some of these appear to be encoded bytes and others appear to be
         # the preview images that authors may bundle with their maps.
-        self.s2mv_urls = [str(DepotHash(file_hash)) for file_hash in self.parts[0][6][7]]
-
-
+        self.s2mv_urls = [str(DepotFile(file_hash)) for file_hash in self.parts[0][6][7]]
 
     def load_translations(self):
         # This section of the file seems to map numerical ids to their
@@ -758,7 +768,7 @@ class GameSummary(Resource):
             files = list()
             for file_hash in localization[1]:
                 if file_hash[:4] != '\x00\x00\x00\x00':
-                    files.append(DepotHash(file_hash))
+                    files.append(DepotFile(file_hash))
             self.localization_urls[language] = files
 
         # Grab the gateway from the one of the files
@@ -772,15 +782,12 @@ class GameSummary(Resource):
         # For now we'll only do this for english localizations.
         self.lang_sheets = dict()
         self.translations =  dict()
-        for lang,urls in self.localization_urls.items():
+        for lang, files in self.localization_urls.items():
             if lang != 'enUS': continue
 
             sheets = dict()
-            for sheet, url in enumerate(urls):
-                print "Opening ", str(url)
-                xml = ElementTree.parse(urllib2.urlopen(str(url)))
-                translation = dict((int(e.attrib['id']),e.text) for e in xml.findall('e'))
-                sheets[sheet] = translation
+            for sheet, depot_file in enumerate(files):
+                sheets[sheet] = self.factory.load_localization(depot_file)
 
             translation = dict()
             for uid, (sheet, item) in self.id_map.items():
@@ -917,8 +924,6 @@ class GameSummary(Resource):
             player = PlayerSummary(struct[0][0])
             stats = self.player_stats[index]
             settings = self.player_settings[index]
-            print settings
-            print stats
             player.is_ai = not isinstance(struct[0][1], dict)
             if not player.is_ai:
                 player.region = self.region

@@ -14,7 +14,8 @@ from sc2reader import data
 from sc2reader import exceptions
 from sc2reader import utils
 from sc2reader import log_utils
-from sc2reader.resources import Resource, Replay, Map, GameSummary, MapInfo, MapHeader
+from sc2reader.objects import DepotFile
+from sc2reader.resources import Resource, Replay, Map, GameSummary, MapInfo, MapHeader, Localization
 
 class SC2Factory(object):
     """The SC2Factory class acts as a generic loader interface for all
@@ -68,6 +69,14 @@ class SC2Factory(object):
     def load_replays(self, sources, options=None, **new_options):
         """Loads a collection of sc2replay files, returns a generator."""
         return self.load_all(Replay, sources, options, extension='SC2Replay', **new_options)
+
+    def load_localization(self, source, options=None, **new_options):
+        """Loads a single s2ml file. Accepts file path, url, or file object."""
+        return self.load(Localization, source, options, **new_options)
+
+    def load_localizations(self, sources, options=None, **new_options):
+        """Loads a collection of s2ml files, returns a generator."""
+        return self.load_all(Localization, sources, options, extension='s2ml', **new_options)
 
     def load_map(self, source, options=None, **new_options):
         """Loads a single s2ma file. Accepts file path, url, or file object."""
@@ -134,7 +143,7 @@ class SC2Factory(object):
 
     # Internal Functions
     def _load(self, cls, resource, filename, options):
-        obj = cls(resource, filename=filename, **options)
+        obj = cls(resource, filename=filename, factory=self, **options)
         for plugin in options.get('plugins',self._get_plugins(cls)):
             # TODO: What if you want to do a transform?
             plugin(obj)
@@ -169,6 +178,9 @@ class SC2Factory(object):
     def _load_resource(self, resource, options=None, **new_options):
         """http links, filesystem locations, and file-like objects"""
         options = options or self._get_options(Resource, **new_options)
+
+        if isinstance(resource, DepotFile):
+            resource = resource.url
 
         if isinstance(resource, basestring):
             if re.match(r'https?://',resource):
