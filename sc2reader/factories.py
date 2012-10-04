@@ -17,6 +17,7 @@ from sc2reader import log_utils
 from sc2reader.objects import DepotFile
 from sc2reader.resources import Resource, Replay, Map, GameSummary, MapInfo, MapHeader, Localization
 
+@log_utils.loggable
 class SC2Factory(object):
     """The SC2Factory class acts as a generic loader interface for all
     available to sc2reader resources. At current time this includes
