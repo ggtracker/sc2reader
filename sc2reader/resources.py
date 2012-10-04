@@ -901,7 +901,11 @@ class GameSummary(Resource):
         # up to the first 64 successful actions in the game.
         BuildEntry = namedtuple('BuildEntry',['supply','total_supply','time','order','build_index'])
         for build_item in build_items:
-            order_name = self.translations['enUS'][build_item[0][1]]
+            if build_item[0][1] in self.translations['enUS']:
+                order_name = self.translations['enUS'][build_item[0][1]]
+            else:
+                order_name = "Unknown"
+                print "Unknown item in build order, key = {}".format(build_item[0][1])
             for pindex, commands in enumerate(build_item[1]):
                 for command in commands:
                     self.build_orders[pindex].append(BuildEntry(
