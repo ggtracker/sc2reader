@@ -862,7 +862,7 @@ class GameSummary(Resource):
         # Value is as seen on the score screen in game.
         stats_items = self.parts[3][0]
         if len(self.parts) > 4:
-            stats_items.append(self.parts[4][0][1])
+            stats_items.append(self.parts[4][0][0])
 
         for item in stats_items:
             stat_name = self.translations['enUS'][item[0][1]]
@@ -970,6 +970,7 @@ class GameSummary(Resource):
             player.units_killed = stats.get('Killed Unit Count', None)
             player.structures_built = stats.get('Structures Built', None)
             player.units_trained = stats.get('Units Trained', None)
+            player.structures_razed = stats.get('Structures Razed Count', None)
 
             # Graphs Tab
             player.army_graph = stats.get('Army Graph')
