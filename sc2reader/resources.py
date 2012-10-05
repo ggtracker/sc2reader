@@ -903,18 +903,17 @@ class GameSummary(Resource):
         for build_item in build_items:
             if build_item[0][1] in self.translations['enUS']:
                 order_name = self.translations['enUS'][build_item[0][1]]
+                for pindex, commands in enumerate(build_item[1]):
+                    for command in commands:
+                        self.build_orders[pindex].append(BuildEntry(
+                                supply=command[0],
+                                total_supply=command[1]&0xff,
+                                time=(command[2] >> 8) / 16,
+                                order=order_name,
+                                build_index=command[1] >> 16
+                            ))
             else:
-                order_name = "Unknown"
-                print "Unknown item in build order, key = {}".format(build_item[0][1])
-            for pindex, commands in enumerate(build_item[1]):
-                for command in commands:
-                    self.build_orders[pindex].append(BuildEntry(
-                            supply=command[0],
-                            total_supply=command[1]&0xff,
-                            time=(command[2] >> 8) / 16,
-                            order=order_name,
-                            build_index=command[1] >> 16
-                        ))
+                self.logger.warn("Unknown item in build order, key = {}".format(build_item[0][1]))
 
         # Once we've compiled all the build commands we need to make
         # sure they are properly sorted for presentation.
