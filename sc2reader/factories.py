@@ -176,6 +176,15 @@ class SC2Factory(object):
         for resource in resources:
             yield self._load_resource(resource, options=options)
 
+    def load_remote_resource_contents(self, resource, **options):
+        self.logger.info("Fetching remote resource: "+resource)
+        return urllib2.urlopen(resource).read()
+
+    def load_local_resource_contents(self, location, **options):
+        # Extract the contents so we can close the file
+        with open(location, 'rb') as resource_file:
+            return resource_file.read()
+
     def _load_resource(self, resource, options=None, **new_options):
         """http links, filesystem locations, and file-like objects"""
         options = options or self._get_options(Resource, **new_options)
@@ -185,16 +194,12 @@ class SC2Factory(object):
 
         if isinstance(resource, basestring):
             if re.match(r'https?://',resource):
-                self.logger.info("Fetching remote resource: "+resource)
-                contents = urllib2.urlopen(resource).read()
+                contents = self.load_remote_resource_contents(resource, **options)
 
             else:
                 directory = options.get('directory','')
                 location = os.path.join(directory, resource)
-
-                # Extract the contents so we can close the file
-                with open(location, 'rb') as resource_file:
-                    contents = resource_file.read()
+                contents = self.load_local_resource_contents(location, **options)
 
             # StringIO implements a fuller file-like object
             resource_name = resource
