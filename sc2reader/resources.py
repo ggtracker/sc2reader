@@ -719,6 +719,11 @@ class GameSummary(Resource):
         self.game_type = self.settings['Teams'].replace(" ","")
         self.real_type = real_type(self.teams.values())
 
+        map_strings = self.lang_sheets['enUS'][-1]
+        self.map_name = map_strings[1]
+        self.map_description = map_strings[2]
+        self.map_tileset = map_strings[3]
+
         # The s2gs file also keeps reference to a series of s2mv files
         # Some of these appear to be encoded bytes and others appear to be
         # the preview images that authors may bundle with their maps.
@@ -785,9 +790,9 @@ class GameSummary(Resource):
         for lang, files in self.localization_urls.items():
             if lang != 'enUS': continue
 
-            sheets = dict()
-            for sheet, depot_file in enumerate(files):
-                sheets[sheet] = self.factory.load_localization(depot_file)
+            sheets = list()
+            for depot_file in files:
+                sheets.append(self.factory.load_localization(depot_file))
 
             translation = dict()
             for uid, (sheet, item) in self.id_map.items():
