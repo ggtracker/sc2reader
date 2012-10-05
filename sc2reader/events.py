@@ -232,13 +232,15 @@ class TargetAbilityEvent(AbilityEvent):
 
         else:
             if self.target_type not in replay.datapack.units:
-                self.target = None
-                print [hex(key) for key in replay.datapack.units]
-                print "{0}\t{1}\tMissing unit {2} from {3}".format(self.frame, self.player.name, hex(self.target_type), replay.datapack.id)
+                self.logger.error("{0}\t{1}\tMissing unit {2} from {3}".format(self.frame, self.player.name, hex(self.target_type), replay.datapack.id))
+                unit = Unit(self.target_id)
+
             else:
                 unit_class = replay.datapack.units[self.target_type]
-                self.target = unit_class(self.target_id)
-                replay.objects[uid] = self.target
+                unit = unit_class(self.target_id)
+
+            self.target = unit
+            replay.objects[uid] = unit
 
     def __str__(self):
         if self.target:
@@ -307,19 +309,19 @@ class SelectionEvent(PlayerActionEvent):
         objects = list()
         data = replay.datapack
         for (obj_id, obj_type) in self.objects:
-            if obj_type not in data.units:
-                msg = "Unit Type {0} not found in {1}"
-                self.logger.error(msg.format(hex(obj_type), data.__class__.__name__))
-                print msg.format(hex(obj_type), data.__class__.__name__)
-                objects.append(Unit(obj_id))
-
+            if (obj_id, obj_type) in replay.objects:
+                obj = replay.objects[(obj_id,obj_type)]
             else:
-                if (obj_id, obj_type) not in replay.objects:
+                if obj_type in data.units:
                     obj = data.units[obj_type](obj_id)
-                    replay.objects[(obj_id,obj_type)] = obj
                 else:
-                    obj = replay.objects[(obj_id,obj_type)]
+                    msg = "Unit Type {0} not found in {1}"
+                    self.logger.error(msg.format(hex(obj_type), data.__class__.__name__))
+                    obj = Unit(obj_id)
 
-                objects.append(obj)
+                replay.objects[(obj_id,obj_type)] = obj
+
+            objects.append(obj)
+
 
         self.objects = objects

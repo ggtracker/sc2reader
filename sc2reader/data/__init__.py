@@ -244,6 +244,8 @@ train_commands = {
 }
 
 class Unit(object):
+    name = 'Unknown Unit'
+
     def __init__(self, unit_id):
         self.id = unit_id
 
