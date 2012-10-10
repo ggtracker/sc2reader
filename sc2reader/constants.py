@@ -322,10 +322,20 @@ REGIONS = {
         2: 'ru',
     },
 
-    # Korea
+    # Korea - appear to both map to same place
     'kr': {
         1: 'kr',
         2: 'tw',
+    },
+    # Taiwan - appear to both map to same place
+    'tw': {
+        1: 'kr',
+        2: 'tw',
+    },
+
+    # China - different url scheme (www.battlenet.com.cn)?
+    'cn': {
+        1: 'cn',
     },
 
     # South East Asia
