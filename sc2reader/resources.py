@@ -792,7 +792,7 @@ class GameSummary(Resource):
 
             sheets = list()
             for depot_file in files:
-                sheets.append(self.factory.load_localization(depot_file))
+                sheets.append(self.factory.load_localization(depot_file, **self.opt))
 
             translation = dict()
             for uid, (sheet, item) in self.id_map.items():
