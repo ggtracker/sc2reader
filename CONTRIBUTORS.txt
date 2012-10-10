@@ -2,10 +2,14 @@ Author and Maintainer:
     Graylin Kim - graylinkim @ github
 
 Contributors:
-    Alexander Hanhikoski - alexhanh @ github
-    Bas Peschier (fizzgig) - bpeschier @ github
-    Jason Dana - sheutka @ github
-    Cameron Zemek (grom) - grom358 @ github
-    Fabien Reboia (srounet) - srounet @ github
+    David Joerg - @dsjoerg on github
+    Alexander Hanhikoski - @alexhanh on github
+    Bas Peschier (fizzgig) - @bpeschier on github
+    Jason Dana - @sheutka on github
+    Cameron Zemek (grom) - @grom358 on github
+    Fabien Reboia (srounet) - @srounet on github
     Daniele Zannotti (Durrza)
     Mike Anderson
+
+Special thanks to ggtracker, inc (ggtracker.com) for sponsoring
+sc2reader's continued development.
