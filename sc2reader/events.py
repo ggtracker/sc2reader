@@ -176,9 +176,7 @@ class AbilityEvent(PlayerActionEvent):
                 for player in replay.players:
                     self.logger.error("\t"+str(player))
 
-            #print [hex(key) for key in sorted(replay.datapack.abilities.keys())]
             self.logger.error("{0}\t{1}\tMissing ability {2} from {3}".format(self.frame, self.player.name, hex(self.ability_code), replay.datapack.__class__.__name__))
-            print "{0}\t{1}\tMissing ability {2} from {3}".format(self.frame, self.player.name, hex(self.ability_code), replay.datapack.id)
 
         else:
             self.ability = replay.datapack.abilities[self.ability_code]
@@ -297,7 +295,7 @@ class SelectionEvent(PlayerActionEvent):
     def __init__(self, frame, pid, event_type, bank, objects, deselect):
         super(SelectionEvent, self).__init__(frame, pid, event_type)
         self.bank = bank
-        self.objects = objects
+        self.raw_objects = objects
         self.deselect = deselect
 
     def load_context(self, replay):
@@ -308,7 +306,7 @@ class SelectionEvent(PlayerActionEvent):
 
         objects = list()
         data = replay.datapack
-        for (obj_id, obj_type) in self.objects:
+        for (obj_id, obj_type) in self.raw_objects:
             if (obj_id, obj_type) in replay.objects:
                 obj = replay.objects[(obj_id,obj_type)]
             else:
