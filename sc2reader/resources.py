@@ -185,6 +185,8 @@ class Replay(Resource):
     #: of the game game.
     people_hash = str()
 
+    #: SC2 Expansion. One of 'WoL', 'HotS'
+    expasion = str()
 
     def __init__(self, replay_file, filename=None, load_level=4, **options):
         super(Replay, self).__init__(replay_file, filename, **options)
@@ -231,6 +233,7 @@ class Replay(Resource):
         if load_level >= 0:
             # Set ('versions', 'frames', 'build', 'release_string', 'length')
             self.__dict__.update(utils.read_header(replay_file))
+            self.expansion = ['','WoL','HotS'][self.versions[1]]
             self.archive = utils.open_archive(replay_file)
 
         # Load basic details if requested
@@ -516,7 +519,8 @@ class Replay(Resource):
     def register_default_readers(self):
         """Registers factory default readers."""
         self.register_reader('replay.details', readers.DetailsReader_Base(), lambda r: r.build < 22612)
-        self.register_reader('replay.details', readers.DetailsReader_22612(), lambda r: r.build >= 22612)
+        self.register_reader('replay.details', readers.DetailsReader_22612(), lambda r: r.build >= 22612 and r.expansion=='WoL')
+        self.register_reader('replay.details', readers.DetailsReader_Beta(), lambda r: r.expansion=='HotS')
         self.register_reader('replay.initData', readers.InitDataReader_Base())
         self.register_reader('replay.message.events', readers.MessageEventsReader_Base())
         self.register_reader('replay.attributes.events', readers.AttributesEventsReader_Base(), lambda r: r.build <  17326)
@@ -525,7 +529,8 @@ class Replay(Resource):
         self.register_reader('replay.game.events', readers.GameEventsReader_16561(), lambda r: 16561 <= r.build < 18574)
         self.register_reader('replay.game.events', readers.GameEventsReader_18574(), lambda r: 18574 <= r.build < 19595)
         self.register_reader('replay.game.events', readers.GameEventsReader_19595(), lambda r: 19595 <= r.build < 22612)
-        self.register_reader('replay.game.events', readers.GameEventsReader_22612(), lambda r: 22612 <= r.build)
+        self.register_reader('replay.game.events', readers.GameEventsReader_22612(), lambda r: 22612 <= r.build and r.expansion=='WoL')
+        self.register_reader('replay.game.events', readers.GameEventsReader_Beta(), lambda r: r.expansion=='HotS')
 
     def register_default_datapacks(self):
         """Registers factory default datapacks."""

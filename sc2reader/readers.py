@@ -161,6 +161,9 @@ class DetailsReader_Base(Reader):
 class DetailsReader_22612(DetailsReader_Base):
     Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10', 'unknown11'])
 
+class DetailsReader_Beta(DetailsReader_Base):
+    Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10', 'unknown11', 'unknown12'])
+
 class MessageEventsReader_Base(Reader):
     def __call__(self, data, replay):
         # The replay.message.events file is a single long list containing three
@@ -484,3 +487,37 @@ class GameEventsReader_22612(GameEventsReader_19595):
     PLAYER_JOIN_FLAGS = 5 # or 6
     PLAYER_ABILITY_FLAGS = 20
     UNIT_INDEX_BITS = 9 # Now can select up to 512 units
+
+class GameEventsReader_Beta(GameEventsReader_22612):
+    def camera_event(self, data, fstamp, pid, event_type):
+        x = y= distance = pitch = yaw = height = 0
+        if data.read_bits(1):
+            block = data.read_int(BIG_ENDIAN)
+            x = (block >> 16)/256.0
+            y = (block & 0xFFFF)/256.0
+        if data.read_bits(1):
+            distance = data.read_short(BIG_ENDIAN)/256.0
+        if data.read_bits(1):
+            #Note: this angle is relative to the horizontal plane, but the editor shows the angle relative to the vertical plane. Subtract from 90 degrees to convert.
+            pitch = data.read_short(BIG_ENDIAN) #?
+            pitch = 45 * (((((pitch * 0x10 - 0x2000) << 17) - 1) >> 17) + 1) / 4096.0
+        if data.read_bits(1):
+            #Note: this angle is the vector from the camera head to the camera target projected on to the x-y plane in positive coordinates. So, default is 90 degrees, while insert and delete produce 45 and 135 degrees by default.
+            yaw = data.read_short(BIG_ENDIAN) #?
+            yaw = 45 * (((((yaw * 0x10 - 0x2000) << 17) - 1) >> 17) + 1) / 4096.0
+        return CameraEvent(fstamp, pid, event_type, x, y, distance, pitch, yaw, height)
+
+    def player_selection_event(self, data, fstamp, pid, event_type):
+        bank = data.read_bits(4)
+        subgroup = data.read_bits(self.UNIT_INDEX_BITS) #??
+        overlay = self._parse_selection_update(data)
+
+        type_count = data.read_bits(self.UNIT_INDEX_BITS)
+        unit_types = [(data.read_short(BIG_ENDIAN) << 16 | data.read_short(BIG_ENDIAN),data.read_bits(self.UNIT_INDEX_BITS)) for index in range(type_count)]
+
+        unit_count = data.read_bits(self.UNIT_INDEX_BITS)
+        unit_ids = [data.read_int(BIG_ENDIAN) for index in range(unit_count)]
+
+        unit_types = chain(*[[utype]*count for (utype, count) in unit_types])
+        units = list(zip(unit_ids, unit_types))
+        return SelectionEvent(fstamp, pid, event_type, bank, units, overlay)
