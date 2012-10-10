@@ -260,8 +260,9 @@ class Replay(Resource):
         if 'replay.initData' in self.raw_data:
             initData = self.raw_data['replay.initData']
             if initData.map_data:
-                self.gateway = initData.map_data[0].gateway
-                self.map_hash = initData.map_data[-1].map_hash.encode('hex')
+                self.gateway = initData.map_data[0].server.lower()
+                self.map_hash = initData.map_data[-1].hash
+                self.map_file = initData.map_data[-1]
 
                 #Expand this special case mapping
                 if self.gateway == 'sg':
@@ -313,9 +314,7 @@ class Replay(Resource):
             self.date = self.end_time #backwards compatibility
 
     def load_map(self):
-        map_url = Map.get_url(self.gateway, self.map_hash)
-        map_file = StringIO(urllib2.urlopen(map_url).read())
-        self.map = Map(map_file, filename=self.map, gateway=self.gateway, map_hash=self.map_hash)
+        self.map = self.factory.load_map(self.map_file, **self.opt)
 
     def load_players(self):
         #If we don't at least have details and attributes_events we can go no further

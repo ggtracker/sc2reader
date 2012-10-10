@@ -49,10 +49,8 @@ class InitDataReader_Base(Reader):
         #
         # TODO: Figure out how we could be missing a maps section.
         map_data = list()
-        while data.read(4) == 's2ma':
-            gateway = data.read(4).strip('\00 ').lower()
-            map_hash = data.read(32)
-            map_data.append(MapData(gateway,map_hash))
+        while data.peek(4) == 's2ma':
+            map_data.append(DepotFile(data.read(40)))
 
         # Return the extracted information inside an AttributeDict.
         return AttributeDict(
