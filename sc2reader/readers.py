@@ -171,17 +171,13 @@ class MessageEventsReader_Base(Reader):
         packets = list()
 
         frame = 0
-        #print data.peek(data.length).encode('hex')
         while not data.is_empty:
             # All the element types share the same time, pid, flags header.
-            #print data.peek(75)
-            #print data.peek(75).encode('hex')
             frame += data.read_timestamp()
             pid = data.read_bits(5)
             t = data.read_bits(3)
             flags = data.read_byte()
 
-            #print "P"+str(pid), hex(flags)
             if flags == 0x83:
                 # We need some tests for this
                 x = data.read_int(LITTLE_ENDIAN)
@@ -196,7 +192,6 @@ class MessageEventsReader_Base(Reader):
                 target = flags & 0x07
                 extension = (flags & 0x18) << 3
                 length = data.read_byte()
-                #print "Length {}, Extension {}".format(length,extension)
                 text = data.read_bytes(length + extension)
                 messages.append(ChatEvent(frame, pid, flags, target, text))
 
