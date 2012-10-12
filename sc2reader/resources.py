@@ -251,6 +251,7 @@ class Replay(Resource):
         if load_level >= 2:
             for data_file in {'replay.message.events'}:
                 self._read_data(data_file, self._get_reader(data_file))
+            self.load_messages()
             self.load_players()
 
         # Load events if requested
@@ -455,17 +456,20 @@ class Replay(Resource):
         hash_input = self.gateway+":"+','.join(player_names)
         self.people_hash = hashlib.sha256(hash_input).hexdigest()
 
-    def load_events(self):
-        # Copy the events over
-        # TODO: the events need to be fixed both on the reader and processor side
-        if 'replay.game.events' in self.raw_data:
-            self.events += self.raw_data['replay.game.events']
-
+    def load_messages(self):
         if 'replay.message.events' in self.raw_data:
             self.messages = self.raw_data['replay.message.events'].messages
             self.pings = self.raw_data['replay.message.events'].packets
             self.packets = self.raw_data['replay.message.events'].pings
             self.events += self.messages+self.pings+self.packets
+
+        self.events = sorted(self.events, key=lambda e: e.frame)
+
+    def load_events(self):
+        # Copy the events over
+        # TODO: the events need to be fixed both on the reader and processor side
+        if 'replay.game.events' in self.raw_data:
+            self.events += self.raw_data['replay.game.events']
 
         self.events = sorted(self.events, key=lambda e: e.frame)
 
