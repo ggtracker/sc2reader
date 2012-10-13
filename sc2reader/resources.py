@@ -965,7 +965,7 @@ class GameSummary(Resource):
                 self.observers.append(player)
                 continue
 
-            player.play_race = RACE_CODES[struct[2]]
+            player.play_race = RACE_CODES.get(struct[2], None)
 
             player.is_winner = isinstance(struct[1],dict) and struct[1][0] == 0
             if player.is_winner:
