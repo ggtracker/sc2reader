@@ -719,6 +719,7 @@ class GameSummary(Resource):
         self.start_time = datetime.utcfromtimestamp(self.parts[0][8] - self.real_length.seconds)
 
         self.load_translations()
+        self.load_map_info()
         self.load_settings()
         self.load_player_stats()
         self.load_player_builds()
@@ -726,11 +727,6 @@ class GameSummary(Resource):
 
         self.game_type = self.settings['Teams'].replace(" ","")
         self.real_type = real_type(self.teams.values())
-
-        map_strings = self.lang_sheets['enUS'][-1]
-        self.map_name = map_strings[1]
-        self.map_description = map_strings[2]
-        self.map_tileset = map_strings[3]
 
         # The s2gs file also keeps reference to a series of s2mv files
         # Some of these appear to be encoded bytes and others appear to be
@@ -808,6 +804,12 @@ class GameSummary(Resource):
 
             self.lang_sheets[lang] = sheets
             self.translations[lang] = translation
+
+    def load_map_info(self):
+        map_strings = self.lang_sheets['enUS'][-1]
+        self.map_name = map_strings[1]
+        self.map_description = map_strings[2]
+        self.map_tileset = map_strings[3]
 
     def load_settings(self):
         Property = namedtuple('Property',['id','values','requirements','defaults','is_lobby'])
