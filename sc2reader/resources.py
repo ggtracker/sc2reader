@@ -842,8 +842,18 @@ class GameSummary(Resource):
                     break
 
                 setting = settings[req[0][1][1]]
-                value = setting if requirement.is_lobby else setting[player]
-                if requirement.values[value][0] not in req[1]:
+
+                # Lobby properties can require on player properties.
+                # How does this work? I assume that one player satisfying the
+                # property requirments is sufficient
+                if requirement.is_lobby:
+                    values = [setting]
+                else:
+                    values = [setting[player]] if player != None else setting
+
+                # Because of the above complication we resort to a set intersection of
+                # the applicable values and the set of required values.
+                if not set(requirement.values[val][0] for val in values) & set(req[1]):
                     break
 
             else:
