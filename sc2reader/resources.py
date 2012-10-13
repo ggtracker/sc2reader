@@ -238,7 +238,7 @@ class Replay(Resource):
 
         # Load basic details if requested
         if load_level >= 1:
-            for data_file in {'replay.initData','replay.details','replay.attributes.events'}:
+            for data_file in ['replay.initData','replay.details','replay.attributes.events']:
                 self._read_data(data_file, self._get_reader(data_file))
             self.load_details()
             self.datapack = self._get_datapack()
@@ -249,14 +249,14 @@ class Replay(Resource):
 
         # Load players if requested
         if load_level >= 2:
-            for data_file in {'replay.message.events'}:
+            for data_file in ['replay.message.events']:
                 self._read_data(data_file, self._get_reader(data_file))
             self.load_messages()
             self.load_players()
 
         # Load events if requested
         if load_level >= 3:
-            for data_file in {'replay.game.events'}:
+            for data_file in ['replay.game.events']:
                 self._read_data(data_file, self._get_reader(data_file))
             self.load_events()
 
