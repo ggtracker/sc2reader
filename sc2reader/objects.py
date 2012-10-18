@@ -272,6 +272,14 @@ class PlayerSummary():
     #: Subregion id of player
     subregion = int()
 
+    #: The player's gateway, such as us, eu
+    gateway = str()
+
+    #: The player's region, such as na, la, eu or ru.  This is
+    # provided for convenience, but as of 20121018 is strictly a
+    # function of gateway and subregion.
+    region = str()
+
     #: unknown1
     unknown1 = int()
 

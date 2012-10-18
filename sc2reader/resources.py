@@ -781,7 +781,7 @@ class GameSummary(Resource):
             self.localization_urls[language] = files
 
         # Grab the gateway from the one of the files
-        self.region = self.localization_urls.values()[0][0].server
+        self.gateway = self.localization_urls.values()[0][0].server
 
         # Each of the localization urls points to an XML file with a set of
         # localization strings and their unique ids. After reading these mappings
@@ -954,8 +954,9 @@ class GameSummary(Resource):
             settings = self.player_settings[index]
             player.is_ai = not isinstance(struct[0][1], dict)
             if not player.is_ai:
-                player.region = self.region
+                player.gateway = self.gateway
                 player.subregion = struct[0][1][0][2]
+                player.region = REGIONS[player.gateway][player.subregion]
                 player.bnetid = struct[0][1][0][3]
                 player.unknown1 = struct[0][1][0]
                 player.unknown2 = struct[0][1][1]
