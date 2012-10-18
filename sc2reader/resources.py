@@ -393,7 +393,7 @@ class Replay(Resource):
             if 'replay.initData' in self.raw_data and self.gateway:
                 player.gateway = self.gateway
                 if player.is_human and player.subregion:
-                    player.region = REGIONS[self.gateway][player.subregion]
+                    player.region = REGIONS[self.gateway].get(player.subregion, 'Unknown')
                     default_region = player.region
 
             # Conversion instructions to the new color object:
@@ -956,7 +956,7 @@ class GameSummary(Resource):
             if not player.is_ai:
                 player.gateway = self.gateway
                 player.subregion = struct[0][1][0][2]
-                player.region = REGIONS[player.gateway][player.subregion]
+                player.region = REGIONS[player.gateway].get(player.subregion, 'Unknown')
                 player.bnetid = struct[0][1][0][3]
                 player.unknown1 = struct[0][1][0]
                 player.unknown2 = struct[0][1][1]
