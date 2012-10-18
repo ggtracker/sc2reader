@@ -781,7 +781,7 @@ class GameSummary(Resource):
             self.localization_urls[language] = files
 
         # Grab the gateway from the one of the files
-        self.gateway = self.localization_urls.values()[0][0].server
+        self.gateway = self.localization_urls.values()[0][0].server.lower()
 
         # Each of the localization urls points to an XML file with a set of
         # localization strings and their unique ids. After reading these mappings
