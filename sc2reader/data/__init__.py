@@ -19,7 +19,7 @@ with open(os.path.join(BASE_DIR, 'unit_lookup.csv'), 'r') as data_file:
         UNIT_LOOKUP[str_id] = title
 
 
-# TODO: Update these dicts for HotS
+# TODO: Costs need to be version stats. Not here
 unit_lookup = {'Protoss':{
     'probe':dict(cost=[50,0,1],is_worker=True),
     'zealot':dict(cost=[100,0,2],is_army=True),
@@ -34,9 +34,11 @@ unit_lookup = {'Protoss':{
     'warpprism':dict(cost=[200,0,2],is_army=True),
     'phoenix':dict(cost=[150,100,2],is_army=True),
     'voidray':dict(cost=[250,150,2],is_army=True),
+    'tempest':dict(cost=[300,200,4],is_army=True),
+    'oracle':dict(cost=[150,150,3],is_army=True),
     'carrier':dict(cost=[350,250,6],is_army=True),
     'mothership':dict(cost=[400,400,6],is_army=True),
-    'mothershipcore':dict(cost=[50,50,0],is_army=True),
+    'mothershipcore':dict(cost=[100,100,2],is_army=True),
     #'interceptor':[25,0,0], # This is technically a army unit
 
     'photoncannon':dict(cost=[150,0,0],is_building=True),
@@ -64,6 +66,8 @@ unit_lookup = {'Protoss':{
     'ghost':dict(cost=[200,100,2],is_army=True),
     'hellion':dict(cost=[100,0,2],is_army=True),
     'battlehellion':dict(cost=[100,0,2],is_army=True),
+    'warhound':dict(cost=[150,75,2],is_army=True),
+    'widowmine':dict(cost=[75,25,2],is_army=True),
     'siegetank':dict(cost=[150,125,2],is_army=True),
     'thor':dict(cost=[300,200,6],is_army=True),
     'viking':dict(cost=[150,75,2],is_army=True),
@@ -87,7 +91,7 @@ unit_lookup = {'Protoss':{
     'starport':dict(cost=[150,100,0],is_building=True),
     'fusioncore':dict(cost=[150,150,0],is_building=True),
     'armory':dict(cost=[150,100,0],is_building=True),
-    # TODO: tech labs and reactors and flyings!
+    # TODO: tech labs and reactors and flyings?
 
 },'Zerg':{
     # Cumulative costs, including drone costs
@@ -100,11 +104,14 @@ unit_lookup = {'Protoss':{
     'overseer':dict(cost=[150,50,0],is_army=True),
     'hydralisk':dict(cost=[100,50,2],is_army=True),
     'mutalisk':dict(cost=[100,100,2],is_army=True),
+    'viper':dict(cost=[100,200,3],is_army=True),
     'corruptor':dict(cost=[150,100,2],is_army=True),
     'broodlord':dict(cost=[300,250,4],is_army=True),
     'broodling':dict(cost=[0,0,0],is_army=True),
     'infestor':dict(cost=[100,150,2],is_army=True),
     'infestedterran':dict(cost=[0,0,0],is_army=True),
+    'swarmhost':dict(cost=[200,100,3],is_army=True),
+    'locust':dict(cost=[0,0,0],is_army=True),
     'ultralisk':dict(cost=[300,200,6],is_army=True),
     'spinecrawler':dict(cost=[150,0,0],is_building=True),
     'sporecrawler':dict(cost=[125,0,0],is_building=True),
@@ -130,7 +137,7 @@ unit_lookup = {'Protoss':{
 
 # There are known to be duplicate ability names now. Hrm
 train_commands = {
-    'RavenBuildPointDefenseDrone': ('PointDefenseDrone',0),
+    'BuildPointDefenseDrone': ('PointDefenseDrone',0),
     'CalldownMULE': ('MULE',0),
     'BuildCommandCenter': ('CommandCenter',100),
     'BuildSupplyDepot': ('SupplyDepot',30),
@@ -145,7 +152,7 @@ train_commands = {
     'BuildStarport': ('Starport',50),
     'BuildArmory': ('Armory',65),
     'BuildFusionCore': ('FusionCore',65),
-    'RavenBuildAutoTurret': ('AutoTurret',0),
+    'BuildAutoTurret': ('AutoTurret',0),
     'TrainSCV': ('SCV',17),
     'TrainMarine': ('Marine',25),
     'TrainReaper': ('Reaper',45),
@@ -153,16 +160,20 @@ train_commands = {
     'TrainMarauder': ('Marauder',30),
     'BuildSiegeTank': ('SiegeTank',45),
     'BuildThor': ('Thor',60),
+    'BuildwarHound': ('WarHound',45),
+    'BuildWidowMine': ('WidowMine',40),
     'BuildHellion': ('Hellion',30),
+    'BuildBattleHellion': ('BattleHellion',30),
     'TrainMedivac': ('Medivac',42),
     'TrainBanshee': ('Banshee',60),
     'TrainRaven': ('Raven',60),
     'TrainBattlecruiser': ('Battlecruiser',90),
     'TrainViking': ('VikingFighter',42),
-    'MorphToPlanetaryFortress': ('PlanetaryFortress',50),
-    'MorphToOrbitalCommand': ('OrbitalCommand',35),
+    'UpgradeToPlanetaryFortress': ('PlanetaryFortress',50),
+    'UpgradeToOrbitalCommand': ('OrbitalCommand',35),
 
     'TrainMothership': ('Mothership',160),
+    'TrainMothershipCore': ('MothershipCore',30),
     'BuildNexus': ('Nexus',100),
     'BuildPylon': ('Pylon',25),
     'BuildAssimilator': ('Assimilator',30),
@@ -183,6 +194,8 @@ train_commands = {
     'TrainDarkTemplar': ('DarkTemplar',55),
     'TrainSentry': ('Sentry',37),
     'TrainPhoenix': ('Phoenix',35),
+    'TrainTempest': ('Tempest',75),
+    'TrainOracle': ('Oracle',60),
     'TrainCarrier': ('Carrier',120),
     'TrainVoidRay': ('VoidRay',60),
     'TrainWarpPrism': ('WarpPrism',50),
@@ -197,7 +210,8 @@ train_commands = {
     'WarpInDarkTemplar': ('DarkTemplar',30),
     'WarpInSentry': ('Sentry',21.3),
     'MorphToWarpGate': ('WarpGate',10),
-    'MergeArchon': ('Archon',12),
+    'ArchonWarpSelection': ('Archon',12),
+    'ArchonWarpTarget': ('Archon',12),
     'SentryHallucinationArchon': ('HallucinatedArchon',0),
     'SentryHallucinationColossus': ('HallucinatedColossus',0),
     'SentryHallucinationHighTemplar': ('HallucinatedHighTemplar',0),
@@ -235,6 +249,8 @@ train_commands = {
     'MorphUltralisk': ('Ultralisk',55),
     'MorphRoach': ('Roach',27),
     'MorphInfestor': ('Infestor',50),
+    'MorphSwarmHost': ('SwarmHost',40),
+    'MorphViper': ('Viper',40),
     'MorphCorruptor': ('Corruptor',40),
     'MorphToBroodLord': ('BroodLord',34),
     'MorphToOverseer': ('Overseer',17),
@@ -341,9 +357,14 @@ def load_build(data_dir, version):
     for ability in abilities.values():
         if ability.name in train_commands:
             unit_name, build_time = train_commands[ability.name]
-            ability.is_build = True
-            ability.build_time = build_time
-            ability.build_unit = getattr(data,unit_name)
+            # Side affect of using the same ability lookup for all versions
+            # BuildBattleHellion will register for all versions because if FactoryTrain
+            # This shouldn't hurt though because the ability can't actually be used
+            # and will never be looked up in the ability dictionary.
+            if hasattr(data,unit_name):
+                ability.is_build = True
+                ability.build_time = build_time
+                ability.build_unit = getattr(data,unit_name)
         setattr(data, ability.name, ability)
 
     return data
