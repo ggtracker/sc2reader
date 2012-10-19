@@ -17,7 +17,7 @@ from sc2reader import log_utils
 from sc2reader import readers
 from sc2reader.data import builds as datapacks
 from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotFile
-from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR
+from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, LOBBY_PROPERTIES
 
 
 def real_type(teams):
