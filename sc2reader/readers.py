@@ -206,6 +206,7 @@ class GameEventsReader_Base(object):
     PLAYER_ABILITY_FLAGS = 17
     ABILITY_TEAM_FLAG = False
     UNIT_INDEX_BITS = 8
+    HOTKEY_OVERLAY = 0
 
     def __call__(self, data, replay):
         EVENT_DISPATCH = {
@@ -325,7 +326,11 @@ class GameEventsReader_16117(GameEventsReader_Base):
     def player_hotkey_event(self, data, fstamp, pid, event_type):
         hotkey = data.read_bits(4)
         action = data.read_bits(2)
-        overlay = self._parse_selection_update(data)
+
+        if self.HOTKEY_OVERLAY:
+            overlay = self._parse_selection_update(data)
+        else:
+            overlay = (1,0)
 
         if action == 0:
             return SetToHotkeyEvent(fstamp, pid, event_type, hotkey, overlay)
@@ -380,6 +385,8 @@ class GameEventsReader_16117(GameEventsReader_Base):
 
 
 class GameEventsReader_16561(GameEventsReader_16117):
+    HOTKEY_OVERLAY = 1
+
     # Don't want to do this more than once
     SINGLE_BIT_MASKS = [0x1 << i for i in range(2**9)]
 

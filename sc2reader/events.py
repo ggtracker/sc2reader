@@ -176,7 +176,7 @@ class AbilityEvent(PlayerActionEvent):
                 for player in replay.players:
                     self.logger.error("\t"+str(player))
 
-            self.logger.error("{0}\t{1}\tMissing ability {2} from {3}".format(self.frame, self.player.name, hex(self.ability_code), replay.datapack.__class__.__name__))
+            self.logger.error("{0}\t{1}\tMissing ability {2} from {3}".format(self.frame, self.player.name, hex(self.ability_code) if self.ability_code!=None else None, replay.datapack.__class__.__name__))
 
         else:
             self.ability = replay.datapack.abilities[self.ability_code]
