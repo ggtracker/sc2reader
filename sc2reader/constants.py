@@ -317,7 +317,7 @@ LOBBY_PROPERTIES = {
                 'FFA': 'FFA',
             }),
 
-    0x07D0: ("Team Count", lambda value: int(value[1:])),
+    0x07D0: ("Team Count", lambda value: value), #T1,2,3,4,5,6, or Custom
     0x07D2: ("Teams1v1", lambda value: int(value[1:])),
     0x07D3: ("Teams2v2", lambda value: int(value[1:])),
     0x07D4: ("Teams3v3", lambda value: int(value[1:])),
