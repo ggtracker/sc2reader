@@ -76,38 +76,13 @@ class Team(object):
 
 class Attribute(object):
 
-    """ Still unknown
-        3e9: yes
-        bbe: 10
-        7d0: t2 (player 16) #Number of teams?
-        bbf: Part
-        3e8: Dflt
-        bc0: obs
-    """
-    id_map = {
-        0x01F4: ("Player Type", PLAYER_TYPE_CODES),
-        0x07D1: ("Game Type", GAME_FORMAT_CODES),
-        0x0BB8: ("Game Speed", GAME_SPEED_CODES),
-        0x0BB9: ("Race", RACE_CODES),
-        0x0BBA: ("Color", TEAM_COLOR_CODES),
-        0x0BBB: ("Handicap", lambda value: value),
-        0x0BBC: ("Difficulty", DIFFICULTY_CODES),
-        0x0BC1: ("Category", GAME_TYPE_CODES),
-        0x07D2: ("Teams1v1", lambda value: int(value[1])),
-        0x07D3: ("Teams2v2", lambda value: int(value[1])),
-        0x07D4: ("Teams3v3", lambda value: int(value[1])),
-        0x07D5: ("Teams4v4", lambda value: int(value[1])),
-        0x07D6: ("TeamsFFA", lambda value: int(value[1])),
-        0x07D7: ("Teams5v5", lambda value: int(value[1]))
-    }
-
     def __init__(self, data):
         #Unpack the data values and add a default name of unknown to be
         #overridden by known attributes; acts as a flag for exclusion
         self.header, self.id, self.player, self.value, self.name = tuple(data+["Unknown"])
 
-        if self.id in self.id_map:
-            self.name, lookup = self.id_map[self.id]
+        if self.id in LOBBY_PROPERTIES:
+            self.name, lookup = LOBBY_PROPERTIES[self.id]
             if lookup:
                 if callable(lookup):
                     self.value = lookup(self.value)
@@ -305,6 +280,9 @@ class PlayerSummary():
         else:
             return '{} - {} - AI'.format(self.teamid, self.race)
 
+    def __repr__(self):
+        return str(self)
+        
     def get_stats(self):
         s = ''
         for k in self.stats:

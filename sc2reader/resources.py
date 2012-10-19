@@ -14,9 +14,10 @@ from mpyq import MPQArchive
 
 from sc2reader import utils
 from sc2reader import log_utils
-from sc2reader import readers, data
+from sc2reader import readers
+from sc2reader.data import builds as datapacks
 from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotFile
-from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, GAME_SPEED_CODES, RACE_CODES, PLAYER_TYPE_CODES, TEAM_COLOR_CODES, GAME_FORMAT_CODES, GAME_TYPE_CODES, DIFFICULTY_CODES
+from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR
 
 
 def real_type(teams):
@@ -282,7 +283,7 @@ class Replay(Resource):
             # Populate replay with attributes
             self.speed = self.attributes[16]['Game Speed']
             self.category = self.attributes[16]['Category']
-            self.type = self.game_type = self.attributes[16]['Game Type']
+            self.type = self.game_type = self.attributes[16]['Game Mode']
             self.is_ladder = (self.category == "Ladder")
             self.is_private = (self.category == "Private")
 
@@ -538,11 +539,17 @@ class Replay(Resource):
 
     def register_default_datapacks(self):
         """Registers factory default datapacks."""
-        self.register_datapack(data.build16117, lambda r: 16117 <= r.build < 17326)
-        self.register_datapack(data.build17326, lambda r: 17326 <= r.build < 18092)
-        self.register_datapack(data.build18092, lambda r: 18092 <= r.build < 19458)
-        self.register_datapack(data.build19458, lambda r: 19458 <= r.build < 22612)
-        self.register_datapack(data.build22612, lambda r: 22612 <= r.build)
+        self.register_datapack(datapacks['WoL']['16117'], lambda r: r.expansion=='WoL' and 16117 <= r.build < 17326)
+        self.register_datapack(datapacks['WoL']['17326'], lambda r: r.expansion=='WoL' and 17326 <= r.build < 18092)
+        self.register_datapack(datapacks['WoL']['18092'], lambda r: r.expansion=='WoL' and 18092 <= r.build < 19458)
+        self.register_datapack(datapacks['WoL']['19458'], lambda r: r.expansion=='WoL' and 19458 <= r.build < 22612)
+        self.register_datapack(datapacks['WoL']['22612'], lambda r: r.expansion=='WoL' and 22612 <= r.build)
+        self.register_datapack(datapacks['HotS']['base'], lambda r: r.expansion=='HotS')
+        # self.register_datapack(data.build16117, lambda r: 16117 <= r.build < 17326)
+        # self.register_datapack(data.build17326, lambda r: 17326 <= r.build < 18092)
+        # self.register_datapack(data.build18092, lambda r: 18092 <= r.build < 19458)
+        # self.register_datapack(data.build19458, lambda r: 19458 <= r.build < 22612)
+        # self.register_datapack(data.build22612, lambda r: 22612 <= r.build)
 
 
     # Internal Methods
@@ -713,7 +720,7 @@ class GameSummary(Resource):
             self.parts.append(buffer.read_data_struct())
 
         self.end_time = datetime.utcfromtimestamp(self.parts[0][8])
-        self.game_speed = GAME_SPEED_CODES[self.parts[0][0][1]]
+        self.game_speed = LOBBY_PROPERTIES[0xBB8][1][self.parts[0][0][1]]
         self.game_length = utils.Length(seconds=self.parts[0][7])
         self.real_length = utils.Length(seconds=self.parts[0][7]/GAME_SPEED_FACTOR[self.game_speed])
         self.start_time = datetime.utcfromtimestamp(self.parts[0][8] - self.real_length.seconds)
@@ -966,7 +973,7 @@ class GameSummary(Resource):
                 self.observers.append(player)
                 continue
 
-            player.play_race = RACE_CODES.get(struct[2], None)
+            player.play_race = LOBBY_PROPERTIES[0xBB9][1].get(struct[2], None)
 
             player.is_winner = isinstance(struct[1],dict) and struct[1][0] == 0
             if player.is_winner:

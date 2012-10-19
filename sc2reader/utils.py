@@ -15,7 +15,6 @@ from collections import deque
 
 from sc2reader import exceptions
 from sc2reader.constants import COLOR_CODES, BUILD_ORDER_UPGRADES
-from sc2reader.data import build22612 as Data
 
 LITTLE_ENDIAN,BIG_ENDIAN = '<','>'
 
