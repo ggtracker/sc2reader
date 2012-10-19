@@ -201,10 +201,6 @@ class TargetAbilityEvent(AbilityEvent):
         self.target_team_id = team
         self.location = location
 
-        # We can't know if it is a hallucination or not so assume not
-        self.target_type = self.target_type << 8 | 0x01
-
-
     def load_context(self, replay):
         super(TargetAbilityEvent, self).load_context(replay)
 
@@ -231,11 +227,11 @@ class TargetAbilityEvent(AbilityEvent):
         else:
             if self.target_type not in replay.datapack.units:
                 self.logger.error("{0}\t{1}\tMissing unit {2} from {3}".format(self.frame, self.player.name, hex(self.target_type), replay.datapack.id))
-                unit = Unit(self.target_id)
+                unit = Unit(self.target_id, 0x00)
 
             else:
                 unit_class = replay.datapack.units[self.target_type]
-                unit = unit_class(self.target_id)
+                unit = unit_class(self.target_id, 0x00)
 
             self.target = unit
             replay.objects[uid] = unit
@@ -306,16 +302,16 @@ class SelectionEvent(PlayerActionEvent):
 
         objects = list()
         data = replay.datapack
-        for (obj_id, obj_type) in self.raw_objects:
+        for (obj_id, obj_type, obj_flags) in self.raw_objects:
             if (obj_id, obj_type) in replay.objects:
                 obj = replay.objects[(obj_id,obj_type)]
             else:
                 if obj_type in data.units:
-                    obj = data.units[obj_type](obj_id)
+                    obj = data.units[obj_type](obj_id, obj_flags)
                 else:
                     msg = "Unit Type {0} not found in {1}"
                     self.logger.error(msg.format(hex(obj_type), data.__class__.__name__))
-                    obj = Unit(obj_id)
+                    obj = Unit(obj_id, obj_flags)
 
                 replay.objects[(obj_id,obj_type)] = obj
 
@@ -323,3 +319,6 @@ class SelectionEvent(PlayerActionEvent):
 
 
         self.objects = objects
+
+    def __str__(self):
+        return GameEvent.__str__(self)+str([str(u) for u in self.objects])

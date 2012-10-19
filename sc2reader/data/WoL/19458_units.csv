@@ -5,7 +5,7 @@
 8,BeaconExpand
 9,BeaconHarass
 10,BeaconScout
-12,
+12,BeaconQQQ
 13,DESTRUCTIBLE
 14,ITEM
 15,POWERUP
@@ -243,7 +243,7 @@
 257,DestructibleBillboardTall
 258,DestructibleBillboardScrollingText
 259,DestructibleSpacePlatformBarrier
-260,
+260,DestructibleSignsDirectional
 261,DestructibleSignsConstruction
 262,DestructibleSignsFunny
 263,DestructibleSignsIcons
@@ -352,7 +352,7 @@
 366,ShapeBanana
 367,ShapeApple
 368,ShapeCashLarge
-369,
+369,ShapeCashMedium
 370,ShapeCashSmall
 371,ShapeFootballColored
 372,ShapeLemonSmall

@@ -312,13 +312,14 @@ class GameEventsReader_16117(GameEventsReader_Base):
         overlay = self._parse_selection_update(data)
 
         type_count = data.read_bits(self.UNIT_INDEX_BITS)
-        unit_types = [(data.read_short(BIG_ENDIAN) << 8 | data.read_byte(),data.read_bits(self.UNIT_INDEX_BITS)) for index in range(type_count)]
+        unit_type_info = [(data.read_short(BIG_ENDIAN), data.read_byte(), data.read_bits(self.UNIT_INDEX_BITS)) for index in range(type_count)]
 
         unit_count = data.read_bits(self.UNIT_INDEX_BITS)
         unit_ids = [data.read_int(BIG_ENDIAN) for index in range(unit_count)]
 
-        unit_types = chain(*[[utype]*count for (utype, count) in unit_types])
-        units = list(zip(unit_ids, unit_types))
+        unit_types = chain(*[[utype]*count for (utype, flags, count) in unit_type_info])
+        unit_flags = chain(*[[flags]*count for (utype, flags, count) in unit_type_info])
+        units = list(zip(unit_ids, unit_types, unit_flags))
         return SelectionEvent(fstamp, pid, event_type, bank, units, overlay)
 
     def player_hotkey_event(self, data, fstamp, pid, event_type):
@@ -513,11 +514,12 @@ class GameEventsReader_Beta(GameEventsReader_22612):
         overlay = self._parse_selection_update(data)
 
         type_count = data.read_bits(self.UNIT_INDEX_BITS)
-        unit_types = [(data.read_short(BIG_ENDIAN) << 16 | data.read_short(BIG_ENDIAN),data.read_bits(self.UNIT_INDEX_BITS)) for index in range(type_count)]
+        unit_type_info = [(data.read_short(BIG_ENDIAN), data.read_short(BIG_ENDIAN), data.read_bits(self.UNIT_INDEX_BITS)) for index in range(type_count)]
 
         unit_count = data.read_bits(self.UNIT_INDEX_BITS)
         unit_ids = [data.read_int(BIG_ENDIAN) for index in range(unit_count)]
 
-        unit_types = chain(*[[utype]*count for (utype, count) in unit_types])
-        units = list(zip(unit_ids, unit_types))
+        unit_types = chain(*[[utype]*count for (utype, flags, count) in unit_type_info])
+        unit_flags = chain(*[[flags]*count for (utype, flags, count) in unit_type_info])
+        units = list(zip(unit_ids, unit_types, unit_flags))
         return SelectionEvent(fstamp, pid, event_type, bank, units, overlay)

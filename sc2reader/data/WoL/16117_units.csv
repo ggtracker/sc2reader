@@ -5,7 +5,7 @@
 8,BeaconExpand
 9,BeaconHarass
 10,BeaconScout
-12,
+12,BeaconQQQ
 13,DESTRUCTIBLE
 14,ITEM
 15,POWERUP
@@ -255,14 +255,14 @@
 268,DestructibleRock2x6Vertical
 269,DestructibleRock2x6Horizontal
 270,DestructibleRock4x4
-271,
+271,DestructibleRock6x6
 272,DestructibleRampDiagonalHugeULBR
 273,DestructibleRampDiagonalHugeBLUR
 274,MengskStatueAlone
 275,MengskStatue
 276,WolfStatue
 277,GlobeStatue
-278,
+278,Weapon
 279,BroodLordWeapon
 280,CreepBlocker1x1
 281,PathingBlocker1x1
