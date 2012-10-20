@@ -140,6 +140,9 @@ class Person(object):
         self.is_observer = bool()
         self.messages = list()
         self.events = list()
+        self.camera_events = list()
+        self.ability_events = list()
+        self.selection_events = list()
         self.is_human = bool()
         self.region = str()
         self.recorder = False # Actual recorder will be determined using the replay.message.events file

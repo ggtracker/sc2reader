@@ -16,6 +16,7 @@ from sc2reader import utils
 from sc2reader import log_utils
 from sc2reader import readers
 from sc2reader.data import builds as datapacks
+from sc2reader.events import AbilityEvent, CameraEvent, HotkeyEvent, SelectionEvent
 from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotFile
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, LOBBY_PROPERTIES
 
@@ -473,12 +474,32 @@ class Replay(Resource):
             self.events += self.raw_data['replay.game.events']
 
         self.events = sorted(self.events, key=lambda e: e.frame)
-
+        self.camera_events = list()
+        self.selection_events = list()
+        self.ability_events = list()
         for event in self.events:
+            is_camera = isinstance(event, CameraEvent)
+            is_selection = isinstance(event, SelectionEvent) or isinstance(event,HotkeyEvent)
+            is_ability = isinstance(event, AbilityEvent)
+
+            if is_camera:
+                self.camera_events.append(event)
+            elif is_selection:
+                self.selection_events.append(event)
+            elif is_ability:
+                self.ability_events.append(event)
+
             event.load_context(self)
             # TODO: Should this be documented or removed? I don't like it.
             if event.pid != 16:
-                self.person[event.pid].events.append(event)
+                player = self.person[event.pid]
+                player.events.append(event)
+                if is_camera:
+                    player.camera_events.append(event)
+                elif is_selection:
+                    player.selection_events.append(event)
+                elif is_ability:
+                    player.ability_events.append(event)
 
     def register_reader(self, data_file, reader, filterfunc=lambda r: True):
         """
