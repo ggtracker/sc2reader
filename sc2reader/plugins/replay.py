@@ -99,13 +99,12 @@ def APMTracker(replay):
 def SelectionTracker(replay):
     debug = replay.opt.debug
     logger = log_utils.get_logger(SelectionTracker)
-    efilter = lambda e: isinstance(e, SelectionEvent) or isinstance(e, HotkeyEvent)
 
     for person in replay.people:
         # TODO: A more robust person interface might be nice
         person.selection_errors = 0
         player_selection = GameState(PlayerSelection())
-        for event in filter(efilter, person.events):
+        for event in person.selection_events:
             if debug: logger.debug("Event bytes: "+event.bytes.encode("hex"))
 
             error = False
