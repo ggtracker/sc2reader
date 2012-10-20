@@ -119,5 +119,5 @@ class PlayerSelection(defaultdict):
     def copy(self):
         new = PlayerSelection()
         for bank, selection in self.iteritems():
-            new[bank] = UnitSelection(selection.objects[:])
+            new[bank] = selection #UnitSelection(selection.objects[:])
         return new
