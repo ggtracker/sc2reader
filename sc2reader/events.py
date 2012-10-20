@@ -12,7 +12,8 @@ class Event(object):
         self.pid = pid
         self.frame = frame
         self.second = frame >> 4
-        self.time = Length(seconds=self.second)
+        # This is sorta expensive considering no one uses it
+        # self.time = Length(seconds=self.second)
 
     def load_context(self, replay):
         if self.pid != 16:
