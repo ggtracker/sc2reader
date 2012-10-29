@@ -235,6 +235,7 @@ class Replay(Resource):
         if load_level >= 0:
             # Set ('versions', 'frames', 'build', 'release_string', 'length')
             self.__dict__.update(utils.read_header(replay_file))
+            self.length = utils.Length(seconds=int(self.frames/self.game_fps))
             self.expansion = ['','WoL','HotS'][self.versions[1]]
             self.archive = utils.open_archive(replay_file)
 
