@@ -12,11 +12,13 @@ from xml.etree import ElementTree
 import urllib2
 from mpyq import MPQArchive
 
+
 from sc2reader import utils
 from sc2reader import log_utils
 from sc2reader import readers
 from sc2reader.data import builds as datapacks
 from sc2reader.events import AbilityEvent, CameraEvent, HotkeyEvent, SelectionEvent
+from sc2reader.exceptions import SC2ReaderLocalizationError
 from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotFile
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, LOBBY_PROPERTIES
 
@@ -659,17 +661,13 @@ class Map(Resource):
         else:
             return None
 
-class Localization(Resource):
+class Localization(Resource,dict):
 
     def __init__(self, s2ml_file, **options):
-        super(Localization, self).__init__(s2ml_file, **options)
-        self.mapping = dict()
+        Resource.__init__(self, s2ml_file, **options)
         xml = ElementTree.parse(s2ml_file)
         for entry in xml.findall('e'):
-            self.mapping[int(entry.attrib['id'])] = entry.text
-
-    def __getitem__(self, key):
-        return self.mapping[key]
+            self[int(entry.attrib['id'])] = entry.text
 
 class GameSummary(Resource):
 
@@ -702,8 +700,8 @@ class GameSummary(Resource):
     #: Map localization urls
     localization_urls = dict()
 
-    def __init__(self, summary_file, filename=None, **options):
-        super(GameSummary, self).__init__(summary_file, filename,**options)
+    def __init__(self, summary_file, filename=None, lang='enUS', **options):
+        super(GameSummary, self).__init__(summary_file, filename, lang=lang, **options)
 
         #: A list of teams
         self.team = dict()
@@ -823,7 +821,7 @@ class GameSummary(Resource):
         self.lang_sheets = dict()
         self.translations =  dict()
         for lang, files in self.localization_urls.items():
-            if lang != 'enUS': continue
+            if lang != self.opt.lang: continue
 
             sheets = list()
             for depot_file in files:
@@ -831,13 +829,17 @@ class GameSummary(Resource):
 
             translation = dict()
             for uid, (sheet, item) in self.id_map.items():
-                translation[uid] = sheets[sheet][item]
+                if sheet < len(sheets) and item in sheets[sheet]:
+                    translation[uid] = sheets[sheet][item]
+                else:
+                    msg = "No {0} translation for sheet {1}, item {2}"
+                    raise SC2ReaderLocalizationError(msg.format(self.opt.lang,sheet,item))
 
             self.lang_sheets[lang] = sheets
             self.translations[lang] = translation
 
     def load_map_info(self):
-        map_strings = self.lang_sheets['enUS'][-1]
+        map_strings = self.lang_sheets[self.opt.lang][-1]
         self.map_name = map_strings[1]
         self.map_description = map_strings[2]
         self.map_tileset = map_strings[3]
@@ -895,20 +897,22 @@ class GameSummary(Resource):
             activated[(prop.id,player)] = use
             return use
 
+        translation = self.translations[self.opt.lang]
         for uid, prop in properties.items():
-            name = self.translations['enUS'][uid]
+            name = self.translations[self.opt.lang][uid]
             if prop.is_lobby:
                 if use_property(prop):
                     value = prop.values[settings[uid]][0]
-                    self.settings[name] = self.translations['enUS'][(uid,value)]
+                    self.settings[name] = translation[(uid,value)]
             else:
                 for index, player_setting in enumerate(settings[uid]):
                     if use_property(prop, index):
                         value = prop.values[player_setting][0]
-                        self.player_settings[index][name] = self.translations['enUS'][(uid, value)]
+                        self.player_settings[index][name] = translation[(uid, value)]
 
     def load_player_stats(self):
         if len(self.parts) < 4: return
+        translation = self.translations[self.opt.lang]
 
         # Part[3][0][:] and Part[4][0][1] are filled with summary stats
         # for the players in the game. Each stat item is laid out as follows
@@ -921,7 +925,7 @@ class GameSummary(Resource):
             stats_items.append(self.parts[4][0][0])
 
         for item in stats_items:
-            stat_name = self.translations['enUS'][item[0][1]]
+            stat_name = translation[item[0][1]]
             for index, value in enumerate(item[1]):
                 if value:
                     self.player_stats[index][stat_name] = value[0][0]
@@ -946,6 +950,7 @@ class GameSummary(Resource):
     def load_player_builds(self):
         # Parse build orders only if it looks like we have build items
         if len(self.parts) < 5: return
+        translation = self.translations[self.opt.lang]
 
         # All the parts after part 5 appear to be designated for
         # build order entries with a max of 10 per part
@@ -957,8 +962,9 @@ class GameSummary(Resource):
         # up to the first 64 successful actions in the game.
         BuildEntry = namedtuple('BuildEntry',['supply','total_supply','time','order','build_index'])
         for build_item in build_items:
-            if build_item[0][1] in self.translations['enUS']:
-                order_name = self.translations['enUS'][build_item[0][1]]
+            translation_key = build_item[0][1]
+            if translation_key in translation:
+                order_name = translation[translation_key]
                 for pindex, commands in enumerate(build_item[1]):
                     for command in commands:
                         self.build_orders[pindex].append(BuildEntry(
@@ -969,7 +975,7 @@ class GameSummary(Resource):
                                 build_index=command[1] >> 16
                             ))
             else:
-                self.logger.warn("Unknown item in build order, key = {}".format(build_item[0][1]))
+                self.logger.warn("Unknown item in build order, key = {}".format(translation_key))
 
         # Once we've compiled all the build commands we need to make
         # sure they are properly sorted for presentation.

@@ -1,6 +1,9 @@
 class SC2ReaderError(Exception):
     pass
 
+class SC2ReaderLocalizationError(SC2ReaderError):
+    pass
+
 class MPQError(SC2ReaderError):
     pass
 
