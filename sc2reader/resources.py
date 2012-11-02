@@ -831,9 +831,11 @@ class GameSummary(Resource):
             for uid, (sheet, item) in self.id_map.items():
                 if sheet < len(sheets) and item in sheets[sheet]:
                     translation[uid] = sheets[sheet][item]
-                else:
+                elif self.opt.debug:
                     msg = "No {0} translation for sheet {1}, item {2}"
                     raise SC2ReaderLocalizationError(msg.format(self.opt.lang,sheet,item))
+                else:
+                    translation[uid] = "Unknown"
 
             self.lang_sheets[lang] = sheets
             self.translations[lang] = translation
@@ -899,7 +901,7 @@ class GameSummary(Resource):
 
         translation = self.translations[self.opt.lang]
         for uid, prop in properties.items():
-            name = self.translations[self.opt.lang][uid]
+            name = translation.get(uid, "Unknown")
             if prop.is_lobby:
                 if use_property(prop):
                     value = prop.values[settings[uid]][0]
@@ -925,7 +927,7 @@ class GameSummary(Resource):
             stats_items.append(self.parts[4][0][0])
 
         for item in stats_items:
-            stat_name = translation[item[0][1]]
+            stat_name = translation.get(item[0][1],"Unknown")
             for index, value in enumerate(item[1]):
                 if value:
                     self.player_stats[index][stat_name] = value[0][0]
@@ -963,6 +965,9 @@ class GameSummary(Resource):
         BuildEntry = namedtuple('BuildEntry',['supply','total_supply','time','order','build_index'])
         for build_item in build_items:
             translation_key = build_item[0][1]
+            # Here instead of recording unknown entries we just skip them because
+            # it seems that unknown entries actually don't belong in the build order
+            # We should revisit this decision in the future.
             if translation_key in translation:
                 order_name = translation[translation_key]
                 for pindex, commands in enumerate(build_item[1]):
