@@ -1,11 +1,6 @@
 from __future__ import absolute_import
 
-#from sc2reader.data.utils import DataObject
-#from sc2reader.data.build16561 import Data_16561
-#from sc2reader.data.build17326 import Data_17326
-#from sc2reader.data.build18317 import Data_18317
-#from sc2reader.data.build19595 import Data_19595
-
+import pkgutil
 
 class Build(object):
     def __init__(self, build_id, units, abilities):
@@ -258,87 +253,88 @@ class Unit(object):
 class Ability(object):
     pass
 
-def create_build(build):
-    units_file = path.join(BASE_PATH, "{}_{}.csv".format(build,"units"))
-    abils_file = path.join(BASE_PATH, "{}_{}.csv".format(build,"abilities"))
-    with open(units_file, 'r') as data_file:
-        units = dict()
-        for row in [UnitRow(*line.strip().split('|')[1:]) for line in data_file]:
-            unit_id = int(row.id, 10) << 8 | 1
-            values = dict(cost=[0,0,0], race='Neutral',is_army=False, is_building=False, is_worker=False)
-            race, minerals, vespene, supply = "Neutral", 0, 0, 0
-            for race in ('Protoss','Terran','Zerg'):
-                if row.type.lower() in unit_lookup[race]:
-                    values.update(unit_lookup[race][row.type.lower()])
-                    values['race']=race
-                    break
 
-            units[unit_id] = type(row.title,(Unit,), dict(
-                type=unit_id,
-                name=row.title,
-                title=row.title,
-                race=values['race'],
-                minerals=values['cost'][0],
-                vespene=values['cost'][1],
-                supply=values['cost'][2],
-                is_building=values['is_building'],
-                is_worker=values['is_worker'],
-                is_army=values['is_army'],
+def create_build(build):
+    units = dict()
+    units_file = "{0}_{1}.csv".format(build,"units")
+    units_data = pkgutil.get_data('sc2reader.data',units_file).split('\n')[:-1]
+    for row in [UnitRow(*line.strip().split('|')[1:]) for line in units_data]:
+        unit_id = int(row.id, 10) << 8 | 1
+        values = dict(cost=[0,0,0], race='Neutral',is_army=False, is_building=False, is_worker=False)
+        race, minerals, vespene, supply = "Neutral", 0, 0, 0
+        for race in ('Protoss','Terran','Zerg'):
+            if row.type.lower() in unit_lookup[race]:
+                values.update(unit_lookup[race][row.type.lower()])
+                values['race']=race
+                break
+
+        units[unit_id] = type(row.title,(Unit,), dict(
+            type=unit_id,
+            name=row.title,
+            title=row.title,
+            race=values['race'],
+            minerals=values['cost'][0],
+            vespene=values['cost'][1],
+            supply=values['cost'][2],
+            is_building=values['is_building'],
+            is_worker=values['is_worker'],
+            is_army=values['is_army'],
+        ))
+
+        if row.title.lower() in ('probe','zealot','stalker','immortal','phoenix','hightemplar','warpprism','archon','colossus','voidray'):
+            units[unit_id+1] = type("Hallucinated"+row.title,(Unit,), dict(
+                type=unit_id+1,
+                name="Hallucinated"+row.title,
+                title="Hallucinated"+row.title,
+                race='Protoss',
+                minerals=0,
+                vespene=0,
+                supply=0,
+                is_building=False,
+                is_army=True,
+                is_worker=False,
             ))
 
-            if row.title.lower() in ('probe','zealot','stalker','immortal','phoenix','hightemplar','warpprism','archon','colossus','voidray'):
-                units[unit_id+1] = type("Hallucinated"+row.title,(Unit,), dict(
-                    type=unit_id+1,
-                    name="Hallucinated"+row.title,
-                    title="Hallucinated"+row.title,
-                    race='Protoss',
-                    minerals=0,
-                    vespene=0,
-                    supply=0,
-                    is_building=False,
-                    is_army=True,
-                    is_worker=False,
-                ))
+
+    abils_file = "{0}_{1}.csv".format(build,"abilities")
+    abils_data = pkgutil.get_data('sc2reader.data',abils_file).split('\n')[:-1]
+    abilities = {0:type('RightClick',(Ability,), dict(type=0, name='RightClick', title='Right Click', is_build=False, build_time=None, build_unit=None))}
+    for row in [line.strip().split('|') for line in abils_data]:
+        base = int(row[1],10) << 5
+        if base == 0: continue
+
+        # Temporary Hack here.
+        if base == 0xe80:
+            real_abils = [(0xe80,"QueueCancel0"), (0xe81,"QueueCancel1")]
+        else:
+            real_abils = [(base|i,t) for i,t in enumerate(row[3:]) if t.strip()!='']
+
+        for abil_id, title in real_abils:
+            abilities[abil_id] = type(title,(Ability,), dict(
+                type=abil_id,
+                name=title,
+                title=title,
+                is_build=False,
+                build_time=None,
+                build_unit=None
+            ))
 
 
-    with open(abils_file, 'r') as data_file:
-        abilities = {0:type('RightClick',(Ability,), dict(type=0, name='RightClick', title='Right Click', is_build=False, build_time=None, build_unit=None))}
-        for row in [line.strip().split('|') for line in data_file]:
-            base = int(row[1],10) << 5
-            if base == 0: continue
+        # Some abilities have missing entries..
+        if len(real_abils) == 0:
+            abilities[base] = type(row[2],(Ability,), dict(
+                type=base,
+                name=row[2],
+                title=row[2],
+                is_build=False,
+                build_time=None,
+                build_unit=None
+            ))
 
-            # Temporary Hack here.
-            if base == 0xe80:
-                real_abils = [(0xe80,"QueueCancel0"), (0xe81,"QueueCancel1")]
-            else:
-                real_abils = [(base|i,t) for i,t in enumerate(row[3:]) if t.strip()!='']
-
-            for abil_id, title in real_abils:
-                abilities[abil_id] = type(title,(Ability,), dict(
-                    type=abil_id,
-                    name=title,
-                    title=title,
-                    is_build=False,
-                    build_time=None,
-                    build_unit=None
-                ))
-
-
-            # Some abilities have missing entries..
-            if len(real_abils) == 0:
-                abilities[base] = type(row[2],(Ability,), dict(
-                    type=base,
-                    name=row[2],
-                    title=row[2],
-                    is_build=False,
-                    build_time=None,
-                    build_unit=None
-                ))
-
-            if int(row[1],10) == 249 and build==22612:
-                pass
-                #print row
-                #print abilities[0x1f20], abilities[0x1f21], abilities[0x1f22], abilities[0x1f23]
+        if int(row[1],10) == 249 and build==22612:
+            pass
+            #print row
+            #print abilities[0x1f20], abilities[0x1f21], abilities[0x1f22], abilities[0x1f23]
 
     data = Build(build, units, abilities)
     for unit in units.values():
