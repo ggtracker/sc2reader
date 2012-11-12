@@ -367,7 +367,7 @@ class PersonDict(dict):
             self[player.pid] = player
 
     def name(self, player_name):
-        return self._key_map[player_name]
+        return self[self._key_map[player_name]]
 
     def __setitem__(self, key, value):
         if isinstance(key, str):
