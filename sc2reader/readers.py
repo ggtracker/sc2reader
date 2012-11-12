@@ -530,3 +530,6 @@ class GameEventsReader_Beta(GameEventsReader_22612):
         unit_flags = chain(*[[flags]*count for (utype, flags, count) in unit_type_info])
         units = list(zip(unit_ids, unit_types, unit_flags))
         return SelectionEvent(fstamp, pid, event_type, bank, units, overlay)
+
+class GameEventsReader_Beta_23925(GameEventsReader_Beta):
+    PLAYER_JOIN_FLAGS = 32
