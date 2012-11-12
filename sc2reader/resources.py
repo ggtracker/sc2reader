@@ -222,6 +222,7 @@ class Replay(Resource):
         self.recorder = None # Player object
         self.packets = list()
         self.objects = {}
+        self.game_fps = 16.0
 
         # Bootstrap the readers.
         self.registered_readers = defaultdict(list)
