@@ -269,14 +269,27 @@ class Build(object):
 
 class Unit(object):
     name = 'Unknown Unit'
+    type = 0
 
     def __init__(self, unit_id, flags):
         self.id = unit_id
         self.flags = flags
         self.hallucinated = (flags & 2 == 2)
+        self._cmp_val = (self.id << 16) | self.type
 
     def __str__(self):
         return "{} [{:X}]".format(self.name, self.id)
+
+    def __cmp__(self, other):
+        if self._cmp_val == other._cmp_val:
+            return 0
+        elif  self._cmp_val > other._cmp_val:
+            return 1
+        else:
+            return -1
+
+    def __hash__(self):
+        return hash(self._cmp_val)
 
     def __repr__(self):
         return str(self)
