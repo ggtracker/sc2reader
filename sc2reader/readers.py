@@ -365,9 +365,8 @@ class GameEventsReader_16117(GameEventsReader_Base):
 
     def camera_event(self, data, fstamp, pid, event_type):
         # From https://github.com/Mischanix/sc2replay-csharp/wiki/replay.game.events
-        block = data.read_int(BIG_ENDIAN)
-        x = (block >> 16)/256.0
-        y = (block & 0xFFFF)/256.0
+        x = data.read_short(BIG_ENDIAN)/256.0
+        y = data.read_short(BIG_ENDIAN)/256.0
         distance = pitch = yaw = height = 0
         if data.read_bits(1):
             distance = data.read_short(BIG_ENDIAN)/256.0
@@ -500,9 +499,8 @@ class GameEventsReader_Beta(GameEventsReader_22612):
     def camera_event(self, data, fstamp, pid, event_type):
         x = y= distance = pitch = yaw = height = 0
         if data.read_bits(1):
-            block = data.read_int(BIG_ENDIAN)
-            x = (block >> 16)/256.0
-            y = (block & 0xFFFF)/256.0
+            x = data.read_short(BIG_ENDIAN)/256.0
+            y = data.read_short(BIG_ENDIAN)/256.0
         if data.read_bits(1):
             distance = data.read_short(BIG_ENDIAN)/256.0
         if data.read_bits(1):
