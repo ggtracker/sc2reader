@@ -151,7 +151,7 @@ train_commands = {
     'TrainBanshee': ('Banshee',60),
     'TrainRaven': ('Raven',60),
     'TrainBattlecruiser': ('Battlecruiser',90),
-    'TrainViking': ('VikingFighter',42),
+    'TrainViking': ('Viking',42),
     'MorphToPlanetaryFortress': ('PlanetaryFortress',50),
     'MorphToOrbitalCommand': ('OrbitalCommand',35),
 
