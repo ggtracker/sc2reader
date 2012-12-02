@@ -16,6 +16,7 @@ from sc2reader import utils, log_utils, readers, data
 from sc2reader.exceptions import SC2ReaderLocalizationError
 from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotFile
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, GAME_SPEED_CODES, RACE_CODES, PLAYER_TYPE_CODES, TEAM_COLOR_CODES, GAME_FORMAT_CODES, GAME_TYPE_CODES, DIFFICULTY_CODES
+from sc2reader.utils import Color
 
 
 def real_type(teams):
@@ -988,7 +989,7 @@ class GameSummary(Resource):
 
             # We can just copy these settings right over
             # TODO: Get the hex from the color string?
-            player.color = settings.get('Color', None)
+            player.color = Color(name=settings.get('Color', None))
             player.pick_race = settings.get('Race', None)
             player.handicap = settings.get('Handicap', None)
 
