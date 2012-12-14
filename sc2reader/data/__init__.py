@@ -255,6 +255,19 @@ class Unit(object):
     def __repr__(self):
         return str(self)
 
+    def __cmp__(self, other):
+        if other.id > self.id:
+            return -1
+        elif other.id < self.id:
+            return 1
+        else:
+            if other.type > self.type:
+                return -1
+            elif other.type < self.type:
+                return 1
+            else:
+                return 0
+
 class Ability(object):
     pass
 
