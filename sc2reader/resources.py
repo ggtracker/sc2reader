@@ -1011,7 +1011,7 @@ class GameSummary(Resource):
 
             # We can just copy these settings right over
             # TODO: Get the hex from the color string?
-            player.color = settings.get('Color', None)
+            player.color = utils.Color(name=settings.get('Color', None)
             player.pick_race = settings.get('Race', None)
             player.handicap = settings.get('Handicap', None)
 

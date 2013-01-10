@@ -14,7 +14,7 @@ from datetime import timedelta
 from collections import deque
 
 from sc2reader import exceptions
-from sc2reader.constants import COLOR_CODES, BUILD_ORDER_UPGRADES
+from sc2reader.constants import COLOR_CODES, COLOR_CODES_INV, BUILD_ORDER_UPGRADES
 
 LITTLE_ENDIAN,BIG_ENDIAN = '<','>'
 
@@ -415,11 +415,21 @@ class Color(AttributeDict):
     @property
     def rgba(self):
         """Tuple containing the (r,g,b,a) representation of the color"""
+        if 'r' not in self or 'g' not in self or 'b' not in self:
+            hexstr = self.hex
+            self.r = int(hexstr[0:2],16)
+            self.g = int(hexstr[2:4],16)
+            self.b = int(hexstr[4:6],16)
+            self.a = 255
         return (self.r,self.g,self.b,self.a)
 
     @property
     def hex(self):
         """The hexadecimal representation of the color"""
+        if 'name' in self:
+            return COLOR_CODES_INV.get(self.name)
+        else:
+            return "{0.r:02X}{0.g:02X}{0.b:02X}".format(self)
         return "{0.r:02X}{0.g:02X}{0.b:02X}".format(self)
 
     def __str__(self):

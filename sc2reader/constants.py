@@ -92,6 +92,8 @@ COLOR_CODES = {
     'E55BB0': 'Pink'
 }
 
+COLOR_CODES_INV = dict(zip(COLOR_CODES.values(),COLOR_CODES.keys()))
+
 ## Names of the different properties found in the s2gs files lobby part
 LOBBY_PROPERTY_NAMES = {
     1    : 'unknown1',       #0001/0002
