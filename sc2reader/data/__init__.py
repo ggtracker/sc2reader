@@ -1,23 +1,18 @@
 from __future__ import absolute_import
 
-import os
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-unit_file_format = '{}_units.csv'
-abil_file_format = '{}_abilities.csv'
+import pkgutil
 
 ABIL_LOOKUP = dict()
-with open(os.path.join(BASE_DIR, 'ability_lookup.csv'), 'r') as data_file:
-    for entry in data_file:
-        str_id, abilities = entry.split(',',1)
-        ABIL_LOOKUP[str_id] = abilities.split(',')
+for entry in pkgutil.get_data('sc2reader.data', 'ability_lookup.csv').split('\n'):
+    if not entry: continue
+    str_id, abilities = entry.split(',',1)
+    ABIL_LOOKUP[str_id] = abilities.split(',')
 
 UNIT_LOOKUP = dict()
-with open(os.path.join(BASE_DIR, 'unit_lookup.csv'), 'r') as data_file:
-    for entry in data_file:
-        str_id, title = entry.strip().split(',')
-        UNIT_LOOKUP[str_id] = title
-
+for entry in pkgutil.get_data('sc2reader.data', 'unit_lookup.csv').split('\n'):
+    if not entry: continue
+    str_id, title = entry.strip().split(',')
+    UNIT_LOOKUP[str_id] = title
 
 # TODO: Costs need to be version stats. Not here
 unit_lookup = {'Protoss':{
@@ -297,72 +292,72 @@ class Unit(object):
 class Ability(object):
     pass
 
-def load_build(data_dir, version):
+def load_build(expansion, version):
     print("Loading build {}".format(version))
-    unit_file = os.path.join(data_dir,unit_file_format.format(version))
-    abil_file = os.path.join(data_dir,abil_file_format.format(version))
+    unit_file = '{}/{}_units.csv'.format(expansion,version)
+    abil_file = '{}/{}_abilities.csv'.format(expansion,version)
 
     units = dict()
-    with open(unit_file, 'r') as data_file:
-        for entry in data_file:
-            int_id, str_id = entry.strip().split(',')
-            unit_type = int(int_id,10)
-            title = UNIT_LOOKUP[str_id]
+    for entry in pkgutil.get_data('sc2reader.data', unit_file).split('\n'):
+        if not entry: continue
+        int_id, str_id = entry.strip().split(',')
+        unit_type = int(int_id,10)
+        title = UNIT_LOOKUP[str_id]
 
-            values = dict(cost=[0,0,0], race='Neutral',is_army=False, is_building=False, is_worker=False)
-            race, minerals, vespene, supply = "Neutral", 0, 0, 0
-            for race in ('Protoss','Terran','Zerg'):
-                if title.lower() in unit_lookup[race]:
-                    values.update(unit_lookup[race][title.lower()])
-                    values['race']=race
-                    break
+        values = dict(cost=[0,0,0], race='Neutral',is_army=False, is_building=False, is_worker=False)
+        race, minerals, vespene, supply = "Neutral", 0, 0, 0
+        for race in ('Protoss','Terran','Zerg'):
+            if title.lower() in unit_lookup[race]:
+                values.update(unit_lookup[race][title.lower()])
+                values['race']=race
+                break
 
-            units[unit_type] = type(title,(Unit,), dict(
-                type=unit_type,
-                name=title,
-                title=title,
-                race=values['race'],
-                minerals=values['cost'][0],
-                vespene=values['cost'][1],
-                supply=values['cost'][2],
-                is_building=values['is_building'],
-                is_worker=values['is_worker'],
-                is_army=values['is_army'],
-            ))
+        units[unit_type] = type(title,(Unit,), dict(
+            type=unit_type,
+            name=title,
+            title=title,
+            race=values['race'],
+            minerals=values['cost'][0],
+            vespene=values['cost'][1],
+            supply=values['cost'][2],
+            is_building=values['is_building'],
+            is_worker=values['is_worker'],
+            is_army=values['is_army'],
+        ))
 
     # TODO: Should RightClick be in the main data files?
     abilities = {0:type('RightClick',(Ability,), dict(type=0, name='RightClick', title='Right Click', is_build=False, build_time=None, build_unit=None))}
-    with open(abil_file, 'r') as data_file:
-        for entry in data_file:
-            int_id_base, str_id = entry.strip().split(',')
-            int_id_base = int(int_id_base,10) << 5
+    for entry in pkgutil.get_data('sc2reader.data', abil_file).split('\n'):
+        if not entry: continue
+        int_id_base, str_id = entry.strip().split(',')
+        int_id_base = int(int_id_base,10) << 5
 
-            abils = ABIL_LOOKUP[str_id] # The entry must exist
-            real_abils = [(int_id_base|i,abil) for i,abil in enumerate(abils) if abil.strip()!='']
+        abils = ABIL_LOOKUP[str_id] # The entry must exist
+        real_abils = [(int_id_base|i,abil) for i,abil in enumerate(abils) if abil.strip()!='']
 
-            if len(real_abils) == 0:
-                # TODO: Should we issue a warning?
-                # A: We'd have to fill in all the blanks, probably not worth it
-                abilities[int_id_base] = type(str_id,(Ability,), dict(
-                        type=int_id_base,
-                        name=str_id,
-                        title=str_id,
+        if len(real_abils) == 0:
+            # TODO: Should we issue a warning?
+            # A: We'd have to fill in all the blanks, probably not worth it
+            abilities[int_id_base] = type(str_id,(Ability,), dict(
+                    type=int_id_base,
+                    name=str_id,
+                    title=str_id,
+                    is_build=False,
+                    build_time=None,
+                    build_unit=None
+                ))
+
+        else:
+            for index, ability in real_abils:
+                int_id = int_id_base | index
+                abilities[int_id] = type(ability,(Ability,), dict(
+                        type=int_id,
+                        name=ability,
+                        title=ability,
                         is_build=False,
                         build_time=None,
                         build_unit=None
                     ))
-
-            else:
-                for index, ability in real_abils:
-                    int_id = int_id_base | index
-                    abilities[int_id] = type(ability,(Ability,), dict(
-                            type=int_id,
-                            name=ability,
-                            title=ability,
-                            is_build=False,
-                            build_time=None,
-                            build_unit=None
-                        ))
 
     data = Build(version, units, abilities)
     for unit in units.values():
@@ -371,7 +366,7 @@ def load_build(data_dir, version):
         if ability.name in train_commands:
             unit_name, build_time = train_commands[ability.name]
             # Side affect of using the same ability lookup for all versions
-            # BuildBattleHellion will register for all versions because if FactoryTrain
+            # BuildBattleHellion will register for all versions because of FactoryTrain
             # This shouldn't hurt though because the ability can't actually be used
             # and will never be looked up in the ability dictionary.
             if hasattr(data,unit_name):
@@ -383,16 +378,15 @@ def load_build(data_dir, version):
     return data
 
 
+
 # Load the WoL Data
 wol_builds = dict()
-data_dir = os.path.join(BASE_DIR, 'WoL')
 for version in ('16117','17326','18092','19458','22612'):
-    wol_builds[version] = load_build(data_dir, version)
+    wol_builds[version] = load_build('WoL', version)
 
 # Load HotS Data
 hots_builds = dict()
-data_dir = os.path.join(BASE_DIR, 'HotS')
 for version in ('base',):
-    hots_builds[version] = load_build(data_dir, version)
+    hots_builds[version] = load_build('HotS', version)
 
 builds = {'WoL':wol_builds,'HotS':hots_builds}
