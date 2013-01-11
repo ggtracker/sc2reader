@@ -211,6 +211,7 @@ class GameEventsReader_Base(object):
     def __call__(self, data, replay):
         EVENT_DISPATCH = {
             0x05: self.game_start_event,
+            0x07: self.beta_join_event,
             0x0B: self.player_join_event,
             0x0C: self.player_join_event,
             0x19: self.player_leave_event,
@@ -220,6 +221,7 @@ class GameEventsReader_Base(object):
             0x1F: self.player_send_resource_event,
             0x31: self.camera_event,
             0x46: self.player_request_resource_event,
+            0x65: self.beta_win_event,
         }
 
         game_events = list()
@@ -531,3 +533,10 @@ class GameEventsReader_Beta(GameEventsReader_22612):
 
 class GameEventsReader_Beta_23925(GameEventsReader_Beta):
     PLAYER_JOIN_FLAGS = 32
+    def beta_join_event(self, data, fstamp, pid, event_type):
+        flags = data.read_bytes(5)
+        return BetaJoinEvent(fstamp, pid, event_type, flags)
+
+    def beta_win_event(self, data, fstamp, pid, event_type):
+        flags = 0
+        return BetaWinEvent(fstamp, pid, event_type, flags)

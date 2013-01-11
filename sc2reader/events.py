@@ -89,6 +89,20 @@ class PingEvent(MessageEvent):
 class UnknownEvent(GameEvent):
     name = 'UnknownEvent'
 
+class BetaJoinEvent(GameEvent):
+    name = 'BetaJoinEvent'
+
+    def __init__(self, frames, pid, event_type, flags):
+        super(BetaJoinEvent, self).__init__(frames, pid, event_type)
+        self.flags = flags
+
+class BetaWinEvent(GameEvent):
+    name = 'BetaWinEvent'
+
+    def __init__(self, frames, pid, event_type, flags):
+        super(BetaWinEvent, self).__init__(frames, pid, event_type)
+        self.flags = flags
+
 class PlayerJoinEvent(GameEvent):
     name = 'PlayerJoinEvent'
 
