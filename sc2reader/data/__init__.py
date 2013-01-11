@@ -293,7 +293,6 @@ class Ability(object):
     pass
 
 def load_build(expansion, version):
-    print("Loading build {}".format(version))
     unit_file = '{}/{}_units.csv'.format(expansion,version)
     abil_file = '{}/{}_abilities.csv'.format(expansion,version)
 
