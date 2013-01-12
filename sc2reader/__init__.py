@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import sys
+
 # import submodules
 from sc2reader import plugins, data, scripts
 
@@ -11,21 +13,35 @@ log_utils.setup()
 # For backwards compatibility
 SC2Reader = factories.SC2Factory
 
-# Expose a nice module level interface
-__defaultSC2Reader = factories.SC2Factory()
+def setFactory(factory):
+    # Expose a nice module level interface
+    module = sys.modules[__name__]
+    module.load_replays = factory.load_replays
+    module.load_replay = factory.load_replay
+    module.load_maps = factory.load_maps
+    module.load_map = factory.load_map
+    module.load_game_summaries = factory.load_game_summaries
+    module.load_game_summary = factory.load_game_summary
+    module.load_map_infos = factory.load_map_infos
+    module.load_map_info = factory.load_map_info
+    module.load_map_histories = factory.load_map_headers
+    module.load_map_history = factory.load_map_header
 
-load_replays = __defaultSC2Reader.load_replays
-load_replay = __defaultSC2Reader.load_replay
-load_maps = __defaultSC2Reader.load_maps
-load_map = __defaultSC2Reader.load_map
-load_game_summaries = __defaultSC2Reader.load_game_summaries
-load_game_summary = __defaultSC2Reader.load_game_summary
-load_map_infos = __defaultSC2Reader.load_map_infos
-load_map_info = __defaultSC2Reader.load_map_info
-load_map_histories = __defaultSC2Reader.load_map_headers
-load_map_history = __defaultSC2Reader.load_map_header
+    module.configure = factory.configure
+    module.reset = factory.reset
 
-configure = __defaultSC2Reader.configure
-reset = __defaultSC2Reader.reset
+    module.register_plugin = factory.register_plugin
+    module._defaultFactory = factory
 
-register_plugin = __defaultSC2Reader.register_plugin
+def useFileCache(cache_dir, **options):
+    setFactory(factories.FileCachedSC2Factory(cache_dir, **options))
+
+def useDictCache(cache_max_size=0, **options):
+    setFactory(factories.DictCachedSC2Factory(cache_max_size, **options))
+
+def useDoubleCache(cache_dir, cache_max_size=0, **options):
+    setFactory(factories.DoubleCachedSC2Factory(cache_dir, cache_max_size, **options))
+
+setFactory(factories.SC2Factory())
+
+
