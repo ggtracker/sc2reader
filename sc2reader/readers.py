@@ -500,6 +500,14 @@ class GameEventsReader_22612(GameEventsReader_19595):
     UNIT_INDEX_BITS = 9 # Now can select up to 512 units
 
 class GameEventsReader_Beta(GameEventsReader_22612):
+    def beta_join_event(self, data, fstamp, pid, event_type):
+        flags = data.read_bytes(5)
+        return BetaJoinEvent(fstamp, pid, event_type, flags)
+
+    def beta_win_event(self, data, fstamp, pid, event_type):
+        flags = 0
+        return BetaWinEvent(fstamp, pid, event_type, flags)
+
     def camera_event(self, data, fstamp, pid, event_type):
         x = y= distance = pitch = yaw = height = 0
         if data.read_bits(1):
@@ -535,10 +543,3 @@ class GameEventsReader_Beta(GameEventsReader_22612):
 
 class GameEventsReader_Beta_23925(GameEventsReader_Beta):
     PLAYER_JOIN_FLAGS = 32
-    def beta_join_event(self, data, fstamp, pid, event_type):
-        flags = data.read_bytes(5)
-        return BetaJoinEvent(fstamp, pid, event_type, flags)
-
-    def beta_win_event(self, data, fstamp, pid, event_type):
-        flags = 0
-        return BetaWinEvent(fstamp, pid, event_type, flags)
