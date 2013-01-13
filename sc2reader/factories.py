@@ -259,15 +259,12 @@ class FileCachedSC2Factory(CachedSC2Factory):
             raise ValueError("Must have read/write access to {} for local file caching.".format(self.cache_dir))
 
     def cache_has(self, cache_key):
-        print "file has",cache_key
         return os.path.exists(self.cache_path(cache_key))
 
     def cache_get(self, cache_key, **options):
-        print "file get",cache_key
         return self.load_local_resource_contents(self.cache_path(cache_key),**options)
 
     def cache_set(self, cache_key, value):
-        print "file set",cache_key
         cache_path = self.cache_path(cache_key)
         bucket_dir = os.path.dirname(cache_path)
         if not os.path.exists(bucket_dir):
@@ -287,22 +284,18 @@ class DictCachedSC2Factory(CachedSC2Factory):
         self.cache_max_size = cache_max_size
 
     def cache_set(self, cache_key, value):
-        print "dict set",cache_key
         if self.cache_max_size and len(self.cache_dict) >= self.cache_max_size:
             oldest_cache_key = min(self.cache_used.items(), key=lambda e: e[1])[0]
-            print "dict del", oldest_cache_key
             del self.cache_used[oldest_cache_key]
             del self.cache_dict[oldest_cache_key]
         self.cache_dict[cache_key] = value
         self.cache_used[cache_key] = time.time()
 
     def cache_get(self, cache_key):
-        print "dict get",cache_key
         self.cache_used[cache_key] = time.time()
         return self.cache_dict[cache_key]
 
     def cache_has(self, cache_key):
-        print "dict has",cache_key
         return cache_key in self.cache_dict
 
 class DoubleCachedSC2Factory(DictCachedSC2Factory, FileCachedSC2Factory):
