@@ -62,6 +62,7 @@ class InitDataReader_Base(Reader):
 
 class AttributesEventsReader_Base(Reader):
     header_length = 4
+    offset=False
 
     def __call__(self, data, replay):
         # The replay.attribute.events file is comprised of a small header and
@@ -81,6 +82,11 @@ class AttributesEventsReader_Base(Reader):
                     data.read_byte(),
                     data.read(4).strip('\00 ')[::-1]
                 ]
+
+            # Hack added for 24247 and higher in HotS
+            if info[2]!=16 and self.offset:
+                info[2]= info[2]-1
+
             #print hex(info[1]), "P"+str(info[2]), info[3]
             attribute_events.append(Attribute(info))
 
@@ -91,6 +97,8 @@ class AttributesEventsReader_17326(AttributesEventsReader_Base):
     # The header length is increased from 4 to 5 bytes from patch 17326 and on.
     header_length = 5
 
+class AttributesEventsReader_24247(AttributesEventsReader_17326):
+    offset=True
 
 class DetailsReader_Base(Reader):
     Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10'])
