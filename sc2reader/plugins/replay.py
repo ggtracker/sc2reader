@@ -138,7 +138,7 @@ def SelectionTracker(replay):
             if error:
                 person.selection_errors += 1
                 if debug:
-                    logger.warn("Error detected in deselection mode {}.".format(event.deselect[0]))
+                    logger.warn("Error detected in deselection mode {0}.".format(event.deselect[0]))
 
         person.selection = player_selection
         # Not a real lock, so don't change it!

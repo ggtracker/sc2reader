@@ -245,7 +245,7 @@ class Unit(object):
         self.id = unit_id
 
     def __str__(self):
-        return "{} [{:X}]".format(self.name, self.id)
+        return "{0} [{1:X}]".format(self.name, self.id)
 
     def __repr__(self):
         return str(self)

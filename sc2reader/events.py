@@ -113,7 +113,7 @@ class CameraEvent(GameEvent):
         self.height_offset = height_offset
 
     def __str__(self):
-        return self._str_prefix() + "{} at ({}, {})".format(self.name, self.x,self.y)
+        return self._str_prefix() + "{0} at ({1}, {2})".format(self.name, self.x,self.y)
 
 class PlayerActionEvent(GameEvent):
     name = 'PlayerActionEvent'
@@ -132,7 +132,7 @@ class SendResourceEvent(PlayerActionEvent):
         self.custom = custom
 
     def __str__(self):
-        return self._str_prefix() + " transfer {} minerals, {} gas, {} terrazine, and {} custom to {}" % (self.minerals, self.vespene, self.terrazine, self.custom, self.reciever)
+        return self._str_prefix() + " transfer {0} minerals, {1} gas, {2} terrazine, and {3} custom to {4}" % (self.minerals, self.vespene, self.terrazine, self.custom, self.reciever)
 
     def load_context(self, replay):
         super(SendResourceEvent, self).load_context(replay)
@@ -151,7 +151,7 @@ class RequestResourceEvent(PlayerActionEvent):
         self.custom = custom
 
     def __str__(self):
-        return self._str_prefix() + " requests {} minerals, {} gas, {} terrazine, and {} custom" % (self.minerals, self.vespene, self.terrazine, self.custom)
+        return self._str_prefix() + " requests {0} minerals, {1} gas, {2} terrazine, and {3} custom" % (self.minerals, self.vespene, self.terrazine, self.custom)
 
 @loggable
 class AbilityEvent(PlayerActionEvent):
