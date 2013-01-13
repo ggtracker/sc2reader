@@ -551,3 +551,15 @@ class GameEventsReader_Beta(GameEventsReader_22612):
 
 class GameEventsReader_Beta_23925(GameEventsReader_Beta):
     PLAYER_JOIN_FLAGS = 32
+
+class GameEventsReader_Beta_24247(GameEventsReader_Beta_23925):
+    POFFSET = 1
+
+    def player_send_resource_event(self, data, fstamp, pid, event_type):
+        target = data.read_bits(4)-1
+        unknown = data.read_bits(4) #??
+        minerals = data.read_bits(32)
+        vespene = data.read_bits(32)
+        terrazine = data.read_bits(32) #??
+        custom = data.read_bits(32) #??
+        return SendResourceEvent(fstamp, pid, event_type, target, minerals, vespene, terrazine, custom)
