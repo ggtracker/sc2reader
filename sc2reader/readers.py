@@ -270,6 +270,8 @@ class GameEventsReader_Base(object):
                     read_bits(4)
                 elif event_type == 0x59:
                     read_bytes(4)
+                elif event_type == 0x00:
+                    read_bytes(1)
 
                 # Otherwise throw a read error
                 else:
