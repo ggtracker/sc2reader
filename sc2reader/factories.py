@@ -219,28 +219,101 @@ class SC2Factory(object):
         return (resource, resource_name)
 
 
-class SC2Cache(SC2Factory):
+import urlparse, time
 
-    def __init__(self, **options):
-        super(SC2Cache, self).__init__(self, **options)
-        self.cache = IntitializeCache(**options)
+class CachedSC2Factory(SC2Factory):
 
-    def load_map(self, map_file, options=None, **new_options):
-        options = options or utils.merged_dict(self.options, new_options)
+    def get_remote_cache_key(self, remote_resource):
+        # Strip the port and use the domain as the bucket
+        # and use the full path as the key
+        parseresult = urlparse.urlparse(remote_resource)
+        bucket = re.sub(r':.*', '', parseresult.netloc)
+        key = parseresult.path.strip('/')
+        return (bucket, key)
 
-        if self.cache.has(map_file):
-            return self.cache.get(map_file)
+    def load_remote_resource_contents(self, remote_resource, **options):
+        cache_key = self.get_remote_cache_key(remote_resource)
+        if not self.cache_has(cache_key):
+            resource = super(CachedSC2Factory, self).load_remote_resource_contents(remote_resource, **options)
+            self.cache_set(cache_key, resource)
         else:
-            map = super(SC2Cache, self).load_map(map_file, options=options)
-            self.cache.set(map_file, map)
-            return map
+            resource = self.cache_get(cache_key)
+        return resource
 
-    def load_replay(self, replay_file, options=None, **new_options):
-        options = options or utils.merged_dict(self.options, new_options)
+    def cache_has(self, cache_key):
+        raise NotImplemented()
 
-        if self.cache.has(replay_file):
-            return self.cache.get(replay_file)
+    def cache_get(self, cache_key):
+        raise NotImplemented()
+
+    def cache_set(self, cache_key, value):
+        raise NotImplemented()
+
+class FileCachedSC2Factory(CachedSC2Factory):
+    def __init__(self, cache_dir, **options):
+        super(FileCachedSC2Factory, self).__init__(**options)
+        self.cache_dir = os.path.abspath(cache_dir)
+        if not os.path.isdir(self.cache_dir):
+            raise ValueError("cache_dir ({}) must be an existing directory.".format(self.cache_dir))
+        elif not os.access(self.cache_dir, os.F_OK | os.W_OK | os.R_OK ):
+            raise ValueError("Must have read/write access to {} for local file caching.".format(self.cache_dir))
+
+    def cache_has(self, cache_key):
+        return os.path.exists(self.cache_path(cache_key))
+
+    def cache_get(self, cache_key, **options):
+        return self.load_local_resource_contents(self.cache_path(cache_key),**options)
+
+    def cache_set(self, cache_key, value):
+        cache_path = self.cache_path(cache_key)
+        bucket_dir = os.path.dirname(cache_path)
+        if not os.path.exists(bucket_dir):
+            os.makedirs(bucket_dir)
+
+        with open(cache_path, 'w') as out:
+            out.write(value)
+
+    def cache_path(self, cache_key):
+        return os.path.join(self.cache_dir,*(cache_key))
+
+class DictCachedSC2Factory(CachedSC2Factory):
+    def __init__(self, cache_max_size=0, **options):
+        super(DictCachedSC2Factory, self).__init__(**options)
+        self.cache_dict = dict()
+        self.cache_used = dict()
+        self.cache_max_size = cache_max_size
+
+    def cache_set(self, cache_key, value):
+        if self.cache_max_size and len(self.cache_dict) >= self.cache_max_size:
+            oldest_cache_key = min(self.cache_used.items(), key=lambda e: e[1])[0]
+            del self.cache_used[oldest_cache_key]
+            del self.cache_dict[oldest_cache_key]
+        self.cache_dict[cache_key] = value
+        self.cache_used[cache_key] = time.time()
+
+    def cache_get(self, cache_key):
+        self.cache_used[cache_key] = time.time()
+        return self.cache_dict[cache_key]
+
+    def cache_has(self, cache_key):
+        return cache_key in self.cache_dict
+
+class DoubleCachedSC2Factory(DictCachedSC2Factory, FileCachedSC2Factory):
+
+    def __init__(self, cache_dir, cache_max_size=0, **options):
+        super(DoubleCachedSC2Factory, self).__init__(cache_max_size, cache_dir=cache_dir, **options)
+
+    def load_remote_resource_contents(self, remote_resource, **options):
+        cache_key = self.get_remote_cache_key(remote_resource)
+
+        if DictCachedSC2Factory.cache_has(self, cache_key):
+            return DictCachedSC2Factory.cache_get(self, cache_key)
+
+        if not FileCachedSC2Factory.cache_has(self, cache_key):
+            resource = SC2Factory.load_remote_resource_contents(self, remote_resource, **options)
+            FileCachedSC2Factory.cache_set(self, cache_key, resource)
         else:
-            replay = super(SC2Cache, self).load_replay(replay_file, options=options)
-            self.cache.set(replay_file, replay)
-            return replay
+            resource = FileCachedSC2Factory.cache_get(self, cache_key)
+
+        DictCachedSC2Factory.cache_set(self, cache_key, resource)
+        return resource
