@@ -163,7 +163,7 @@ class Observer(Person):
     def __repr__(self):
         return str(self)
     def __str__(self):
-        return "Player {} - {}".format(self.pid, self.name)
+        return "Player {0} - {1}".format(self.pid, self.name)
 
 class Player(Person):
     """
@@ -279,17 +279,17 @@ class PlayerSummary():
 
     def __str__(self):
         if not self.is_ai:
-            return '{} - {} - {}/{}/'.format(self.teamid, self.race, self.subregion, self.bnetid)
+            return '{0} - {1} - {2}/{3}/'.format(self.teamid, self.race, self.subregion, self.bnetid)
         else:
-            return '{} - {} - AI'.format(self.teamid, self.race)
+            return '{0} - {1} - AI'.format(self.teamid, self.race)
 
     def __repr__(self):
         return str(self)
-        
+
     def get_stats(self):
         s = ''
         for k in self.stats:
-            s += '{}: {}\n'.format(self.stats_pretty_names[k], self.stats[k])
+            s += '{0}: {1}\n'.format(self.stats_pretty_names[k], self.stats[k])
         return s.strip()
 
 # TODO: Are there libraries with classes like this in them

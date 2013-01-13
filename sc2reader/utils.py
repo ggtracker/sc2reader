@@ -102,7 +102,7 @@ class ReplayBuffer(object):
 
     def read_short(self, endian=LITTLE_ENDIAN):
         #if self.bytes_left() < 2:
-        #    raise EOFError("Cannot read short; only {} bytes left in buffer".format(self.left))
+        #    raise EOFError("Cannot read short; only {0} bytes left in buffer".format(self.left))
 
         if self.bit_shift == 0:
             return struct.unpack(endian+'H', self.read(2))[0]
@@ -119,7 +119,7 @@ class ReplayBuffer(object):
 
     def read_int(self, endian=LITTLE_ENDIAN):
         #if self.bytes_left() < 4:
-        #    raise EOFError("Cannot read int; only {} bytes left in buffer".format(self.left))
+        #    raise EOFError("Cannot read int; only {0} bytes left in buffer".format(self.left))
 
         if self.bit_shift == 0:
             return struct.unpack(endian+'I', self.read(4))[0]
@@ -136,7 +136,7 @@ class ReplayBuffer(object):
 
     def read_bits(self, bits):
         #if self.bytes_left()*8 < bits-(8-self.bit_shift):
-        #    raise EOFError("Cannot read {} bits. only {} bits left in buffer.".format(bits, (self.length-self.tell()+1)*8-self.bit_shift))
+        #    raise EOFError("Cannot read {0} bits. only {1} bits left in buffer.".format(bits, (self.length-self.tell()+1)*8-self.bit_shift))
         bit_shift = self.bit_shift
         if bit_shift!=0:
             bits_left = 8-bit_shift
@@ -188,7 +188,7 @@ class ReplayBuffer(object):
 
     def read_bytes(self, bytes):
         #if self.bytes_left() < bytes:
-        #    raise EOFError("Cannot read {} bytes. only {} bytes left in buffer.".format(bytes, self.length-self.tell()))
+        #    raise EOFError("Cannot read {0} bytes. only {1} bytes left in buffer.".format(bytes, self.length-self.tell()))
 
         if self.bit_shift==0:
             return self.read(bytes)
@@ -470,7 +470,7 @@ def extract_data_file(data_file, archive):
 
     except Exception as e:
         trace = sys.exc_info()[2]
-        raise exceptions.MPQError("Unable to extract file: {}".format(data_file),e), None, trace
+        raise exceptions.MPQError("Unable to extract file: {0}".format(data_file),e), None, trace
 
 def read_header(replay_file):
     # Extract useful header information from the MPQ files. This information
@@ -481,7 +481,7 @@ def read_header(replay_file):
 
     # Sanity check that the input is in fact an MPQ file
     if data.length==0 or data.read(4) != "MPQ\x1b":
-        msg = "File '{}' is not an MPQ file";
+        msg = "File '{0}' is not an MPQ file";
         raise exceptions.FileError(msg.format(getattr(replay_file, 'name', '<NOT AVAILABLE>')))
 
     max_data_size = data.read_int(LITTLE_ENDIAN)

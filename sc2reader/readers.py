@@ -273,16 +273,16 @@ class GameEventsReader_Base(object):
 
                 # Otherwise throw a read error
                 else:
-                    raise ReadError("Event type {} unknown at position {}.".format(hex(event_type),hex(event_start)), event_type, event_start, replay, game_events, data)
+                    raise ReadError("Event type {0} unknown at position {1}.".format(hex(event_type),hex(event_start)), event_type, event_start, replay, game_events, data)
 
                 byte_align()
                 event_start = tell()
 
             return game_events
         except ParseError as e:
-            raise ReadError("Parse error '{}' unknown at position {}.".format(e.msg, hex(event_start)), event_type, event_start, replay, game_events, data)
+            raise ReadError("Parse error '{0}' unknown at position {1}.".format(e.msg, hex(event_start)), event_type, event_start, replay, game_events, data)
         except EOFError as e:
-            raise ReadError("EOFError error '{}' unknown at position {}.".format(e.msg, hex(event_start)), event_type, event_start, replay, game_events, data)
+            raise ReadError("EOFError error '{0}' unknown at position {1}.".format(e.msg, hex(event_start)), event_type, event_start, replay, game_events, data)
 
 
 
@@ -341,7 +341,7 @@ class GameEventsReader_16117(GameEventsReader_Base):
         elif action == 2:
             return GetFromHotkeyEvent(fstamp, pid, event_type, hotkey, overlay)
         else:
-            raise ParseError("Hotkey Action '{}' unknown".format(hotkey))
+            raise ParseError("Hotkey Action '{0}' unknown".format(hotkey))
 
     def player_send_resource_event(self, data, fstamp, pid, event_type):
         target = data.read_bits(4)

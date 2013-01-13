@@ -303,7 +303,7 @@ class Replay(Resource):
             elif details.os == 1:
                 self.os = "Mac"
             else:
-                raise ValueError("Unknown operating system {} detected.".format(details.os))
+                raise ValueError("Unknown operating system {0} detected.".format(details.os))
 
             self.windows_timestamp = details.file_time
             self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
@@ -381,7 +381,7 @@ class Replay(Resource):
             player.team = self.team[team_number]
 
             # Do basic win/loss processing from details data
-            if   pdata.result == 1:
+            if pdata.result == 1:
                 player.team.result = "Win"
                 self.winner = player.team
             elif pdata.result == 2:
@@ -456,7 +456,7 @@ class Replay(Resource):
                 self.recorder.recorder = True
             else:
                 self.recorder = None
-                self.logger.error("{} possible recorders remain: {}".format(len(recorders), recorders))
+                self.logger.error("{0} possible recorders remain: {1}".format(len(recorders), recorders))
 
         player_names = sorted(map(lambda p: p.name, self.people))
         hash_input = self.gateway+":"+','.join(player_names)
@@ -584,7 +584,7 @@ class Replay(Resource):
             if callback(self):
                 return reader
         else:
-            raise ValueError("Valid {} reader could not found for build {}".format(data_file, self.build))
+            raise ValueError("Valid {0} reader could not found for build {1}".format(data_file, self.build))
 
     def _get_datapack(self):
         for callback, datapack in self.registered_datapacks:
@@ -980,7 +980,7 @@ class GameSummary(Resource):
                                 build_index=command[1] >> 16
                             ))
             else:
-                self.logger.warn("Unknown item in build order, key = {}".format(translation_key))
+                self.logger.warn("Unknown item in build order, key = {0}".format(translation_key))
 
         # Once we've compiled all the build commands we need to make
         # sure they are properly sorted for presentation.
@@ -1054,7 +1054,7 @@ class GameSummary(Resource):
             self.player[player.pid] = player
 
     def __str__(self):
-        return "{} - {} {}".format(self.start_time,self.game_length,
+        return "{0} - {1} {2}".format(self.start_time,self.game_length,
                                          'v'.join(''.join(self.players[p].race[0] for p in self.teams[tid]) for tid in self.teams))
 
 

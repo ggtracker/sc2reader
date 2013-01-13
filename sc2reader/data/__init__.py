@@ -273,7 +273,7 @@ class Unit(object):
         self._cmp_val = (self.id << 16) | self.type
 
     def __str__(self):
-        return "{} [{:X}]".format(self.name, self.id)
+        return "{0} [{1:X}]".format(self.name, self.id)
 
     def __cmp__(self, other):
         if self._cmp_val == other._cmp_val:
@@ -293,8 +293,8 @@ class Ability(object):
     pass
 
 def load_build(expansion, version):
-    unit_file = '{}/{}_units.csv'.format(expansion,version)
-    abil_file = '{}/{}_abilities.csv'.format(expansion,version)
+    unit_file = '{0}/{1}_units.csv'.format(expansion,version)
+    abil_file = '{0}/{1}_abilities.csv'.format(expansion,version)
 
     units = dict()
     for entry in pkgutil.get_data('sc2reader.data', unit_file).split('\n'):
