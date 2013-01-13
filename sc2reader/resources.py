@@ -1022,7 +1022,7 @@ class GameSummary(Resource):
 
     def __str__(self):
         return "{0} - {1} {2}".format(self.start_time,self.game_length,
-                                         'v'.join(''.join(self.players[p].race[0] for p in self.teams[tid]) for tid in self.teams))
+                                         'v'.join(''.join(self.players[p.pid].play_race[0] for p in self.teams[tid]) for tid in self.teams))
 
 
 
