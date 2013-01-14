@@ -217,10 +217,9 @@ class GameEventsReader_Base(object):
     HOTKEY_OVERLAY = 0
     POFFSET = -1
 
-    def __call__(self, data, replay):
-        EVENT_DISPATCH = {
+    def __init__(self):
+        self.EVENT_DISPATCH = {
             0x05: self.game_start_event,
-            0x07: self.beta_join_event,
             0x0B: self.player_join_event,
             0x0C: self.player_join_event,
             0x19: self.player_leave_event,
@@ -230,9 +229,9 @@ class GameEventsReader_Base(object):
             0x1F: self.player_send_resource_event,
             0x31: self.camera_event,
             0x46: self.player_request_resource_event,
-            0x65: self.beta_win_event,
         }
 
+    def __call__(self, data, replay):
         game_events = list()
         fstamp = 0
         debug = replay.opt.debug
@@ -254,8 +253,8 @@ class GameEventsReader_Base(object):
                 event_type = read_bits(7)
 
                 # Check for a lookup
-                if event_type in EVENT_DISPATCH:
-                    event = EVENT_DISPATCH[event_type](data, fstamp, pid, event_type)
+                if event_type in self.EVENT_DISPATCH:
+                    event = self.EVENT_DISPATCH[event_type](data, fstamp, pid, event_type)
                     if debug:
                         event.bytes = data.read_range(event_start, tell())
                     append(event)
@@ -510,6 +509,12 @@ class GameEventsReader_22612(GameEventsReader_19595):
     UNIT_INDEX_BITS = 9 # Now can select up to 512 units
 
 class GameEventsReader_Beta(GameEventsReader_22612):
+
+    def __init__(self):
+        super(GameEventsReader_Beta, self).__init__()
+        self.EVENT_DISPATCH[0x07] = self.beta_join_event
+        self.EVENT_DISPATCH[0x65] = self.beta_win_event
+
     def beta_join_event(self, data, fstamp, pid, event_type):
         flags = data.read_bytes(5)
         return BetaJoinEvent(fstamp, pid, event_type, flags)

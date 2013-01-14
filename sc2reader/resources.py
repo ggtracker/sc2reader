@@ -334,7 +334,7 @@ class Replay(Resource):
             return
 
         # Create and add the players based on attribute and details information
-        player_index, obs_index, default_region = 0, 1, ''
+        player_index, obs_index, default_region = 0, 0, ''
         player_data = self.raw_data['replay.details'].players
         for pid, attributes in sorted(self.attributes.iteritems()):
 
