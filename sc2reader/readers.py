@@ -83,10 +83,7 @@ class AttributesEventsReader_Base(Reader):
                     data.read(4).strip('\00 ')[::-1]
                 ]
 
-            # Hack added for 24247 and higher in HotS
-            if info[2]!=16 and self.offset:
-                info[2]= info[2]-1
-
+            if info[2]!=16: info[2]-=1 # Convert from 1-offset to 0-offset
             #print hex(info[1]), "P"+str(info[2]), info[3]
             attribute_events.append(Attribute(info))
 
@@ -97,8 +94,6 @@ class AttributesEventsReader_17326(AttributesEventsReader_Base):
     # The header length is increased from 4 to 5 bytes from patch 17326 and on.
     header_length = 5
 
-class AttributesEventsReader_24247(AttributesEventsReader_17326):
-    offset=True
 
 class DetailsReader_Base(Reader):
     Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10'])
@@ -173,6 +168,8 @@ class DetailsReader_Beta(DetailsReader_Base):
     Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10', 'unknown11', 'unknown12'])
 
 class MessageEventsReader_Base(Reader):
+    POFFSET=-1
+
     def __call__(self, data, replay):
         # The replay.message.events file is a single long list containing three
         # different element types (minimap pings, player messages, and some sort
@@ -186,6 +183,7 @@ class MessageEventsReader_Base(Reader):
             # All the element types share the same time, pid, flags header.
             frame += data.read_timestamp()
             pid = data.read_bits(5)
+            if pid != 16: pid+=self.POFFSET
             t = data.read_bits(3)
             flags = data.read_byte()
 
@@ -208,6 +206,8 @@ class MessageEventsReader_Base(Reader):
 
         return AttributeDict(pings=pings, messages=messages, packets=packets)
 
+class MessageEventsReader_Beta_24247(MessageEventsReader_Base):
+    POFFSET=0
 
 class GameEventsReader_Base(object):
     PLAYER_JOIN_FLAGS = 4
@@ -215,6 +215,7 @@ class GameEventsReader_Base(object):
     ABILITY_TEAM_FLAG = False
     UNIT_INDEX_BITS = 8
     HOTKEY_OVERLAY = 0
+    POFFSET = -1
 
     def __call__(self, data, replay):
         EVENT_DISPATCH = {
@@ -249,6 +250,7 @@ class GameEventsReader_Base(object):
             while event_start != data_length:
                 fstamp += read_timestamp()
                 pid = read_bits(5)
+                if pid != 16: pid+= self.POFFSET
                 event_type = read_bits(7)
 
                 # Check for a lookup
@@ -354,7 +356,7 @@ class GameEventsReader_16117(GameEventsReader_Base):
             raise ParseError("Hotkey Action '{0}' unknown".format(hotkey))
 
     def player_send_resource_event(self, data, fstamp, pid, event_type):
-        target = data.read_bits(4)
+        target = data.read_bits(4)-1 # Convert from 1-offset to 0-offset
         unknown = data.read_bits(4) #??
         minerals = data.read_bits(32)
         vespene = data.read_bits(32)
@@ -553,13 +555,4 @@ class GameEventsReader_Beta_23925(GameEventsReader_Beta):
     PLAYER_JOIN_FLAGS = 32
 
 class GameEventsReader_Beta_24247(GameEventsReader_Beta_23925):
-    POFFSET = 1
-
-    def player_send_resource_event(self, data, fstamp, pid, event_type):
-        target = data.read_bits(4)-1
-        unknown = data.read_bits(4) #??
-        minerals = data.read_bits(32)
-        vespene = data.read_bits(32)
-        terrazine = data.read_bits(32) #??
-        custom = data.read_bits(32) #??
-        return SendResourceEvent(fstamp, pid, event_type, target, minerals, vespene, terrazine, custom)
+    POFFSET = 0
