@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import zlib
 import pprint
 import hashlib
+import collections
 from datetime import datetime
 import time
 from StringIO import StringIO
@@ -332,37 +333,17 @@ class Replay(Resource):
             return
         if 'replay.attributes.events' not in self.raw_data:
             return
+        if 'replay.initData' not in self.raw_data:
+            return
 
-        # Create and add the players based on attribute and details information
-        player_index, obs_index, default_region = 0, 0, ''
-        player_data = self.raw_data['replay.details'].players
-        for pid, attributes in sorted(self.attributes.iteritems()):
-
-            # We've already processed the global attributes
-            if pid == 16: continue
-
-            # Open Slots are skipped because it doesn't seem useful to store
-            # an "Open" player to fill a spot that would otherwise be empty.
-            if attributes['Player Type'] == 'Open': continue
-
-            # Get the player data from the details file, increment the index to
-            # Keep track of which player we are processing
-            pdata = player_data[player_index]
-            player_index += 1
-
-            # If this is a human player, push back the initial observer index in
-            # the list of all human players we gathered from the initdata file.
-            if attributes['Player Type'] == 'Human':
-                obs_index += 1
-
-            # Create the player using the current pid and the player name from
-            # The details file. This works because players are stored in order
-            # of pid inside of the details file. Attributes and Details must be
-            # processed together because Details doesn't index players by or
-            # store their player ids; Attributes can provide that information
-            # and allow for accurate pid mapping even with computers, observers,
-            # and open open slots.
-            #
+        # 1. pids are in lobby join order, use initData.player_names
+        # 2. use the name to get the player_data index
+        # 2a. if observer, save pid+name for later
+        # 3. use the player_data index as the attrib_data index...?
+        # 4. use the player_data and attribute_data to load the player
+        # 5. after loop, load the computer players and (optionally) their attributes
+        # 6. then load the observer pid,name using attributes if available
+        def createPlayer(pid, pdata, attributes):
             # General information re: each player comes from the following files
             #   * replay.initData
             #   * replay.details
@@ -373,7 +354,9 @@ class Replay(Resource):
             player = Player(pid,pdata.name)
 
             # Cross reference the player and team lookups
-            team_number = attributes['Teams'+self.type]
+            # TODO: Players without attribute events, where do we get the team info?
+            # print pdata.name, attributes, pdata
+            team_number = attributes.get('Teams'+self.type,0)
             if not team_number in self.team:
                 self.team[team_number] = Team(team_number)
                 self.teams.append(self.team[team_number])
@@ -387,20 +370,19 @@ class Replay(Resource):
             elif pdata.result == 2:
                 player.team.result = "Loss"
 
-            player.pick_race = attributes['Race']
+            player.pick_race = attributes.get('Race','Unknown')
             player.play_race = LOCALIZED_RACES.get(pdata.race, pdata.race)
-            player.difficulty = attributes['Difficulty']
-            player.is_human = (attributes['Player Type'] == 'Human')
+            player.difficulty = attributes.get('Difficulty','Unknown')
+            player.is_human = (attributes.get('Player Type','Computer') == 'Human')
             player.uid = pdata.bnet.uid
             player.subregion = pdata.bnet.subregion
             player.handicap = pdata.handicap
 
             # We need initData for the gateway portion of the url!
-            if 'replay.initData' in self.raw_data and self.gateway:
+            if self.gateway:
                 player.gateway = self.gateway
                 if player.is_human and player.subregion:
                     player.region = REGIONS[self.gateway].get(player.subregion, 'Unknown')
-                    default_region = player.region
 
             # Conversion instructions to the new color object:
             #   color_rgba is the color object itself
@@ -415,35 +397,58 @@ class Replay(Resource):
             self.player[pid] = player
             self.person[pid] = player
 
+        def createObserver(pid, name, attributes):
+            observer = Observer(pid,name)
+            self.observers.append(observer)
+            self.people.append(observer)
+            self.person[pid] = observer
+
+        observer_data = list()
+        unassigned_player_data = collections.OrderedDict((p.name, (idx,p)) for idx, p in enumerate(self.raw_data['replay.details'].players))
+        try:
+            for pid, name in enumerate(self.raw_data['replay.initData'].player_names):
+                if name in unassigned_player_data:
+                    idx, pdata = unassigned_player_data[name]
+                    attributes = self.attributes.get(idx,dict())
+                    createPlayer(pid, pdata, attributes)
+                    del unassigned_player_data[name]
+                else:
+                    observer_data.append((pid,name))
+
+            comp_start_id = len(self.raw_data['replay.initData'].player_names)
+            for name, (idx,pdata) in unassigned_player_data.items():
+                attributes = self.attributes.get(idx,dict())
+                createPlayer(comp_start_id, pdata, attributes)
+                comp_start_id+=1
+
+            obs_start_idx = len(self.raw_data['replay.details'].players)
+            for pid, name in observer_data:
+                attributes = self.attributes.get(obs_start_idx,dict())
+                createObserver(pid, name, attributes)
+                obs_start_idx+=1
+        except:
+            print unassigned_player_data
+            print self.raw_data['replay.initData'].player_names
+            raise
+
+
+        self.humans = filter(lambda p: p.is_human, self.people)
+
         #Create an store an ordered lineup string
         for team in self.teams:
             team.lineup = ''.join(sorted(player.play_race[0].upper() for player in team))
 
         self.real_type = real_type(self.teams)
 
-        if 'replay.initData' in self.raw_data:
-            # Assign the default region to computer players for consistency
-            # We know there will be a default region because there must be
-            # at least 1 human player or we wouldn't have a self.
-            for player in self.players:
-                if not player.is_human:
-                    player.region = default_region
-
-            # Create observers out of the leftover names gathered from initData
-            all_players = [p.name for p in self.players]
-            all_people = self.raw_data['replay.initData'].player_names
-            for obs_name in all_people:
-                if obs_name in all_players: continue
-
-                observer = Observer(obs_index,obs_name)
-                observer.region = default_region
-                self.observers.append(observer)
-                self.people.append(observer)
-                self.person[obs_index] = observer
-                obs_index += 1
-
-        # Miscellaneous people processing
-        self.humans = filter(lambda p: p.is_human, self.people)
+        # Assign the default region to computer players for consistency
+        # We know there will be a default region because there must be
+        # at least 1 human player or we wouldn't have a self.
+        default_region = self.humans[0].region
+        for player in self.players:
+            if not player.is_human:
+                player.region = default_region
+        for obs in self.observers:
+            obs.region = default_region
 
         if 'replay.message.events' in self.raw_data:
             # Figure out recorder
