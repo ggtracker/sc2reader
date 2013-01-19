@@ -57,9 +57,10 @@ class MessageEvent(Event):
 class ChatEvent(MessageEvent):
     name = 'ChatEvent'
 
-    def __init__(self, frame, pid, flags, target, text):
+    def __init__(self, frame, pid, flags, target, text, extension):
         super(ChatEvent, self).__init__(frame, pid, flags)
         self.target = target
+        self.extension = extension
         self.text = text
         self.to_all = (self.target == 0)
         self.to_allies = (self.target == 2)

@@ -169,7 +169,7 @@ class DetailsReader_Beta(DetailsReader_Base):
 
 class MessageEventsReader_Base(Reader):
     POFFSET=-1
-
+    TARGET_BITS=3
     def __call__(self, data, replay):
         # The replay.message.events file is a single long list containing three
         # different element types (minimap pings, player messages, and some sort
@@ -187,7 +187,7 @@ class MessageEventsReader_Base(Reader):
             t = data.read_bits(3)
             flags = data.read_byte()
 
-            if flags == 0x83:
+            if flags in (0x83,0x89):
                 # We need some tests for this
                 x = data.read_int(LITTLE_ENDIAN)
                 y = data.read_int(LITTLE_ENDIAN)
@@ -198,16 +198,19 @@ class MessageEventsReader_Base(Reader):
                 packets.append(PacketEvent(frame, pid, flags, info))
 
             elif flags & 0x80 == 0:
-                target = flags & 0x07
-                extension = (flags & 0x18) << 3
+                lo_mask = 2**self.TARGET_BITS-1
+                hi_mask = 0xFF ^ lo_mask
+                target = flags & lo_mask
+                extension = (flags & hi_mask) << 3
                 length = data.read_byte()
                 text = data.read_bytes(length + extension)
-                messages.append(ChatEvent(frame, pid, flags, target, text))
+                messages.append(ChatEvent(frame, pid, flags, target, text, (flags, lo_mask, hi_mask, length, extension)))
 
         return AttributeDict(pings=pings, messages=messages, packets=packets)
 
 class MessageEventsReader_Beta_24247(MessageEventsReader_Base):
     POFFSET=0
+    TARGET_BITS=4
 
 class GameEventsReader_Base(object):
     PLAYER_JOIN_FLAGS = 4
