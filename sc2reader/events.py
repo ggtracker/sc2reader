@@ -152,7 +152,7 @@ class SendResourceEvent(PlayerActionEvent):
     def load_context(self, replay):
         super(SendResourceEvent, self).load_context(replay)
         self.sender = replay.player[self.sender]
-        self.reciever = replay.player[self.reciever]
+        self.reciever = replay.players[self.reciever]
 
 @loggable
 class RequestResourceEvent(PlayerActionEvent):
