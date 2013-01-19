@@ -470,8 +470,8 @@ class Replay(Resource):
     def load_messages(self):
         if 'replay.message.events' in self.raw_data:
             self.messages = self.raw_data['replay.message.events'].messages
-            self.pings = self.raw_data['replay.message.events'].packets
-            self.packets = self.raw_data['replay.message.events'].pings
+            self.pings = self.raw_data['replay.message.events'].pings
+            self.packets = self.raw_data['replay.message.events'].packets
             self.events += self.messages+self.pings+self.packets
 
         self.events = sorted(self.events, key=lambda e: e.frame)
