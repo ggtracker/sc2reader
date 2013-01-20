@@ -345,6 +345,11 @@ REGIONS = {
         1: 'sea',
     },
 
+    # Singapore
+    'sg': {
+        1: 'sg',
+    },
+
     # Public Test
     'xx': {
         1: 'xx',
