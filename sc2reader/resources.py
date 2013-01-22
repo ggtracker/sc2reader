@@ -610,8 +610,7 @@ class Replay(Resource):
             self.raw_data[data_file] = reader(data_buffer, self)
         elif self.opt.debug and data_file != 'replay.message.events':
             raise ValueError("{0} not found in archive".format(data_file))
-        else:
-            self.logger.error("{0} not found in archive".format(data_file))
+
 
 class Map(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
