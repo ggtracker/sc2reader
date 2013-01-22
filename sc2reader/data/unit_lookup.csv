@@ -59,7 +59,7 @@ FusionCore,FusionCore
 AutoTurret,AutoTurret
 SiegeTankSieged,SiegeTankSieged
 SiegeTank,SiegeTank
-Viking,Viking
+VikingFighter,Viking
 VikingAssault,VikingAssault
 CommandCenterFlying,CommandCenterFlying
 BarracksTechLab,BarracksTechLab
@@ -404,7 +404,7 @@ NydusCanalAttackerWeapon,NydusCanalAttackerWeapon
 ViperConsumeStructureWeapon,ViperConsumeStructureWeapon
 ResourceBlocker,ResourceBlocker
 TempestWeapon,TempestWeapon
-YoinkMissile,YoinkMissile
+YoinkMissile,AbductMissile
 WarHoundWeapon,WarHoundWeapon
 EyeStalkWeapon,EyeStalkWeapon
 WidowMineWeapon,WidowMineWeapon
