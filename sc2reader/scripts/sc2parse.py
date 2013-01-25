@@ -3,7 +3,7 @@
 """
 This script is intended for use debugging parse issues on replays.
 
-	sc2parse [FILES..]
+    sc2parse [FILES..]
 
 Recursively parses all the files. When exceptions are thrown it catches them
 and attempts to print out any information that might be needed for debug. If
@@ -24,33 +24,33 @@ import traceback
 sc2reader.log_utils.log_to_console('INFO')
 
 def main():
-	for argument in sys.argv[1:]:
-		for path in sc2reader.utils.get_files(argument,extension='SC2Replay'):
-			try:
-				replay = sc2reader.load_replay(path, debug=True, verbose=True)
-			except sc2reader.exceptions.ReadError as e:
-				print
-				print path
-				print '{build} - {real_type} on {map_name} - Played {start_time}'.format(**e.replay.__dict__)
-				print '[ERROR]', e.message
-				for event in e.game_events[-5:]:
-					print '{0} - {1}'.format(hex(event.type),event.bytes.encode('hex'))
-				e.buffer.seek(e.location)
-				print e.buffer.peek(50).encode('hex')
-				print
-			except Exception as e:
-				print
-				print path
-				replay = sc2reader.load_replay(path, debug=True, load_level=1)
-				print '{build} - {real_type} on {map_name} - Played {start_time}'.format(**replay.__dict__)
-				print '[ERROR]', e.message
-				for pid, attributes in replay.attributes.items():
-					print pid, attributes
-				for pid, info in enumerate(replay.raw_data['replay.details'].players):
-					print pid, info
-				print replay.raw_data['replay.initData'].player_names
-				traceback.print_exc()
-				print
+    for argument in sys.argv[1:]:
+        for path in sc2reader.utils.get_files(argument,extension='SC2Replay'):
+            try:
+                replay = sc2reader.load_replay(path, debug=True, verbose=True)
+            except sc2reader.exceptions.ReadError as e:
+                print
+                print path
+                print '{build} - {real_type} on {map_name} - Played {start_time}'.format(**e.replay.__dict__)
+                print '[ERROR]', e.message
+                for event in e.game_events[-5:]:
+                    print '{0} - {1}'.format(hex(event.type),event.bytes.encode('hex'))
+                e.buffer.seek(e.location)
+                print e.buffer.peek(50).encode('hex')
+                print
+            except Exception as e:
+                print
+                print path
+                replay = sc2reader.load_replay(path, debug=True, load_level=1)
+                print '{build} - {real_type} on {map_name} - Played {start_time}'.format(**replay.__dict__)
+                print '[ERROR]', e.message
+                for pid, attributes in replay.attributes.items():
+                    print pid, attributes
+                for pid, info in enumerate(replay.raw_data['replay.details'].players):
+                    print pid, info
+                print replay.raw_data['replay.initData'].player_names
+                traceback.print_exc()
+                print
 
 
 if __name__ == '__main__':
