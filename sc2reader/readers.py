@@ -96,7 +96,9 @@ class AttributesEventsReader_17326(AttributesEventsReader_Base):
 
 
 class DetailsReader_Base(Reader):
+    PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result'])
     Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10'])
+
     def __call__(self, data, replay):
         # The entire details file is just a serialized data structure
         #
@@ -153,7 +155,7 @@ class DetailsReader_Base(Reader):
         for pdata in details[0]:
             pdata[1] = BnetData(*ordered_values(pdata[1]))
             pdata[3] = ColorData(*ordered_values(pdata[3]))
-            player = PlayerData(*ordered_values(pdata))
+            player = self.PlayerData(*ordered_values(pdata))
             players.append(player)
         details[0] = players
 
@@ -166,6 +168,9 @@ class DetailsReader_22612(DetailsReader_Base):
 
 class DetailsReader_Beta(DetailsReader_Base):
     Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10', 'unknown11', 'unknown12'])
+
+class DetailsReader_Beta_24764(DetailsReader_Beta):
+    PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result','unknown4'])
 
 class MessageEventsReader_Base(Reader):
     POFFSET=-1

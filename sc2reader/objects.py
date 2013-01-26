@@ -10,7 +10,6 @@ from sc2reader.utils import PersonDict, AttributeDict
 Location = namedtuple('Location',('x','y'))
 
 MapData = namedtuple('MapData',['gateway','map_hash'])
-PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result'])
 ColorData = namedtuple('ColorData',['a','r','g','b'])
 BnetData = namedtuple('BnetData',['unknown1','unknown2','subregion','uid'])
 
