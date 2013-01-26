@@ -68,11 +68,12 @@ def main():
                     print
                 except Exception as e2:
                     replay = sc2reader.load_replay(path, debug=True, load_level=0)
+                    print 'Total failure parsing {release_string}'.format(**replay.__dict__)
                     print '[ERROR]', e.message
                     print '[ERROR]', e2.message
                     traceback.print_exc()
                     print
-                    
+
 
 
 if __name__ == '__main__':
