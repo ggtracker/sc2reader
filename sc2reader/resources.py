@@ -18,7 +18,7 @@ from sc2reader import utils
 from sc2reader import log_utils
 from sc2reader import readers
 from sc2reader.data import builds as datapacks
-from sc2reader.events import AbilityEvent, CameraEvent, HotkeyEvent, SelectionEvent, ChatEvent, PacketEvent, PingEvent
+from sc2reader.events import AbilityEvent, CameraEvent, HotkeyEvent, SelectionEvent
 from sc2reader.exceptions import SC2ReaderLocalizationError
 from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotFile
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, LOBBY_PROPERTIES
@@ -497,9 +497,6 @@ class Replay(Resource):
                 self.selection_events.append(event)
             elif is_ability:
                 self.ability_events.append(event)
-
-            if isinstance(event, ChatEvent) or isinstance(event, PacketEvent) or isinstance(event, PingEvent):
-                continue
 
             event.load_context(self)
             # TODO: Should this be documented or removed? I don't like it.
