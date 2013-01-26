@@ -228,6 +228,7 @@ class GameEventsReader_Base(object):
     def __init__(self):
         self.EVENT_DISPATCH = {
             0x05: self.game_start_event,
+            0x07: self.beta_join_event,
             0x0B: self.player_join_event,
             0x0C: self.player_join_event,
             0x19: self.player_leave_event,
@@ -308,6 +309,10 @@ class GameEventsReader_Base(object):
 class GameEventsReader_16117(GameEventsReader_Base):
     def game_start_event(self, data, fstamp, pid, event_type):
         return GameStartEvent(fstamp, pid, event_type)
+
+    def beta_join_event(self, data, fstamp, pid, event_type):
+        flags = data.read_bytes(5)
+        return BetaJoinEvent(fstamp, pid, event_type, flags)
 
     def player_join_event(self, data, fstamp, pid, event_type):
         unknown_flags = data.read_bits(self.PLAYER_JOIN_FLAGS)
@@ -520,16 +525,20 @@ class GameEventsReader_Beta(GameEventsReader_22612):
 
     def __init__(self):
         super(GameEventsReader_Beta, self).__init__()
-        self.EVENT_DISPATCH[0x07] = self.beta_join_event
         self.EVENT_DISPATCH[0x65] = self.beta_win_event
-
-    def beta_join_event(self, data, fstamp, pid, event_type):
-        flags = data.read_bytes(5)
-        return BetaJoinEvent(fstamp, pid, event_type, flags)
+        self.EVENT_DISPATCH[0x2B] = self.beta_end_game_event
 
     def beta_win_event(self, data, fstamp, pid, event_type):
         flags = 0
         return BetaWinEvent(fstamp, pid, event_type, flags)
+
+    def beta_end_game_event(self, data, fstamp, pid, event_type):
+        flags = data.read_bits(4)
+        count = data.read_byte()
+        for name in range(count):
+            data.read_bytes(data.read_byte())
+        data.read_byte()
+        return UnknownEvent(fstamp, pid, event_type)
 
     def camera_event(self, data, fstamp, pid, event_type):
         x = y= distance = pitch = yaw = height = 0
