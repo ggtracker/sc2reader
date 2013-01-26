@@ -41,7 +41,7 @@ def main():
                 if not args.one_each or not already_did:
                     replay = sc2reader.load_replay(path, debug=True, load_level=1)
                     if not args.one_each or replay.is_ladder:
-                        replay = sc2reader.load_replay(path, debug=True, verbose=True)
+                        replay = sc2reader.load_replay(path, debug=True)
             except sc2reader.exceptions.ReadError as e:
                 print
                 print path
@@ -56,13 +56,15 @@ def main():
                 print
                 print path
                 try:
-                    replay = sc2reader.load_replay(path, debug=True, load_level=1)
+                    replay = sc2reader.load_replay(path, debug=True, load_level=2)
                     print '{build} - {real_type} on {map_name} - Played {start_time}'.format(**replay.__dict__)
                     print '[ERROR]', e.message
                     for pid, attributes in replay.attributes.items():
                         print pid, attributes
                     for pid, info in enumerate(replay.raw_data['replay.details'].players):
                         print pid, info
+                    for message in replay.raw_data['replay.message.events'].messages:
+                        print message.pid, message.text
                     print replay.raw_data['replay.initData'].player_names
                     traceback.print_exc()
                     print
