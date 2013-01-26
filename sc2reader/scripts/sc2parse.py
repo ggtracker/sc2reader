@@ -27,6 +27,7 @@ sc2reader.log_utils.log_to_console('INFO')
 def main():
     parser = argparse.ArgumentParser(description="Recursively parses replay files, inteded for debugging parse issues.")
     parser.add_argument('--one_each', help="Attempt to parse only one Ladder replay for each release_string", action="store_true")
+    parser.add_argument('--ladder_only', help="If a non-ladder game fails, ignore it", action="store_true")
     parser.add_argument('folders', metavar='folder', type=str, nargs='+', help="Path to a folder")
     args = parser.parse_args()
 
@@ -43,6 +44,8 @@ def main():
                     if not args.one_each or replay.is_ladder:
                         replay = sc2reader.load_replay(path, debug=True)
             except sc2reader.exceptions.ReadError as e:
+                if args.ladder_only and not e.replay.is_ladder: continue
+
                 print
                 print path
                 print '{build} - {real_type} on {map_name} - Played {start_time}'.format(**e.replay.__dict__)
