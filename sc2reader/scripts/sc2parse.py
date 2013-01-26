@@ -43,6 +43,7 @@ def main():
                     replay = sc2reader.load_replay(path, debug=True, load_level=1)
                     if not args.one_each or replay.is_ladder:
                         replay = sc2reader.load_replay(path, debug=True)
+                        print 'No problems wtih {build} - {real_type} on {map_name} - Played {start_time}'.format(**replay.__dict__)
             except sc2reader.exceptions.ReadError as e:
                 if args.ladder_only and not e.replay.is_ladder: continue
 
