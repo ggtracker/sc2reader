@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import zlib
 import pprint
 import hashlib
+import collections
 from datetime import datetime
 import time
 from StringIO import StringIO
@@ -12,11 +13,14 @@ from xml.etree import ElementTree
 import urllib2
 from mpyq import MPQArchive
 
-from sc2reader import utils, log_utils, readers, data
+from sc2reader import utils
+from sc2reader import log_utils
+from sc2reader import readers
+from sc2reader.data import builds as datapacks
+from sc2reader.events import AbilityEvent, CameraEvent, HotkeyEvent, SelectionEvent
 from sc2reader.exceptions import SC2ReaderLocalizationError
-from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotFile
-from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, GAME_SPEED_CODES, RACE_CODES, PLAYER_TYPE_CODES, TEAM_COLOR_CODES, GAME_FORMAT_CODES, GAME_TYPE_CODES, DIFFICULTY_CODES
-from sc2reader.utils import Color
+from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotFile, BuildEntry
+from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, LOBBY_PROPERTIES
 
 
 def real_type(teams):
@@ -220,6 +224,7 @@ class Replay(Resource):
         self.recorder = None # Player object
         self.packets = list()
         self.objects = {}
+        self.game_fps = 16.0
 
         # Bootstrap the readers.
         self.registered_readers = defaultdict(list)
@@ -233,6 +238,7 @@ class Replay(Resource):
         if load_level >= 0:
             # Set ('versions', 'frames', 'build', 'release_string', 'length')
             self.__dict__.update(utils.read_header(replay_file))
+            self.length = utils.Length(seconds=int(self.frames/self.game_fps))
             self.expansion = ['','WoL','HotS'][self.versions[1]]
             self.archive = utils.open_archive(replay_file)
 
@@ -282,7 +288,7 @@ class Replay(Resource):
             # Populate replay with attributes
             self.speed = self.attributes[16]['Game Speed']
             self.category = self.attributes[16]['Category']
-            self.type = self.game_type = self.attributes[16]['Game Type']
+            self.type = self.game_type = self.attributes[16]['Game Mode']
             self.is_ladder = (self.category == "Ladder")
             self.is_private = (self.category == "Private")
 
@@ -297,7 +303,7 @@ class Replay(Resource):
             elif details.os == 1:
                 self.os = "Mac"
             else:
-                raise ValueError("Unknown operating system {} detected.".format(details.os))
+                raise ValueError("Unknown operating system {0} detected.".format(details.os))
 
             self.windows_timestamp = details.file_time
             self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
@@ -326,37 +332,17 @@ class Replay(Resource):
             return
         if 'replay.attributes.events' not in self.raw_data:
             return
+        if 'replay.initData' not in self.raw_data:
+            return
 
-        # Create and add the players based on attribute and details information
-        player_index, obs_index, default_region = 0, 1, ''
-        player_data = self.raw_data['replay.details'].players
-        for pid, attributes in sorted(self.attributes.iteritems()):
-
-            # We've already processed the global attributes
-            if pid == 16: continue
-
-            # Open Slots are skipped because it doesn't seem useful to store
-            # an "Open" player to fill a spot that would otherwise be empty.
-            if attributes['Player Type'] == 'Open': continue
-
-            # Get the player data from the details file, increment the index to
-            # Keep track of which player we are processing
-            pdata = player_data[player_index]
-            player_index += 1
-
-            # If this is a human player, push back the initial observer index in
-            # the list of all human players we gathered from the initdata file.
-            if attributes['Player Type'] == 'Human':
-                obs_index += 1
-
-            # Create the player using the current pid and the player name from
-            # The details file. This works because players are stored in order
-            # of pid inside of the details file. Attributes and Details must be
-            # processed together because Details doesn't index players by or
-            # store their player ids; Attributes can provide that information
-            # and allow for accurate pid mapping even with computers, observers,
-            # and open open slots.
-            #
+        # 1. pids are in lobby join order, use initData.player_names
+        # 2. use the name to get the player_data index
+        # 2a. if observer, save pid+name for later
+        # 3. use the player_data index as the attrib_data index...?
+        # 4. use the player_data and attribute_data to load the player
+        # 5. after loop, load the computer players and (optionally) their attributes
+        # 6. then load the observer pid,name using attributes if available
+        def createPlayer(pid, pdata, attributes):
             # General information re: each player comes from the following files
             #   * replay.initData
             #   * replay.details
@@ -367,7 +353,9 @@ class Replay(Resource):
             player = Player(pid,pdata.name)
 
             # Cross reference the player and team lookups
-            team_number = attributes['Teams'+self.type]
+            # TODO: Players without attribute events, where do we get the team info?
+            # print pdata.name, attributes, pdata
+            team_number = attributes.get('Teams'+self.type,0)
             if not team_number in self.team:
                 self.team[team_number] = Team(team_number)
                 self.teams.append(self.team[team_number])
@@ -375,26 +363,25 @@ class Replay(Resource):
             player.team = self.team[team_number]
 
             # Do basic win/loss processing from details data
-            if   pdata.result == 1:
+            if pdata.result == 1:
                 player.team.result = "Win"
                 self.winner = player.team
             elif pdata.result == 2:
                 player.team.result = "Loss"
 
-            player.pick_race = attributes['Race']
+            player.pick_race = attributes.get('Race','Unknown')
             player.play_race = LOCALIZED_RACES.get(pdata.race, pdata.race)
-            player.difficulty = attributes['Difficulty']
-            player.is_human = (attributes['Player Type'] == 'Human')
+            player.difficulty = attributes.get('Difficulty','Unknown')
+            player.is_human = (attributes.get('Player Type','Computer') == 'Human')
             player.uid = pdata.bnet.uid
             player.subregion = pdata.bnet.subregion
             player.handicap = pdata.handicap
 
             # We need initData for the gateway portion of the url!
-            if 'replay.initData' in self.raw_data and self.gateway:
+            if self.gateway:
                 player.gateway = self.gateway
                 if player.is_human and player.subregion:
                     player.region = REGIONS[self.gateway].get(player.subregion, 'Unknown')
-                    default_region = player.region
 
             # Conversion instructions to the new color object:
             #   color_rgba is the color object itself
@@ -409,35 +396,58 @@ class Replay(Resource):
             self.player[pid] = player
             self.person[pid] = player
 
+        def createObserver(pid, name, attributes):
+            observer = Observer(pid,name)
+            self.observers.append(observer)
+            self.people.append(observer)
+            self.person[pid] = observer
+
+        observer_data = list()
+        unassigned_player_data = collections.OrderedDict((p.name, (idx,p)) for idx, p in enumerate(self.raw_data['replay.details'].players))
+        try:
+            for pid, name in enumerate(self.raw_data['replay.initData'].player_names):
+                if name in unassigned_player_data:
+                    idx, pdata = unassigned_player_data[name]
+                    attributes = self.attributes.get(idx,dict())
+                    createPlayer(pid, pdata, attributes)
+                    del unassigned_player_data[name]
+                else:
+                    observer_data.append((pid,name))
+
+            comp_start_id = len(self.raw_data['replay.initData'].player_names)
+            for name, (idx,pdata) in unassigned_player_data.items():
+                attributes = self.attributes.get(idx,dict())
+                createPlayer(comp_start_id, pdata, attributes)
+                comp_start_id+=1
+
+            obs_start_idx = len(self.raw_data['replay.details'].players)
+            for pid, name in observer_data:
+                attributes = self.attributes.get(obs_start_idx,dict())
+                createObserver(pid, name, attributes)
+                obs_start_idx+=1
+        except:
+            print unassigned_player_data
+            print self.raw_data['replay.initData'].player_names
+            raise
+
+
+        self.humans = filter(lambda p: p.is_human, self.people)
+
         #Create an store an ordered lineup string
         for team in self.teams:
             team.lineup = ''.join(sorted(player.play_race[0].upper() for player in team))
 
         self.real_type = real_type(self.teams)
 
-        if 'replay.initData' in self.raw_data:
-            # Assign the default region to computer players for consistency
-            # We know there will be a default region because there must be
-            # at least 1 human player or we wouldn't have a self.
-            for player in self.players:
-                if not player.is_human:
-                    player.region = default_region
-
-            # Create observers out of the leftover names gathered from initData
-            all_players = [p.name for p in self.players]
-            all_people = self.raw_data['replay.initData'].player_names
-            for obs_name in all_people:
-                if obs_name in all_players: continue
-
-                observer = Observer(obs_index,obs_name)
-                observer.region = default_region
-                self.observers.append(observer)
-                self.people.append(observer)
-                self.person[obs_index] = observer
-                obs_index += 1
-
-        # Miscellaneous people processing
-        self.humans = filter(lambda p: p.is_human, self.people)
+        # Assign the default region to computer players for consistency
+        # We know there will be a default region because there must be
+        # at least 1 human player or we wouldn't have a self.
+        default_region = self.humans[0].region
+        for player in self.players:
+            if not player.is_human:
+                player.region = default_region
+        for obs in self.observers:
+            obs.region = default_region
 
         if 'replay.message.events' in self.raw_data:
             # Figure out recorder
@@ -450,7 +460,7 @@ class Replay(Resource):
                 self.recorder.recorder = True
             else:
                 self.recorder = None
-                self.logger.error("{} possible recorders remain: {}".format(len(recorders), recorders))
+                self.logger.error("{0} possible recorders remain: {1}".format(len(recorders), recorders))
 
         player_names = sorted(map(lambda p: p.name, self.people))
         hash_input = self.gateway+":"+','.join(player_names)
@@ -459,8 +469,8 @@ class Replay(Resource):
     def load_messages(self):
         if 'replay.message.events' in self.raw_data:
             self.messages = self.raw_data['replay.message.events'].messages
-            self.pings = self.raw_data['replay.message.events'].packets
-            self.packets = self.raw_data['replay.message.events'].pings
+            self.pings = self.raw_data['replay.message.events'].pings
+            self.packets = self.raw_data['replay.message.events'].packets
             self.events += self.messages+self.pings+self.packets
 
         self.events = sorted(self.events, key=lambda e: e.frame)
@@ -472,12 +482,32 @@ class Replay(Resource):
             self.events += self.raw_data['replay.game.events']
 
         self.events = sorted(self.events, key=lambda e: e.frame)
-
+        self.camera_events = list()
+        self.selection_events = list()
+        self.ability_events = list()
         for event in self.events:
+            is_camera = isinstance(event, CameraEvent)
+            is_selection = isinstance(event, SelectionEvent) or isinstance(event,HotkeyEvent)
+            is_ability = isinstance(event, AbilityEvent)
+
+            if is_camera:
+                self.camera_events.append(event)
+            elif is_selection:
+                self.selection_events.append(event)
+            elif is_ability:
+                self.ability_events.append(event)
+
             event.load_context(self)
             # TODO: Should this be documented or removed? I don't like it.
             if event.pid != 16:
-                self.person[event.pid].events.append(event)
+                player = self.person[event.pid]
+                player.events.append(event)
+                if is_camera:
+                    player.camera_events.append(event)
+                elif is_selection:
+                    player.selection_events.append(event)
+                elif is_ability:
+                    player.ability_events.append(event)
 
     def register_reader(self, data_file, reader, filterfunc=lambda r: True):
         """
@@ -524,9 +554,11 @@ class Replay(Resource):
         """Registers factory default readers."""
         self.register_reader('replay.details', readers.DetailsReader_Base(), lambda r: r.build < 22612)
         self.register_reader('replay.details', readers.DetailsReader_22612(), lambda r: r.build >= 22612 and r.expansion=='WoL')
-        self.register_reader('replay.details', readers.DetailsReader_Beta(), lambda r: r.expansion=='HotS')
+        self.register_reader('replay.details', readers.DetailsReader_Beta(), lambda r: r.build < 24764 and r.expansion=='HotS')
+        self.register_reader('replay.details', readers.DetailsReader_Beta_24764(), lambda r: r.build >= 24764 and r.expansion=='HotS')
         self.register_reader('replay.initData', readers.InitDataReader_Base())
-        self.register_reader('replay.message.events', readers.MessageEventsReader_Base())
+        self.register_reader('replay.message.events', readers.MessageEventsReader_Base(), lambda r: r.build < 24247 or r.expansion=='WoL')
+        self.register_reader('replay.message.events', readers.MessageEventsReader_Beta_24247(), lambda r: r.build >= 24247 and r.expansion=='HotS')
         self.register_reader('replay.attributes.events', readers.AttributesEventsReader_Base(), lambda r: r.build <  17326)
         self.register_reader('replay.attributes.events', readers.AttributesEventsReader_17326(), lambda r: r.build >= 17326)
         self.register_reader('replay.game.events', readers.GameEventsReader_16117(), lambda r: 16117 <= r.build < 16561)
@@ -534,15 +566,26 @@ class Replay(Resource):
         self.register_reader('replay.game.events', readers.GameEventsReader_18574(), lambda r: 18574 <= r.build < 19595)
         self.register_reader('replay.game.events', readers.GameEventsReader_19595(), lambda r: 19595 <= r.build < 22612)
         self.register_reader('replay.game.events', readers.GameEventsReader_22612(), lambda r: 22612 <= r.build and r.expansion=='WoL')
-        self.register_reader('replay.game.events', readers.GameEventsReader_Beta(), lambda r: r.expansion=='HotS')
+        self.register_reader('replay.game.events', readers.GameEventsReader_Beta(), lambda r: r.expansion=='HotS' and r.build < 23925)
+        self.register_reader('replay.game.events', readers.GameEventsReader_Beta_23925(), lambda r: r.expansion=='HotS' and 23925 <= r.build < 24247)
+        self.register_reader('replay.game.events', readers.GameEventsReader_Beta_24247(), lambda r: r.expansion=='HotS' and 24247 <= r.build )
+
 
     def register_default_datapacks(self):
         """Registers factory default datapacks."""
-        self.register_datapack(data.build16117, lambda r: 16117 <= r.build < 17326)
-        self.register_datapack(data.build17326, lambda r: 17326 <= r.build < 18092)
-        self.register_datapack(data.build18092, lambda r: 18092 <= r.build < 19458)
-        self.register_datapack(data.build19458, lambda r: 19458 <= r.build < 22612)
-        self.register_datapack(data.build22612, lambda r: 22612 <= r.build)
+        self.register_datapack(datapacks['WoL']['16117'], lambda r: r.expansion=='WoL' and 16117 <= r.build < 17326)
+        self.register_datapack(datapacks['WoL']['17326'], lambda r: r.expansion=='WoL' and 17326 <= r.build < 18092)
+        self.register_datapack(datapacks['WoL']['18092'], lambda r: r.expansion=='WoL' and 18092 <= r.build < 19458)
+        self.register_datapack(datapacks['WoL']['19458'], lambda r: r.expansion=='WoL' and 19458 <= r.build < 22612)
+        self.register_datapack(datapacks['WoL']['22612'], lambda r: r.expansion=='WoL' and 22612 <= r.build)
+        self.register_datapack(datapacks['HotS']['base'], lambda r: r.expansion=='HotS' and r.build < 23925)
+        self.register_datapack(datapacks['HotS']['23925'], lambda r: r.expansion=='HotS' and 23925 <= r.build < 24247)
+        self.register_datapack(datapacks['HotS']['24247'], lambda r: r.expansion=='HotS' and 24247 <= r.build )
+        # self.register_datapack(data.build16117, lambda r: 16117 <= r.build < 17326)
+        # self.register_datapack(data.build17326, lambda r: 17326 <= r.build < 18092)
+        # self.register_datapack(data.build18092, lambda r: 18092 <= r.build < 19458)
+        # self.register_datapack(data.build19458, lambda r: 19458 <= r.build < 22612)
+        # self.register_datapack(data.build22612, lambda r: 22612 <= r.build)
 
 
     # Internal Methods
@@ -551,7 +594,7 @@ class Replay(Resource):
             if callback(self):
                 return reader
         else:
-            raise ValueError("Valid {} reader could not found for build {}".format(data_file, self.build))
+            raise ValueError("Valid {0} reader could not found for build {1}".format(data_file, self.build))
 
     def _get_datapack(self):
         for callback, datapack in self.registered_datapacks:
@@ -567,8 +610,7 @@ class Replay(Resource):
             self.raw_data[data_file] = reader(data_buffer, self)
         elif self.opt.debug and data_file != 'replay.message.events':
             raise ValueError("{0} not found in archive".format(data_file))
-        else:
-            self.logger.error("{0} not found in archive".format(data_file))
+
 
 class Map(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
@@ -688,7 +730,7 @@ class GameSummary(Resource):
         self.winners = list()
         self.player = dict()
         self.settings = dict()
-        self.player_stats = defaultdict(dict)
+        self.player_stats = dict()
         self.player_settings = defaultdict(dict)
         self.build_orders = defaultdict(list)
         self.image_urls = list()
@@ -709,7 +751,7 @@ class GameSummary(Resource):
             self.parts.append(buffer.read_data_struct())
 
         self.end_time = datetime.utcfromtimestamp(self.parts[0][8])
-        self.game_speed = GAME_SPEED_CODES[self.parts[0][0][1]]
+        self.game_speed = LOBBY_PROPERTIES[0xBB8][1][self.parts[0][0][1]]
         self.game_length = utils.Length(seconds=self.parts[0][7])
         self.real_length = utils.Length(seconds=self.parts[0][7]/GAME_SPEED_FACTOR[self.game_speed])
         self.start_time = datetime.utcfromtimestamp(self.parts[0][8] - self.real_length.seconds)
@@ -718,7 +760,7 @@ class GameSummary(Resource):
         self.load_map_info()
         self.load_settings()
         self.load_player_stats()
-        self.load_player_builds()
+        # self.load_player_builds()
         self.load_players()
 
         self.game_type = self.settings['Teams'].replace(" ","")
@@ -880,11 +922,154 @@ class GameSummary(Resource):
                         self.player_settings[index][name] = translation[(uid, value)]
 
     def load_player_stats(self):
+        translation = self.translations[self.opt.lang]
+
+        stat_items = sum([p[0] for p in self.parts[3:]],[])
+
+        for item in stat_items:
+            # Each stat item is laid out as follows
+            #
+            #   {
+            #     0: {0:999, 1:translation_id},
+            #     1: [ [{p1values},...], [{p2values},...], ...]
+            #   }
+            stat_id = item[0][1]
+            if stat_id in translation:
+                # Assume anything under 1 million is a normal score screen item
+                # Build order ids are generally 16 million+
+                if stat_id < 1000000:
+                    stat_name = translation[stat_id]
+                    for pid, value in enumerate(item[1]):
+                        if not value: continue
+
+                        if stat_name in ('Army Value','Resource Collection Rate','Upgrade Spending','Workers Active'):
+                            # Each point entry for the graph is laid out as follows
+                            #
+                            #   {0:Value, 1:0, 2:Time}
+                            #
+                            # The 2nd part of the tuple appears to always be zero and
+                            # the time is in seconds of game time.
+                            xy = [(point[2], point[0]) for point in value]
+                            value = Graph([], [], xy_list=xy)
+                        else:
+                            value = value[0][0]
+
+                        self.player_stats.setdefault(pid, dict())[stat_name] = value
+                else:
+                    # Each build item represents one ability and contains
+                    # a list of all the uses of that ability by each player
+                    # up to the first 64 successful actions in the game.
+                    for pindex, commands in enumerate(item[1]):
+                        for command in commands:
+                            self.build_orders[pindex].append(BuildEntry(
+                                    supply=command[0],
+                                    total_supply=command[1]&0xff,
+                                    time=(command[2] >> 8) / 16,
+                                    order=stat_name,
+                                    build_index=command[1] >> 16
+                                ))
+            else:
+                print "Echo some sort of issue here for ",stat_id
+
+        # Once we've compiled all the build commands we need to make
+        # sure they are properly sorted for presentation.
+        for build_order in self.build_orders.values():
+            build_order.sort(key=lambda x: x.build_index)
+
+    def load_players(self):
+        for index, struct in enumerate(self.parts[0][3]):
+            if not struct[0][1]: continue # Slot is closed
+
+            player = PlayerSummary(struct[0][0])
+            stats = self.player_stats[index]
+            settings = self.player_settings[index]
+            player.is_ai = not isinstance(struct[0][1], dict)
+            if not player.is_ai:
+                player.gateway = self.gateway
+                player.subregion = struct[0][1][0][2]
+                player.region = REGIONS[player.gateway].get(player.subregion, 'Unknown')
+                player.bnetid = struct[0][1][0][3]
+                player.unknown1 = struct[0][1][0]
+                player.unknown2 = struct[0][1][1]
+
+            # Either a referee or a spectator, nothing else to do
+            if settings['Participant Role'] != 'Participant':
+                self.observers.append(player)
+                continue
+
+            player.play_race = LOBBY_PROPERTIES[0xBB9][1].get(struct[2], None)
+
+            player.is_winner = isinstance(struct[1],dict) and struct[1][0] == 0
+            if player.is_winner:
+                self.winners.append(player.pid)
+
+            team_id = int(settings['Team'].split(' ')[1])
+            if team_id not in self.teams:
+                self.teams[team_id] = Team(team_id)
+            player.team = self.teams[team_id]
+            self.teams[team_id].players.append(player)
+
+            # We can just copy these settings right over
+            player.color = utils.Color(name=settings.get('Color', None))
+            player.pick_race = settings.get('Race', None)
+            player.handicap = settings.get('Handicap', None)
+
+            # Overview Tab
+            player.resource_score = stats.get('Resources', None)
+            player.structure_score = stats.get('Structures', None)
+            player.unit_score = stats.get('Units', None)
+            player.overview_score = stats.get('Overview', None)
+
+            # Units Tab
+            player.units_killed = stats.get('Killed Unit Count', None)
+            player.structures_built = stats.get('Structures Built', None)
+            player.units_trained = stats.get('Units Trained', None)
+            player.structures_razed = stats.get('Structures Razed Count', None)
+
+            # Graphs Tab
+            player.army_graph = stats.get('Army Value')
+            player.income_graph = stats.get('Resource Collection Rate', None)
+
+            # HotS Stats
+            # TODO: Add the XP stats?
+            #   'Units Produced XP'
+            #   'Killed Unit XP'
+            #   'Structures Produced XP'
+            #   'Structures Razed XP'
+            #   'Technology XP'
+            player.upgrade_spending_graph = stats.get('Upgrade Spending', None)
+            player.workers_active_graph = stats.get('Workers Active', None)
+            player.combat_efficiency = stats.get('Combat Efficiency',None)
+            player.supply_efficiency = stats.get('Supply Efficiency', None)
+            player.apm = stats.get('APM', None)
+
+            # Economic Breakdown Tab
+            if isinstance(player.income_graph, Graph):
+                # TODO: Is this algorithm right?
+                values = player.income_graph.values
+                player.income_rate = sum(values)/len(values)
+            else:
+                # In old s2gs files the field with this name was actually a number not a graph
+                player.income_rate = player.income_graph
+                player.income_graph = None
+
+            player.avg_unspent_resources = stats.get('Average Unspent Resources', None)
+            player.workers_created = stats.get('Workers Created', None)
+
+            # Build Orders Tab
+            player.build_order = self.build_orders.get(index, None)
+
+            self.players.append(player)
+            self.player[player.pid] = player
+
+    """
+    def load_player_stats(self):
         if len(self.parts) < 4: return
         translation = self.translations[self.opt.lang]
 
         # Part[3][0][:] and Part[4][0][1] are filled with summary stats
-        # for the players in the game. Each stat item is laid out as follows
+        # for the players in the game.
+        # Each stat item is laid out as follows
         #
         #   {0: {0:999, 1:translation_id}, 1: [ [{0: Value, 1:0, 2:871???}], [], ...]
         #
@@ -947,81 +1132,16 @@ class GameSummary(Resource):
                                 build_index=command[1] >> 16
                             ))
             else:
-                self.logger.warn("Unknown item in build order, key = {}".format(translation_key))
+                self.logger.warn("Unknown item in build order, key = {0}".format(translation_key))
 
         # Once we've compiled all the build commands we need to make
         # sure they are properly sorted for presentation.
         for build_order in self.build_orders.values():
             build_order.sort(key=lambda x: x.build_index)
-
-    def load_players(self):
-        for index, struct in enumerate(self.parts[0][3]):
-            if not struct[0][1]: continue # Slot is closed
-
-            player = PlayerSummary(struct[0][0])
-            stats = self.player_stats[index]
-            settings = self.player_settings[index]
-            player.is_ai = not isinstance(struct[0][1], dict)
-            if not player.is_ai:
-                player.gateway = self.gateway
-                player.subregion = struct[0][1][0][2]
-                player.region = REGIONS[player.gateway].get(player.subregion, 'Unknown')
-                player.bnetid = struct[0][1][0][3]
-                player.unknown1 = struct[0][1][0]
-                player.unknown2 = struct[0][1][1]
-
-            # Either a referee or a spectator, nothing else to do
-            if settings['Participant Role'] != 'Participant':
-                self.observers.append(player)
-                continue
-
-            player.play_race = RACE_CODES.get(struct[2], None)
-
-            player.is_winner = isinstance(struct[1],dict) and struct[1][0] == 0
-            if player.is_winner:
-                self.winners.append(player.pid)
-
-            team_id = int(settings['Team'].split(' ')[1])
-            if team_id not in self.teams:
-                self.teams[team_id] = Team(team_id)
-            player.team = self.teams[team_id]
-            self.teams[team_id].players.append(player)
-
-            # We can just copy these settings right over
-            # TODO: Get the hex from the color string?
-            player.color = Color(name=settings.get('Color', None))
-            player.pick_race = settings.get('Race', None)
-            player.handicap = settings.get('Handicap', None)
-
-            # Overview Tab
-            player.resource_score = stats.get('Resources', None)
-            player.structure_score = stats.get('Structures', None)
-            player.unit_score = stats.get('Units', None)
-            player.overview_score = stats.get('Overview', None)
-
-            # Economic Breakdown Tab
-            player.avg_unspent_resources = stats.get('Average Unspent Resources', None)
-            player.resource_collection_rate = stats.get('Resource Collection Rate', None)
-            player.workers_created = stats.get('Workers Created', None)
-
-            # Units Tab
-            player.units_killed = stats.get('Killed Unit Count', None)
-            player.structures_built = stats.get('Structures Built', None)
-            player.units_trained = stats.get('Units Trained', None)
-            player.structures_razed = stats.get('Structures Razed Count', None)
-
-            # Graphs Tab
-            player.army_graph = stats.get('Army Graph')
-            player.income_graph = stats.get('Income Graph', None)
-
-            # Build Orders Tab
-            player.build_order = self.build_orders.get(index, None)
-
-            self.players.append(player)
-            self.player[player.pid] = player
+    """
 
     def __str__(self):
-        return "{} - {} {}".format(self.start_time,self.game_length,
+        return "{0} - {1} {2}".format(self.start_time,self.game_length,
                                          'v'.join(''.join(self.players[p].race[0] for p in self.teams[tid]) for tid in self.teams))
 
 

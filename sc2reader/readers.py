@@ -62,6 +62,7 @@ class InitDataReader_Base(Reader):
 
 class AttributesEventsReader_Base(Reader):
     header_length = 4
+    offset=False
 
     def __call__(self, data, replay):
         # The replay.attribute.events file is comprised of a small header and
@@ -81,6 +82,8 @@ class AttributesEventsReader_Base(Reader):
                     data.read_byte(),
                     data.read(4).strip('\00 ')[::-1]
                 ]
+
+            if info[2]!=16: info[2]-=1 # Convert from 1-offset to 0-offset
             #print hex(info[1]), "P"+str(info[2]), info[3]
             attribute_events.append(Attribute(info))
 
@@ -93,7 +96,9 @@ class AttributesEventsReader_17326(AttributesEventsReader_Base):
 
 
 class DetailsReader_Base(Reader):
+    PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result'])
     Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10'])
+
     def __call__(self, data, replay):
         # The entire details file is just a serialized data structure
         #
@@ -150,7 +155,7 @@ class DetailsReader_Base(Reader):
         for pdata in details[0]:
             pdata[1] = BnetData(*ordered_values(pdata[1]))
             pdata[3] = ColorData(*ordered_values(pdata[3]))
-            player = PlayerData(*ordered_values(pdata))
+            player = self.PlayerData(*ordered_values(pdata))
             players.append(player)
         details[0] = players
 
@@ -164,7 +169,12 @@ class DetailsReader_22612(DetailsReader_Base):
 class DetailsReader_Beta(DetailsReader_Base):
     Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10', 'unknown11', 'unknown12'])
 
+class DetailsReader_Beta_24764(DetailsReader_Beta):
+    PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result','unknown4'])
+
 class MessageEventsReader_Base(Reader):
+    POFFSET=-1
+    TARGET_BITS=3
     def __call__(self, data, replay):
         # The replay.message.events file is a single long list containing three
         # different element types (minimap pings, player messages, and some sort
@@ -178,10 +188,11 @@ class MessageEventsReader_Base(Reader):
             # All the element types share the same time, pid, flags header.
             frame += data.read_timestamp()
             pid = data.read_bits(5)
+            if pid != 16: pid+=self.POFFSET
             t = data.read_bits(3)
             flags = data.read_byte()
 
-            if flags == 0x83:
+            if flags in (0x83,0x89):
                 # We need some tests for this
                 x = data.read_int(LITTLE_ENDIAN)
                 y = data.read_int(LITTLE_ENDIAN)
@@ -192,24 +203,32 @@ class MessageEventsReader_Base(Reader):
                 packets.append(PacketEvent(frame, pid, flags, info))
 
             elif flags & 0x80 == 0:
-                target = flags & 0x07
-                extension = (flags & 0x18) << 3
+                lo_mask = 2**self.TARGET_BITS-1
+                hi_mask = 0xFF ^ lo_mask
+                target = flags & lo_mask
+                extension = (flags & hi_mask) << 3
                 length = data.read_byte()
                 text = data.read_bytes(length + extension)
-                messages.append(ChatEvent(frame, pid, flags, target, text))
+                messages.append(ChatEvent(frame, pid, flags, target, text, (flags, lo_mask, hi_mask, length, extension)))
 
         return AttributeDict(pings=pings, messages=messages, packets=packets)
 
+class MessageEventsReader_Beta_24247(MessageEventsReader_Base):
+    POFFSET=0
+    TARGET_BITS=4
 
 class GameEventsReader_Base(object):
     PLAYER_JOIN_FLAGS = 4
     PLAYER_ABILITY_FLAGS = 17
     ABILITY_TEAM_FLAG = False
     UNIT_INDEX_BITS = 8
+    HOTKEY_OVERLAY = 0
+    POFFSET = -1
 
-    def __call__(self, data, replay):
-        EVENT_DISPATCH = {
+    def __init__(self):
+        self.EVENT_DISPATCH = {
             0x05: self.game_start_event,
+            0x07: self.beta_join_event,
             0x0B: self.player_join_event,
             0x0C: self.player_join_event,
             0x19: self.player_leave_event,
@@ -221,6 +240,7 @@ class GameEventsReader_Base(object):
             0x46: self.player_request_resource_event,
         }
 
+    def __call__(self, data, replay):
         game_events = list()
         fstamp = 0
         debug = replay.opt.debug
@@ -238,11 +258,12 @@ class GameEventsReader_Base(object):
             while event_start != data_length:
                 fstamp += read_timestamp()
                 pid = read_bits(5)
+                if pid != 16: pid+= self.POFFSET
                 event_type = read_bits(7)
 
                 # Check for a lookup
-                if event_type in EVENT_DISPATCH:
-                    event = EVENT_DISPATCH[event_type](data, fstamp, pid, event_type)
+                if event_type in self.EVENT_DISPATCH:
+                    event = self.EVENT_DISPATCH[event_type](data, fstamp, pid, event_type)
                     if debug:
                         event.bytes = data.read_range(event_start, tell())
                     append(event)
@@ -267,25 +288,31 @@ class GameEventsReader_Base(object):
                     read_bits(4)
                 elif event_type == 0x59:
                     read_bytes(4)
+                elif event_type == 0x00:
+                    read_bytes(1)
 
                 # Otherwise throw a read error
                 else:
-                    raise ReadError("Event type {} unknown at position {}.".format(hex(event_type),hex(event_start)), event_type, event_start, replay, game_events, data)
+                    raise ReadError("Event type {0} unknown at position {1}.".format(hex(event_type),hex(event_start)), event_type, event_start, replay, game_events, data)
 
                 byte_align()
                 event_start = tell()
 
             return game_events
         except ParseError as e:
-            raise ReadError("Parse error '{}' unknown at position {}.".format(e.msg, hex(event_start)), event_type, event_start, replay, game_events, data)
+            raise ReadError("Parse error '{0}' unknown at position {1}.".format(e.msg, hex(event_start)), event_type, event_start, replay, game_events, data)
         except EOFError as e:
-            raise ReadError("EOFError error '{}' unknown at position {}.".format(e.msg, hex(event_start)), event_type, event_start, replay, game_events, data)
+            raise ReadError("EOFError error '{0}' unknown at position {1}.".format(e.msg, hex(event_start)), event_type, event_start, replay, game_events, data)
 
 
 
 class GameEventsReader_16117(GameEventsReader_Base):
     def game_start_event(self, data, fstamp, pid, event_type):
         return GameStartEvent(fstamp, pid, event_type)
+
+    def beta_join_event(self, data, fstamp, pid, event_type):
+        flags = data.read_bytes(5)
+        return BetaJoinEvent(fstamp, pid, event_type, flags)
 
     def player_join_event(self, data, fstamp, pid, event_type):
         unknown_flags = data.read_bits(self.PLAYER_JOIN_FLAGS)
@@ -312,19 +339,24 @@ class GameEventsReader_16117(GameEventsReader_Base):
         overlay = self._parse_selection_update(data)
 
         type_count = data.read_bits(self.UNIT_INDEX_BITS)
-        unit_types = [(data.read_short(BIG_ENDIAN) << 8 | data.read_byte(),data.read_bits(self.UNIT_INDEX_BITS)) for index in range(type_count)]
+        unit_type_info = [(data.read_short(BIG_ENDIAN), data.read_byte(), data.read_bits(self.UNIT_INDEX_BITS)) for index in range(type_count)]
 
         unit_count = data.read_bits(self.UNIT_INDEX_BITS)
         unit_ids = [data.read_int(BIG_ENDIAN) for index in range(unit_count)]
 
-        unit_types = chain(*[[utype]*count for (utype, count) in unit_types])
-        units = list(zip(unit_ids, unit_types))
+        unit_types = chain(*[[utype]*count for (utype, flags, count) in unit_type_info])
+        unit_flags = chain(*[[flags]*count for (utype, flags, count) in unit_type_info])
+        units = list(zip(unit_ids, unit_types, unit_flags))
         return SelectionEvent(fstamp, pid, event_type, bank, units, overlay)
 
     def player_hotkey_event(self, data, fstamp, pid, event_type):
         hotkey = data.read_bits(4)
         action = data.read_bits(2)
-        overlay = self._parse_selection_update(data)
+
+        if self.HOTKEY_OVERLAY:
+            overlay = self._parse_selection_update(data)
+        else:
+            overlay = (1,0)
 
         if action == 0:
             return SetToHotkeyEvent(fstamp, pid, event_type, hotkey, overlay)
@@ -333,10 +365,10 @@ class GameEventsReader_16117(GameEventsReader_Base):
         elif action == 2:
             return GetFromHotkeyEvent(fstamp, pid, event_type, hotkey, overlay)
         else:
-            raise ParseError("Hotkey Action '{}' unknown".format(hotkey))
+            raise ParseError("Hotkey Action '{0}' unknown".format(hotkey))
 
     def player_send_resource_event(self, data, fstamp, pid, event_type):
-        target = data.read_bits(4)
+        target = data.read_bits(4)-1 # Convert from 1-offset to 0-offset
         unknown = data.read_bits(4) #??
         minerals = data.read_bits(32)
         vespene = data.read_bits(32)
@@ -378,6 +410,8 @@ class GameEventsReader_16117(GameEventsReader_Base):
 
 
 class GameEventsReader_16561(GameEventsReader_16117):
+    HOTKEY_OVERLAY = 1
+
     # Don't want to do this more than once
     SINGLE_BIT_MASKS = [0x1 << i for i in range(2**9)]
 
@@ -488,12 +522,29 @@ class GameEventsReader_22612(GameEventsReader_19595):
     UNIT_INDEX_BITS = 9 # Now can select up to 512 units
 
 class GameEventsReader_Beta(GameEventsReader_22612):
+
+    def __init__(self):
+        super(GameEventsReader_Beta, self).__init__()
+        self.EVENT_DISPATCH[0x65] = self.beta_win_event
+        self.EVENT_DISPATCH[0x2B] = self.beta_end_game_event
+
+    def beta_win_event(self, data, fstamp, pid, event_type):
+        flags = 0
+        return BetaWinEvent(fstamp, pid, event_type, flags)
+
+    def beta_end_game_event(self, data, fstamp, pid, event_type):
+        flags = data.read_bits(4)
+        count = data.read_byte()
+        for name in range(count):
+            data.read_bytes(data.read_byte())
+        data.read_byte()
+        return UnknownEvent(fstamp, pid, event_type)
+
     def camera_event(self, data, fstamp, pid, event_type):
         x = y= distance = pitch = yaw = height = 0
         if data.read_bits(1):
-            block = data.read_int(BIG_ENDIAN)
-            x = (block >> 16)/256.0
-            y = (block & 0xFFFF)/256.0
+            x = data.read_short(BIG_ENDIAN)/256.0
+            y = data.read_short(BIG_ENDIAN)/256.0
         if data.read_bits(1):
             distance = data.read_short(BIG_ENDIAN)/256.0
         if data.read_bits(1):
@@ -512,11 +563,18 @@ class GameEventsReader_Beta(GameEventsReader_22612):
         overlay = self._parse_selection_update(data)
 
         type_count = data.read_bits(self.UNIT_INDEX_BITS)
-        unit_types = [(data.read_short(BIG_ENDIAN) << 16 | data.read_short(BIG_ENDIAN),data.read_bits(self.UNIT_INDEX_BITS)) for index in range(type_count)]
+        unit_type_info = [(data.read_short(BIG_ENDIAN), data.read_short(BIG_ENDIAN), data.read_bits(self.UNIT_INDEX_BITS)) for index in range(type_count)]
 
         unit_count = data.read_bits(self.UNIT_INDEX_BITS)
         unit_ids = [data.read_int(BIG_ENDIAN) for index in range(unit_count)]
 
-        unit_types = chain(*[[utype]*count for (utype, count) in unit_types])
-        units = list(zip(unit_ids, unit_types))
+        unit_types = chain(*[[utype]*count for (utype, flags, count) in unit_type_info])
+        unit_flags = chain(*[[flags]*count for (utype, flags, count) in unit_type_info])
+        units = list(zip(unit_ids, unit_types, unit_flags))
         return SelectionEvent(fstamp, pid, event_type, bank, units, overlay)
+
+class GameEventsReader_Beta_23925(GameEventsReader_Beta):
+    PLAYER_JOIN_FLAGS = 32
+
+class GameEventsReader_Beta_24247(GameEventsReader_Beta_23925):
+    POFFSET = 0

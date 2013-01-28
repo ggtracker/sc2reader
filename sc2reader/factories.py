@@ -254,9 +254,9 @@ class FileCachedSC2Factory(CachedSC2Factory):
         super(FileCachedSC2Factory, self).__init__(**options)
         self.cache_dir = os.path.abspath(cache_dir)
         if not os.path.isdir(self.cache_dir):
-            raise ValueError("cache_dir ({}) must be an existing directory.".format(self.cache_dir))
+            raise ValueError("cache_dir ({0}) must be an existing directory.".format(self.cache_dir))
         elif not os.access(self.cache_dir, os.F_OK | os.W_OK | os.R_OK ):
-            raise ValueError("Must have read/write access to {} for local file caching.".format(self.cache_dir))
+            raise ValueError("Must have read/write access to {0} for local file caching.".format(self.cache_dir))
 
     def cache_has(self, cache_key):
         return os.path.exists(self.cache_path(cache_key))

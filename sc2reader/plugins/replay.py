@@ -99,19 +99,19 @@ def APMTracker(replay):
 def SelectionTracker(replay):
     debug = replay.opt.debug
     logger = log_utils.get_logger(SelectionTracker)
-    efilter = lambda e: isinstance(e, SelectionEvent) or isinstance(e, HotkeyEvent)
 
     for person in replay.people:
         # TODO: A more robust person interface might be nice
         person.selection_errors = 0
         player_selection = GameState(PlayerSelection())
-        for event in filter(efilter, person.events):
+        for event in person.selection_events:
             if debug: logger.debug("Event bytes: "+event.bytes.encode("hex"))
 
             error = False
             selection = player_selection[event.frame]
 
             if isinstance(event, SelectionEvent):
+                selection[event.bank] = selection[event.bank].copy()
                 error = not selection[event.bank].deselect(*event.deselect)
                 selection[event.bank].select(event.objects)
                 if debug: logger.info("[{0}] {1} selected {2} units: {3}".format(Length(seconds=event.second),person.name,len(selection[0x0A].objects),selection[0x0A]))
@@ -128,6 +128,7 @@ def SelectionTracker(replay):
                 if debug: logger.info("[{0}] {1} set hotkey {2} to current selection".format(Length(seconds=event.second),person.name,event.hotkey))
 
             elif isinstance(event, AddToHotkeyEvent):
+                selection[event.hotkey] = selection[event.hotkey].copy()
                 error = not selection[event.hotkey].deselect(*event.deselect)
                 selection[event.hotkey].select(selection[0x0A].objects)
                 if debug: logger.info("[{0}] {1} added current selection to hotkey {2}".format(Length(seconds=event.second),person.name,event.hotkey))
@@ -138,7 +139,7 @@ def SelectionTracker(replay):
             if error:
                 person.selection_errors += 1
                 if debug:
-                    logger.warn("Error detected in deselection mode {}.".format(event.deselect[0]))
+                    logger.warn("Error detected in deselection mode {0}.".format(event.deselect[0]))
 
         person.selection = player_selection
         # Not a real lock, so don't change it!
