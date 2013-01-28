@@ -291,6 +291,8 @@ class PlayerSummary():
             s += '{0}: {1}\n'.format(self.stats_pretty_names[k], self.stats[k])
         return s.strip()
 
+BuildEntry = namedtuple('BuildEntry',['supply','total_supply','time','order','build_index'])
+
 # TODO: Are there libraries with classes like this in them
 class Graph():
     """A class to represent a graph on the score screen."""

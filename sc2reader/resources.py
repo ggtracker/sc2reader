@@ -20,7 +20,7 @@ from sc2reader import readers
 from sc2reader.data import builds as datapacks
 from sc2reader.events import AbilityEvent, CameraEvent, HotkeyEvent, SelectionEvent
 from sc2reader.exceptions import SC2ReaderLocalizationError
-from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotFile
+from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotFile, BuildEntry
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, LOBBY_PROPERTIES
 
 
@@ -731,7 +731,7 @@ class GameSummary(Resource):
         self.winners = list()
         self.player = dict()
         self.settings = dict()
-        self.player_stats = defaultdict(dict)
+        self.player_stats = dict()
         self.player_settings = defaultdict(dict)
         self.build_orders = defaultdict(list)
         self.image_urls = list()
@@ -761,7 +761,7 @@ class GameSummary(Resource):
         self.load_map_info()
         self.load_settings()
         self.load_player_stats()
-        self.load_player_builds()
+        # self.load_player_builds()
         self.load_players()
 
         self.game_type = self.settings['Teams'].replace(" ","")
@@ -923,11 +923,154 @@ class GameSummary(Resource):
                         self.player_settings[index][name] = translation[(uid, value)]
 
     def load_player_stats(self):
+        translation = self.translations[self.opt.lang]
+
+        stat_items = sum([p[0] for p in self.parts[3:]],[])
+
+        for item in stat_items:
+            # Each stat item is laid out as follows
+            #
+            #   {
+            #     0: {0:999, 1:translation_id},
+            #     1: [ [{p1values},...], [{p2values},...], ...]
+            #   }
+            stat_id = item[0][1]
+            if stat_id in translation:
+                # Assume anything under 1 million is a normal score screen item
+                # Build order ids are generally 16 million+
+                if stat_id < 1000000:
+                    stat_name = translation[stat_id]
+                    for pid, value in enumerate(item[1]):
+                        if not value: continue
+
+                        if stat_name in ('Army Value','Resource Collection Rate','Upgrade Spending','Workers Active'):
+                            # Each point entry for the graph is laid out as follows
+                            #
+                            #   {0:Value, 1:0, 2:Time}
+                            #
+                            # The 2nd part of the tuple appears to always be zero and
+                            # the time is in seconds of game time.
+                            xy = [(point[2], point[0]) for point in value]
+                            value = Graph([], [], xy_list=xy)
+                        else:
+                            value = value[0][0]
+
+                        self.player_stats.setdefault(pid, dict())[stat_name] = value
+                else:
+                    # Each build item represents one ability and contains
+                    # a list of all the uses of that ability by each player
+                    # up to the first 64 successful actions in the game.
+                    for pindex, commands in enumerate(item[1]):
+                        for command in commands:
+                            self.build_orders[pindex].append(BuildEntry(
+                                    supply=command[0],
+                                    total_supply=command[1]&0xff,
+                                    time=(command[2] >> 8) / 16,
+                                    order=stat_name,
+                                    build_index=command[1] >> 16
+                                ))
+            else:
+                print "Echo some sort of issue here for ",stat_id
+
+        # Once we've compiled all the build commands we need to make
+        # sure they are properly sorted for presentation.
+        for build_order in self.build_orders.values():
+            build_order.sort(key=lambda x: x.build_index)
+
+    def load_players(self):
+        for index, struct in enumerate(self.parts[0][3]):
+            if not struct[0][1]: continue # Slot is closed
+
+            player = PlayerSummary(struct[0][0])
+            stats = self.player_stats[index]
+            settings = self.player_settings[index]
+            player.is_ai = not isinstance(struct[0][1], dict)
+            if not player.is_ai:
+                player.gateway = self.gateway
+                player.subregion = struct[0][1][0][2]
+                player.region = REGIONS[player.gateway].get(player.subregion, 'Unknown')
+                player.bnetid = struct[0][1][0][3]
+                player.unknown1 = struct[0][1][0]
+                player.unknown2 = struct[0][1][1]
+
+            # Either a referee or a spectator, nothing else to do
+            if settings['Participant Role'] != 'Participant':
+                self.observers.append(player)
+                continue
+
+            player.play_race = LOBBY_PROPERTIES[0xBB9][1].get(struct[2], None)
+
+            player.is_winner = isinstance(struct[1],dict) and struct[1][0] == 0
+            if player.is_winner:
+                self.winners.append(player.pid)
+
+            team_id = int(settings['Team'].split(' ')[1])
+            if team_id not in self.teams:
+                self.teams[team_id] = Team(team_id)
+            player.team = self.teams[team_id]
+            self.teams[team_id].players.append(player)
+
+            # We can just copy these settings right over
+            player.color = utils.Color(name=settings.get('Color', None))
+            player.pick_race = settings.get('Race', None)
+            player.handicap = settings.get('Handicap', None)
+
+            # Overview Tab
+            player.resource_score = stats.get('Resources', None)
+            player.structure_score = stats.get('Structures', None)
+            player.unit_score = stats.get('Units', None)
+            player.overview_score = stats.get('Overview', None)
+
+            # Units Tab
+            player.units_killed = stats.get('Killed Unit Count', None)
+            player.structures_built = stats.get('Structures Built', None)
+            player.units_trained = stats.get('Units Trained', None)
+            player.structures_razed = stats.get('Structures Razed Count', None)
+
+            # Graphs Tab
+            player.army_graph = stats.get('Army Value')
+            player.income_graph = stats.get('Resource Collection Rate', None)
+
+            # HotS Stats
+            # TODO: Add the XP stats?
+            #   'Units Produced XP'
+            #   'Killed Unit XP'
+            #   'Structures Produced XP'
+            #   'Structures Razed XP'
+            #   'Technology XP'
+            player.upgrade_spending_graph = stats.get('Upgrade Spending', None)
+            player.workers_active_graph = stats.get('Workers Active', None)
+            player.combat_efficiency = stats.get('Combat Efficiency',None)
+            player.supply_efficiency = stats.get('Supply Efficiency', None)
+            player.apm = stats.get('APM', None)
+
+            # Economic Breakdown Tab
+            if isinstance(player.income_graph, Graph):
+                # TODO: Is this algorithm right?
+                values = player.income_graph.values
+                player.income_rate = sum(values)/len(values)
+            else:
+                # In old s2gs files the field with this name was actually a number not a graph
+                player.income_rate = player.income_graph
+                player.income_graph = None
+
+            player.avg_unspent_resources = stats.get('Average Unspent Resources', None)
+            player.workers_created = stats.get('Workers Created', None)
+
+            # Build Orders Tab
+            player.build_order = self.build_orders.get(index, None)
+
+            self.players.append(player)
+            self.player[player.pid] = player
+
+    """
+    def load_player_stats(self):
         if len(self.parts) < 4: return
         translation = self.translations[self.opt.lang]
 
         # Part[3][0][:] and Part[4][0][1] are filled with summary stats
-        # for the players in the game. Each stat item is laid out as follows
+        # for the players in the game.
+        # Each stat item is laid out as follows
         #
         #   {0: {0:999, 1:translation_id}, 1: [ [{0: Value, 1:0, 2:871???}], [], ...]
         #
@@ -996,72 +1139,7 @@ class GameSummary(Resource):
         # sure they are properly sorted for presentation.
         for build_order in self.build_orders.values():
             build_order.sort(key=lambda x: x.build_index)
-
-    def load_players(self):
-        for index, struct in enumerate(self.parts[0][3]):
-            if not struct[0][1]: continue # Slot is closed
-
-            player = PlayerSummary(struct[0][0])
-            stats = self.player_stats[index]
-            settings = self.player_settings[index]
-            player.is_ai = not isinstance(struct[0][1], dict)
-            if not player.is_ai:
-                player.gateway = self.gateway
-                player.subregion = struct[0][1][0][2]
-                player.region = REGIONS[player.gateway].get(player.subregion, 'Unknown')
-                player.bnetid = struct[0][1][0][3]
-                player.unknown1 = struct[0][1][0]
-                player.unknown2 = struct[0][1][1]
-
-            # Either a referee or a spectator, nothing else to do
-            if settings['Participant Role'] != 'Participant':
-                self.observers.append(player)
-                continue
-
-            player.play_race = LOBBY_PROPERTIES[0xBB9][1].get(struct[2], None)
-
-            player.is_winner = isinstance(struct[1],dict) and struct[1][0] == 0
-            if player.is_winner:
-                self.winners.append(player.pid)
-
-            team_id = int(settings['Team'].split(' ')[1])
-            if team_id not in self.teams:
-                self.teams[team_id] = Team(team_id)
-            player.team = self.teams[team_id]
-            self.teams[team_id].players.append(player)
-
-            # We can just copy these settings right over
-            # TODO: Get the hex from the color string?
-            player.color = utils.Color(name=settings.get('Color', None))
-            player.pick_race = settings.get('Race', None)
-            player.handicap = settings.get('Handicap', None)
-
-            # Overview Tab
-            player.resource_score = stats.get('Resources', None)
-            player.structure_score = stats.get('Structures', None)
-            player.unit_score = stats.get('Units', None)
-            player.overview_score = stats.get('Overview', None)
-
-            # Economic Breakdown Tab
-            player.avg_unspent_resources = stats.get('Average Unspent Resources', None)
-            player.resource_collection_rate = stats.get('Resource Collection Rate', None)
-            player.workers_created = stats.get('Workers Created', None)
-
-            # Units Tab
-            player.units_killed = stats.get('Killed Unit Count', None)
-            player.structures_built = stats.get('Structures Built', None)
-            player.units_trained = stats.get('Units Trained', None)
-            player.structures_razed = stats.get('Structures Razed Count', None)
-
-            # Graphs Tab
-            player.army_graph = stats.get('Army Graph')
-            player.income_graph = stats.get('Income Graph', None)
-
-            # Build Orders Tab
-            player.build_order = self.build_orders.get(index, None)
-
-            self.players.append(player)
-            self.player[player.pid] = player
+    """
 
     def __str__(self):
         return "{0} - {1} {2}".format(self.start_time,self.game_length,
