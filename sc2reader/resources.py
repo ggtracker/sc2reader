@@ -982,7 +982,7 @@ class GameSummary(Resource):
             if not struct[0][1]: continue # Slot is closed
 
             player = PlayerSummary(struct[0][0])
-            stats = self.player_stats[index]
+            stats = self.player_stats.get(index, dict())
             settings = self.player_settings[index]
             player.is_ai = not isinstance(struct[0][1], dict)
             if not player.is_ai:
