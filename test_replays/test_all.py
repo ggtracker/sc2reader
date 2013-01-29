@@ -178,3 +178,16 @@ def test_datetimes():
     # Played at 25 Feb 2011 16:36:28 UTC+2
     replay = sc2reader.load_replay("test_replays/1.2.2.17811/3.SC2Replay")
     assert replay.end_time == datetime.datetime(2011, 2, 25, 14, 36, 26)
+
+def test_pids():
+    replay = sc2reader.load_replay("test_replays/2.0.3.24764/Antiga Shipyard (3).SC2Replay")
+    assert replay.players[0].pid == 0
+    assert replay.player[0].pid == 0
+    assert replay.players[1].pid == 6
+    assert replay.player[6].pid == 6
+
+    eventpids = set()
+    for event in replay.events:
+        eventpids.add(event.pid)
+    
+    assert eventpids == set([0, 6, 16])
