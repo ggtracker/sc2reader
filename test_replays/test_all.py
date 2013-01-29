@@ -181,13 +181,9 @@ def test_datetimes():
 
 def test_pids():
     replay = sc2reader.load_replay("test_replays/2.0.3.24764/Antiga Shipyard (3).SC2Replay")
-    assert replay.players[0].pid == 0
-    assert replay.player[0].pid == 0
-    assert replay.players[1].pid == 6
-    assert replay.player[6].pid == 6
 
-    eventpids = set()
-    for event in replay.events:
-        eventpids.add(event.pid)
+    player_pids = set( [ player.pid for player in replay.players ] )
+    player_pids.add(16)
+    event_pids = set( [ event.pid for event in replay.events ] )
     
-    assert eventpids == set([0, 6, 16])
+    assert event_pids == player_pids
