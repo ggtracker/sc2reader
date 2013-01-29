@@ -354,9 +354,13 @@ class Replay(Resource):
             player = Player(pid,pdata.name)
 
             # Cross reference the player and team lookups
-            # TODO: Players without attribute events, where do we get the team info?
-            # print pdata.name, attributes, pdata
-            team_number = attributes.get('Teams'+self.type,0)
+            # In HotS Beta we've had weird issues where AI players don't have team attributes
+            # In these cases, assign the AI to team 2, its not great but won't break doesn't
+            # break as many expectations for teams as other approaches might. Team 2 is a good
+            # option because it will always exist and generally in Comp Stomps the players are
+            # in team 1. This will still break for things like FFA with comps but I'm not too
+            # concerned yet.
+            team_number = attributes.get('Teams'+self.type, 2)
             if not team_number in self.team:
                 self.team[team_number] = Team(team_number)
                 self.teams.append(self.team[team_number])
