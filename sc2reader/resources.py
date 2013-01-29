@@ -1051,12 +1051,11 @@ class GameSummary(Resource):
 
             # Economic Breakdown Tab
             if isinstance(player.income_graph, Graph):
-                # TODO: Is this algorithm right?
                 values = player.income_graph.values
-                player.income_rate = sum(values)/len(values)
+                player.resource_collection_rate = sum(values)/len(values)
             else:
                 # In old s2gs files the field with this name was actually a number not a graph
-                player.income_rate = player.income_graph
+                player.resource_collection_rate = player.income_graph
                 player.income_graph = None
 
             player.avg_unspent_resources = stats.get('Average Unspent Resources', None)
