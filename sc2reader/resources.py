@@ -945,10 +945,10 @@ class GameSummary(Resource):
             #   }
             stat_id = item[0][1]
             if stat_id in translation:
+                stat_name = translation[stat_id]
                 # Assume anything under 1 million is a normal score screen item
                 # Build order ids are generally 16 million+
                 if stat_id < 1000000:
-                    stat_name = translation[stat_id]
                     for pid, value in enumerate(item[1]):
                         if not value: continue
 
