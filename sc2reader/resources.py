@@ -487,6 +487,12 @@ class Replay(Resource):
             self.events += self.raw_data['replay.game.events']
 
         self.events = sorted(self.events, key=lambda e: e.frame)
+
+        # hideous hack for HotS 2.0.0.23925, see https://github.com/GraylinKim/sc2reader/issues/87
+        if self.events[-1].frame > self.frames:
+            self.frames = self.events[-1].frame
+            self.length = utils.Length(seconds=int(self.frames/self.game_fps))
+
         self.camera_events = list()
         self.selection_events = list()
         self.ability_events = list()
