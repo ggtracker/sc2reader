@@ -1028,8 +1028,11 @@ class GameSummary(Resource):
             player.structures_razed = stats.get('Structures Razed Count', None)
 
             # Graphs Tab
+            # Keep income_graph for backwards compatibility
             player.army_graph = stats.get('Army Value')
-            player.income_graph = stats.get('Resource Collection Rate', None)
+            player.resource_collection_graph = stats.get('Resource Collection Rate', None)
+            player.income_graph = player.resource_collection_graph
+
 
             # HotS Stats
             # TODO: Add the XP stats?
@@ -1045,13 +1048,13 @@ class GameSummary(Resource):
             player.apm = stats.get('APM', None)
 
             # Economic Breakdown Tab
-            if isinstance(player.income_graph, Graph):
-                # TODO: Is this algorithm right?
-                values = player.income_graph.values
-                player.income_rate = sum(values)/len(values)
+            if isinstance(player.resource_collection_graph, Graph):
+                values = player.resource_collection_graph.values
+                player.resource_collection_rate = sum(values)/len(values)
             else:
                 # In old s2gs files the field with this name was actually a number not a graph
-                player.income_rate = player.income_graph
+                player.resource_collection_rate = player.resource_collection_graph
+                player.resource_collection_graph = None
                 player.income_graph = None
 
             player.avg_unspent_resources = stats.get('Average Unspent Resources', None)
