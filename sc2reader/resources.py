@@ -761,7 +761,6 @@ class GameSummary(Resource):
         self.load_map_info()
         self.load_settings()
         self.load_player_stats()
-        # self.load_player_builds()
         self.load_players()
 
         self.game_type = self.settings['Teams'].replace(" ","")
@@ -1033,7 +1032,6 @@ class GameSummary(Resource):
             player.resource_collection_graph = stats.get('Resource Collection Rate', None)
             player.income_graph = player.resource_collection_graph
 
-
             # HotS Stats
             # TODO: Add the XP stats?
             #   'Units Produced XP'
@@ -1066,83 +1064,6 @@ class GameSummary(Resource):
             self.players.append(player)
             self.player[player.pid] = player
 
-    """
-    def load_player_stats(self):
-        if len(self.parts) < 4: return
-        translation = self.translations[self.opt.lang]
-
-        # Part[3][0][:] and Part[4][0][1] are filled with summary stats
-        # for the players in the game.
-        # Each stat item is laid out as follows
-        #
-        #   {0: {0:999, 1:translation_id}, 1: [ [{0: Value, 1:0, 2:871???}], [], ...]
-        #
-        # Value is as seen on the score screen in game.
-        stats_items = self.parts[3][0]
-        if len(self.parts) > 4:
-            stats_items.append(self.parts[4][0][0])
-
-        for item in stats_items:
-            stat_name = translation.get(item[0][1],"Unknown")
-            for index, value in enumerate(item[1]):
-                if value:
-                    self.player_stats[index][stat_name] = value[0][0]
-
-        if len(self.parts) < 5: return
-
-        # Part[4][0] has entries for the army and income graphs
-        # Each point entry for the graph is laid out as follows
-        #
-        #   {0:Value, 1:0, 2:Time}
-        #
-        # The 2nd part of the tuple appears to always be zero and
-        # the time is in seconds of game time.
-        for index, items in enumerate(self.parts[4][0][1][1]):
-            xy = [(o[2], o[0]) for o in items]
-            self.player_stats[index]['Income Graph'] = Graph([], [], xy_list=xy)
-
-        for index, items in enumerate(self.parts[4][0][2][1]):
-            xy = [(o[2], o[0]) for o in items]
-            self.player_stats[index]['Army Graph'] = Graph([], [], xy_list=xy)
-
-    def load_player_builds(self):
-        # Parse build orders only if it looks like we have build items
-        if len(self.parts) < 5: return
-        translation = self.translations[self.opt.lang]
-
-        # All the parts after part 5 appear to be designated for
-        # build order entries with a max of 10 per part
-        build_items = sum([x[0] for x in self.parts[5:]], [])
-        build_items.extend(self.parts[4][0][3:])
-
-        # Each build item represents one ability and contains
-        # a list of all the uses of that ability by each player
-        # up to the first 64 successful actions in the game.
-        BuildEntry = namedtuple('BuildEntry',['supply','total_supply','time','order','build_index'])
-        for build_item in build_items:
-            translation_key = build_item[0][1]
-            # Here instead of recording unknown entries we just skip them because
-            # it seems that unknown entries actually don't belong in the build order
-            # We should revisit this decision in the future.
-            if translation_key in translation:
-                order_name = translation[translation_key]
-                for pindex, commands in enumerate(build_item[1]):
-                    for command in commands:
-                        self.build_orders[pindex].append(BuildEntry(
-                                supply=command[0],
-                                total_supply=command[1]&0xff,
-                                time=(command[2] >> 8) / 16,
-                                order=order_name,
-                                build_index=command[1] >> 16
-                            ))
-            else:
-                self.logger.warn("Unknown item in build order, key = {0}".format(translation_key))
-
-        # Once we've compiled all the build commands we need to make
-        # sure they are properly sorted for presentation.
-        for build_order in self.build_orders.values():
-            build_order.sort(key=lambda x: x.build_index)
-    """
 
     def __str__(self):
         return "{0} - {1} {2}".format(self.start_time,self.game_length,
