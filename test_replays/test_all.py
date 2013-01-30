@@ -191,10 +191,7 @@ def test_hots_pids():
 def test_wol_pids():
     replay = sc2reader.load_replay("test_replays/1.5.4.24540/ggtracker_1471849.SC2Replay")
 
-    efilter = lambda e: e.name == "AbilityEvent"
-    abilityevents = filter(efilter, replay.events)
-    ability_pids = set( [ event.pid for event in abilityevents ] )
-    
+    ability_pids = set( [ event.player.pid for event in replay.events if 'AbilityEvent' in event.name ] )
     player_pids = set( [ player.pid for player in replay.players ] )
     
     assert ability_pids == player_pids
