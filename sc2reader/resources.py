@@ -506,14 +506,13 @@ class Replay(Resource):
             event.load_context(self)
             # TODO: Should this be documented or removed? I don't like it.
             if event.pid != 16:
-                player = self.person[event.pid]
-                player.events.append(event)
+                event.player.events.append(event)
                 if is_camera:
-                    player.camera_events.append(event)
+                    event.player.camera_events.append(event)
                 elif is_selection:
-                    player.selection_events.append(event)
+                    event.player.selection_events.append(event)
                 elif is_ability:
-                    player.ability_events.append(event)
+                    event.player.ability_events.append(event)
 
     def register_reader(self, data_file, reader, filterfunc=lambda r: True):
         """

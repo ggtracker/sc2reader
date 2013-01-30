@@ -16,12 +16,12 @@ class Event(object):
         # self.time = Length(seconds=self.second)
 
     def load_context(self, replay):
-#        print "Hi", self.pid, replay.person, self.__class__
-        if self.pid != 16 and self.pid not in replay.person:
-            self.logger.error("Bad pid ({}) for event {} at {}.".format(self.pid, self.__class__, Length(seconds=int(self.frame/16))))
-
-        if self.pid != 16:
-            self.player = replay.person[self.pid]
+        if self.pid < len(replay.people):
+            self.player = replay.people[self.pid]
+        elif self.pid != 16:
+            self.logger.error("Bad pid ({0}) for event {1} at {2}.".format(self.pid, self.__class__, Length(seconds=self.second)))
+        else:
+            pass # This is a global event
 
     def _str_prefix(self):
         player_name = self.player.name if getattr(self,'pid', 16)!=16 else "Global"
