@@ -16,7 +16,8 @@ class Reader(object):
         raise NotImplementedError
 
 class InitDataReader_Base(Reader):
-    def __call__(self, data, replay):
+
+    def get_player_names(self, data, replay):
         # The first block of the replay.initData file represents a list of
         # human player names; computers are no recorded. This list appears to
         # always be 16 long, with "" names filling in the balance. Each name
@@ -27,6 +28,10 @@ class InitDataReader_Base(Reader):
             data.skip(5)
             if name:
                 player_names.append(name)
+        return player_names
+
+    def __call__(self, data, replay):
+        player_names = self.get_player_names(data, replay)
 
         # The next block contains information about the structure of the MPQ
         # archive. We don't read this information because we've got mpyq for
@@ -58,6 +63,23 @@ class InitDataReader_Base(Reader):
             player_names=player_names,
             sc_account_id=sc_account_id,
         )
+
+class InitDataReader_24764(InitDataReader_Base):
+    def get_player_names(self, data, replay):
+        player_names = list()
+        for player in range(data.read_byte()):
+            name_length = data.read_byte()
+            data.byte_align() # Strings seem to be always byte aligned
+            name = data.read_string(length=name_length)
+            data.read_bits(1) # Not sure why we have this offset, it could be a flag?
+            clan_length = data.read_byte()
+            data.byte_align()
+            clan_name = data.read_string(length=clan_length)
+            unknown = data.read_bits(42)
+            data.read_bytes(5)
+            player_names.append(name)
+        return player_names
+
 
 
 class AttributesEventsReader_Base(Reader):
