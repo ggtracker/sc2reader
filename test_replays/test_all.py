@@ -179,11 +179,22 @@ def test_datetimes():
     replay = sc2reader.load_replay("test_replays/1.2.2.17811/3.SC2Replay")
     assert replay.end_time == datetime.datetime(2011, 2, 25, 14, 36, 26)
 
-def test_pids():
+def test_hots_pids():
     replay = sc2reader.load_replay("test_replays/2.0.3.24764/Antiga Shipyard (3).SC2Replay")
 
     player_pids = set( [ player.pid for player in replay.players ] )
     player_pids.add(16)
     event_pids = set( [ event.pid for event in replay.events ] )
-    
+   
     assert event_pids == player_pids
+
+def test_wol_pids():
+    replay = sc2reader.load_replay("test_replays/1.5.4.24540/ggtracker_1471849.SC2Replay")
+
+    efilter = lambda e: e.name == "AbilityEvent"
+    abilityevents = filter(efilter, replay.events)
+    ability_pids = set( [ event.pid for event in abilityevents ] )
+    
+    player_pids = set( [ player.pid for player in replay.players ] )
+    
+    assert ability_pids == player_pids
