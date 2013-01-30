@@ -1037,16 +1037,12 @@ class GameSummary(Resource):
             player.income_graph = stats.get('Resource Collection Rate', None)
 
             # HotS Stats
-            # TODO: Add the XP stats?
-            #   'Units Produced XP'
-            #   'Killed Unit XP'
-            #   'Structures Produced XP'
-            #   'Structures Razed XP'
-            #   'Technology XP'
             player.upgrade_spending_graph = stats.get('Upgrade Spending', None)
             player.workers_active_graph = stats.get('Workers Active', None)
-            player.combat_efficiency = stats.get('Combat Efficiency',None)
-            player.supply_efficiency = stats.get('Supply Efficiency', None)
+            player.enemies_destroyed = stats.get('Enemies Destroyed',None)
+            player.time_supply_capped = stats.get('Time Supply Capped', None)
+            player.idle_production_time = stats.get('Idle Production Time', None)
+            player.resources_spent = stats.get('Resources Spent', None)
             player.apm = stats.get('APM', None)
 
             # Economic Breakdown Tab
