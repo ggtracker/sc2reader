@@ -1039,10 +1039,10 @@ class GameSummary(Resource):
             # HotS Stats
             player.upgrade_spending_graph = stats.get('Upgrade Spending', None)
             player.workers_active_graph = stats.get('Workers Active', None)
-            player.enemies_destroyed = stats.get('Enemies Destroyed',None)
+            player.enemies_destroyed = stats.get('Enemies Destroyed:',None)
             player.time_supply_capped = stats.get('Time Supply Capped', None)
             player.idle_production_time = stats.get('Idle Production Time', None)
-            player.resources_spent = stats.get('Resources Spent', None)
+            player.resources_spent = stats.get('Resources Spent:', None)
             player.apm = stats.get('APM', None)
 
             # Economic Breakdown Tab
