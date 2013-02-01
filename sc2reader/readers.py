@@ -77,7 +77,8 @@ class InitDataReader_24764(InitDataReader_Base):
             clan_name = data.read_string(length=clan_length)
             unknown = data.read_bits(42)
             data.read_bytes(5)
-            player_names.append(name)
+            if name:
+                player_names.append(name)
         return player_names
 
 
