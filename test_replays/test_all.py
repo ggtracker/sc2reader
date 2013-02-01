@@ -190,7 +190,8 @@ def test_hots_pids():
 
         player_pids = set( [ player.pid for player in replay.players ] )
         player_pids.add(16)
-        event_pids = set( [ event.pid for event in replay.events ] )
+        efilter = lambda e: hasattr(e, 'player')
+        event_pids = set( [ event.player.pid for event in filter(efilter, replay.events) ] )
    
         assert event_pids == player_pids
 
