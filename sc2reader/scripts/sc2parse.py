@@ -44,11 +44,15 @@ def main():
                     if not args.one_each or replay.is_ladder:
                         replay = sc2reader.load_replay(path, debug=True)
 
-                        player_pids = set( [ player.pid for player in replay.players ] )
-                        efilter = lambda e: hasattr(e, 'player')
-                        event_pids = set( [ event.player.pid for event in filter(efilter, replay.events) ] )
-                        if player_pids != event_pids:
-                            print 'Pid problem!  pids={pids} but event pids={event_pids}'.format(pids=player_pids, event_pids=event_pids)
+                        client_pids = set([client.pid for client in replay.clients])
+                        event_pids = set([ event.player.pid for event in replay.events if getattr(event, 'player',None) ])
+                        player_pids = set([ player.pid for player in replay.players if player.is_human])
+                        ability_pids = set([ event.player.pid for event in replay.events if 'AbilityEvent' in event.name])
+                        if client_pids != event_pids:
+                            print 'Event Pid problem!  pids={pids} but event pids={event_pids}'.format(pids=client_pids, event_pids=event_pids)
+                            print ' with {path}: {build} - {real_type} on {map_name} - Played {start_time}'.format(path=path, **replay.__dict__)
+                        elif player_pids != ability_pids:
+                            print 'Ability Pid problem!  pids={pids} but event pids={event_pids}'.format(pids=player_pids, event_pids=ability_pids)
                             print ' with {path}: {build} - {real_type} on {map_name} - Played {start_time}'.format(path=path, **replay.__dict__)
                         else:
                             print 'No problems with {path}: {build} - {real_type} on {map_name} - Played {start_time}'.format(path=path, **replay.__dict__)
