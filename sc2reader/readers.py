@@ -105,9 +105,6 @@ class AttributesEventsReader_Base(Reader):
                     data.read_byte(),
                     data.read(4).strip('\00 ')[::-1]
                 ]
-
-            if info[2]!=16: info[2]-=1 # Convert from 1-offset to 0-offset
-            #print hex(info[1]), "P"+str(info[2]), info[3]
             attribute_events.append(Attribute(info))
 
         return attribute_events
@@ -196,7 +193,6 @@ class DetailsReader_Beta_24764(DetailsReader_Beta):
     PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result','unknown4'])
 
 class MessageEventsReader_Base(Reader):
-    POFFSET=-1
     TARGET_BITS=3
     def __call__(self, data, replay):
         # The replay.message.events file is a single long list containing three
@@ -211,7 +207,6 @@ class MessageEventsReader_Base(Reader):
             # All the element types share the same time, pid, flags header.
             frame += data.read_timestamp()
             pid = data.read_bits(5)
-            if pid != 16: pid+=self.POFFSET
             t = data.read_bits(3)
             flags = data.read_byte()
 
@@ -237,7 +232,6 @@ class MessageEventsReader_Base(Reader):
         return AttributeDict(pings=pings, messages=messages, packets=packets)
 
 class MessageEventsReader_Beta_24247(MessageEventsReader_Base):
-    POFFSET=0
     TARGET_BITS=4
 
 class GameEventsReader_Base(object):
@@ -246,7 +240,6 @@ class GameEventsReader_Base(object):
     ABILITY_TEAM_FLAG = False
     UNIT_INDEX_BITS = 8
     HOTKEY_OVERLAY = 0
-    POFFSET = -1
 
     def __init__(self):
         self.EVENT_DISPATCH = {
@@ -281,7 +274,6 @@ class GameEventsReader_Base(object):
             while event_start != data_length:
                 fstamp += read_timestamp()
                 pid = read_bits(5)
-                if pid != 16: pid+= self.POFFSET
                 event_type = read_bits(7)
 
                 # Check for a lookup
@@ -598,6 +590,3 @@ class GameEventsReader_Beta(GameEventsReader_22612):
 
 class GameEventsReader_Beta_23925(GameEventsReader_Beta):
     PLAYER_JOIN_FLAGS = 32
-
-class GameEventsReader_Beta_24247(GameEventsReader_Beta_23925):
-    POFFSET = 0

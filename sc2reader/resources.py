@@ -335,27 +335,22 @@ class Replay(Resource):
         if 'replay.initData' not in self.raw_data:
             return
 
-        # 1. pids are in lobby join order, use initData.player_names
-        # 2. use the name to get the player_data index
-        # 2a. if observer, save pid+name for later
-        # 3. use the player_data index as the attrib_data index...?
-        # 4. use the player_data and attribute_data to load the player
-        # 5. after loop, load the computer players and (optionally) their attributes
-        # 6. then load the observer pid,name using attributes if available
-        def createPlayer(pid, pdata, attributes):
-            # General information re: each player comes from the following files
-            #   * replay.initData
-            #   * replay.details
-            #   * replay.attribute.events
-            #
-            # TODO: recognize current locale and use that instead of western
-            # TODO: fill in the LOCALIZED_RACES table
-            player = Player(pid,pdata.name)
+        self.clients = list()
+        self.client = dict()
 
-            # Cross reference the player and team lookups
-            # TODO: Players without attribute events, where do we get the team info?
-            # print pdata.name, attributes, pdata
-            team_number = attributes.get('Teams'+self.type,0)
+        def createObserver(pid, name, attributes):
+            # TODO: Make use of that attributes, new in HotS
+            observer = Observer(pid, name)
+            return observer
+
+        def createPlayer(pid, pdata, attributes):
+            # make sure to strip the clan tag out of the name
+            name = pdata.name.split("]")[-1]
+            player = Player(pid, name)
+
+            # In some beta patches attribute information is missing
+            # Just assign them to team 2 to keep the issue from being fatal
+            team_number = attributes.get('Teams'+self.type,2)
             if not team_number in self.team:
                 self.team[team_number] = Team(team_number)
                 self.teams.append(self.team[team_number])
@@ -368,6 +363,8 @@ class Replay(Resource):
                 self.winner = player.team
             elif pdata.result == 2:
                 player.team.result = "Loss"
+            else:
+                pass # We don't need to do anything here?
 
             player.pick_race = attributes.get('Race','Unknown')
             player.play_race = LOCALIZED_RACES.get(pdata.race, pdata.race)
@@ -375,63 +372,41 @@ class Replay(Resource):
             player.is_human = (attributes.get('Player Type','Computer') == 'Human')
             player.uid = pdata.bnet.uid
             player.subregion = pdata.bnet.subregion
+            player.gateway = {0:'', 1:'us',2:'eu',3:'kr',6:'sea', 98:'xx'}[pdata.bnet.unknown1] # actually is gateway!!!
             player.handicap = pdata.handicap
-
-            # We need initData for the gateway portion of the url!
-            if self.gateway:
-                player.gateway = self.gateway
-                if player.is_human and player.subregion:
-                    player.region = REGIONS[self.gateway].get(player.subregion, 'Unknown')
-
-            # Conversion instructions to the new color object:
-            #   color_rgba is the color object itself
-            #   color_hex is color.hex
-            #   color is str(color)
             player.color = utils.Color(**pdata.color._asdict())
+            return player
 
-            # Each player can be referenced in a number of different ways,
-            # primarily for convenience of access in any given situation.
-            self.people.append(player)
+
+        pid = 0
+        clients = self.raw_data['replay.initData'].player_names
+        for index, pdata in enumerate(self.raw_data['replay.details'].players):
+            pid += 1
+            attributes = self.attributes.get(pid, dict())
+            player = createPlayer(pid, pdata, attributes)
+            self.player[pid] = player
             self.players.append(player)
             self.player[pid] = player
+            self.people.append(player)
             self.person[pid] = player
 
-        def createObserver(pid, name, attributes):
-            observer = Observer(pid,name)
-            self.observers.append(observer)
-            self.people.append(observer)
-            self.person[pid] = observer
+        for cid, name in enumerate(clients):
+            if name not in self.player._key_map:
+                pid += 1
+                attributes = self.attributes.get(pid, dict())
+                client = createObserver(pid, name, attributes)
+                self.observers.append(client)
+                self.people.append(client)
+                self.person[pid] = client
+            else:
+                client = self.player.name(name)
 
-        observer_data = list()
-        unassigned_player_data = collections.OrderedDict((p.name, (idx,p)) for idx, p in enumerate(self.raw_data['replay.details'].players))
-        try:
-            for pid, name in enumerate(self.raw_data['replay.initData'].player_names):
-                if name in unassigned_player_data:
-                    idx, pdata = unassigned_player_data[name]
-                    attributes = self.attributes.get(idx,dict())
-                    createPlayer(pid, pdata, attributes)
-                    del unassigned_player_data[name]
-                else:
-                    observer_data.append((pid,name))
+            client.cid = cid
+            self.clients.append(client)
+            self.client[cid] = client
 
-            comp_start_id = len(self.raw_data['replay.initData'].player_names)
-            for name, (idx,pdata) in unassigned_player_data.items():
-                attributes = self.attributes.get(idx,dict())
-                createPlayer(comp_start_id, pdata, attributes)
-                comp_start_id+=1
-
-            obs_start_idx = len(self.raw_data['replay.details'].players)
-            for pid, name in observer_data:
-                attributes = self.attributes.get(obs_start_idx,dict())
-                createObserver(pid, name, attributes)
-                obs_start_idx+=1
-        except:
-            print unassigned_player_data
-            print self.raw_data['replay.initData'].player_names
-            raise
-
-
-        self.humans = filter(lambda p: p.is_human, self.people)
+        # replay.clients replaces replay.humans
+        self.humans = self.clients
 
         #Create an store an ordered lineup string
         for team in self.teams:
@@ -573,8 +548,7 @@ class Replay(Resource):
         self.register_reader('replay.game.events', readers.GameEventsReader_19595(), lambda r: 19595 <= r.build < 22612)
         self.register_reader('replay.game.events', readers.GameEventsReader_22612(), lambda r: 22612 <= r.build and r.expansion=='WoL')
         self.register_reader('replay.game.events', readers.GameEventsReader_Beta(), lambda r: r.expansion=='HotS' and r.build < 23925)
-        self.register_reader('replay.game.events', readers.GameEventsReader_Beta_23925(), lambda r: r.expansion=='HotS' and 23925 <= r.build < 24247)
-        self.register_reader('replay.game.events', readers.GameEventsReader_Beta_24247(), lambda r: r.expansion=='HotS' and 24247 <= r.build )
+        self.register_reader('replay.game.events', readers.GameEventsReader_Beta_23925(), lambda r: r.expansion=='HotS' and 23925 <= r.build)
 
 
     def register_default_datapacks(self):
