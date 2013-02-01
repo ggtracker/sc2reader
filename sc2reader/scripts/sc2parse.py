@@ -44,11 +44,11 @@ def main():
                     if not args.one_each or replay.is_ladder:
                         replay = sc2reader.load_replay(path, debug=True)
 
-                        pids = set( [ player.pid for player in replay.players ] )
-                        pids.add(16)
-                        event_pids = set( [ event.player.pid for event in replay.events ] )
-                        if pids != event_pids:
-                            print 'Pid problem!  pids={pids} but event pids={event_pids}'.format(pids=pids, event_pids=event_pids)
+                        player_pids = set( [ player.pid for player in replay.players ] )
+                        efilter = lambda e: hasattr(e, 'player')
+                        event_pids = set( [ event.player.pid for event in filter(efilter, replay.events) ] )
+                        if player_pids != event_pids:
+                            print 'Pid problem!  pids={pids} but event pids={event_pids}'.format(pids=player_pids, event_pids=event_pids)
                             print ' with {path}: {build} - {real_type} on {map_name} - Played {start_time}'.format(path=path, **replay.__dict__)
                         else:
                             print 'No problems with {path}: {build} - {real_type} on {map_name} - Played {start_time}'.format(path=path, **replay.__dict__)
