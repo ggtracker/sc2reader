@@ -184,16 +184,15 @@ def test_hots_pids():
         "test_replays/2.0.3.24764/Akilon Wastes (10).SC2Replay",
         "test_replays/2.0.3.24764/Antiga Shipyard (3).SC2Replay",
         "test_replays/2.0.0.24247/molten.SC2Replay",
+        "test_replays/2.0.0.23925/Akilon Wastes.SC2Replay",
         ]:
         print "Processing {fname}".format(fname=replayfilename)
         replay = sc2reader.load_replay(replayfilename)
 
         player_pids = set( [ player.pid for player in replay.players ] )
-        player_pids.add(16)
-        efilter = lambda e: hasattr(e, 'player')
-        event_pids = set( [ event.player.pid for event in filter(efilter, replay.events) ] )
+        ability_pids = set( [ event.player.pid for event in replay.events if 'AbilityEvent' in event.name ] )
    
-        assert event_pids == player_pids
+        assert ability_pids == player_pids
 
 def test_wol_pids():
     replay = sc2reader.load_replay("test_replays/1.5.4.24540/ggtracker_1471849.SC2Replay")
