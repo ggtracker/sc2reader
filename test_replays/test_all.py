@@ -180,13 +180,19 @@ def test_datetimes():
     assert replay.end_time == datetime.datetime(2011, 2, 25, 14, 36, 26)
 
 def test_hots_pids():
-    replay = sc2reader.load_replay("test_replays/2.0.3.24764/Antiga Shipyard (3).SC2Replay")
+    for replayfilename in [
+        "test_replays/2.0.3.24764/Akilon Wastes (10).SC2Replay",
+        "test_replays/2.0.3.24764/Antiga Shipyard (3).SC2Replay",
+        "test_replays/2.0.0.24247/molten.SC2Replay",
+        ]:
+        print "Processing {fname}".format(fname=replayfilename)
+        replay = sc2reader.load_replay(replayfilename)
 
-    player_pids = set( [ player.pid for player in replay.players ] )
-    player_pids.add(16)
-    event_pids = set( [ event.pid for event in replay.events ] )
+        player_pids = set( [ player.pid for player in replay.players ] )
+        player_pids.add(16)
+        event_pids = set( [ event.pid for event in replay.events ] )
    
-    assert event_pids == player_pids
+        assert event_pids == player_pids
 
 def test_wol_pids():
     replay = sc2reader.load_replay("test_replays/1.5.4.24540/ggtracker_1471849.SC2Replay")
@@ -195,3 +201,10 @@ def test_wol_pids():
     player_pids = set( [ player.pid for player in replay.players ] )
     
     assert ability_pids == player_pids
+
+def test_hots_hatchfun():
+    replay = sc2reader.load_replay("test_replays/2.0.0.24247/molten.SC2Replay")
+    player_pids = set( [ player.pid for player in replay.players ] )
+    spawner_pids = set( [ event.player.pid for event in replay.events if 'TargetAbilityEvent' in event.name and event.ability.name == 'SpawnLarva' ] )
+    print "player_pids = {player_pids}, spawner_pids = {spawner_pids}".format(player_pids=player_pids, spawner_pids=spawner_pids)
+    assert spawner_pids.issubset(player_pids)
