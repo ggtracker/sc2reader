@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(os.path.abspath
 import sc2reader
 from sc2reader.exceptions import ParseError
 
+sc2reader.log_utils.log_to_console('INFO')
 # Tests for build 17811 replays
 
 def test_standard_1v1():
@@ -26,15 +27,15 @@ def test_standard_1v1():
     assert replay.is_private == False
 
     assert len(replay.players) == 2
-    assert replay.person[0].name == "Emperor"
-    assert replay.person[1].name == "Boom"
-    emperor = replay.person[0]
+    assert replay.person[1].name == "Emperor"
+    assert replay.person[2].name == "Boom"
+    emperor = replay.person[1]
     assert emperor.team.number == 1
     assert emperor.pick_race == "Protoss"
     assert emperor.play_race == "Protoss"
     assert emperor.recorder == False
 
-    boom = replay.person[1]
+    boom = replay.person[2]
     assert boom.team.number == 2
     assert boom.pick_race == "Terran"
     assert boom.play_race == "Terran"
@@ -189,7 +190,7 @@ def test_hots_pids():
         print "Processing {fname}".format(fname=replayfilename)
         replay = sc2reader.load_replay(replayfilename)
 
-        player_pids = set( [ player.pid for player in replay.players ] )
+        player_pids = set( [ player.pid for player in replay.players if player.is_human] )
         ability_pids = set( [ event.player.pid for event in replay.events if 'AbilityEvent' in event.name ] )
    
         assert ability_pids == player_pids
