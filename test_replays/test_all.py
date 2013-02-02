@@ -209,3 +209,7 @@ def test_hots_hatchfun():
     spawner_pids = set( [ event.player.pid for event in replay.events if 'TargetAbilityEvent' in event.name and event.ability.name == 'SpawnLarva' ] )
     print "player_pids = {player_pids}, spawner_pids = {spawner_pids}".format(player_pids=player_pids, spawner_pids=spawner_pids)
     assert spawner_pids.issubset(player_pids)
+
+def test_hots_vs_ai():
+    replay = sc2reader.load_replay("test_replays/2.0.0.24247/Cloud Kingdom LE (13).SC2Replay")
+    replay = sc2reader.load_replay("test_replays/2.0.0.24247/Korhal City (19).SC2Replay")
