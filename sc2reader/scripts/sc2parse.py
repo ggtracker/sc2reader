@@ -56,6 +56,7 @@ def main():
                             print ' with {path}: {build} - {real_type} on {map_name} - Played {start_time}'.format(path=path, **replay.__dict__)
                         else:
                             print 'No problems with {path}: {build} - {real_type} on {map_name} - Played {start_time}'.format(path=path, **replay.__dict__)
+                            print 'Units were: {units}'.format(units=set([ obj.name for obj in replay.objects.values() ]))
 
             except sc2reader.exceptions.ReadError as e:
                 if args.ladder_only and not e.replay.is_ladder: continue

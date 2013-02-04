@@ -213,3 +213,8 @@ def test_hots_hatchfun():
 def test_hots_vs_ai():
     replay = sc2reader.load_replay("test_replays/2.0.0.24247/Cloud Kingdom LE (13).SC2Replay")
     replay = sc2reader.load_replay("test_replays/2.0.0.24247/Korhal City (19).SC2Replay")
+
+def test_oracle_parsing():
+    replay = sc2reader.load_replay("test_replays/2.0.3.24764/ggtracker_1571740.SC2Replay")
+    oracles = [unit for unit in replay.objects.values() if unit.name=='Oracle']
+    assert len(oracles) == 2
