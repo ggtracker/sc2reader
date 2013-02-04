@@ -369,7 +369,7 @@ class Replay(Resource):
             player.pick_race = attributes.get('Race','Unknown')
             player.play_race = LOCALIZED_RACES.get(pdata.race, pdata.race)
             player.difficulty = attributes.get('Difficulty','Unknown')
-            player.is_human = (attributes.get('Player Type','Computer') == 'Human')
+            player.is_human = (attributes.get('Controller','Computer') == 'Human')
             player.uid = pdata.bnet.uid
             player.subregion = pdata.bnet.subregion
             player.gateway = {0:'', 1:'us',2:'eu',3:'kr',6:'sea', 98:'xx'}[pdata.bnet.unknown1] # actually is gateway!!!
