@@ -399,7 +399,7 @@ for version in ('16117','17326','18092','19458','22612'):
 
 # Load HotS Data
 hots_builds = dict()
-for version in ('base','23925','24247'):
+for version in ('base','23925','24247','24764'):
     hots_builds[version] = load_build('HotS', version)
 
 builds = {'WoL':wol_builds,'HotS':hots_builds}
