@@ -430,7 +430,7 @@ class Color(AttributeDict):
             return COLOR_CODES_INV.get(self.name)
         else:
             return "{0.r:02X}{0.g:02X}{0.b:02X}".format(self)
-        return "{0.r:02X}{0.g:02X}{0.b:02X}".format(self)
+
 
     def __str__(self):
         if not hasattr(self,'name'):

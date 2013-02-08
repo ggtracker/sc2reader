@@ -307,7 +307,7 @@ LOBBY_PROPERTIES = {
                 'yes':'yes'
             }),
 
-    0x01F4: ("Player Type",  {
+    0x01F4: ("Controller",  {
                 'Humn': 'Human',
                 'Comp': 'Computer',
                 'Open': 'Open',
@@ -340,6 +340,12 @@ LOBBY_PROPERTIES = {
 
     0x07E1: ("FFA Teams", lambda value: int(value[1:])),
     0x07E2: ("Custom Teams", lambda value: int(value[1:])),
+
+    0x0FA0: ("Game Privacy", {
+                'Norm': 'Normal',
+                'NoBO': 'No Build Order',
+                'NoMH': 'No Match History',
+            }),
 
     0x0BB8: ("Game Speed", {
                 'Slor': 'Slower',
@@ -384,16 +390,21 @@ LOBBY_PROPERTIES = {
                 'VyEy': 'Very easy',
                 'Easy': 'Easy',
                 'Medi': 'Medium',
-                'Hard': 'Hard',
-                'VyHd': 'Very hard',
-                'Insa': 'Insane',
+                'MdHd': 'Hard',
+                'Hard': 'Harder',
+                'HdVH': 'Very Hard',
+                'VyHd': 'Elite',
+                'ChVi': 'Cheater 1 (Vision)',
+                'ChRe': 'Cheater 2 (Resources)',
+                'Insa': 'Cheater 3 (Insane)',
             }),
 
 
-    0x0BBF: ("Player Type", {
+    0x0BBF: ("Participant Role", {
                 'Part':'Participant',
-                'Watc':'Watcher'
+                'Watc':'Observer'
             }),
+
     0x0BC0: ("Watcher Type", {
                 'Obs': 'Observer',
                 'Ref':'Referee'
@@ -404,7 +415,7 @@ LOBBY_PROPERTIES = {
                 'Amm':  'Ladder',
                 '':     'Single',
             }),
-    0x0BC2: ("Alliances", {
+    0x0BC2: ("Locked Alliances", {
                 'no':'unlocked',
                 'yes':'locked',
             })

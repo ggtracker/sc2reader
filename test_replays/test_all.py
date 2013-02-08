@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(os.path.abspath
 import sc2reader
 from sc2reader.exceptions import ParseError
 
+sc2reader.log_utils.log_to_console('INFO')
 # Tests for build 17811 replays
 
 def test_standard_1v1():
@@ -26,15 +27,15 @@ def test_standard_1v1():
     assert replay.is_private == False
 
     assert len(replay.players) == 2
-    assert replay.person[0].name == "Emperor"
-    assert replay.person[1].name == "Boom"
-    emperor = replay.person[0]
+    assert replay.person[1].name == "Emperor"
+    assert replay.person[2].name == "Boom"
+    emperor = replay.person[1]
     assert emperor.team.number == 1
     assert emperor.pick_race == "Protoss"
     assert emperor.play_race == "Protoss"
     assert emperor.recorder == False
 
-    boom = replay.person[1]
+    boom = replay.person[2]
     assert boom.team.number == 2
     assert boom.pick_race == "Terran"
     assert boom.play_race == "Terran"
@@ -178,3 +179,42 @@ def test_datetimes():
     # Played at 25 Feb 2011 16:36:28 UTC+2
     replay = sc2reader.load_replay("test_replays/1.2.2.17811/3.SC2Replay")
     assert replay.end_time == datetime.datetime(2011, 2, 25, 14, 36, 26)
+
+def test_hots_pids():
+    for replayfilename in [
+        "test_replays/2.0.3.24764/Akilon Wastes (10).SC2Replay",
+        "test_replays/2.0.3.24764/Antiga Shipyard (3).SC2Replay",
+        "test_replays/2.0.0.24247/molten.SC2Replay",
+        "test_replays/2.0.0.23925/Akilon Wastes.SC2Replay",
+        ]:
+        print "Processing {fname}".format(fname=replayfilename)
+        replay = sc2reader.load_replay(replayfilename)
+
+        player_pids = set( [ player.pid for player in replay.players if player.is_human] )
+        ability_pids = set( [ event.player.pid for event in replay.events if 'AbilityEvent' in event.name ] )
+   
+        assert ability_pids == player_pids
+
+def test_wol_pids():
+    replay = sc2reader.load_replay("test_replays/1.5.4.24540/ggtracker_1471849.SC2Replay")
+
+    ability_pids = set( [ event.player.pid for event in replay.events if 'AbilityEvent' in event.name ] )
+    player_pids = set( [ player.pid for player in replay.players ] )
+    
+    assert ability_pids == player_pids
+
+def test_hots_hatchfun():
+    replay = sc2reader.load_replay("test_replays/2.0.0.24247/molten.SC2Replay")
+    player_pids = set( [ player.pid for player in replay.players ] )
+    spawner_pids = set( [ event.player.pid for event in replay.events if 'TargetAbilityEvent' in event.name and event.ability.name == 'SpawnLarva' ] )
+    print "player_pids = {player_pids}, spawner_pids = {spawner_pids}".format(player_pids=player_pids, spawner_pids=spawner_pids)
+    assert spawner_pids.issubset(player_pids)
+
+def test_hots_vs_ai():
+    replay = sc2reader.load_replay("test_replays/2.0.0.24247/Cloud Kingdom LE (13).SC2Replay")
+    replay = sc2reader.load_replay("test_replays/2.0.0.24247/Korhal City (19).SC2Replay")
+
+def test_oracle_parsing():
+    replay = sc2reader.load_replay("test_replays/2.0.3.24764/ggtracker_1571740.SC2Replay")
+    oracles = [unit for unit in replay.objects.values() if unit.name=='Oracle']
+    assert len(oracles) == 2

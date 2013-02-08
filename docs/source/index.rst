@@ -16,6 +16,10 @@ time. Any questions, suggestions, or concerns should be posted to the sc2reader
 `mailing list`_. You can also pop on to our #sc2reader, our `IRC channel`_ on
 Freenode if you want to chat or need some live support.
 
+.. note::
+
+    Checkout our :doc:`faq`. If your question isn't covered there, let us know and we'll add it to the list.
+
 .. _mailing list: http://groups.google.com/group/sc2reader
 .. _IRC Channel: http://webchat.freenode.net/?channels=#sc2reader
 
@@ -35,6 +39,7 @@ SC2 replays hold a ton of information. The following reference pages were put to
 
 .. toctree::
 
+    faq
     sc2reader
     primaryresources
     supportobjects
@@ -47,6 +52,7 @@ SC2 replays hold a ton of information. The following reference pages were put to
     :maxdepth: 2
     :glob:
 
+    faq
     sc2reader
     primaryresources
     supportobjects

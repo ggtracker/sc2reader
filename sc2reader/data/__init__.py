@@ -289,8 +289,22 @@ class Unit(object):
     def __repr__(self):
         return str(self)
 
+    def __cmp__(self, other):
+        if other.id > self.id:
+            return -1
+        elif other.id < self.id:
+            return 1
+        else:
+            if other.type > self.type:
+                return -1
+            elif other.type < self.type:
+                return 1
+            else:
+                return 0
+
 class Ability(object):
     pass
+
 
 def load_build(expansion, version):
     unit_file = '{0}/{1}_units.csv'.format(expansion,version)
@@ -385,7 +399,7 @@ for version in ('16117','17326','18092','19458','22612'):
 
 # Load HotS Data
 hots_builds = dict()
-for version in ('base','23925','24247'):
+for version in ('base','23925','24247','24764'):
     hots_builds[version] = load_build('HotS', version)
 
 builds = {'WoL':wol_builds,'HotS':hots_builds}
