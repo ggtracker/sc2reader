@@ -74,6 +74,7 @@ GATEWAY_CODES = {
     'SG': 'South East Asia',
     'XX': 'Public Test',
 }
+
 COLOR_CODES = {
     'B4141E': 'Red',
     '0042FF': 'Blue',
@@ -82,13 +83,13 @@ COLOR_CODES = {
     '540081': 'Purple',
     'FE8A0E': 'Orange',
     '168000': 'Green',
-    'CCA6FC': 'Light pink',
+    'CCA6FC': 'Light Pink',
     '1F01C9': 'Violet',
-    '525494': 'Light grey',
-    '106246': 'Dark green',
+    '525494': 'Light Grey',
+    '106246': 'Dark Green',
     '4E2A04': 'Brown',
-    '96FF91': 'Light green',
-    '232323': 'Dark grey',
+    '96FF91': 'Light Green',
+    '232323': 'Dark Grey',
     'E55BB0': 'Pink'
 }
 
