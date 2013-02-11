@@ -287,8 +287,8 @@ class Replay(Resource):
 
             # Populate replay with attributes
             self.speed = self.attributes[16]['Game Speed']
-            self.category = self.attributes[16]['Category']
-            self.type = self.game_type = self.attributes[16]['Game Mode']
+            self.category = self.attributes[16]['Game Mode']
+            self.type = self.game_type = self.attributes[16]['Teams']
             self.is_ladder = (self.category == "Ladder")
             self.is_private = (self.category == "Private")
 
@@ -350,7 +350,7 @@ class Replay(Resource):
 
             # In some beta patches attribute information is missing
             # Just assign them to team 2 to keep the issue from being fatal
-            team_number = attributes.get('Teams'+self.type,2)
+            team_number = int(attributes.get('Teams'+self.type,"Team 2")[5:])
 
             if not team_number in self.team:
                 self.team[team_number] = Team(team_number)
@@ -370,7 +370,7 @@ class Replay(Resource):
             player.pick_race = attributes.get('Race','Unknown')
             player.play_race = LOCALIZED_RACES.get(pdata.race, pdata.race)
             player.difficulty = attributes.get('Difficulty','Unknown')
-            player.is_human = (attributes.get('Controller','Computer') == 'Human')
+            player.is_human = (attributes.get('Controller','Computer') == 'User')
             player.uid = pdata.bnet.uid
             player.subregion = pdata.bnet.subregion
             player.gateway = {0:'', 1:'us',2:'eu',3:'kr',6:'sea', 98:'xx'}[pdata.bnet.unknown1] # actually is gateway!!!
@@ -974,7 +974,7 @@ class GameSummary(Resource):
                 player.unknown2 = struct[0][1][1]
 
             # Either a referee or a spectator, nothing else to do
-            if settings['Participant Role'] != 'Participant':
+            if settings.get('Participant Role','') != 'Participant':
                 self.observers.append(player)
                 continue
 

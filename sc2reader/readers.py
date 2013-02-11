@@ -103,7 +103,7 @@ class AttributesEventsReader_Base(Reader):
                     data.read_int(LITTLE_ENDIAN),
                     data.read_int(LITTLE_ENDIAN),
                     data.read_byte(),
-                    data.read(4).strip('\00 ')[::-1]
+                    data.read(4).strip("\x00 ")[::-1]
                 ]
             attribute_events.append(Attribute(info))
 
