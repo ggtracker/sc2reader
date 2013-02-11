@@ -14,7 +14,7 @@ from datetime import timedelta
 from collections import deque
 
 from sc2reader import exceptions
-from sc2reader.constants import COLOR_CODES, COLOR_CODES_INV, BUILD_ORDER_UPGRADES
+from sc2reader.constants import COLOR_CODES, COLOR_CODES_INV
 
 LITTLE_ENDIAN,BIG_ENDIAN = '<','>'
 
@@ -566,32 +566,3 @@ class Length(timedelta):
             return "{0:0>2}.{1:0>2}.{2:0>2}".format(self.hours,self.mins,self.secs)
         else:
             return "{0:0>2}.{1:0>2}".format(self.mins,self.secs)
-
-
-def get_unit(type_int):
-    """
-    Takes an int, i, with (i & 0xff000000) = 0x01000000
-    and returns the corresponding unit/structure
-    """
-    # Try to parse a unit
-    unit_code = ((type_int & 0xff) << 8) | 0x01
-    if unit_code in Data.units:
-        unit_name = Data.units[unit_code].name
-    else:
-        unit_name = "Unknown Unit ({0:X})".format(type_int)
-
-    return dict(name=unit_name, type_int=hex(type_int))
-
-
-def get_research(type_int):
-    """
-    Takes an int, i, with (i & 0xff000000) = 0x02000000
-    and returns the corresponding research/upgrade
-    """
-    research_code = ((type_int & 0xff) << 8) | 0x02
-    if research_code in BUILD_ORDER_UPGRADES:
-        research_name = BUILD_ORDER_UPGRADES[research_code]
-    else:
-        research_name = "Unknown upgrade ({0:X})".format(research_code)
-
-    return dict(name=research_name, type_int=hex(type_int))
