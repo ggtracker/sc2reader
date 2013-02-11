@@ -192,7 +192,7 @@ def test_hots_pids():
 
         player_pids = set( [ player.pid for player in replay.players if player.is_human] )
         ability_pids = set( [ event.player.pid for event in replay.events if 'AbilityEvent' in event.name ] )
-   
+
         assert ability_pids == player_pids
 
 def test_wol_pids():
@@ -200,7 +200,7 @@ def test_wol_pids():
 
     ability_pids = set( [ event.player.pid for event in replay.events if 'AbilityEvent' in event.name ] )
     player_pids = set( [ player.pid for player in replay.players ] )
-    
+
     assert ability_pids == player_pids
 
 def test_hots_hatchfun():
@@ -218,3 +218,6 @@ def test_oracle_parsing():
     replay = sc2reader.load_replay("test_replays/2.0.3.24764/ggtracker_1571740.SC2Replay")
     oracles = [unit for unit in replay.objects.values() if unit.name=='Oracle']
     assert len(oracles) == 2
+
+def test_resume_from_replay():
+    replay = sc2reader.load_replay("test_replays/2.0.3.24764/resume_from_replay.SC2Replay")
