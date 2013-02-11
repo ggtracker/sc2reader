@@ -95,40 +95,6 @@ COLOR_CODES = {
 
 COLOR_CODES_INV = dict(zip(COLOR_CODES.values(),COLOR_CODES.keys()))
 
-## Names of the different properties found in the s2gs files lobby part
-LOBBY_PROPERTY_NAMES = {
-    1    : 'unknown1',       #0001/0002
-    2    : 'unknown2',       #0001/0002
-    500  : 'Slot type',      #Clsd/Open/Humn/Comp
-    1000 : 'unknown3',       #Dflt
-    1001 : 'Melee',          #no/yes  no->2000, yes->2001
-    2000 : 'Custom mode',    #t2/t3/t4/t5/FFA/Cust  (tX = X teams)
-    2001 : 'Melee mode',     #1v1/2v2/3v3/4v4/5v5/6v6/FFA
-    2002 : '1v1 Team',       #T1/T2
-    2003 : '2v2 Team',       #T1/T2/T1/T2
-    2004 : '3v3 Team',       #T1/T2/T1/T2/T1/T2
-    2005 : '4v4 Team',       #T1/T2/T1/T2/T1/T2/T1/T2
-    2006 : 'FFA Team',       #T1/T2/T3/T4/T5/T6
-    2007 : '5v5 Team',       #T1/T2/T1/T2/T1/T2/T1/T2/T1/T2
-    2008 : '6v6 Team',       #T1/T2/T1/T2/T1/T2/T1/T2/T1/T2/T1/T2
-    2011 : "'2 Teams' team", #(T1/T2)*6
-    2012 : "'3 Teams' team", #(T1/T2/T3)*6
-    2013 : "'4 Teams' team", #(T1/T2/T3/T4)*6
-    2014 : "'5 Teams' team", #(T1/T2/T3/T4/T5)*6
-    2017 : "FFA Team",       #T1/T2/T3/T4/T5/T6
-    2018 : "'Custom' team",  #(T1/T2/T3/T4/T5/T6)*5
-    3000 : 'Game speed',     #Slor/Slow/Norm/Fast/Fasr
-    3001 : 'Race',           #Terr/Zerg/Prot/RAND
-    3002 : 'Color',          #tc01/tc02/tc03/tc04/.../tc15
-    3003 : 'Handicap',       #50/60/70/80/90/100
-    3004 : 'Difficulty',     #VyEy/Easy/Medi/Hard/VyHd/Insa
-    3006 : 'Game countdown', #3/5/7/10/15/20/25/30   (countdown timer in lobby (seconds))
-    3007 : 'Player mode',    #Part/Watch     (Participating/Watching) Watch->3008
-    3008 : 'Spectate mode',  #Obs/Ref
-    3009 : 'Lobby type',     #Priv/Pub/Amm
-    3010 : 'unknown4',       #no/yes   (Never required)
-}
-
 REGIONS = {
     # United States
     'us': {
