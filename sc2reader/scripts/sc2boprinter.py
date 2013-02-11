@@ -16,13 +16,14 @@ def main():
         print("\n"+"-"*40+"\n")
         print("= {0} =".format(r))
         for p in r.players:
-            print("== {0} - {1} ==".format(p.race, p.bnetid if not p.is_ai else "AI"))
+            print("== {0} - {1}/{2} ==".format(p.play_race, p.region, p.bnetid if not p.is_ai else "AI"))
             for order in r.build_orders[p.pid]:
-                print("{0:0>2}:{1:0>2}  {2:<35} {3:>2}/{4}".format(order['time'] / 60,
-                                                                  order['time'] % 60,
-                                                                  order['order']['name'],
-                                                                  order['supply'],
-                                                                  order['total_supply']))
+                print("{0:0>2}:{1:0>2}  {2:<35} {3:>2}/{4}".format(order.time / 60,
+                                                                  order.time % 60,
+                                                                  order.order,
+                                                                  order.supply,
+                                                                  order.total_supply))
+            print
 
 if __name__ == '__main__':
     main()
