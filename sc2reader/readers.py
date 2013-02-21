@@ -131,8 +131,8 @@ class DetailsReader_Base(Reader):
         #       Name
         #       BnetData:
         #           unknown1
-        #           subregion_id
         #           unknown2
+        #           subregion_id
         #           bnet_id
         #       actual_race (Terran, Protoss, Zerg)
         #       ColorData:
@@ -143,8 +143,8 @@ class DetailsReader_Base(Reader):
         #       Unknown1
         #       Unknown2
         #       handicap (0-100)
-        #       Unknown3
-        #       Result (0,1,2) - Frequently 2, indicating unknown. 1 for win.
+        #       Team Number - according to András
+        #       Result (0,1,2) - (Unknown, Win, Loss), thanks András
         #   Map
         #   Unknown1
         #   Unknown2

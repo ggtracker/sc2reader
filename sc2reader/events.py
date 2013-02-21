@@ -110,6 +110,8 @@ class BetaJoinEvent(GameEvent):
         super(BetaJoinEvent, self).__init__(frames, pid, event_type)
         self.flags = flags
 
+# TODO: András says this is just a leave event and not a win event!
+# Investigate
 class BetaWinEvent(GameEvent):
     name = 'BetaWinEvent'
 

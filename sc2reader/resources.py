@@ -365,7 +365,7 @@ class Replay(Resource):
             elif pdata.result == 2:
                 player.team.result = "Loss"
             else:
-                pass # We don't need to do anything here?
+                player.team.result = None
 
             player.pick_race = attributes.get('Race','Unknown')
             player.play_race = LOCALIZED_RACES.get(pdata.race, pdata.race)
