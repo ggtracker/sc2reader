@@ -218,3 +218,7 @@ def test_oracle_parsing():
     replay = sc2reader.load_replay("test_replays/2.0.3.24764/ggtracker_1571740.SC2Replay")
     oracles = [unit for unit in replay.objects.values() if unit.name=='Oracle']
     assert len(oracles) == 2
+
+def test_clan_players():
+    replay = sc2reader.load_replay("test_replays/2.0.4.24944/Lunar Colony V.SC2Replay")
+    assert len(replay.people) == 4
