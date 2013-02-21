@@ -345,7 +345,9 @@ class Replay(Resource):
 
         def createPlayer(pid, pdata, attributes):
             # make sure to strip the clan tag out of the name
-            name = pdata.name.split("]")[-1]
+            # in newer replays, the clan tag can be separated from the
+            # player name with a <sp/> symbol. It should also be stripped.
+            name = pdata.name.split("]",1)[-1].split(">",1)[-1]
             player = Player(pid, name)
 
             # In some beta patches attribute information is missing
@@ -536,9 +538,9 @@ class Replay(Resource):
         self.register_reader('replay.details', readers.DetailsReader_Base(), lambda r: r.build < 22612)
         self.register_reader('replay.details', readers.DetailsReader_22612(), lambda r: r.build >= 22612 and r.expansion=='WoL')
         self.register_reader('replay.details', readers.DetailsReader_Beta(), lambda r: r.build < 24764 and r.expansion=='HotS')
-        self.register_reader('replay.details', readers.DetailsReader_Beta_24764(), lambda r: r.build >= 24764 and r.expansion=='HotS')
-        self.register_reader('replay.initData', readers.InitDataReader_Base(), lambda r: r.expansion=='WoL' or r.build < 24764)
-        self.register_reader('replay.initData', readers.InitDataReader_24764(), lambda r: r.expansion=='HotS' and r.build >= 24764)
+        self.register_reader('replay.details', readers.DetailsReader_Beta_24764(), lambda r: r.build >= 24764)
+        self.register_reader('replay.initData', readers.InitDataReader_Base(), lambda r: r.build < 24764)
+        self.register_reader('replay.initData', readers.InitDataReader_24764(), lambda r: r.build >= 24764)
         self.register_reader('replay.message.events', readers.MessageEventsReader_Base(), lambda r: r.build < 24247 or r.expansion=='WoL')
         self.register_reader('replay.message.events', readers.MessageEventsReader_Beta_24247(), lambda r: r.build >= 24247 and r.expansion=='HotS')
         self.register_reader('replay.attributes.events', readers.AttributesEventsReader_Base(), lambda r: r.build <  17326)
