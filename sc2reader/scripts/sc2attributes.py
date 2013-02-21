@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # Recursively searches for s2gs files in specified paths. Adds
 # new attributes and values and allows the user to choose when
 # conflicts are detected.
