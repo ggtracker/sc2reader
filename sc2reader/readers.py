@@ -120,10 +120,6 @@ class DetailsReader_Base(Reader):
     PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result'])
     Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10'])
 
-    # '[OTZ]<sp/>Skull'  -->  'Skull'
-    def stripclan(self, name):
-        return re.sub(r'.*<sp/>', '', name)
-
     def __call__(self, data, replay):
         # The entire details file is just a serialized data structure
         #
@@ -178,7 +174,6 @@ class DetailsReader_Base(Reader):
         # from the bottom up instead of in place from the top down.
         players = list()
         for pdata in details[0]:
-            pdata[0] = self.stripclan(pdata[0])
             pdata[1] = BnetData(*ordered_values(pdata[1]))
             pdata[3] = ColorData(*ordered_values(pdata[3]))
             player = self.PlayerData(*ordered_values(pdata))

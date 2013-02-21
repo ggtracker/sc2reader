@@ -346,6 +346,8 @@ class Replay(Resource):
         def createPlayer(pid, pdata, attributes):
             # make sure to strip the clan tag out of the name
             name = pdata.name.split("]")[-1]
+            # sometimes there is also a <sp/> in the name, strip that too
+            name = name.split(">")[-1]
             player = Player(pid, name)
 
             # In some beta patches attribute information is missing
