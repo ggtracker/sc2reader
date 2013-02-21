@@ -221,3 +221,8 @@ def test_oracle_parsing():
 
 def test_resume_from_replay():
     replay = sc2reader.load_replay("test_replays/2.0.3.24764/resume_from_replay.SC2Replay")
+
+def test_clan_players():
+    replay = sc2reader.load_replay("test_replays/2.0.4.24944/Lunar Colony V.SC2Replay")
+    assert len(replay.people) == 4
+
