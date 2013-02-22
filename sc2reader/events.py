@@ -166,8 +166,11 @@ class SendResourceEvent(PlayerActionEvent):
 
     def load_context(self, replay):
         super(SendResourceEvent, self).load_context(replay)
-        self.sender = replay.player[self.sender]
-        self.reciever = replay.players[self.reciever]
+        # DJ disabled this on 20130222 because GGTracker doesnt use this event
+        # and it is currently broken for a replay thats now in the test suite.
+        #
+        # self.sender = replay.player[self.sender]
+        # self.reciever = replay.players[self.reciever]
 
 @loggable
 class RequestResourceEvent(PlayerActionEvent):

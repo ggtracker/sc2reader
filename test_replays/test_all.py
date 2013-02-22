@@ -226,3 +226,7 @@ def test_clan_players():
 def test_WoL_204():
     replay = sc2reader.load_replay("test_replays/2.0.4.24944/ggtracker_1789768.SC2Replay")
     assert len(replay.people) == 2
+    replay = sc2reader.load_replay("test_replays/2.0.4.24944/Backwater Complex (15).SC2Replay")
+
+def test_datastruct_10():
+    replay = sc2reader.load_replay("test_replays/2.0.4.24944/Akilon Flats.SC2Replay")

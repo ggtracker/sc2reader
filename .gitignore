@@ -8,3 +8,4 @@ PKG-INFO.txt
 sc2reader/bin
 sc2reader/include
 sc2reader/lib
+.DS_Store
