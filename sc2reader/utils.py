@@ -452,23 +452,28 @@ def open_archive(replay_file):
         raise exceptions.MPQError("Unable to construct the MPQArchive",e), None, trace
 
 def extract_data_file(data_file, archive):
-    # To wrap mpyq exceptions we have to do this try hack again.
+    # Wrap all mpyq related exceptions so they can be distinguished
+    # from other sc2reader issues later on.
     try:
-        # Some sites tamper with the replay archive files so
-        # Catch decompression errors and try again before giving up
-        if data_file == 'replay.message.events':
+        # Some replays tampered with by 3rd party software report
+        # block sizes wrong. They can either over report or under
+        # report. If they over report a non-compressed file might
+        # attempt decompression. If they under report a compressed
+        # file might bypass decompression. So do this:
+        #
+        #  * Attempt to do things normally.
+        #  * Force Decompression and fall back to original exception
+        #  * mpyq doesn't allow you to ignore decompression, it has
+        #    not been a problem yet though.
+        try:
+            file_data = archive.read_file(data_file)
+        except Exception as e:
+            exc_info = sys.exc_info()
             try:
                 file_data = archive.read_file(data_file, force_decompress=True)
             except Exception as e:
-                # If it doesn't work with forced decompression, try again without it
-                exc_info = sys.exc_info()
-                try:
-                    file_data = archive.read_file(data_file, force_decompress=False)
-                except Exception:
-                    # raise the original exception
-                    raise exc_info[1], None, exc_info[2]
-        else:
-            file_data = archive.read_file(data_file)
+                # raise the original exception
+                raise exc_info[1], None, exc_info[2]
 
         return file_data
 
