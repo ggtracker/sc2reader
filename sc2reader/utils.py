@@ -465,6 +465,8 @@ def extract_data_file(data_file, archive):
         #  * Force Decompression and fall back to original exception
         #  * mpyq doesn't allow you to ignore decompression, it has
         #    not been a problem yet though.
+        #
+        # Refs: arkx/mpyq#12, GraylinKim/sc2reader#102
         try:
             file_data = archive.read_file(data_file)
         except Exception as e:
