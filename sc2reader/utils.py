@@ -461,18 +461,17 @@ def extract_data_file(data_file, archive):
         # attempt decompression. If they under report a compressed
         # file might bypass decompression. So do this:
         #
-        #  * Attempt to do things normally.
-        #  * Force Decompression and fall back to original exception
-        #  * mpyq doesn't allow you to ignore decompression, it has
-        #    not been a problem yet though.
+        #  * Force a decompression to catch under reporting
+        #  * If that fails, try to process normally
+        #  * mpyq doesn't allow you to skip decompression, so fail
         #
         # Refs: arkx/mpyq#12, GraylinKim/sc2reader#102
         try:
-            file_data = archive.read_file(data_file)
+            file_data = archive.read_file(data_file, force_decompress=True)
         except Exception as e:
             exc_info = sys.exc_info()
             try:
-                file_data = archive.read_file(data_file, force_decompress=True)
+                file_data = archive.read_file(data_file)
             except Exception as e:
                 # raise the original exception
                 raise exc_info[1], None, exc_info[2]
