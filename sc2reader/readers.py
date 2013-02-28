@@ -72,12 +72,16 @@ class InitDataReader_24764(InitDataReader_Base):
             name_length = data.read_byte()
             data.byte_align() # Strings seem to be always byte aligned
             name = data.read_string(length=name_length)
-            data.read_bits(1) # Not sure why we have this offset, it could be a flag?
-            clan_length = data.read_byte()
-            data.byte_align()
-            clan_name = data.read_string(length=clan_length)
-            unknown = data.read_bits(42)
+
+            # Flag is 1 for multiplayer, 0 for single player
+            if data.read_bits(1):
+                clan_length = data.read_byte()
+                data.byte_align()
+                clan_name = data.read_string(length=clan_length)
+                unknown = data.read_bits(42)
+
             data.read_bytes(5)
+
             if name:
                 player_names.append(name)
         return player_names
