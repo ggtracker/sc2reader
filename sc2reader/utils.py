@@ -460,10 +460,13 @@ def extract_data_file(data_file, archive):
             try:
                 file_data = archive.read_file(data_file, force_decompress=True)
             except Exception as e:
-                if str(e) in ("string index out of range", "Unsupported compression type."):
+                # If it doesn't work with forced decompression, try again without it
+                exc_info = sys.exc_info()
+                try:
                     file_data = archive.read_file(data_file, force_decompress=False)
-                else:
-                    raise
+                except Exception:
+                    # raise the original exception
+                    raise exc_info[1], None, exc_info[2]
         else:
             file_data = archive.read_file(data_file)
 
