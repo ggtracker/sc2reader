@@ -147,8 +147,7 @@ class SC2Factory(object):
     def _load(self, cls, resource, filename, options):
         obj = cls(resource, filename=filename, factory=self, **options)
         for plugin in options.get('plugins',self._get_plugins(cls)):
-            # TODO: What if you want to do a transform?
-            plugin(obj)
+            obj = plugin(obj)
         return obj
 
     def _get_plugins(self, cls):
