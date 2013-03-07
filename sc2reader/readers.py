@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
+import struct
+
 from collections import defaultdict
 from itertools import chain
 
 from sc2reader.exceptions import ParseError, ReadError
 from sc2reader.objects import *
 from sc2reader.events import *
-from sc2reader.utils import AttributeDict, BIG_ENDIAN, LITTLE_ENDIAN
+from sc2reader.utils import AttributeDict
+from sc2reader.decoders import BitPackedDecoder, ByteDecoder
 
 class Reader(object):
     def __init__(self, **options):
@@ -24,14 +27,16 @@ class InitDataReader_Base(Reader):
         # always be 16 long, with "" names filling in the balance. Each name
         # is followed by a 5 byte string that appears to be always all zeros.
         player_names = list()
-        for player in range(data.read_byte()):
-            name = data.read_string()
-            data.skip(5)
+        for player in range(data.read_uint8()):
+            name = data.read_aligned_bytes(data.read_uint8())
+            data.read_bytes(5)
             if name:
                 player_names.append(name)
         return player_names
 
     def __call__(self, data, replay):
+        data = BitPackedDecoder(data)
+
         player_names = self.get_player_names(data, replay)
 
         # The next block contains information about the structure of the MPQ
@@ -40,10 +45,10 @@ class InitDataReader_Base(Reader):
         # in the middle that prevents bulk skipping. The last section also
         # appears to be variable length, hack it to do a find for the section
         # we are looking for.
-        data.skip(24)
-        sc_account_id = data.read_string()
+        data.read_bytes(24)
+        #sc_account_id = data.read_string()
         distance = data.read_range(data.tell(), data.length).find('s2ma')
-        data.skip(distance)
+        data.read_bytes(distance)
 
         # The final block of this file that we concern ourselves with is a list
         # of what appears to be map data with the s2ma header on each element.
@@ -56,32 +61,27 @@ class InitDataReader_Base(Reader):
         # TODO: Figure out how we could be missing a maps section.
         map_data = list()
         while data.peek(4) == 's2ma':
-            map_data.append(DepotFile(data.read(40)))
+            map_data.append(DepotFile(data.read_bytes(40)))
 
         # Return the extracted information inside an AttributeDict.
         return AttributeDict(
             map_data=map_data,
             player_names=player_names,
-            sc_account_id=sc_account_id,
+            sc_account_id=None,#sc_account_id,
         )
 
 class InitDataReader_24764(InitDataReader_Base):
     def get_player_names(self, data, replay):
         player_names = list()
-        for player in range(data.read_byte()):
-            name_length = data.read_byte()
-            data.byte_align() # Strings seem to be always byte aligned
-            name = data.read_string(length=name_length)
+        for player in range(data.read_uint8()):
+            name = data.read_aligned_bytes(data.read_uint8())
 
             # Flag is 1 for multiplayer, 0 for single player
             if data.read_bits(1):
-                clan_length = data.read_byte()
-                data.byte_align()
-                clan_name = data.read_string(length=clan_length)
+                clan_name = data.read_aligned_bytes(data.read_uint8())
                 unknown = data.read_bits(42)
 
             data.read_bytes(5)
-
             if name:
                 player_names.append(name)
         return player_names
@@ -101,16 +101,12 @@ class AttributesEventsReader_Base(Reader):
         #
         # See: ``objects.Attribute`` for attribute id and value lookup logic
         #
+        data = ByteDecoder(data, endian='LITTLE')
         attribute_events = list()
-        data.skip(self.header_length)
-        for attribute in range(data.read_int(LITTLE_ENDIAN)):
-            info = [
-                    data.read_int(LITTLE_ENDIAN),
-                    data.read_int(LITTLE_ENDIAN),
-                    data.read_byte(),
-                    data.read(4).strip("\x00 ")[::-1]
-                ]
-            attribute_events.append(Attribute(info))
+        data.read_bytes(self.header_length)
+        for attribute in range(data.read_uint32()):
+            info = struct.unpack('<IIB4s', data.read(13))
+            attribute_events.append(Attribute(*info))
 
         return attribute_events
 
@@ -127,7 +123,7 @@ class DetailsReader_Base(Reader):
     def __call__(self, data, replay):
         # The entire details file is just a serialized data structure
         #
-        # See: utils.Replaydata.read_data_struct for a format description
+        # See: utils.Replaydata.read_struct for a format description
         #
         # The general file structure is as follows:
         #   TODO: add the data types for each node in the structure
@@ -164,7 +160,7 @@ class DetailsReader_Base(Reader):
         #   Unknown9
         #   Unknown10
         #
-        details = data.read_data_struct()
+        details = BitPackedDecoder(data).read_struct()
 
         # To make things a little more meaningful in the rest of the code we
         # step through all the gathered data and map it into namedtuples so that
@@ -203,22 +199,23 @@ class MessageEventsReader_Base(Reader):
         # The replay.message.events file is a single long list containing three
         # different element types (minimap pings, player messages, and some sort
         # of network packets); each differentiated by flags.
+        data = BitPackedDecoder(data)
         pings = list()
         messages = list()
         packets = list()
 
         frame = 0
-        while not data.is_empty:
+        while not data.done():
             # All the element types share the same time, pid, flags header.
-            frame += data.read_timestamp()
+            frame += data.read_frames()
             pid = data.read_bits(5)
             t = data.read_bits(3)
-            flags = data.read_byte()
+            flags = data.read_uint8()
 
             if flags in (0x83,0x89):
-                # We need some tests for this
-                x = data.read_int(LITTLE_ENDIAN)
-                y = data.read_int(LITTLE_ENDIAN)
+                # We need some tests for this, probably not right
+                x = data.read_uint32()
+                y = data.read_uint32()
                 pings.append(PingEvent(frame, pid, flags, x, y))
 
             elif flags == 0x80:
@@ -230,7 +227,7 @@ class MessageEventsReader_Base(Reader):
                 hi_mask = 0xFF ^ lo_mask
                 target = flags & lo_mask
                 extension = (flags & hi_mask) << 3
-                length = data.read_byte()
+                length = data.read_uint8()
                 text = data.read_bytes(length + extension)
                 messages.append(ChatEvent(frame, pid, flags, target, text, (flags, lo_mask, hi_mask, length, extension)))
 
@@ -262,13 +259,14 @@ class GameEventsReader_Base(object):
         }
 
     def __call__(self, data, replay):
+        data = BitPackedDecoder(data)
         game_events = list()
         fstamp = 0
         debug = replay.opt.debug
         data_length = data.length
-        read_timestamp =  data.read_timestamp
+        read_frames =  data.read_frames
         read_bits = data.read_bits
-        read_byte = data.read_byte
+        read_uint8 = data.read_uint8
         tell = data.tell
         read_bytes = data.read_bytes
         byte_align = data.byte_align
@@ -277,7 +275,7 @@ class GameEventsReader_Base(object):
 
         try:
             while event_start != data_length:
-                fstamp += read_timestamp()
+                fstamp += read_frames()
                 pid = read_bits(5)
                 event_type = read_bits(7)
 
@@ -346,11 +344,11 @@ class GameEventsReader_16117(GameEventsReader_Base):
 
     def player_ability_event(self, data, fstamp, pid, event_type):
         data.read_bits(4)
-        data.skip(7)
-        switch = data.read_byte()
+        data.read_bytes(7)
+        switch = data.read_uint8()
         if switch in (0x30,0x50):
-            data.skip(1)
-        data.skip(24)
+            data.read_bytes(1)
+        data.read_bytes(24)
         return AbilityEvent(fstamp, pid, event_type, None, None)
 
     def player_selection_event(self, data, fstamp, pid, event_type):
@@ -359,10 +357,10 @@ class GameEventsReader_16117(GameEventsReader_Base):
         overlay = self._parse_selection_update(data)
 
         type_count = data.read_bits(self.UNIT_INDEX_BITS)
-        unit_type_info = [(data.read_short(BIG_ENDIAN), data.read_byte(), data.read_bits(self.UNIT_INDEX_BITS)) for index in range(type_count)]
+        unit_type_info = [(data.read_uint16(), data.read_uint8(), data.read_bits(self.UNIT_INDEX_BITS)) for index in range(type_count)]
 
         unit_count = data.read_bits(self.UNIT_INDEX_BITS)
-        unit_ids = [data.read_int(BIG_ENDIAN) for index in range(unit_count)]
+        unit_ids = [data.read_uint32() for index in range(unit_count)]
 
         unit_types = chain(*[[utype]*count for (utype, flags, count) in unit_type_info])
         unit_flags = chain(*[[flags]*count for (utype, flags, count) in unit_type_info])
@@ -411,21 +409,21 @@ class GameEventsReader_16117(GameEventsReader_Base):
 
     def camera_event(self, data, fstamp, pid, event_type):
         # From https://github.com/Mischanix/sc2replay-csharp/wiki/replay.game.events
-        x = data.read_short(BIG_ENDIAN)/256.0
-        y = data.read_short(BIG_ENDIAN)/256.0
+        x = data.read_uint16()/256.0
+        y = data.read_uint16()/256.0
         distance = pitch = yaw = height = 0
         if data.read_bits(1):
-            distance = data.read_short(BIG_ENDIAN)/256.0
+            distance = data.read_uint16()/256.0
         if data.read_bits(1):
             #Note: this angle is relative to the horizontal plane, but the editor shows the angle relative to the vertical plane. Subtract from 90 degrees to convert.
-            pitch = data.read_short(BIG_ENDIAN) #?
+            pitch = data.read_uint16() #?
             pitch = 45 * (((((pitch * 0x10 - 0x2000) << 17) - 1) >> 17) + 1) / 4096.0
         if data.read_bits(1):
             #Note: this angle is the vector from the camera head to the camera target projected on to the x-y plane in positive coordinates. So, default is 90 degrees, while insert and delete produce 45 and 135 degrees by default.
-            yaw = data.read_short(BIG_ENDIAN) #?
+            yaw = data.read_uint16() #?
             yaw = 45 * (((((yaw * 0x10 - 0x2000) << 17) - 1) >> 17) + 1) / 4096.0
         if data.read_bits(1):
-            height_offset = data.read_short(BIG_ENDIAN)/256.0
+            height_offset = data.read_uint16()/256.0
         return CameraEvent(fstamp, pid, event_type, x, y, distance, pitch, yaw, height)
 
 
@@ -438,21 +436,19 @@ class GameEventsReader_16561(GameEventsReader_16117):
     def _parse_selection_update(self, data):
         update_type = data.read_bits(2)
         if update_type == 1:
-            bits_left = mask_length = data.read_bits(self.UNIT_INDEX_BITS)
-
-            mask = list()
-            bits = data.read_bits(mask_length)
-
             # If the mask_length is not a multiple of 8 the bit_shift on
             # the data buffer will change and cause the last byte to be
             # an odd length. This correctly sizes the last byte.
-            shift_diff = (mask_length+data.bit_shift)%8 - data.bit_shift
+            bits_left = mask_length = data.read_bits(self.UNIT_INDEX_BITS)
+            bits = data.read_bits(mask_length)
+            mask = list()
+            shift_diff = (mask_length+data._bit_shift)%8 - data._bit_shift
             if shift_diff > 0:
-                mask = [bits & data.lo_masks[shift_diff]]
+                mask = [bits & data._lo_masks[shift_diff]]
                 bits = bits >> shift_diff
                 bits_left -= shift_diff
             elif shift_diff < 0:
-                mask = [bits & data.lo_masks[8+shift_diff]]
+                mask = [bits & data._lo_masks[8+shift_diff]]
                 bits = bits >> (8+shift_diff)
                 bits_left -= 8+shift_diff
 
@@ -488,7 +484,7 @@ class GameEventsReader_16561(GameEventsReader_16117):
 
         default_ability = not data.read_bits(1)
         if not default_ability:
-            ability = data.read_short(BIG_ENDIAN) << 5 | data.read_bits(5)
+            ability = data.read_uint16() << 5 | data.read_bits(5)
             default_actor = not data.read_bits(1)
         else:
             ability = 0
@@ -497,7 +493,7 @@ class GameEventsReader_16561(GameEventsReader_16117):
         if target_type == 1:
             x = data.read_bits(20)/4096.0
             y = data.read_bits(20)/4096.0
-            z = data.read_int(BIG_ENDIAN)
+            z = data.read_uint32()
             z = (z>>1)/8192.0 * pow(-1, z & 0x1)
             unknown = data.read_bits(1)
             return LocationAbilityEvent(fstamp, pid, event_type, ability, flags, (x, y, z))
@@ -505,9 +501,10 @@ class GameEventsReader_16561(GameEventsReader_16117):
         elif target_type == 2:
             player = team = None
 
-            data.skip(2)
-            unit = (data.read_int(BIG_ENDIAN), data.read_short(BIG_ENDIAN))
-
+            data.read_bytes(2)
+            unit = (data.read_uint32(), data.read_uint16())
+            if fstamp == 9007 or unit[0] == 0x94880002:
+                print fstamp, hex(unit[0])
             if self.ABILITY_TEAM_FLAG and data.read_bits(1):
                 team = data.read_bits(4)
 
@@ -516,13 +513,13 @@ class GameEventsReader_16561(GameEventsReader_16117):
 
             x = data.read_bits(20)/4096.0
             y = data.read_bits(20)/4096.0
-            z = data.read_int(BIG_ENDIAN)
+            z = data.read_uint32()
             z = (z>>1)/8192.0 * pow(-1, z & 0x1)
             unknown = data.read_bits(1)
             return TargetAbilityEvent(fstamp, pid, event_type, ability, flags, unit, player, team, (x, y, z))
 
         elif target_type == 3:
-            unit_id = data.read_int(BIG_ENDIAN)
+            unit_id = data.read_uint32()
             unknown = data.read_bits(1)
             return SelfAbilityEvent(fstamp, pid, event_type, ability, flags, unit_id)
 
@@ -554,26 +551,26 @@ class GameEventsReader_Beta(GameEventsReader_22612):
 
     def beta_end_game_event(self, data, fstamp, pid, event_type):
         flags = data.read_bits(4)
-        count = data.read_byte()
+        count = data.read_uint8()
         for name in range(count):
-            data.read_bytes(data.read_byte())
-        data.read_byte()
+            data.read_bytes(data.read_uint8())
+        data.read_uint8()
         return UnknownEvent(fstamp, pid, event_type)
 
     def camera_event(self, data, fstamp, pid, event_type):
         x = y= distance = pitch = yaw = height = 0
         if data.read_bits(1):
-            x = data.read_short(BIG_ENDIAN)/256.0
-            y = data.read_short(BIG_ENDIAN)/256.0
+            x = data.read_uint16()/256.0
+            y = data.read_uint16()/256.0
         if data.read_bits(1):
-            distance = data.read_short(BIG_ENDIAN)/256.0
+            distance = data.read_uint16()/256.0
         if data.read_bits(1):
             #Note: this angle is relative to the horizontal plane, but the editor shows the angle relative to the vertical plane. Subtract from 90 degrees to convert.
-            pitch = data.read_short(BIG_ENDIAN) #?
+            pitch = data.read_uint16() #?
             pitch = 45 * (((((pitch * 0x10 - 0x2000) << 17) - 1) >> 17) + 1) / 4096.0
         if data.read_bits(1):
             #Note: this angle is the vector from the camera head to the camera target projected on to the x-y plane in positive coordinates. So, default is 90 degrees, while insert and delete produce 45 and 135 degrees by default.
-            yaw = data.read_short(BIG_ENDIAN) #?
+            yaw = data.read_uint16() #?
             yaw = 45 * (((((yaw * 0x10 - 0x2000) << 17) - 1) >> 17) + 1) / 4096.0
         return CameraEvent(fstamp, pid, event_type, x, y, distance, pitch, yaw, height)
 
@@ -583,10 +580,10 @@ class GameEventsReader_Beta(GameEventsReader_22612):
         overlay = self._parse_selection_update(data)
 
         type_count = data.read_bits(self.UNIT_INDEX_BITS)
-        unit_type_info = [(data.read_short(BIG_ENDIAN), data.read_short(BIG_ENDIAN), data.read_bits(self.UNIT_INDEX_BITS)) for index in range(type_count)]
+        unit_type_info = [(data.read_uint16(), data.read_uint16(), data.read_bits(self.UNIT_INDEX_BITS)) for index in range(type_count)]
 
         unit_count = data.read_bits(self.UNIT_INDEX_BITS)
-        unit_ids = [data.read_int(BIG_ENDIAN) for index in range(unit_count)]
+        unit_ids = [data.read_uint32() for index in range(unit_count)]
 
         unit_types = chain(*[[utype]*count for (utype, flags, count) in unit_type_info])
         unit_flags = chain(*[[flags]*count for (utype, flags, count) in unit_type_info])

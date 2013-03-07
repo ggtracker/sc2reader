@@ -74,18 +74,16 @@ class Team(object):
 
 class Attribute(object):
 
-    def __init__(self, data):
-        #Unpack the data values and add a default name of unknown to be
-        #overridden by known attributes; acts as a flag for exclusion
-        self.header, self.id, self.player, self.value, self.name = tuple(data+["Unknown"])
+    def __init__(self, header, attr_id, player, value):
+        self.header = header
+        self.id = attr_id
+        self.player = player
 
-        if self.id in LOBBY_PROPERTIES:
+        if self.id not in LOBBY_PROPERTIES:
+            raise ValueError("Unknown attribute id: "+self.id)
+        else:
             self.name, lookup = LOBBY_PROPERTIES[self.id]
-            if lookup:
-                if callable(lookup):
-                    self.value = lookup(self.value)
-                else:
-                    self.value = lookup[self.value]
+            self.value = lookup[value.strip("\x00 ")[::-1]]
 
     def __repr__(self):
         return str(self)

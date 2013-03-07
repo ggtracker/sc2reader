@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
+import sys
+
 import zlib
 import pprint
 import hashlib
@@ -14,9 +16,12 @@ from xml.etree import ElementTree
 import urllib2
 from mpyq import MPQArchive
 
+import mpyq
 from sc2reader import utils
+from sc2reader.decoders import BitPackedDecoder
 from sc2reader import log_utils
 from sc2reader import readers
+from sc2reader import exceptions
 from sc2reader.data import builds as datapacks
 from sc2reader.events import AbilityEvent, CameraEvent, HotkeyEvent, SelectionEvent
 from sc2reader.exceptions import SC2ReaderLocalizationError
@@ -232,11 +237,20 @@ class Replay(Resource):
 
         # Unpack the MPQ and read header data if requested
         if load_level >= 0:
-            # Set ('versions', 'frames', 'build', 'release_string', 'length')
-            self.__dict__.update(utils.read_header(replay_file))
-            self.length = utils.Length(seconds=int(self.frames/self.game_fps))
-            self.expansion = ['','WoL','HotS'][self.versions[1]]
-            self.archive = utils.open_archive(replay_file)
+            try:
+                self.archive = mpyq.MPQArchive(replay_file, listfile=False)
+            except Exception as e:
+                trace = sys.exc_info()[2]
+                raise exceptions.MPQError("Unable to construct the MPQArchive",e), None, trace
+
+            header_content = self.archive.header['user_data_header']['content']
+            header_data = BitPackedDecoder(header_content).read_struct()
+            self.versions = header_data[1].values()
+            self.frames = header_data[3]
+            self.build = self.versions[4]
+            self.release_string = "{0}.{1}.{2}.{3}".format(*self.versions[1:5])
+            self.game_length = utils.Length(seconds=self.frames/16)
+            self.length = self.real_length = utils.Length(seconds=int(self.frames/self.game_fps))
 
         # Load basic details if requested
         if load_level >= 1:
@@ -586,8 +600,7 @@ class Replay(Resource):
     def _read_data(self, data_file, reader):
         data = utils.extract_data_file(data_file,self.archive)
         if data:
-            data_buffer = utils.ReplayBuffer(data)
-            self.raw_data[data_file] = reader(data_buffer, self)
+            self.raw_data[data_file] = reader(data, self)
         elif self.opt.debug and data_file != 'replay.message.events':
             raise ValueError("{0} not found in archive".format(data_file))
 
@@ -722,13 +735,13 @@ class GameSummary(Resource):
         self.real_type = str()
 
         # The first 16 bytes appear to be some sort of compression header
-        buffer = utils.ReplayBuffer(zlib.decompress(summary_file.read()[16:]))
+        buffer = BitPackedDecoder(zlib.decompress(summary_file.read()[16:]))
 
         # TODO: Is there a fixed number of entries?
         # TODO: Maybe the # of parts is recorded somewhere?
         self.parts = list()
-        while not buffer.is_empty:
-            self.parts.append(buffer.read_data_struct())
+        while not buffer.done():
+            self.parts.append(buffer.read_struct())
 
         self.end_time = datetime.utcfromtimestamp(self.parts[0][8])
         self.game_speed = LOBBY_PROPERTIES[0xBB8][1][self.parts[0][0][1]]
@@ -965,7 +978,7 @@ class GameSummary(Resource):
 
     def load_players(self):
         for index, struct in enumerate(self.parts[0][3]):
-            if not struct[0][1]: continue # Slot is closed
+            if not struct[0] or not struct[0][1]: continue # Slot is closed
 
             player = PlayerSummary(struct[0][0])
             stats = self.player_stats.get(index, dict())
@@ -1073,7 +1086,7 @@ class MapInfo(Resource):
 
     def __init__(self, info_file, filename=None, **options):
         super(MapInfo, self).__init__(info_file, filename, **options)
-        self.data = utils.ReplayBuffer(info_file).read_data_struct()
+        self.data = BitPackedDecoder(info_file).read_struct()
         self.map_name = self.data[0][7]
         self.language = self.data[0][13]
         parsed_hash = utils.parse_hash(self.data[0][1])
@@ -1113,7 +1126,7 @@ class MapHeader(Resource):
 
     def __init__(self, header_file, filename=None, **options):
         super(MapHeader, self).__init__(header_file, filename, **options)
-        self.data = utils.ReplayBuffer(header_file).read_data_struct()
+        self.data = BitPackedDecoder(header_file).read_struct()
 
         # Name
         self.name = self.data[0][1]
