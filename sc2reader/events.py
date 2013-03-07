@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from sc2reader.utils import Length, LITTLE_ENDIAN
+from sc2reader.utils import Length
 from sc2reader.data import Unit
 from sc2reader.log_utils import loggable
 
