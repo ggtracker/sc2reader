@@ -17,7 +17,7 @@ class Event(object):
         # self.time = Length(seconds=self.second)
 
     def load_context(self, replay):
-        if replay.expansion == 'WoL' or replay.build < 24247:
+        if replay.versions[1]==1 or (replay.versions[1]==2 and replay.build < 24247):
             if self.pid <= len(replay.people):
                 self.player = replay.person[self.pid]
             elif self.pid != 16:
@@ -25,7 +25,7 @@ class Event(object):
             else:
                 pass # This is a global event
 
-        elif replay.expansion == 'HotS':
+        else:
             if self.pid < len(replay.clients):
                 self.player = replay.client[self.pid]
             elif self.pid != 16:

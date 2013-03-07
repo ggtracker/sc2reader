@@ -70,10 +70,6 @@ class Replay(Resource):
     #: The game speed: Slower, Slow, Normal, Fast, Faster
     speed = str()
 
-    #: The operating system the replay was recorded on.
-    #: Useful for interpretting certain kind of raw data.
-    os = str()
-
     #: Deprecated, use :attr:`game_type` or :attr:`real_type` instead
     type = str()
 
@@ -203,7 +199,6 @@ class Replay(Resource):
         self.other_people = set()
         self.speed = ""
         self.type = ""
-        self.os = str()
         self.game_type = ""
         self.real_type = ""
         self.category = ""
@@ -298,13 +293,13 @@ class Replay(Resource):
 
             self.map_name = details.map
 
-            # Keep this theory for now but it seems like it could be wrong
-            if details.os == 0:
-                self.os = "Windows"
-            elif details.os == 1:
-                self.os = "Mac"
+            dependency_hashes = [d.hash for d in details.dependencies]
+            if hashlib.sha256('Standard Data: Swarm.SC2Mod').hexdigest() in dependency_hashes:
+                self.expansion = 'HotS'
+            elif hashlib.sha256('Standard Data: Liberty.SC2Mod').hexdigest() in dependency_hashes:
+                self.expansion = 'WoL'
             else:
-                raise ValueError("Unknown operating system {0} detected.".format(details.os))
+                self.expansion = ''
 
             self.windows_timestamp = details.file_time
             self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
@@ -537,22 +532,22 @@ class Replay(Resource):
     def register_default_readers(self):
         """Registers factory default readers."""
         self.register_reader('replay.details', readers.DetailsReader_Base(), lambda r: r.build < 22612)
-        self.register_reader('replay.details', readers.DetailsReader_22612(), lambda r: r.build >= 22612 and r.expansion=='WoL')
-        self.register_reader('replay.details', readers.DetailsReader_Beta(), lambda r: r.build < 24764 and r.expansion=='HotS')
+        self.register_reader('replay.details', readers.DetailsReader_22612(), lambda r: r.build >= 22612 and r.versions[1]==1)
+        self.register_reader('replay.details', readers.DetailsReader_Beta(), lambda r: r.build < 24764 and r.versions[1]==2)
         self.register_reader('replay.details', readers.DetailsReader_Beta_24764(), lambda r: r.build >= 24764)
         self.register_reader('replay.initData', readers.InitDataReader_Base(), lambda r: r.build < 24764)
         self.register_reader('replay.initData', readers.InitDataReader_24764(), lambda r: r.build >= 24764)
-        self.register_reader('replay.message.events', readers.MessageEventsReader_Base(), lambda r: r.build < 24247 or r.expansion=='WoL')
-        self.register_reader('replay.message.events', readers.MessageEventsReader_Beta_24247(), lambda r: r.build >= 24247 and r.expansion=='HotS')
+        self.register_reader('replay.message.events', readers.MessageEventsReader_Base(), lambda r: r.build < 24247 or r.versions[1]==1)
+        self.register_reader('replay.message.events', readers.MessageEventsReader_Beta_24247(), lambda r: r.build >= 24247 and r.versions[1]==2)
         self.register_reader('replay.attributes.events', readers.AttributesEventsReader_Base(), lambda r: r.build <  17326)
         self.register_reader('replay.attributes.events', readers.AttributesEventsReader_17326(), lambda r: r.build >= 17326)
         self.register_reader('replay.game.events', readers.GameEventsReader_16117(), lambda r: 16117 <= r.build < 16561)
         self.register_reader('replay.game.events', readers.GameEventsReader_16561(), lambda r: 16561 <= r.build < 18574)
         self.register_reader('replay.game.events', readers.GameEventsReader_18574(), lambda r: 18574 <= r.build < 19595)
         self.register_reader('replay.game.events', readers.GameEventsReader_19595(), lambda r: 19595 <= r.build < 22612)
-        self.register_reader('replay.game.events', readers.GameEventsReader_22612(), lambda r: 22612 <= r.build and r.expansion=='WoL')
-        self.register_reader('replay.game.events', readers.GameEventsReader_Beta(), lambda r: r.expansion=='HotS' and r.build < 23925)
-        self.register_reader('replay.game.events', readers.GameEventsReader_Beta_23925(), lambda r: r.expansion=='HotS' and 23925 <= r.build)
+        self.register_reader('replay.game.events', readers.GameEventsReader_22612(), lambda r: 22612 <= r.build and r.versions[1]==1)
+        self.register_reader('replay.game.events', readers.GameEventsReader_Beta(), lambda r: r.versions[1]==2 and r.build < 23925)
+        self.register_reader('replay.game.events', readers.GameEventsReader_Beta_23925(), lambda r: r.versions[1]==2 and 23925 <= r.build)
 
 
     def register_default_datapacks(self):
@@ -746,6 +741,14 @@ class GameSummary(Resource):
         self.load_settings()
         self.load_player_stats()
         self.load_players()
+
+        dependencies = [sheet[1] for sheet in self.lang_sheets['enUS']]
+        if 'Swarm (Mod)' in dependencies:
+            self.expansion = 'HotS'
+        elif 'Liberty (Mod)' in dependencies:
+            self.expansion = 'WoL'
+        else:
+            self.expansion = ''
 
         self.game_type = self.settings['Teams'].replace(" ","")
         self.real_type = real_type(self.teams.values())

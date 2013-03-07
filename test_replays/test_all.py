@@ -16,6 +16,7 @@ sc2reader.log_utils.log_to_console('INFO')
 def test_standard_1v1():
     replay = sc2reader.load_replay("test_replays/1.2.2.17811/1.SC2Replay")
 
+    assert replay.expansion == 'WoL'
     assert str(replay.length) == "32.47"
     assert replay.map_name == "Lost Temple"
     assert replay.build == 17811
@@ -82,6 +83,7 @@ def test_standard_1v1():
 
 def test_private_category():
     replay = sc2reader.load_replay("test_replays/1.2.2.17811/2.SC2Replay")
+    assert replay.expansion == 'WoL'
     assert replay.is_private == True
     assert replay.is_ladder == False
 
@@ -137,8 +139,11 @@ def test_us_realm():
 # Waiting for response https://github.com/arkx/mpyq/issues/closed#issue/7
 def test_kr_realm_and_tampered_messages():
     replay = sc2reader.load_replay("test_replays/1.1.3.16939/11.SC2Replay")
+    assert replay.expansion == 'WoL'
+
     first = next(player for player in replay.players if player.name == '명지대학교')
     second = next(player for player in replay.players if player.name == '티에스엘사기수')
+
     assert first.url == "http://kr.battle.net/sc2/en/profile/258945/1/명지대학교/"
     assert second.url == "http://kr.battle.net/sc2/en/profile/102472/1/티에스엘사기수/"
 
@@ -190,6 +195,8 @@ def test_hots_pids():
         print "Processing {fname}".format(fname=replayfilename)
         replay = sc2reader.load_replay(replayfilename)
 
+        assert replay.expansion == 'HotS'
+
         player_pids = set( [ player.pid for player in replay.players if player.is_human] )
         ability_pids = set( [ event.player.pid for event in replay.events if 'AbilityEvent' in event.name ] )
 
@@ -197,6 +204,8 @@ def test_hots_pids():
 
 def test_wol_pids():
     replay = sc2reader.load_replay("test_replays/1.5.4.24540/ggtracker_1471849.SC2Replay")
+
+    assert replay.expansion == 'WoL'
 
     ability_pids = set( [ event.player.pid for event in replay.events if 'AbilityEvent' in event.name ] )
     player_pids = set( [ player.pid for player in replay.players ] )
@@ -212,10 +221,13 @@ def test_hots_hatchfun():
 
 def test_hots_vs_ai():
     replay = sc2reader.load_replay("test_replays/2.0.0.24247/Cloud Kingdom LE (13).SC2Replay")
+    assert replay.expansion == 'HotS'
     replay = sc2reader.load_replay("test_replays/2.0.0.24247/Korhal City (19).SC2Replay")
+    assert replay.expansion == 'HotS'
 
 def test_oracle_parsing():
     replay = sc2reader.load_replay("test_replays/2.0.3.24764/ggtracker_1571740.SC2Replay")
+    assert replay.expansion == 'HotS'
     oracles = [unit for unit in replay.objects.values() if unit.name=='Oracle']
     assert len(oracles) == 2
 
@@ -224,10 +236,14 @@ def test_resume_from_replay():
 
 def test_clan_players():
     replay = sc2reader.load_replay("test_replays/2.0.4.24944/Lunar Colony V.SC2Replay")
+    assert replay.expansion == 'WoL'
     assert len(replay.people) == 4
 
 def test_WoL_204():
     replay = sc2reader.load_replay("test_replays/2.0.4.24944/ggtracker_1789768.SC2Replay")
+    assert replay.expansion == 'WoL'
     assert len(replay.people) == 2
+
+def test_send_resources():
     replay = sc2reader.load_replay("test_replays/2.0.4.24944/Backwater Complex (15).SC2Replay")
 

@@ -122,7 +122,7 @@ class AttributesEventsReader_17326(AttributesEventsReader_Base):
 
 class DetailsReader_Base(Reader):
     PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result'])
-    Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10'])
+    Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','dependencies','unknown8','unknown9','unknown10'])
 
     def __call__(self, data, replay):
         # The entire details file is just a serialized data structure
@@ -183,16 +183,16 @@ class DetailsReader_Base(Reader):
             player = self.PlayerData(*ordered_values(pdata))
             players.append(player)
         details[0] = players
-
+        details[10] = [DepotFile(bytes) for bytes in details[10]]
         # As a final touch, label all extracted information using the Details
         # named tuple from objects.py
         return self.Details(*ordered_values(details))
 
 class DetailsReader_22612(DetailsReader_Base):
-    Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10', 'unknown11'])
+    Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','dependencies','unknown8','unknown9','unknown10', 'unknown11'])
 
 class DetailsReader_Beta(DetailsReader_Base):
-    Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','unknown7','unknown8','unknown9','unknown10', 'unknown11', 'unknown12'])
+    Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','dependencies','unknown8','unknown9','unknown10', 'unknown11', 'unknown12'])
 
 class DetailsReader_Beta_24764(DetailsReader_Beta):
     PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result','unknown4'])
