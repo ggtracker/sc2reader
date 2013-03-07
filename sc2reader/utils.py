@@ -397,45 +397,54 @@ class AttributeDict(dict):
         self[name] = value
 
     def copy(self):
-        return AttributeDict(super(AttributeDict,self).copy())
+        return AttributeDict(self.items())
 
-class Color(AttributeDict):
+class Color(object):
     """
-    Stores the string and rgba representation of a color. Individual components
-    of the color can be retrieved with the dot operator::
+    Stores a color name and rgba representation of a color. Individual
+    color components can be retrieved with the dot operator::
 
         color = Color(r=255, g=0, b=0, a=75)
-        tuple(color.r,color.g, color.b, color.a) = color.rgba
+        tuple(color.r,color.g, color.b, color.a) == color.rgba
 
-    Because Color is an implementation of an AttributeDict you must specify
-    each component by name in the constructor.
+    You can also create a color by name.
 
-    Can print the string representation with str(Color)
+        color = Color('Red')
+
+    Only standard Starcraft colors are supported. ValueErrors will be thrown
+    on invalid names or hex values.
     """
-
-    @property
-    def rgba(self):
-        """Tuple containing the (r,g,b,a) representation of the color"""
-        if 'r' not in self or 'g' not in self or 'b' not in self:
-            hexstr = self.hex
+    def __init__(self, name=None, r=0, g=0, b=0, a=255):
+        if name:
+            if name not in COLOR_CODES_INV:
+                raise ValueError("Invalid color name: "+name)
+            hexstr = COLOR_CODES_INV[name]
             self.r = int(hexstr[0:2],16)
             self.g = int(hexstr[2:4],16)
             self.b = int(hexstr[4:6],16)
             self.a = 255
+            self.name = name
+        else:
+            self.r = r
+            self.g = g
+            self.b = b
+            self.a = a
+            if self.hex in COLOR_CODES:
+                self.name = COLOR_CODES[self.hex]
+            else:
+                raise ValueError("Invalid color hex code: "+self.hex)
+
+    @property
+    def rgba(self):
+        """ Returns a tuple containing the color's (r,g,b,a) """
         return (self.r,self.g,self.b,self.a)
 
     @property
     def hex(self):
         """The hexadecimal representation of the color"""
-        if 'name' in self:
-            return COLOR_CODES_INV.get(self.name)
-        else:
-            return "{0.r:02X}{0.g:02X}{0.b:02X}".format(self)
-
+        return "{0.r:02X}{0.g:02X}{0.b:02X}".format(self)
 
     def __str__(self):
-        if not hasattr(self,'name'):
-            self.name = COLOR_CODES[self.hex]
         return self.name
 
 def open_archive(replay_file):
@@ -514,20 +523,16 @@ def merged_dict(a, b):
     c.update(b)
     return c
 
-def extension_filter(filename, extension):
-    name, ext = os.path.splitext(filename)
-    return ext.lower()[1:] == extension.lower()
-
 def get_files(path, exclude=list(), depth=-1, followlinks=False, extension=None, **extras):
     # os.walk and os.path.isfile fail silently. We want to be loud!
     if not os.path.exists(path):
         raise ValueError("Location `{0}` does not exist".format(path))
 
     # If an extension is supplied, use it to do a type check
-    if extension == None:
-        type_check = lambda n: True
+    if extension:
+        type_check = lambda path: os.path.splitext(path)[1][1:].lower() == extension.lower()
     else:
-        type_check = functools.partial(extension_filter, extension=extension)
+        type_check = lambda n: True
 
     # os.walk can't handle file paths, only directories
     if os.path.isfile(path):
@@ -551,24 +556,23 @@ def get_files(path, exclude=list(), depth=-1, followlinks=False, extension=None,
 
 
 class Length(timedelta):
-    """
-        Extends the builtin timedelta class. See python docs for more info on
+    """ Extends the builtin timedelta class. See python docs for more info on
         what capabilities this gives you.
     """
 
     @property
     def hours(self):
-        """The number of hours in represented."""
+        """ The number of hours in represented. """
         return self.seconds/3600
 
     @property
     def mins(self):
-        """The number of minutes in excess of the hours."""
+        """ The number of minutes in excess of the hours. """
         return (self.seconds/60)%60
 
     @property
     def secs(self):
-        """The number of seconds in excess of the minutes."""
+        """ The number of seconds in excess of the minutes. """
         return self.seconds%60
 
     def __str__(self):
