@@ -230,3 +230,6 @@ def test_WoL_204():
 
 def test_datastruct_10():
     replay = sc2reader.load_replay("test_replays/2.0.4.24944/Akilon Flats.SC2Replay")
+
+def test_cn():
+    replay = sc2reader.load_replay("test_replays/2.0.5.25092/cn1.SC2Replay")

@@ -374,7 +374,7 @@ class Replay(Resource):
             player.is_human = (attributes.get('Controller','Computer') == 'Human')
             player.uid = pdata.bnet.uid
             player.subregion = pdata.bnet.subregion
-            player.gateway = {0:'', 1:'us',2:'eu',3:'kr',6:'sea', 98:'xx'}[pdata.bnet.unknown1] # actually is gateway!!!
+            player.gateway = {0:'', 1:'us',2:'eu',3:'kr',5:'cn',6:'sea', 98:'xx'}[pdata.bnet.unknown1] # actually is gateway!!!
             player.handicap = pdata.handicap
             player.color = utils.Color(**pdata.color._asdict())
             return player
