@@ -247,3 +247,8 @@ def test_WoL_204():
 def test_send_resources():
     replay = sc2reader.load_replay("test_replays/2.0.4.24944/Backwater Complex (15).SC2Replay")
 
+def test_cn_replays():
+    replay = sc2reader.load_replay("test_replays/2.0.5.25092/cn1.SC2Replay")
+    assert replay.gateway == 'cn'
+    assert replay.expansion == 'WoL'
+

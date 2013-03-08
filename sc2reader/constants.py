@@ -80,7 +80,7 @@ GATEWAY_LOOKUP = {
     1:'us',
     2:'eu',
     3:'kr',
-    5:'ch',
+    5:'cn',
     6:'sea',
     98:'xx',
 }

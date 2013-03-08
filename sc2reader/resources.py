@@ -279,14 +279,6 @@ class Replay(Resource):
     def load_details(self):
         if 'replay.initData' in self.raw_data:
             initData = self.raw_data['replay.initData']
-            if initData.map_data:
-                self.gateway = initData.map_data[0].server.lower()
-                self.map_hash = initData.map_data[-1].hash
-                self.map_file = initData.map_data[-1]
-
-                #Expand this special case mapping
-                if self.gateway == 'sg':
-                    self.gateway = 'sea'
 
         if 'replay.attributes.events' in self.raw_data:
             # Organize the attribute data to be useful
@@ -306,6 +298,14 @@ class Replay(Resource):
             details = self.raw_data['replay.details']
 
             self.map_name = details.map
+
+            self.gateway = details.dependencies[0].server.lower()
+            self.map_hash = details.dependencies[-1].hash
+            self.map_file = details.dependencies[-1]
+
+            #Expand this special case mapping
+            if self.gateway == 'sg':
+                self.gateway = 'sea'
 
             dependency_hashes = [d.hash for d in details.dependencies]
             if hashlib.sha256('Standard Data: Swarm.SC2Mod').hexdigest() in dependency_hashes:
