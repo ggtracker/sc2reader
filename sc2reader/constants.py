@@ -75,6 +75,16 @@ GATEWAY_CODES = {
     'XX': 'Public Test',
 }
 
+GATEWAY_LOOKUP = {
+    0:'',
+    1:'us',
+    2:'eu',
+    3:'kr',
+    5:'ch',
+    6:'sea',
+    98:'xx',
+}
+
 COLOR_CODES = {
     'B4141E': 'Red',
     '0042FF': 'Blue',

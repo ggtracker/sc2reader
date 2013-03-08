@@ -10,7 +10,7 @@ from sc2reader.constants import *
 Location = namedtuple('Location',('x','y'))
 MapData = namedtuple('MapData',['gateway','map_hash'])
 ColorData = namedtuple('ColorData',['a','r','g','b'])
-BnetData = namedtuple('BnetData',['unknown1','unknown2','subregion','uid'])
+BnetData = namedtuple('BnetData',['gateway','unknown2','subregion','uid'])
 
 class DepotFile(object):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.{2}'

@@ -52,7 +52,7 @@ class ByteDecoder(object):
     def done(self):
         """ Returns true when all bytes have been decoded """
         return self.tell() == self.length
-    
+
     def read_range(self, start, end):
         """ Returns the raw byte string from the indicated address range """
         return self._contents[start:end]

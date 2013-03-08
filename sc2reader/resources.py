@@ -26,7 +26,7 @@ from sc2reader.data import builds as datapacks
 from sc2reader.events import AbilityEvent, CameraEvent, HotkeyEvent, SelectionEvent
 from sc2reader.exceptions import SC2ReaderLocalizationError
 from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotFile, BuildEntry
-from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, LOBBY_PROPERTIES
+from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, LOBBY_PROPERTIES, GATEWAY_LOOKUP
 
 
 def real_type(teams):
@@ -385,7 +385,7 @@ class Replay(Resource):
             player.is_human = (attributes.get('Controller','Computer') == 'User')
             player.uid = pdata.bnet.uid
             player.subregion = pdata.bnet.subregion
-            player.gateway = {0:'', 1:'us',2:'eu',3:'kr',6:'sea', 98:'xx'}[pdata.bnet.unknown1] # actually is gateway!!!
+            player.gateway = GATEWAY_LOOKUP[pdata.bnet.gateway]
             player.handicap = pdata.handicap
             player.color = utils.Color(**pdata.color._asdict())
             return player
