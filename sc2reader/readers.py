@@ -531,13 +531,13 @@ class GameEventsReader_16117(GameEventsReader_Base):
     def player_request_resource_event(self, data, fstamp, pid, event_type):
         flags = data.read_bits(3) #??
         custom = minerals = vespene = terrazine = 0
-        if data.read_bits(1):
+        if data.read_bool():
             custom = data.read_bits(31) #??
-        if data.read_bits(1):
+        if data.read_bool():
             minerals = data.read_bits(31)
-        if data.read_bits(1):
+        if data.read_bool():
             vespene = data.read_bits(31)
-        if data.read_bits(1):
+        if data.read_bool():
             terrazine = data.read_bits(31) #??
         return RequestResourceEvent(fstamp, pid, event_type, minerals, vespene, terrazine, custom)
 
@@ -546,17 +546,17 @@ class GameEventsReader_16117(GameEventsReader_Base):
         x = data.read_uint16()/256.0
         y = data.read_uint16()/256.0
         distance = pitch = yaw = height = 0
-        if data.read_bits(1):
+        if data.read_bool():
             distance = data.read_uint16()/256.0
-        if data.read_bits(1):
+        if data.read_bool():
             #Note: this angle is relative to the horizontal plane, but the editor shows the angle relative to the vertical plane. Subtract from 90 degrees to convert.
             pitch = data.read_uint16() #?
             pitch = 45 * (((((pitch * 0x10 - 0x2000) << 17) - 1) >> 17) + 1) / 4096.0
-        if data.read_bits(1):
+        if data.read_bool():
             #Note: this angle is the vector from the camera head to the camera target projected on to the x-y plane in positive coordinates. So, default is 90 degrees, while insert and delete produce 45 and 135 degrees by default.
             yaw = data.read_uint16() #?
             yaw = 45 * (((((yaw * 0x10 - 0x2000) << 17) - 1) >> 17) + 1) / 4096.0
-        if data.read_bits(1):
+        if data.read_bool():
             height_offset = data.read_uint16()/256.0
         return CameraEvent(fstamp, pid, event_type, x, y, distance, pitch, yaw, height)
 
@@ -616,10 +616,10 @@ class GameEventsReader_16561(GameEventsReader_16117):
         # See sc2replay-csharp wiki for details
         flags = data.read_bits(self.PLAYER_ABILITY_FLAGS)
 
-        default_ability = not data.read_bits(1)
+        default_ability = not data.read_bool()
         if not default_ability:
             ability = data.read_uint16() << 5 | data.read_bits(5)
-            default_actor = not data.read_bits(1)
+            default_actor = not data.read_bool()
         else:
             ability = 0
 
@@ -629,7 +629,7 @@ class GameEventsReader_16561(GameEventsReader_16117):
             y = data.read_bits(20)/4096.0
             z = data.read_uint32()
             z = (z>>1)/8192.0 * pow(-1, z & 0x1)
-            unknown = data.read_bits(1)
+            unknown = data.read_bool()
             return LocationAbilityEvent(fstamp, pid, event_type, ability, flags, (x, y, z))
 
         elif target_type == 2:
@@ -639,22 +639,22 @@ class GameEventsReader_16561(GameEventsReader_16117):
             unit = (data.read_uint32(), data.read_uint16())
             if fstamp == 9007 or unit[0] == 0x94880002:
                 print fstamp, hex(unit[0])
-            if self.ABILITY_TEAM_FLAG and data.read_bits(1):
+            if self.ABILITY_TEAM_FLAG and data.read_bool():
                 team = data.read_bits(4)
 
-            if data.read_bits(1):
+            if data.read_bool():
                 player = data.read_bits(4)
 
             x = data.read_bits(20)/4096.0
             y = data.read_bits(20)/4096.0
             z = data.read_uint32()
             z = (z>>1)/8192.0 * pow(-1, z & 0x1)
-            unknown = data.read_bits(1)
+            unknown = data.read_bool()
             return TargetAbilityEvent(fstamp, pid, event_type, ability, flags, unit, player, team, (x, y, z))
 
         elif target_type == 3:
             unit_id = data.read_uint32()
-            unknown = data.read_bits(1)
+            unknown = data.read_bool()
             return SelfAbilityEvent(fstamp, pid, event_type, ability, flags, unit_id)
 
         else:
@@ -693,16 +693,16 @@ class GameEventsReader_Beta(GameEventsReader_22612):
 
     def camera_event(self, data, fstamp, pid, event_type):
         x = y= distance = pitch = yaw = height = 0
-        if data.read_bits(1):
+        if data.read_bool():
             x = data.read_uint16()/256.0
             y = data.read_uint16()/256.0
-        if data.read_bits(1):
+        if data.read_bool():
             distance = data.read_uint16()/256.0
-        if data.read_bits(1):
+        if data.read_bool():
             #Note: this angle is relative to the horizontal plane, but the editor shows the angle relative to the vertical plane. Subtract from 90 degrees to convert.
             pitch = data.read_uint16() #?
             pitch = 45 * (((((pitch * 0x10 - 0x2000) << 17) - 1) >> 17) + 1) / 4096.0
-        if data.read_bits(1):
+        if data.read_bool():
             #Note: this angle is the vector from the camera head to the camera target projected on to the x-y plane in positive coordinates. So, default is 90 degrees, while insert and delete produce 45 and 135 degrees by default.
             yaw = data.read_uint16() #?
             yaw = 45 * (((((yaw * 0x10 - 0x2000) << 17) - 1) >> 17) + 1) / 4096.0
