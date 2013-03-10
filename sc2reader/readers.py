@@ -36,6 +36,47 @@ class InitDataReader_Base(Reader):
                     observe = data.read_bits(2),
                 ) for i in range(data.read_bits(5))
             ],
+        )
+
+        distance = data.read_range(data.tell(), data.length).find('s2ma')
+        data.read_aligned_bytes(distance)
+
+        # The final block of this file that we concern ourselves with is a list
+        # of what appears to be map data with the s2ma header on each element.
+        # Each element consists of two unknown bytes, a realm id (e.g EU or US)
+        # and a map hash which probably ties back to the sc2map files.
+        #
+        # Some replays don't seem to have a maps section at all, now we can't
+        # know what gateway its from? Very strange...
+        #
+        # TODO: Figure out how we could be missing a maps section.
+        map_data = list()
+        while data.peek(4) == 's2ma':
+            map_data.append(DepotFile(data.read_aligned_bytes(40)))
+
+        return AttributeDict(
+            map_data=map_data,
+            player_names=[d['name'] for d in init_data['player_init_data'] if d['name']],
+            sc_account_id=None,#sc_account_id,
+        )
+
+class InitDataReader_23260(Reader):
+
+    def __call__(self, data, replay):
+        data = BitPackedDecoder(data)
+
+        init_data = dict( #58
+            player_init_data = [dict( #38
+                    name = data.read_aligned_bytes(data.read_uint8()),
+                    random_seed = data.read_uint32(),
+                    race_preference = data.read_uint8() if data.read_bool() else None, #38
+                    team_preference = data.read_uint8() if data.read_bool() else None, #39
+                    test_map = data.read_bool(),
+                    test_auto = data.read_bool(),
+                    examine = data.read_bool(),
+                    observe = data.read_bits(2),
+                ) for i in range(data.read_bits(5))
+            ],
 
             game_description = dict( # 48
                 random_value = data.read_uint32(), # 4
@@ -83,8 +124,7 @@ class InitDataReader_Base(Reader):
                 is_blizzardMap = data.read_bool(),
                 is_premade_ffa = data.read_bool(),
             ),
-        )
-        """ # For builds <= 1.5.4 this won't work.
+
             lobby_state = dict( #56
                 phase = data.read_bits(3),
                 max_users = data.read_bits(5),
@@ -98,9 +138,9 @@ class InitDataReader_Base(Reader):
                         difficulty = data.read_bits(6),
                         handicap = data.read_bits(7),
                         observe = data.read_bits(2),
-                        rewards = [data.read_uint32() for i in range(data.read_bits(6))],
+                        rewards = [data.read_uint32() for i in range(data.read_bits(5))], # 52
                         toon_handle = data.read_aligned_bytes(data.read_bits(7)), # 14
-                        licenses = [data.read_uint32() for i in range(data.read_bits(9))], # 56
+                        licenses = [data.read_uint32() for i in range(data.read_bits(9))], # 53
                     ) for i in range(data.read_bits(5))], # 58
                 random_seed = data.read_uint32(),
                 host_user_id = data.read_bits(4) if data.read_bool() else None, # 52
@@ -108,7 +148,7 @@ class InitDataReader_Base(Reader):
                 game_duration = data.read_uint32(), # 4
                 default_difficulty = data.read_bits(6), # 1
             ),
-        )"""
+        )
 
         return AttributeDict(
             map_data=init_data['game_description']['cache_handles'],
