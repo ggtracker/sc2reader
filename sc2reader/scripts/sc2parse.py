@@ -67,8 +67,7 @@ def main():
                 print '[ERROR]', e.message
                 for event in e.game_events[-5:]:
                     print '{0} - {1}'.format(hex(event.type),event.bytes.encode('hex'))
-                e.buffer.seek(e.location)
-                print e.buffer.peek(50).encode('hex')
+                print e.buffer.read_range(e.location, e.location+50).encode('hex')
                 print
             except Exception as e:
                 print
