@@ -277,9 +277,6 @@ class Replay(Resource):
             self.load_events()
 
     def load_details(self):
-        if 'replay.initData' in self.raw_data:
-            initData = self.raw_data['replay.initData']
-
         if 'replay.attributes.events' in self.raw_data:
             # Organize the attribute data to be useful
             self.attributes = defaultdict(dict)
@@ -392,7 +389,8 @@ class Replay(Resource):
 
 
         pid = 0
-        clients = self.raw_data['replay.initData'].player_names
+        init_data = self.raw_data['replay.initData']
+        clients = [d['name'] for d in init_data['player_init_data'] if d['name']]
         for index, pdata in enumerate(self.raw_data['replay.details'].players):
             pid += 1
             attributes = self.attributes.get(pid, dict())

@@ -27,38 +27,106 @@ class InitDataReader_Base(Reader):
         init_data = dict( #58
             player_init_data = [dict( #38
                     name = data.read_aligned_bytes(data.read_uint8()),
+                    clan_tag = None,
+                    highest_league = None,
+                    combined_race_levels = None,
                     random_seed = data.read_uint32(),
                     race_preference = data.read_uint8() if data.read_bool() else None, #38
                     team_preference = data.read_uint8() if data.read_bool() else None, #39
                     test_map = data.read_bool(),
                     test_auto = data.read_bool(),
                     examine = data.read_bool(),
+                    custom_interface = None,
                     observe = data.read_bits(2),
                 ) for i in range(data.read_bits(5))
             ],
+
+            game_description = dict( # 48
+                random_value = None,
+                game_cache_name = None,
+                game_options = dict( #40
+                        lock_teams = None,
+                        teams_together = None,
+                        advanced_shared_control = None,
+                        random_races = None,
+                        battle_net = None,
+                        amm = None,
+                        competitive = None,
+                        no_victory_or_defeat = None,
+                        fog = None,
+                        observers = None,
+                        user_difficulty = None,
+                        client_debug_flags = None,
+                    ),
+                game_speed = None,
+                game_type = None,
+                max_users = None,
+                max_observers = None,
+                max_players = None,
+                max_teams = None,
+                max_colors = None,
+                max_races = None,
+                max_controls = None,
+                map_size_x = None,
+                map_size_y = None,
+                map_file_sync_checksum = None,
+                map_file_name = None,
+                map_author_name = None,
+                mod_file_sync_checksum = None,
+                slot_descriptions = [dict( #47
+                        allowed_colors = None,
+                        allowed_races = None,
+                        allowedDifficulty = None,
+                        allowedControls = None,
+                        allowed_observe_types = None,
+                        allowed_ai_builds = None,
+                    ) for i in range(0)],
+                default_difficulty = None,
+                default_AI_build = None,
+                cache_handles = [],
+                is_blizzardMap = None,
+                is_premade_ffa = None,
+                is_coop_mode = None,
+            ),
+
+            lobby_state = dict( #56
+                phase = None,
+                max_users = None,
+                max_observers = None,
+                slots = [dict( #54
+                        control = None,
+                        user_id = None,
+                        team_id = None,
+                        colorPref = None,
+                        race_pref = None,
+                        difficulty = None,
+                        ai_build = None,
+                        handicap = None,
+                        observe = None,
+                        working_set_slot_id = None,
+                        rewards = [],
+                        toon_handle = None,
+                        licenses = [],
+                    ) for i in range(0)], # 58
+                random_seed = None,
+                host_user_id = None,
+                is_single_player = None,
+                game_duration = None,
+                default_difficulty = None,
+                default_ai_build = 0,
+            ),
         )
 
         distance = data.read_range(data.tell(), data.length).find('s2ma')
         data.read_aligned_bytes(distance)
 
-        # The final block of this file that we concern ourselves with is a list
-        # of what appears to be map data with the s2ma header on each element.
-        # Each element consists of two unknown bytes, a realm id (e.g EU or US)
-        # and a map hash which probably ties back to the sc2map files.
-        #
-        # Some replays don't seem to have a maps section at all, now we can't
-        # know what gateway its from? Very strange...
-        #
-        # TODO: Figure out how we could be missing a maps section.
         map_data = list()
         while data.peek(4) == 's2ma':
-            map_data.append(DepotFile(data.read_aligned_bytes(40)))
+            depot_file = DepotFile(data.read_aligned_bytes(40))
+            init_data['game_description']['cache_handles'].append(depot_file)
 
-        return AttributeDict(
-            map_data=map_data,
-            player_names=[d['name'] for d in init_data['player_init_data'] if d['name']],
-            sc_account_id=None,#sc_account_id,
-        )
+        init_data.setdefault('game_description',dict())['cache_handles'] = map_data
+        return init_data
 
 class InitDataReader_23260(Reader):
 
@@ -68,12 +136,16 @@ class InitDataReader_23260(Reader):
         init_data = dict( #58
             player_init_data = [dict( #38
                     name = data.read_aligned_bytes(data.read_uint8()),
+                    clan_tag = None,
+                    highest_league = None,
+                    combined_race_levels = None,
                     random_seed = data.read_uint32(),
                     race_preference = data.read_uint8() if data.read_bool() else None, #38
                     team_preference = data.read_uint8() if data.read_bool() else None, #39
                     test_map = data.read_bool(),
                     test_auto = data.read_bool(),
                     examine = data.read_bool(),
+                    custom_interface = None,
                     observe = data.read_bits(2),
                 ) for i in range(data.read_bits(5))
             ],
@@ -116,13 +188,16 @@ class InitDataReader_23260(Reader):
                         allowedDifficulty = data.read_bits(data.read_bits(6)),
                         allowedControls = data.read_bits(data.read_uint8()),
                         allowed_observe_types = data.read_bits(data.read_bits(2)),
+                        allowed_ai_builds = None
                     ) for i in range(data.read_bits(5))],
                 default_difficulty = data.read_bits(6),
+                default_AI_build = None,
                 cache_handles = [
                     DepotFile(data.read_aligned_bytes(40)) for i in range(data.read_bits(6))
                 ],
                 is_blizzardMap = data.read_bool(),
                 is_premade_ffa = data.read_bool(),
+                is_coop_mode = None,
             ),
 
             lobby_state = dict( #56
@@ -136,8 +211,10 @@ class InitDataReader_23260(Reader):
                         colorPref = data.read_bits(5) if data.read_bool() else None,
                         race_pref = data.read_uint8() if data.read_bool() else None,
                         difficulty = data.read_bits(6),
+                        ai_build = None,
                         handicap = data.read_bits(7),
                         observe = data.read_bits(2),
+                        working_set_slot_id = None,
                         rewards = [data.read_uint32() for i in range(data.read_bits(5))], # 52
                         toon_handle = data.read_aligned_bytes(data.read_bits(7)), # 14
                         licenses = [data.read_uint32() for i in range(data.read_bits(9))], # 53
@@ -147,14 +224,11 @@ class InitDataReader_23260(Reader):
                 is_single_player = data.read_bool(), # 27
                 game_duration = data.read_uint32(), # 4
                 default_difficulty = data.read_bits(6), # 1
+                default_ai_build = 0
             ),
         )
 
-        return AttributeDict(
-            map_data=init_data['game_description']['cache_handles'],
-            player_names=[d['name'] for d in init_data['player_init_data'] if d['name']],
-            sc_account_id=None,#sc_account_id,
-        )
+        return init_data
 
 class InitDataReader_24764(InitDataReader_Base):
 
@@ -255,11 +329,8 @@ class InitDataReader_24764(InitDataReader_Base):
                 default_ai_build = data.read_bits(7), # 0
             ),
         )
-        return AttributeDict(
-            map_data=init_data['game_description']['cache_handles'],
-            player_names=[d['name'] for d in init_data['player_init_data'] if d['name']],
-            sc_account_id=None,#sc_account_id,
-        )
+
+        return init_data
 
 
 class AttributesEventsReader_Base(Reader):
