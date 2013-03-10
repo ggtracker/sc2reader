@@ -4,6 +4,7 @@ from __future__ import absolute_import
 from cStringIO import StringIO
 
 import struct
+import functools
 
 class ByteDecoder(object):
 
@@ -119,6 +120,7 @@ class BitPackedDecoder(object):
 
         # Reduce the number of lookups required to read
         self._read = self._buffer.read
+        self.read_bool = functools.partial(self.read_bits, 1)
 
     def done(self):
         """ Returns true when all bits in the buffer have been used"""
@@ -294,7 +296,7 @@ class BitPackedDecoder(object):
         elif datatype == 0x01: # bitarray, weird alignment requirements
             bits = self.read_vint()
             data = self.read_bits(bits)
-            
+
         elif datatype == 0x02: # blob
             length = self.read_vint()
             data = self.read_bytes(length)
@@ -327,7 +329,6 @@ class BitPackedDecoder(object):
             data = self.read_vint()
 
         else:
-            if debug: print prefix
             raise TypeError("Unknown Data Structure: '%s'" % datatype)
 
         return data
