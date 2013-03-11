@@ -251,6 +251,9 @@ def test_clan_players():
     replay = sc2reader.load_replay("test_replays/2.0.4.24944/Lunar Colony V.SC2Replay")
     assert replay.expansion == 'WoL'
     assert len(replay.people) == 4
+    for obj in replay.objects.values():
+        assert obj.name != 'Ultralisk'
+    
 
 def test_WoL_204():
     replay = sc2reader.load_replay("test_replays/2.0.4.24944/ggtracker_1789768.SC2Replay")
