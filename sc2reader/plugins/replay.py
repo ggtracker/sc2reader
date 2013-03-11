@@ -46,7 +46,7 @@ def toDict(replay):
             })
         players.append({
             'avg_apm': getattr(player, 'avg_apm', None),
-            'color': getattr(player, 'color', None),
+            'color': player.color.__dict__ if hasattr(player, 'color') else None,
             'name': getattr(player, 'name', None),
             'pick_race': getattr(player, 'pick_race', None),
             'pid': getattr(player, 'pid', None),
