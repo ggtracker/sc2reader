@@ -209,6 +209,13 @@ patch files. It is highly recommended you get in touch with us before working
 on patches.
 
 
+Testing
+-------------------
+
+    mkdir testcache
+    GGFACTORY_CACHE_DIR=testcache py.test
+
+
 Community
 ==============
 
