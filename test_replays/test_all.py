@@ -9,9 +9,22 @@ sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(os.path.abspath
 
 import sc2reader
 from sc2reader.exceptions import ParseError
+from sc2reader.plugins.replay import APMTracker, SelectionTracker
 
 sc2reader.log_utils.log_to_console('INFO')
 # Tests for build 17811 replays
+
+class SC2TestFactory(sc2reader.factories.DoubleCachedSC2Factory):
+    def __init__(self, cache_dir, max_cache_size=0, **options):
+        """cache_dir must be an absolute path, max_cache_size=0 => unlimited"""
+        if not cache_dir:
+            raise ValueError("cache_dir is now required.")
+
+        super(SC2TestFactory, self).__init__(cache_dir, max_cache_size, **options)
+
+        self.register_plugin('Replay',APMTracker())
+        self.register_plugin('Replay',SelectionTracker())
+
 
 def test_standard_1v1():
     replay = sc2reader.load_replay("test_replays/1.2.2.17811/1.SC2Replay")
@@ -251,4 +264,9 @@ def test_cn_replays():
     replay = sc2reader.load_replay("test_replays/2.0.5.25092/cn1.SC2Replay")
     assert replay.gateway == 'cn'
     assert replay.expansion == 'WoL'
+
+def test_plugins():
+    CACHE_DIR = os.environ.get('GGFACTORY_CACHE_DIR',None)
+    factory = SC2TestFactory(cache_dir=CACHE_DIR)
+    replay = factory.load_replay("test_replays/2.0.5.25092/cn1.SC2Replay")
 

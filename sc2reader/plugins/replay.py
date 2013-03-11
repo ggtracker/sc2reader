@@ -95,6 +95,8 @@ def APMTracker(replay):
         else:
             player.avg_apm = 0
 
+    return replay
+
 
 @plugin
 def SelectionTracker(replay):
@@ -145,3 +147,5 @@ def SelectionTracker(replay):
         person.selection = player_selection
         # Not a real lock, so don't change it!
         person.selection.locked = True
+
+    return replay
