@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
 import hashlib
@@ -5,13 +6,11 @@ import hashlib
 from collections import namedtuple
 
 from sc2reader.constants import *
-from sc2reader.utils import PersonDict, AttributeDict
 
 Location = namedtuple('Location',('x','y'))
-
 MapData = namedtuple('MapData',['gateway','map_hash'])
 ColorData = namedtuple('ColorData',['a','r','g','b'])
-BnetData = namedtuple('BnetData',['unknown1','unknown2','subregion','uid'])
+BnetData = namedtuple('BnetData',['gateway','unknown2','subregion','uid'])
 
 class DepotFile(object):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.{2}'
@@ -75,18 +74,16 @@ class Team(object):
 
 class Attribute(object):
 
-    def __init__(self, data):
-        #Unpack the data values and add a default name of unknown to be
-        #overridden by known attributes; acts as a flag for exclusion
-        self.header, self.id, self.player, self.value, self.name = tuple(data+["Unknown"])
+    def __init__(self, header, attr_id, player, value):
+        self.header = header
+        self.id = attr_id
+        self.player = player
 
-        if self.id in LOBBY_PROPERTIES:
+        if self.id not in LOBBY_PROPERTIES:
+            raise ValueError("Unknown attribute id: "+self.id)
+        else:
             self.name, lookup = LOBBY_PROPERTIES[self.id]
-            if lookup:
-                if callable(lookup):
-                    self.value = lookup(self.value)
-                else:
-                    self.value = lookup[self.value]
+            self.value = lookup[value.strip("\x00 ")[::-1]]
 
     def __repr__(self):
         return str(self)

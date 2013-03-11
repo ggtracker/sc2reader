@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
 import os
@@ -8,10 +9,7 @@ from cStringIO import StringIO
 
 from collections import defaultdict
 
-
-from sc2reader import readers
-from sc2reader import data
-from sc2reader import exceptions
+import urlparse, time
 from sc2reader import utils
 from sc2reader import log_utils
 from sc2reader.objects import DepotFile
@@ -146,8 +144,7 @@ class SC2Factory(object):
     def _load(self, cls, resource, filename, options):
         obj = cls(resource, filename=filename, factory=self, **options)
         for plugin in options.get('plugins',self._get_plugins(cls)):
-            # TODO: What if you want to do a transform?
-            plugin(obj)
+            obj = plugin(obj)
         return obj
 
     def _get_plugins(self, cls):
@@ -217,9 +214,6 @@ class SC2Factory(object):
             print resource_name
 
         return (resource, resource_name)
-
-
-import urlparse, time
 
 class CachedSC2Factory(SC2Factory):
 

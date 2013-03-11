@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
 import json
@@ -13,7 +14,7 @@ from sc2reader.plugins.utils import PlayerSelection, GameState, JSONDateEncoder,
 def toJSON(replay, **user_options):
     options = dict(cls=JSONDateEncoder)
     options.update(user_options)
-    return json.dumps(toDict(replay), **options)
+    return json.dumps(toDict()(replay), **options)
 
 @plugin
 def toDict(replay):

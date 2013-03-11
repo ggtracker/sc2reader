@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from sc2reader.utils import Length, LITTLE_ENDIAN
+from sc2reader.utils import Length
 from sc2reader.data import Unit
 from sc2reader.log_utils import loggable
 
@@ -16,7 +17,7 @@ class Event(object):
         # self.time = Length(seconds=self.second)
 
     def load_context(self, replay):
-        if replay.expansion == 'WoL' or replay.build < 24247:
+        if replay.versions[1]==1 or (replay.versions[1]==2 and replay.build < 24247):
             if self.pid <= len(replay.people):
                 self.player = replay.person[self.pid]
             elif self.pid != 16:
@@ -24,14 +25,13 @@ class Event(object):
             else:
                 pass # This is a global event
 
-        elif replay.expansion == 'HotS':
+        else:
             if self.pid < len(replay.clients):
                 self.player = replay.client[self.pid]
             elif self.pid != 16:
                 self.logger.error("Bad pid ({0}) for event {1} at {2}.".format(self.pid, self.__class__, Length(seconds=self.second)))
             else:
                 pass # This is a global event
-
 
     def _str_prefix(self):
         player_name = self.player.name if getattr(self,'pid', 16)!=16 else "Global"
@@ -111,6 +111,8 @@ class BetaJoinEvent(GameEvent):
         super(BetaJoinEvent, self).__init__(frames, pid, event_type)
         self.flags = flags
 
+# TODO: András says this is just a leave event and not a win event!
+# Investigate
 class BetaWinEvent(GameEvent):
     name = 'BetaWinEvent'
 

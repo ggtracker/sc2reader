@@ -1,349 +1,12 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from cStringIO import StringIO
-import fnmatch
 import os
-import re
-import struct
-import textwrap
 import sys
-import mpyq
-import functools
-from itertools import groupby
 from datetime import timedelta
-from collections import deque
 
-from sc2reader import exceptions
-from sc2reader.constants import COLOR_CODES, COLOR_CODES_INV, BUILD_ORDER_UPGRADES
-
-LITTLE_ENDIAN,BIG_ENDIAN = '<','>'
-
-class ReplayBuffer(object):
-    """ The ReplayBuffer is a wrapper over the a StringIO object and provides
-        convenience functions for reading structured data from Starcraft II
-        replay files.
-    """
-
-    def __init__(self, source):
-        #Accept file like objects and string objects
-        if hasattr(source,'read'):
-            source = source.read()
-        self.istream = StringIO(source)
-
-        # Expose part of the interface
-        self.read = self.istream.read
-        self.seek = self.istream.seek
-        self.tell = self.istream.tell
-
-        # get length of stream
-        self.seek(0, os.SEEK_END)
-        self.length = self.istream.tell()
-        self.seek(0, os.SEEK_SET)
-
-        # helpers to deal with bit reads
-        self.bit_shift = 0
-        self.bit_buffer = None
-
-        # Extra optimization stuff
-        self.lo_masks = [0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F, 0xFF]
-        self.hi_masks = [0xFF ^ mask for mask in self.lo_masks]
-        self.masks = zip(self.lo_masks, self.hi_masks)
-        self.temp_buffer = StringIO()
-
-    '''
-        Helper Functions
-    '''
-    @property
-    def is_empty(self):
-        return self.tell() == self.length
-
-    def bytes_left(self):
-        return self.length - self.tell()
-
-    def byte_align(self):
-        self.bit_shift=0
-
-    def reset(self):
-        self.bit_shift=0
-        self.seek(0, os.SEEK_SET)
-
-    def skip(self, bytes):
-        self.seek(bytes-1, os.SEEK_CUR)
-        self.bit_buffer = ord(self.read(1))
-
-    def read_range(self, start, end):
-        cur = self.tell()
-        self.seek(start, os.SEEK_SET)
-        bytes = self.read(end-start)
-        self.seek(cur, os.SEEK_SET)
-        return bytes
-
-    def peek(self, length):
-        cur = self.tell()
-        bytes = self.read(length)
-        self.istream.seek(cur, os.SEEK_SET)
-        return bytes
-
-    '''
-        Optimized bit-shift aware read methods
-    '''
-    def read_byte(self):
-        #if self.bytes_left() == 0:
-        #    raise EOFError("Cannot read byte; no bytes remaining")
-
-        if self.bit_shift==0:
-            return ord(self.read(1))
-        else:
-            lo_mask, hi_mask = self.masks[self.bit_shift]
-            hi_bits = self.bit_buffer & hi_mask
-            self.bit_buffer = ord(self.read(1))
-            lo_bits = self.bit_buffer & lo_mask
-            return hi_bits | lo_bits
-
-    def read_short(self, endian=LITTLE_ENDIAN):
-        #if self.bytes_left() < 2:
-        #    raise EOFError("Cannot read short; only {0} bytes left in buffer".format(self.left))
-
-        if self.bit_shift == 0:
-            return struct.unpack(endian+'H', self.read(2))[0]
-
-        else:
-            lo_mask, hi_mask = self.masks[self.bit_shift]
-            block = struct.unpack('>H', self.read(2))[0]
-            number = (self.bit_buffer & hi_mask) << 8 | (block & 0xFF00) >> (8-self.bit_shift) | (block & lo_mask)
-            self.bit_buffer = block & 0xFF
-            if endian == LITTLE_ENDIAN:
-                number = (number & 0xFF00) >> 8 | (number & 0xFF) << 8
-
-            return number
-
-    def read_int(self, endian=LITTLE_ENDIAN):
-        #if self.bytes_left() < 4:
-        #    raise EOFError("Cannot read int; only {0} bytes left in buffer".format(self.left))
-
-        if self.bit_shift == 0:
-            return struct.unpack(endian+'I', self.read(4))[0]
-
-        else:
-            lo_mask, hi_mask = self.masks[self.bit_shift]
-            block = struct.unpack('>I', self.read(4))[0]
-            number = (self.bit_buffer & hi_mask) << 24 | (block & 0xFFFFFF00) >> (8-self.bit_shift) | (block & lo_mask)
-            self.bit_buffer = block & 0xFF
-            if endian == LITTLE_ENDIAN:
-                number = (number & 0xFF000000) >> 24 | (number & 0xFF0000) >> 8 | (number & 0xFF00) << 8 | (number & 0xFF) << 24
-
-            return number
-
-    def read_bits(self, bits):
-        #if self.bytes_left()*8 < bits-(8-self.bit_shift):
-        #    raise EOFError("Cannot read {0} bits. only {1} bits left in buffer.".format(bits, (self.length-self.tell()+1)*8-self.bit_shift))
-        bit_shift = self.bit_shift
-        if bit_shift!=0:
-            bits_left = 8-bit_shift
-
-            # Read it all and continue
-            if bits_left < bits:
-                bits -= bits_left
-                result = (self.bit_buffer >> bit_shift) << bits
-
-            # Read part and return
-            elif bits_left > bits:
-                self.bit_shift+=bits
-                return (self.bit_buffer >> bit_shift) & self.lo_masks[bits]
-
-            # Read all and return
-            else:
-                self.bit_shift = 0
-                return self.bit_buffer >> bit_shift
-
-        else:
-            result = 0
-
-        if bits >= 8:
-            bytes = bits/8
-
-            if bytes == 1:
-                bits -= 8
-                result |= ord(self.read(1)) << bits
-
-            elif bytes == 2:
-                bits -= 16
-                result |= struct.unpack(">H",self.read(2))[0] << bits
-
-            elif bytes == 4:
-                bits -= 32
-                result |= struct.unpack(">I",self.read(4))[0] << bits
-
-            else:
-                for byte in struct.unpack("B"*bytes, self.read(bytes)):
-                    bits -= 8
-                    result |= byte << bits
-
-        if bits != 0:
-            self.bit_buffer = ord(self.read(1))
-            result |= self.bit_buffer & self.lo_masks[bits]
-
-        self.bit_shift = bits
-        return result
-
-    def read_bytes(self, bytes):
-        #if self.bytes_left() < bytes:
-        #    raise EOFError("Cannot read {0} bytes. only {1} bytes left in buffer.".format(bytes, self.length-self.tell()))
-
-        if self.bit_shift==0:
-            return self.read(bytes)
-
-        else:
-            temp_buffer = self.temp_buffer
-            prev_byte = self.bit_buffer
-            lo_mask, hi_mask = self.masks[self.bit_shift]
-            for next_byte in struct.unpack("B"*bytes, self.read(bytes)):
-                temp_buffer.write(chr(prev_byte & hi_mask | next_byte & lo_mask))
-                prev_byte = next_byte
-
-            self.bit_buffer = prev_byte
-            final_bytes = temp_buffer.getvalue()
-            temp_buffer.truncate(0)
-            return final_bytes
-
-
-    '''
-        Common read patterns
-    '''
-    def read_variable_int(self):
-        """ Blizzard Variable Length integer """
-        value, bit_shift, more = 0, 0, True
-        while more:
-            byte = self.read_byte()
-            value = ((byte & 0x7F) << bit_shift) | value
-            more = byte & 0x80
-            bit_shift += 7
-
-        #The last bit of the result is a sign flag
-        return pow(-1, value & 0x1) * (value >> 1)
-
-    def read_string(self, length=None, endian=BIG_ENDIAN):
-        if length == None:
-            length = self.read_byte() # Counts are always doubled?
-
-        bytes = self.read_bytes(length)
-        if endian==LITTLE_ENDIAN:
-            bytes = bytes[::-1]
-
-        return bytes
-
-    def read_timestamp(self):
-        """
-        Timestamps are 1-4 bytes long and represent a number of frames. Usually
-        it is time elapsed since the last event. A frame is 1/16th of a second.
-        The least significant 2 bits of the first byte specify how many extra
-        bytes the timestamp has.
-        """
-        first = self.read_byte()
-        time,count = first >> 2, first & 0x03
-        if count == 0:
-            return time
-        elif count == 1:
-            return time << 8 | self.read_byte()
-        elif count == 2:
-            return time << 16 | self.read_short(BIG_ENDIAN)
-        elif count == 3:
-            return time << 24 | self.read_short(BIG_ENDIAN) << 8 | self.read_byte()
-
-    def read_data_struct(self, indent=0, key=None):
-        """
-        Read a Blizzard data-structure. Structure can contain strings, lists,
-        dictionaries and custom integer types.
-        """
-        debug = False
-
-        #The first byte serves as a flag for the type of data to follow
-        datatype = self.read_byte()
-        prefix = hex(self.tell())+"\t"*indent
-        if key != None:
-            prefix+="{0}:".format(key)
-        prefix+=" {0}".format(datatype)
-
-        if datatype == 0x00:
-            #0x00 is an array where the first X bytes mark the number of entries in
-            #the array. See variable int documentation for details.
-            entries = self.read_variable_int()
-            prefix+=" ({0})".format(entries)
-            if debug: print prefix
-            data = [self.read_data_struct(indent+1,i) for i in range(entries)]
-
-        elif datatype == 0x01:
-            #0x01 is an array where the first X bytes mark the number of entries in
-            #the array. See variable int documentation for details.
-            #print self.peek(10)
-            self.read_bytes(2).encode("hex")
-            entries = self.read_variable_int()
-            prefix+=" ({0})".format(entries)
-            if debug: print prefix
-            data = [self.read_data_struct(indent+1,i) for i in range(entries)]
-
-        elif datatype == 0x02:
-            #0x02 is a byte string with the first byte indicating
-            #the length of the byte string to follow
-            byte = self.read_byte()
-            data = self.read_string(byte/2)
-            prefix+=" ({0}) - {1}".format(len(data),data)
-            if debug: print prefix
-
-        elif datatype == 0x03:
-            #0x03 is an unknown data type where the first byte appears
-            #to have no effect and kicks back the next instruction
-            flag = self.read_byte()
-            if debug: print prefix
-            if self.peek(2).encode('hex')!='0404':
-                data = self.read_data_struct(indent,key)
-            else:
-                data = 0
-
-        elif datatype == 0x04:
-            #0x04 is an unknown data type where the first byte of information
-            #is a switch (1 or 0) that can trigger another structure to be
-            #read.
-            flag = self.read_byte()
-            if flag:
-                if debug: print prefix
-                data = self.read_data_struct(indent,key)
-            else:
-                data = 0
-                prefix+=" - {0}".format(data)
-                if debug: print prefix
-
-        elif datatype == 0x05:
-            #0x05 is a serialized key,value structure with the first byte
-            #indicating the number of key,value pairs to follow
-            #When looping through the pairs, the first byte is the key,
-            #followed by the serialized data object value
-            data = dict()
-            entries = self.read_byte()/2
-            prefix+=" ({0})".format(entries)
-            if debug: print prefix
-            for i in range(entries):
-                key = self.read_byte()/2
-                data[key] = self.read_data_struct(indent+1,key) #Done like this to keep correct parse order
-
-        elif datatype == 0x06:
-            data = self.read_byte()
-            prefix+=" - {0}".format(data)
-            if debug: print prefix
-        elif datatype == 0x07:
-            data = self.read(4)
-            prefix+=" - {0}".format(data)
-            if debug: print prefix
-        elif datatype == 0x09:
-            data = self.read_variable_int()
-            prefix+=" - {0}".format(data)
-            if debug: print prefix
-        else:
-            if debug: print prefix
-            raise TypeError("Unknown Data Structure: '%s'" % datatype)
-
-        return data
-
+from sc2reader.exceptions import MPQError
+from sc2reader.constants import COLOR_CODES, COLOR_CODES_INV
 
 class PersonDict(dict):
     """
@@ -396,117 +59,91 @@ class AttributeDict(dict):
         self[name] = value
 
     def copy(self):
-        return AttributeDict(super(AttributeDict,self).copy())
+        return AttributeDict(self.items())
 
-class Color(AttributeDict):
+class Color(object):
     """
-    Stores the string and rgba representation of a color. Individual components
-    of the color can be retrieved with the dot operator::
+    Stores a color name and rgba representation of a color. Individual
+    color components can be retrieved with the dot operator::
 
         color = Color(r=255, g=0, b=0, a=75)
-        tuple(color.r,color.g, color.b, color.a) = color.rgba
+        tuple(color.r,color.g, color.b, color.a) == color.rgba
 
-    Because Color is an implementation of an AttributeDict you must specify
-    each component by name in the constructor.
+    You can also create a color by name.
 
-    Can print the string representation with str(Color)
+        color = Color('Red')
+
+    Only standard Starcraft colors are supported. ValueErrors will be thrown
+    on invalid names or hex values.
     """
-
-    @property
-    def rgba(self):
-        """Tuple containing the (r,g,b,a) representation of the color"""
-        if 'r' not in self or 'g' not in self or 'b' not in self:
-            hexstr = self.hex
+    def __init__(self, name=None, r=0, g=0, b=0, a=255):
+        if name:
+            if name not in COLOR_CODES_INV:
+                raise ValueError("Invalid color name: "+name)
+            hexstr = COLOR_CODES_INV[name]
             self.r = int(hexstr[0:2],16)
             self.g = int(hexstr[2:4],16)
             self.b = int(hexstr[4:6],16)
             self.a = 255
+            self.name = name
+        else:
+            self.r = r
+            self.g = g
+            self.b = b
+            self.a = a
+            if self.hex in COLOR_CODES:
+                self.name = COLOR_CODES[self.hex]
+            else:
+                raise ValueError("Invalid color hex code: "+self.hex)
+
+    @property
+    def rgba(self):
+        """ Returns a tuple containing the color's (r,g,b,a) """
         return (self.r,self.g,self.b,self.a)
 
     @property
     def hex(self):
         """The hexadecimal representation of the color"""
-        if 'name' in self:
-            return COLOR_CODES_INV.get(self.name)
-        else:
-            return "{0.r:02X}{0.g:02X}{0.b:02X}".format(self)
-
+        return "{0.r:02X}{0.g:02X}{0.b:02X}".format(self)
 
     def __str__(self):
-        if not hasattr(self,'name'):
-            self.name = COLOR_CODES[self.hex]
         return self.name
 
-def open_archive(replay_file):
-    # Don't read the listfile because some replays have corrupted listfiles
-    # from tampering by 3rd parties.
-    #
-    # In order to catch mpyq exceptions we have to do this hack because
-    # mypq could throw pretty much anything.
-    try:
-        replay_file.seek(0)
-        return  mpyq.MPQArchive(replay_file, listfile=False)
-    except Exception as e:
-        trace = sys.exc_info()[2]
-        raise exceptions.MPQError("Unable to construct the MPQArchive",e), None, trace
-
 def extract_data_file(data_file, archive):
-    # To wrap mpyq exceptions we have to do this try hack again.
+    # Wrap all mpyq related exceptions so they can be distinguished
+    # from other sc2reader issues later on.
     try:
-        # Some sites tamper with the replay archive files so
-        # Catch decompression errors and try again before giving up
-        if data_file == 'replay.message.events':
+        # Some replays tampered with by 3rd party software report
+        # block sizes wrong. They can either over report or under
+        # report. If they over report a non-compressed file might
+        # attempt decompression. If they under report a compressed
+        # file might bypass decompression. So do this:
+        #
+        #  * Force a decompression to catch under reporting
+        #  * If that fails, try to process normally
+        #  * mpyq doesn't allow you to skip decompression, so fail
+        #
+        # Refs: arkx/mpyq#12, GraylinKim/sc2reader#102
+        try:
+            file_data = archive.read_file(data_file, force_decompress=True)
+        except Exception as e:
+            exc_info = sys.exc_info()
             try:
-                file_data = archive.read_file(data_file, force_decompress=True)
+                file_data = archive.read_file(data_file)
             except Exception as e:
-                if str(e) in ("string index out of range", "Unsupported compression type."):
-                    file_data = archive.read_file(data_file, force_decompress=False)
-                else:
-                    raise
-        else:
-            file_data = archive.read_file(data_file)
+                # raise the original exception
+                raise exc_info[1], None, exc_info[2]
 
         return file_data
 
     except Exception as e:
         trace = sys.exc_info()[2]
-        raise exceptions.MPQError("Unable to extract file: {0}".format(data_file),e), None, trace
-
-def read_header(replay_file):
-    # Extract useful header information from the MPQ files. This information
-    # can be used to configure the rest of the program to correctly parse
-    # the archived data files.
-    replay_file.seek(0)
-    data = ReplayBuffer(replay_file)
-
-    # Sanity check that the input is in fact an MPQ file
-    if data.length==0 or data.read(4) != "MPQ\x1b":
-        msg = "File '{0}' is not an MPQ file";
-        raise exceptions.FileError(msg.format(getattr(replay_file, 'name', '<NOT AVAILABLE>')))
-
-    max_data_size = data.read_int(LITTLE_ENDIAN)
-    header_offset = data.read_int(LITTLE_ENDIAN)
-    data_size = data.read_int(LITTLE_ENDIAN)
-
-    #array [unknown,version,major,minor,build,unknown] and frame count
-    header_data = data.read_data_struct()
-    versions = header_data[1].values()
-    frames = header_data[3]
-    build = versions[4]
-    release_string = "%s.%s.%s.%s" % tuple(versions[1:5])
-    length = Length(seconds=frames/16)
-
-    keys = ('versions', 'frames', 'build', 'release_string', 'length')
-    return filter(lambda item: item[0] in keys, locals().iteritems())
+        raise MPQError("Unable to extract file: {0}".format(data_file),e), None, trace
 
 def merged_dict(a, b):
     c = a.copy()
     c.update(b)
     return c
-
-def extension_filter(filename, extension):
-    name, ext = os.path.splitext(filename)
-    return ext.lower()[1:] == extension.lower()
 
 def get_files(path, exclude=list(), depth=-1, followlinks=False, extension=None, **extras):
     # os.walk and os.path.isfile fail silently. We want to be loud!
@@ -514,10 +151,10 @@ def get_files(path, exclude=list(), depth=-1, followlinks=False, extension=None,
         raise ValueError("Location `{0}` does not exist".format(path))
 
     # If an extension is supplied, use it to do a type check
-    if extension == None:
-        type_check = lambda n: True
+    if extension:
+        type_check = lambda path: os.path.splitext(path)[1][1:].lower() == extension.lower()
     else:
-        type_check = functools.partial(extension_filter, extension=extension)
+        type_check = lambda n: True
 
     # os.walk can't handle file paths, only directories
     if os.path.isfile(path):
@@ -541,24 +178,23 @@ def get_files(path, exclude=list(), depth=-1, followlinks=False, extension=None,
 
 
 class Length(timedelta):
-    """
-        Extends the builtin timedelta class. See python docs for more info on
+    """ Extends the builtin timedelta class. See python docs for more info on
         what capabilities this gives you.
     """
 
     @property
     def hours(self):
-        """The number of hours in represented."""
+        """ The number of hours in represented. """
         return self.seconds/3600
 
     @property
     def mins(self):
-        """The number of minutes in excess of the hours."""
+        """ The number of minutes in excess of the hours. """
         return (self.seconds/60)%60
 
     @property
     def secs(self):
-        """The number of seconds in excess of the minutes."""
+        """ The number of seconds in excess of the minutes. """
         return self.seconds%60
 
     def __str__(self):
@@ -566,32 +202,3 @@ class Length(timedelta):
             return "{0:0>2}.{1:0>2}.{2:0>2}".format(self.hours,self.mins,self.secs)
         else:
             return "{0:0>2}.{1:0>2}".format(self.mins,self.secs)
-
-
-def get_unit(type_int):
-    """
-    Takes an int, i, with (i & 0xff000000) = 0x01000000
-    and returns the corresponding unit/structure
-    """
-    # Try to parse a unit
-    unit_code = ((type_int & 0xff) << 8) | 0x01
-    if unit_code in Data.units:
-        unit_name = Data.units[unit_code].name
-    else:
-        unit_name = "Unknown Unit ({0:X})".format(type_int)
-
-    return dict(name=unit_name, type_int=hex(type_int))
-
-
-def get_research(type_int):
-    """
-    Takes an int, i, with (i & 0xff000000) = 0x02000000
-    and returns the corresponding research/upgrade
-    """
-    research_code = ((type_int & 0xff) << 8) | 0x02
-    if research_code in BUILD_ORDER_UPGRADES:
-        research_name = BUILD_ORDER_UPGRADES[research_code]
-    else:
-        research_name = "Unknown upgrade ({0:X})".format(research_code)
-
-    return dict(name=research_name, type_int=hex(type_int))

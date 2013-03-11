@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
+
+import sys
 
 import zlib
 import pprint
@@ -13,14 +16,17 @@ from xml.etree import ElementTree
 import urllib2
 from mpyq import MPQArchive
 
+import mpyq
 from sc2reader import utils
+from sc2reader.decoders import BitPackedDecoder
 from sc2reader import log_utils
 from sc2reader import readers
+from sc2reader import exceptions
 from sc2reader.data import builds as datapacks
 from sc2reader.events import AbilityEvent, CameraEvent, HotkeyEvent, SelectionEvent
 from sc2reader.exceptions import SC2ReaderLocalizationError
 from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotFile, BuildEntry
-from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, LOBBY_PROPERTIES
+from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, LOBBY_PROPERTIES, GATEWAY_LOOKUP
 
 
 def real_type(teams):
@@ -68,10 +74,6 @@ class Replay(Resource):
 
     #: The game speed: Slower, Slow, Normal, Fast, Faster
     speed = str()
-
-    #: The operating system the replay was recorded on.
-    #: Useful for interpretting certain kind of raw data.
-    os = str()
 
     #: Deprecated, use :attr:`game_type` or :attr:`real_type` instead
     type = str()
@@ -202,7 +204,6 @@ class Replay(Resource):
         self.other_people = set()
         self.speed = ""
         self.type = ""
-        self.os = str()
         self.game_type = ""
         self.real_type = ""
         self.category = ""
@@ -236,11 +237,20 @@ class Replay(Resource):
 
         # Unpack the MPQ and read header data if requested
         if load_level >= 0:
-            # Set ('versions', 'frames', 'build', 'release_string', 'length')
-            self.__dict__.update(utils.read_header(replay_file))
-            self.length = utils.Length(seconds=int(self.frames/self.game_fps))
-            self.expansion = ['','WoL','HotS'][self.versions[1]]
-            self.archive = utils.open_archive(replay_file)
+            try:
+                self.archive = mpyq.MPQArchive(replay_file, listfile=False)
+            except Exception as e:
+                trace = sys.exc_info()[2]
+                raise exceptions.MPQError("Unable to construct the MPQArchive",e), None, trace
+
+            header_content = self.archive.header['user_data_header']['content']
+            header_data = BitPackedDecoder(header_content).read_struct()
+            self.versions = header_data[1].values()
+            self.frames = header_data[3]
+            self.build = self.versions[4]
+            self.release_string = "{0}.{1}.{2}.{3}".format(*self.versions[1:5])
+            self.game_length = utils.Length(seconds=self.frames/16)
+            self.length = self.real_length = utils.Length(seconds=int(self.frames/self.game_fps))
 
         # Load basic details if requested
         if load_level >= 1:
@@ -267,17 +277,6 @@ class Replay(Resource):
             self.load_events()
 
     def load_details(self):
-        if 'replay.initData' in self.raw_data:
-            initData = self.raw_data['replay.initData']
-            if initData.map_data:
-                self.gateway = initData.map_data[0].server.lower()
-                self.map_hash = initData.map_data[-1].hash
-                self.map_file = initData.map_data[-1]
-
-                #Expand this special case mapping
-                if self.gateway == 'sg':
-                    self.gateway = 'sea'
-
         if 'replay.attributes.events' in self.raw_data:
             # Organize the attribute data to be useful
             self.attributes = defaultdict(dict)
@@ -287,8 +286,8 @@ class Replay(Resource):
 
             # Populate replay with attributes
             self.speed = self.attributes[16]['Game Speed']
-            self.category = self.attributes[16]['Category']
-            self.type = self.game_type = self.attributes[16]['Game Mode']
+            self.category = self.attributes[16]['Game Mode']
+            self.type = self.game_type = self.attributes[16]['Teams']
             self.is_ladder = (self.category == "Ladder")
             self.is_private = (self.category == "Private")
 
@@ -297,13 +296,21 @@ class Replay(Resource):
 
             self.map_name = details.map
 
-            # Keep this theory for now but it seems like it could be wrong
-            if details.os == 0:
-                self.os = "Windows"
-            elif details.os == 1:
-                self.os = "Mac"
+            self.gateway = details.dependencies[0].server.lower()
+            self.map_hash = details.dependencies[-1].hash
+            self.map_file = details.dependencies[-1]
+
+            #Expand this special case mapping
+            if self.gateway == 'sg':
+                self.gateway = 'sea'
+
+            dependency_hashes = [d.hash for d in details.dependencies]
+            if hashlib.sha256('Standard Data: Swarm.SC2Mod').hexdigest() in dependency_hashes:
+                self.expansion = 'HotS'
+            elif hashlib.sha256('Standard Data: Liberty.SC2Mod').hexdigest() in dependency_hashes:
+                self.expansion = 'WoL'
             else:
-                raise ValueError("Unknown operating system {0} detected.".format(details.os))
+                self.expansion = ''
 
             self.windows_timestamp = details.file_time
             self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
@@ -345,14 +352,15 @@ class Replay(Resource):
 
         def createPlayer(pid, pdata, attributes):
             # make sure to strip the clan tag out of the name
-            name = pdata.name.split("]")[-1]
-            # sometimes there is also a <sp/> in the name, strip that too
-            name = name.split(">")[-1]
+            # in newer replays, the clan tag can be separated from the
+            # player name with a <sp/> symbol. It should also be stripped.
+            name = pdata.name.split("]",1)[-1].split(">",1)[-1]
             player = Player(pid, name)
 
             # In some beta patches attribute information is missing
             # Just assign them to team 2 to keep the issue from being fatal
-            team_number = attributes.get('Teams'+self.type,2)
+            team_number = int(attributes.get('Teams'+self.type,"Team 2")[5:])
+
             if not team_number in self.team:
                 self.team[team_number] = Team(team_number)
                 self.teams.append(self.team[team_number])
@@ -366,22 +374,23 @@ class Replay(Resource):
             elif pdata.result == 2:
                 player.team.result = "Loss"
             else:
-                pass # We don't need to do anything here?
+                player.team.result = None
 
             player.pick_race = attributes.get('Race','Unknown')
             player.play_race = LOCALIZED_RACES.get(pdata.race, pdata.race)
             player.difficulty = attributes.get('Difficulty','Unknown')
-            player.is_human = (attributes.get('Controller','Computer') == 'Human')
+            player.is_human = (attributes.get('Controller','Computer') == 'User')
             player.uid = pdata.bnet.uid
             player.subregion = pdata.bnet.subregion
-            player.gateway = {0:'', 1:'us',2:'eu',3:'kr',5:'cn',6:'sea', 98:'xx'}[pdata.bnet.unknown1] # actually is gateway!!!
+            player.gateway = GATEWAY_LOOKUP[pdata.bnet.gateway]
             player.handicap = pdata.handicap
             player.color = utils.Color(**pdata.color._asdict())
             return player
 
 
         pid = 0
-        clients = self.raw_data['replay.initData'].player_names
+        init_data = self.raw_data['replay.initData']
+        clients = [d['name'] for d in init_data['player_init_data'] if d['name']]
         for index, pdata in enumerate(self.raw_data['replay.details'].players):
             pid += 1
             attributes = self.attributes.get(pid, dict())
@@ -535,22 +544,23 @@ class Replay(Resource):
     def register_default_readers(self):
         """Registers factory default readers."""
         self.register_reader('replay.details', readers.DetailsReader_Base(), lambda r: r.build < 22612)
-        self.register_reader('replay.details', readers.DetailsReader_22612(), lambda r: r.build >= 22612 and r.build < 24764 and r.expansion=='WoL')
-        self.register_reader('replay.details', readers.DetailsReader_Beta(), lambda r: r.build < 24764 and r.expansion=='HotS')
+        self.register_reader('replay.details', readers.DetailsReader_22612(), lambda r: r.build >= 22612 and r.versions[1]==1)
+        self.register_reader('replay.details', readers.DetailsReader_Beta(), lambda r: r.build < 24764 and r.versions[1]==2)
         self.register_reader('replay.details', readers.DetailsReader_Beta_24764(), lambda r: r.build >= 24764)
-        self.register_reader('replay.initData', readers.InitDataReader_Base(), lambda r: r.build < 24764)
+        self.register_reader('replay.initData', readers.InitDataReader_Base(), lambda r: r.build < 23260)
+        self.register_reader('replay.initData', readers.InitDataReader_23260(), lambda r: r.build >= 23260 and r.build < 24764)
         self.register_reader('replay.initData', readers.InitDataReader_24764(), lambda r: r.build >= 24764)
-        self.register_reader('replay.message.events', readers.MessageEventsReader_Base(), lambda r: r.build < 24247 or r.expansion=='WoL')
-        self.register_reader('replay.message.events', readers.MessageEventsReader_Beta_24247(), lambda r: r.build >= 24247 and r.expansion=='HotS')
+        self.register_reader('replay.message.events', readers.MessageEventsReader_Base(), lambda r: r.build < 24247 or r.versions[1]==1)
+        self.register_reader('replay.message.events', readers.MessageEventsReader_Beta_24247(), lambda r: r.build >= 24247 and r.versions[1]==2)
         self.register_reader('replay.attributes.events', readers.AttributesEventsReader_Base(), lambda r: r.build <  17326)
         self.register_reader('replay.attributes.events', readers.AttributesEventsReader_17326(), lambda r: r.build >= 17326)
         self.register_reader('replay.game.events', readers.GameEventsReader_16117(), lambda r: 16117 <= r.build < 16561)
         self.register_reader('replay.game.events', readers.GameEventsReader_16561(), lambda r: 16561 <= r.build < 18574)
         self.register_reader('replay.game.events', readers.GameEventsReader_18574(), lambda r: 18574 <= r.build < 19595)
         self.register_reader('replay.game.events', readers.GameEventsReader_19595(), lambda r: 19595 <= r.build < 22612)
-        self.register_reader('replay.game.events', readers.GameEventsReader_22612(), lambda r: 22612 <= r.build and r.expansion=='WoL')
-        self.register_reader('replay.game.events', readers.GameEventsReader_Beta(), lambda r: r.expansion=='HotS' and r.build < 23925)
-        self.register_reader('replay.game.events', readers.GameEventsReader_Beta_23925(), lambda r: r.expansion=='HotS' and 23925 <= r.build)
+        self.register_reader('replay.game.events', readers.GameEventsReader_22612(), lambda r: 22612 <= r.build and r.versions[1]==1)
+        self.register_reader('replay.game.events', readers.GameEventsReader_Beta(), lambda r: r.versions[1]==2 and r.build < 23925)
+        self.register_reader('replay.game.events', readers.GameEventsReader_Beta_23925(), lambda r: r.versions[1]==2 and 23925 <= r.build)
 
 
     def register_default_datapacks(self):
@@ -589,8 +599,7 @@ class Replay(Resource):
     def _read_data(self, data_file, reader):
         data = utils.extract_data_file(data_file,self.archive)
         if data:
-            data_buffer = utils.ReplayBuffer(data)
-            self.raw_data[data_file] = reader(data_buffer, self)
+            self.raw_data[data_file] = reader(data, self)
         elif self.opt.debug and data_file != 'replay.message.events':
             raise ValueError("{0} not found in archive".format(data_file))
 
@@ -725,13 +734,13 @@ class GameSummary(Resource):
         self.real_type = str()
 
         # The first 16 bytes appear to be some sort of compression header
-        buffer = utils.ReplayBuffer(zlib.decompress(summary_file.read()[16:]))
+        buffer = BitPackedDecoder(zlib.decompress(summary_file.read()[16:]))
 
         # TODO: Is there a fixed number of entries?
         # TODO: Maybe the # of parts is recorded somewhere?
         self.parts = list()
-        while not buffer.is_empty:
-            self.parts.append(buffer.read_data_struct())
+        while not buffer.done():
+            self.parts.append(buffer.read_struct())
 
         self.end_time = datetime.utcfromtimestamp(self.parts[0][8])
         self.game_speed = LOBBY_PROPERTIES[0xBB8][1][self.parts[0][0][1]]
@@ -743,8 +752,15 @@ class GameSummary(Resource):
         self.load_map_info()
         self.load_settings()
         self.load_player_stats()
-        # self.load_player_builds()
         self.load_players()
+
+        dependencies = [sheet[1] for sheet in self.lang_sheets['enUS']]
+        if 'Swarm (Mod)' in dependencies:
+            self.expansion = 'HotS'
+        elif 'Liberty (Mod)' in dependencies:
+            self.expansion = 'WoL'
+        else:
+            self.expansion = ''
 
         self.game_type = self.settings['Teams'].replace(" ","")
         self.real_type = real_type(self.teams.values())
@@ -961,7 +977,7 @@ class GameSummary(Resource):
 
     def load_players(self):
         for index, struct in enumerate(self.parts[0][3]):
-            if not struct[0][1]: continue # Slot is closed
+            if not struct[0] or not struct[0][1]: continue # Slot is closed
 
             player = PlayerSummary(struct[0][0])
             stats = self.player_stats.get(index, dict())
@@ -976,7 +992,7 @@ class GameSummary(Resource):
                 player.unknown2 = struct[0][1][1]
 
             # Either a referee or a spectator, nothing else to do
-            if settings['Participant Role'] != 'Participant':
+            if settings.get('Participant Role','') != 'Participant':
                 self.observers.append(player)
                 continue
 
@@ -1010,8 +1026,10 @@ class GameSummary(Resource):
             player.structures_razed = stats.get('Structures Razed Count', None)
 
             # Graphs Tab
+            # Keep income_graph for backwards compatibility
             player.army_graph = stats.get('Army Value')
-            player.income_graph = stats.get('Resource Collection Rate', None)
+            player.resource_collection_graph = stats.get('Resource Collection Rate', None)
+            player.income_graph = player.resource_collection_graph
 
             # HotS Stats
             player.upgrade_spending_graph = stats.get('Upgrade Spending', None)
@@ -1029,6 +1047,7 @@ class GameSummary(Resource):
             else:
                 # In old s2gs files the field with this name was actually a number not a graph
                 player.resource_collection_rate = player.income_graph
+                player.resource_collection_graph = None
                 player.income_graph = None
 
             player.avg_unspent_resources = stats.get('Average Unspent Resources', None)
@@ -1040,87 +1059,10 @@ class GameSummary(Resource):
             self.players.append(player)
             self.player[player.pid] = player
 
-    """
-    def load_player_stats(self):
-        if len(self.parts) < 4: return
-        translation = self.translations[self.opt.lang]
-
-        # Part[3][0][:] and Part[4][0][1] are filled with summary stats
-        # for the players in the game.
-        # Each stat item is laid out as follows
-        #
-        #   {0: {0:999, 1:translation_id}, 1: [ [{0: Value, 1:0, 2:871???}], [], ...]
-        #
-        # Value is as seen on the score screen in game.
-        stats_items = self.parts[3][0]
-        if len(self.parts) > 4:
-            stats_items.append(self.parts[4][0][0])
-
-        for item in stats_items:
-            stat_name = translation.get(item[0][1],"Unknown")
-            for index, value in enumerate(item[1]):
-                if value:
-                    self.player_stats[index][stat_name] = value[0][0]
-
-        if len(self.parts) < 5: return
-
-        # Part[4][0] has entries for the army and income graphs
-        # Each point entry for the graph is laid out as follows
-        #
-        #   {0:Value, 1:0, 2:Time}
-        #
-        # The 2nd part of the tuple appears to always be zero and
-        # the time is in seconds of game time.
-        for index, items in enumerate(self.parts[4][0][1][1]):
-            xy = [(o[2], o[0]) for o in items]
-            self.player_stats[index]['Income Graph'] = Graph([], [], xy_list=xy)
-
-        for index, items in enumerate(self.parts[4][0][2][1]):
-            xy = [(o[2], o[0]) for o in items]
-            self.player_stats[index]['Army Graph'] = Graph([], [], xy_list=xy)
-
-    def load_player_builds(self):
-        # Parse build orders only if it looks like we have build items
-        if len(self.parts) < 5: return
-        translation = self.translations[self.opt.lang]
-
-        # All the parts after part 5 appear to be designated for
-        # build order entries with a max of 10 per part
-        build_items = sum([x[0] for x in self.parts[5:]], [])
-        build_items.extend(self.parts[4][0][3:])
-
-        # Each build item represents one ability and contains
-        # a list of all the uses of that ability by each player
-        # up to the first 64 successful actions in the game.
-        BuildEntry = namedtuple('BuildEntry',['supply','total_supply','time','order','build_index'])
-        for build_item in build_items:
-            translation_key = build_item[0][1]
-            # Here instead of recording unknown entries we just skip them because
-            # it seems that unknown entries actually don't belong in the build order
-            # We should revisit this decision in the future.
-            if translation_key in translation:
-                order_name = translation[translation_key]
-                for pindex, commands in enumerate(build_item[1]):
-                    for command in commands:
-                        self.build_orders[pindex].append(BuildEntry(
-                                supply=command[0],
-                                total_supply=command[1]&0xff,
-                                time=(command[2] >> 8) / 16,
-                                order=order_name,
-                                build_index=command[1] >> 16
-                            ))
-            else:
-                self.logger.warn("Unknown item in build order, key = {0}".format(translation_key))
-
-        # Once we've compiled all the build commands we need to make
-        # sure they are properly sorted for presentation.
-        for build_order in self.build_orders.values():
-            build_order.sort(key=lambda x: x.build_index)
-    """
 
     def __str__(self):
         return "{0} - {1} {2}".format(self.start_time,self.game_length,
-                                         'v'.join(''.join(self.players[p].race[0] for p in self.teams[tid]) for tid in self.teams))
+                                         'v'.join(''.join(p.play_race[0] for p in team.players) for team in self.teams.values()))
 
 
 
@@ -1143,7 +1085,7 @@ class MapInfo(Resource):
 
     def __init__(self, info_file, filename=None, **options):
         super(MapInfo, self).__init__(info_file, filename, **options)
-        self.data = utils.ReplayBuffer(info_file).read_data_struct()
+        self.data = BitPackedDecoder(info_file).read_struct()
         self.map_name = self.data[0][7]
         self.language = self.data[0][13]
         parsed_hash = utils.parse_hash(self.data[0][1])
@@ -1183,7 +1125,7 @@ class MapHeader(Resource):
 
     def __init__(self, header_file, filename=None, **options):
         super(MapHeader, self).__init__(header_file, filename, **options)
-        self.data = utils.ReplayBuffer(header_file).read_data_struct()
+        self.data = BitPackedDecoder(header_file).read_struct()
 
         # Name
         self.name = self.data[0][1]
