@@ -452,6 +452,12 @@ class Replay(Resource):
         hash_input = self.gateway+":"+','.join(player_names)
         self.people_hash = hashlib.sha256(hash_input).hexdigest()
 
+        # The presence of observers and/or computer players makes this not actually ladder
+        # This became an issue in HotS where Training, vs AI, Unranked, and Ranked
+        # were all marked with "amm" => Ladder
+        if len(self.observers) > 0 or len(self.humans) != len(self.players):
+            replay.is_ladder = False
+
     def load_messages(self):
         if 'replay.message.events' in self.raw_data:
             self.messages = self.raw_data['replay.message.events'].messages
