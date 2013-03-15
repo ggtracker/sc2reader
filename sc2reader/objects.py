@@ -193,7 +193,8 @@ class Player(Person):
     subregion = int()
 
     #: The player's bnet uid for his region/subregion.
-    #: Used to construct the bnet profile url.
+    #: Used to construct the bnet profile url. This value can be zero for games
+    #: played offline when a user was not logged in to battle.net.
     uid = int()
 
     def __init__(self, pid, name):
