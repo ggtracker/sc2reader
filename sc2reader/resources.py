@@ -456,7 +456,7 @@ class Replay(Resource):
         # This became an issue in HotS where Training, vs AI, Unranked, and Ranked
         # were all marked with "amm" => Ladder
         if len(self.observers) > 0 or len(self.humans) != len(self.players):
-            replay.is_ladder = False
+            self.is_ladder = False
 
     def load_messages(self):
         if 'replay.message.events' in self.raw_data:
