@@ -1,0 +1,478 @@
+{
+  "HallucinateZealot": [
+    "HallucinatedZealot",
+    0
+  ],
+  "MorphToGreaterSpire": [
+    "GreaterSpire",
+    100
+  ],
+  "MorphToBaneling": [
+    "Baneling",
+    20
+  ],
+  "BuildSporeCrawler": [
+    "SporeCrawler",
+    30
+  ],
+  "BuildNydusWorm": [
+    "NydusWorm",
+    20
+  ],
+  "BuildRoachWarren": [
+    "RoachWarren",
+    55
+  ],
+  "BuildBarracks": [
+    "Barracks",
+    65
+  ],
+  "HallucinateHighTemplar": [
+    "HallucinatedHighTemplar",
+    0
+  ],
+  "HallucinateArchon": [
+    "HallucinatedArchon",
+    0
+  ],
+  "WarpInZealot": [
+    "Zealot",
+    28
+  ],
+  "MorphHydralisk": [
+    "Hydralisk",
+    33
+  ],
+  "TrainTempest": [
+    "Tempest",
+    75
+  ],
+  "BuildInterceptor": [
+    "Interceptor",
+    8
+  ],
+  "MorphSwarmHost": [
+    "SwarmHost",
+    40
+  ],
+  "TrainSCV": [
+    "SCV",
+    17
+  ],
+  "BuildSpawningPool": [
+    "SpawningPool",
+    65
+  ],
+  "BuildFusionCore": [
+    "FusionCore",
+    65
+  ],
+  "TrainRaven": [
+    "Raven",
+    60
+  ],
+  "HallucinateStalker": [
+    "HallucinatedStalker",
+    0
+  ],
+  "TrainMothership": [
+    "Mothership",
+    160
+  ],
+  "UpgradeToOrbitalCommand": [
+    "OrbitalCommand",
+    35
+  ],
+  "WarpInDarkTemplar": [
+    "DarkTemplar",
+    30
+  ],
+  "TrainColossus": [
+    "Colossus",
+    75
+  ],
+  "MorphUltralisk": [
+    "Ultralisk",
+    55
+  ],
+  "BuildThor": [
+    "Thor",
+    60
+  ],
+  "TrainCarrier": [
+    "Carrier",
+    120
+  ],
+  "BuildInfestationPit": [
+    "InfestationPit",
+    50
+  ],
+  "UpgradeToLair": [
+    "Lair",
+    80
+  ],
+  "TrainObserver": [
+    "Observer",
+    30
+  ],
+  "MorphMutalisk": [
+    "Mutalisk",
+    33
+  ],
+  "BuildUltraliskCavern": [
+    "UltraliskCavern",
+    65
+  ],
+  "TrainViking": [
+    "Viking",
+    42
+  ],
+  "TrainReaper": [
+    "Reaper",
+    45
+  ],
+  "MorphDrone": [
+    "Drone",
+    17
+  ],
+  "BuildTemplarArchive": [
+    "TemplarArchive",
+    50
+  ],
+  "BuildBattleHellion": [
+    "BattleHellion",
+    30
+  ],
+  "HallucinateProbe": [
+    "HallucinatedProbe",
+    0
+  ],
+  "BuildSpire": [
+    "Spire",
+    100
+  ],
+  "BuildRoboticsBay": [
+    "RoboticsBay",
+    65
+  ],
+  "BuildStargate": [
+    "Stargate",
+    60
+  ],
+  "TrainStalker": [
+    "Stalker",
+    42
+  ],
+  "UpgradeToPlanetaryFortress": [
+    "PlanetaryFortress",
+    50
+  ],
+  "TrainBattlecruiser": [
+    "Battlecruiser",
+    90
+  ],
+  "MorphToBroodLord": [
+    "BroodLord",
+    34
+  ],
+  "TrainQueen": [
+    "Queen",
+    50
+  ],
+  "BuildSensorTower": [
+    "SensorTower",
+    25
+  ],
+  "TrainMarauder": [
+    "Marauder",
+    30
+  ],
+  "TrainBanshee": [
+    "Banshee",
+    60
+  ],
+  "TrainMothershipCore": [
+    "MothershipCore",
+    30
+  ],
+  "BuildNydusNetwork": [
+    "NydusNetwork",
+    50
+  ],
+  "MorphInfestor": [
+    "Infestor",
+    50
+  ],
+  "BuildAutoTurret": [
+    "AutoTurret",
+    0
+  ],
+  "BuildFleetBeacon": [
+    "FleetBeacon",
+    60
+  ],
+  "CalldownMULE": [
+    "MULE",
+    0
+  ],
+  "TrainHighTemplar": [
+    "HighTemplar",
+    55
+  ],
+  "BuildWidowMine": [
+    "WidowMine",
+    40
+  ],
+  "MorphCorruptor": [
+    "Corruptor",
+    40
+  ],
+  "TrainZealot": [
+    "Zealot",
+    38
+  ],
+  "MorphToOverseer": [
+    "Overseer",
+    17
+  ],
+  "BuildGateway": [
+    "Gateway",
+    65
+  ],
+  "BuildBanelingNest": [
+    "BanelingNest",
+    60
+  ],
+  "BuildEngineeringBay": [
+    "EngineeringBay",
+    35
+  ],
+  "HallucinateWarpPrism": [
+    "HallucinatedWarpPrism",
+    0
+  ],
+  "BuildFactory": [
+    "Factory",
+    60
+  ],
+  "BuildRefinery": [
+    "Refinery",
+    30
+  ],
+  "BuildDarkShrine": [
+    "DarkShrine",
+    100
+  ],
+  "BuildForge": [
+    "Forge",
+    45
+  ],
+  "HallucinateVoidRay": [
+    "HallucinatedVoidRay",
+    0
+  ],
+  "TrainProbe": [
+    "Probe",
+    17
+  ],
+  "BuildEvolutionChamber": [
+    "EvolutionChamber",
+    35
+  ],
+  "MorphZergling": [
+    "Zergling",
+    24
+  ],
+  "TrainDarkTemplar": [
+    "DarkTemplar",
+    55
+  ],
+  "BuildCreepTumor": [
+    "CreepTumor",
+    15
+  ],
+  "TrainMarine": [
+    "Marine",
+    25
+  ],
+  "MorphViper": [
+    "Viper",
+    40
+  ],
+  "BuildArmory": [
+    "Armory",
+    65
+  ],
+  "BuildAssimilator": [
+    "Assimilator",
+    30
+  ],
+  "BuildGhostAcademy": [
+    "GhostAcademy",
+    40
+  ],
+  "TrainImmortal": [
+    "Immortal",
+    55
+  ],
+  "BuildExtractor": [
+    "Extractor",
+    30
+  ],
+  "BuildBunker": [
+    "Bunker",
+    40
+  ],
+  "TransformToWarpGate": [
+    "WarpGate",
+    10
+  ],
+  "BuildPylon": [
+    "Pylon",
+    25
+  ],
+  "TrainPhoenix": [
+    "Phoenix",
+    35
+  ],
+  "SpawnChangeling": [
+    "Changeling",
+    0
+  ],
+  "TrainSentry": [
+    "Sentry",
+    37
+  ],
+  "BuildCommandCenter": [
+    "CommandCenter",
+    100
+  ],
+  "HallucinateColossus": [
+    "HallucinatedColossus",
+    0
+  ],
+  "BuildStarport": [
+    "Starport",
+    50
+  ],
+  "BuildCyberneticsCore": [
+    "CyberneticsCore",
+    50
+  ],
+  "BuildSiegeTank": [
+    "SiegeTank",
+    45
+  ],
+  "BuildSpineCrawler": [
+    "SpineCrawler",
+    50
+  ],
+  "BuildHellion": [
+    "Hellion",
+    30
+  ],
+  "SpawnInfestedTerran": [
+    "InfestedTerran",
+    5
+  ],
+  "BuildMissileTurret": [
+    "MissileTurret",
+    25
+  ],
+  "HallucinateImmortal": [
+    "HallucinatedImmortal",
+    0
+  ],
+  "BuildRoboticsFacility": [
+    "RoboticsFacility",
+    65
+  ],
+  "TrainOracle": [
+    "Oracle",
+    60
+  ],
+  "TrainWarpPrism": [
+    "WarpPrism",
+    50
+  ],
+  "TrainMedivac": [
+    "Medivac",
+    42
+  ],
+  "TrainGhost": [
+    "Ghost",
+    40
+  ],
+  "UpgradeToHive": [
+    "Hive",
+    100
+  ],
+  "WarpInHighTemplar": [
+    "HighTemplar",
+    30
+  ],
+  "BuildNexus": [
+    "Nexus",
+    100
+  ],
+  "BuildPhotonCannon": [
+    "PhotonCannon",
+    40
+  ],
+  "BuildHatchery": [
+    "Hatchery",
+    100
+  ],
+  "BuildHydraliskDen": [
+    "HydraliskDen",
+    40
+  ],
+  "HallucinatePhoenix": [
+    "HallucinatedPhoenix",
+    0
+  ],
+  "TrainVoidRay": [
+    "VoidRay",
+    60
+  ],
+  "BuildSupplyDepot": [
+    "SupplyDepot",
+    30
+  ],
+  "WarpInStalker": [
+    "Stalker",
+    21.3
+  ],
+  "ArchonWarpTarget": [
+    "Archon",
+    12
+  ],
+  "MorphRoach": [
+    "Roach",
+    27
+  ],
+  "MorphOverlord": [
+    "Overlord",
+    25
+  ],
+  "BuildWarHound": [
+    "WarHound",
+    45
+  ],
+  "BuildTwilightCouncil": [
+    "TwilightCouncil",
+    50
+  ],
+  "BuildPointDefenseDrone": [
+    "PointDefenseDrone",
+    0
+  ],
+  "ArchonWarpSelection": [
+    "Archon",
+    12
+  ],
+  "WarpInSentry": [
+    "Sentry",
+    21.3
+  ]
+}

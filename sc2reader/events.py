@@ -252,9 +252,10 @@ class TargetAbilityEvent(AbilityEvent):
         if not replay.datapack:
             return
 
-        uid = (self.target_id, self.target_type)
-        if uid in replay.objects:
-            self.target = replay.objects[uid]
+        if self.target_id in replay.objects:
+            self.target = replay.objects[self.target_id]
+            if not self.target.is_type(self.target_type):
+                replay.datapack.change_type(self.target, self.target_type)
 
         else:
             if self.target_type not in replay.datapack.units:
@@ -262,11 +263,10 @@ class TargetAbilityEvent(AbilityEvent):
                 unit = Unit(self.target_id, 0x00)
 
             else:
-                unit_class = replay.datapack.units[self.target_type]
-                unit = unit_class(self.target_id, 0x00)
+                unit = replay.datapack.create_unit(self.target_id, self.target_type, 0x00)
 
             self.target = unit
-            replay.objects[uid] = unit
+            replay.objects[self.target_id] = unit
 
     def __str__(self):
         if self.target:
@@ -332,25 +332,26 @@ class SelectionEvent(PlayerActionEvent):
         if not replay.datapack:
             return
 
-        objects = list()
-        data = replay.datapack
-        for (obj_id, obj_type, obj_flags) in self.raw_objects:
-            if (obj_id, obj_type) in replay.objects:
-                obj = replay.objects[(obj_id,obj_type)]
+        units = list()
+        for (unit_id, unit_type, unit_flags) in self.raw_objects:
+            if unit_id in replay.objects:
+                unit = replay.objects[unit_id]
+                if not unit.is_type(unit_type):
+                    replay.datapack.change_type(unit, unit_type)
             else:
-                if obj_type in data.units:
-                    obj = data.units[obj_type](obj_id, obj_flags)
+                if unit_type in replay.datapack.units:
+                    unit = replay.datapack.create_unit(unit_id, unit_type, unit_flags)
                 else:
                     msg = "Unit Type {0} not found in {1}"
-                    self.logger.error(msg.format(hex(obj_type), data.__class__.__name__))
-                    obj = Unit(obj_id, obj_flags)
+                    self.logger.error(msg.format(hex(unit_type), replay.datapack.__class__.__name__))
+                    unit = Unit(unit_id, unit_flags)
 
-                replay.objects[(obj_id,obj_type)] = obj
+                replay.objects[unit_id] = unit
 
-            objects.append(obj)
+            units.append(unit)
 
 
-        self.objects = objects
+        self.units = self.objects = units
 
     def __str__(self):
-        return GameEvent.__str__(self)+str([str(u) for u in self.objects])
+        return GameEvent.__str__(self)+str([str(u) for u in self.units])
