@@ -272,6 +272,9 @@ class Unit(object):
         self.hallucinated = (flags & 2 == 2)
         self._cmp_val = (self.id << 16) | self.type
 
+    def get_race(self):
+        return self.race
+
     def __str__(self):
         return "{0} [{1:X}]".format(self.name, self.id)
 
