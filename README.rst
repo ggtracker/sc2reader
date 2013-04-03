@@ -10,7 +10,8 @@ Our goal is to give anyone and everyone the power to construct their own
 tools, do their own analysis, and hack on their own Starcraft II projects
 under the open MIT license. Currently powering:
 
-* Websites: `ggtracker.com`_
+* Websites: `ggtracker.com`_, `gamereplays.org`_
+* Tools: `The Core`_
 * Research: `Build Order Classification`
 
 Our secondary goal is to become a reference implementation for people looking
@@ -157,24 +158,9 @@ Organizing your 1v1 replays by race played and matchup and sortable by length::
 Installation
 ================
 
-From PyPI (stable)
----------------------
+Installation from PyPi is not longer recommended because I am terrible at making releases.
 
-Install from the latest release on PyPI with pip::
-
-    pip install sc2reader
-
-or easy_install::
-
-    easy_install sc2reader
-
-or with setuptools (specify a valid x.x.x)::
-
-    wget http://pypi.python.org/packages/source/s/sc2reader/sc2reader-x.x.x.tar.gz
-    tar -xzf sc2reader-x.x.x.tar.gz
-    cd sc2reader-x.x.x
-    python setup.py install
-
+For now, just assume that I am keeping the master branch on Github stable. Sorry!
 
 From Github
 --------------------------
@@ -204,16 +190,23 @@ are available to external modules automatically::
     cd sc2reader
     python setup.py develop
 
-Contributions can be sent via pull request or by `mailing list`_ with attached
-patch files. It is highly recommended you get in touch with us before working
-on patches.
+Please review the CONTRIBUTING.md file and get in touch with us before doing
+too much work. It'll make everyone happier in the long run.
 
 
 Testing
 -------------------
 
-    mkdir testcache
-    GGFACTORY_CACHE_DIR=testcache py.test
+We use py.test for testing. You can install it via pip/easy_install.
+
+To run the tests just use::
+
+    py.test               # Runs all the tests
+    py.test test_replays  # Only run tests on replays
+    py.test test_s2gs     # Only run tests on summary files
+
+When repeatedly running tests it can be very helpful to make sure you've
+set a local cache directory to prevent long fetch times from battle.net.
 
 
 Community
@@ -245,8 +238,14 @@ and kept this project going. Special thanks to the people of the awesome
 starting this library possible and to sc2replay-csharp for setting us
 straight on game events parsing and assisting with our v1.5 upgrade.
 
+I'd also like to thank ggtracker sponsoring furthered development and for
+providing the thousands of test files used while adding s2gs and HotS Beta
+support.
+
 .. _Build Order Classification: https://github.com/grahamjenson/sc2reader
 .. _ggtracker.com: http://ggtracker.com
+.. _gamereplays.org: http://www.gamereplays.org/starcraft2/
+.. _The Core: http://www.teamliquid.net/forum/viewmessage.php?topic_id=341878
 .. _PyPy: http://pypy.org/
 .. _sc2pp: https://github.com/zsol/sc2pp
 .. _sc2replay-csharp: https://github.com/ascendedguard/sc2replay-csharp
