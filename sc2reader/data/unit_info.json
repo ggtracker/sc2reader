@@ -1,0 +1,608 @@
+{
+  "Zerg": {
+    "baneling": {
+      "is_army": true,
+      "minerals": 50,
+      "vespene": 25,
+      "supply": 0.5
+    },
+    "nydusworm": {
+      "minerals": 100,
+      "vespene": 100,
+      "supply": 0,
+      "is_building": true
+    },
+    "zergling": {
+      "is_army": true,
+      "minerals": 25,
+      "vespene": 0,
+      "supply": 0.5
+    },
+    "broodling": {
+      "is_army": true,
+      "minerals": 0,
+      "vespene": 0,
+      "supply": 0
+    },
+    "creeptumor": {
+      "minerals": 0,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "nydusnetwork": {
+      "minerals": 200,
+      "vespene": 200,
+      "supply": 0,
+      "is_building": true
+    },
+    "evolutionchamber": {
+      "minerals": 125,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "locust": {
+      "is_army": true,
+      "minerals": 0,
+      "vespene": 0,
+      "supply": 0
+    },
+    "banelingnest": {
+      "minerals": 150,
+      "vespene": 50,
+      "supply": 0,
+      "is_building": true
+    },
+    "queen": {
+      "is_army": true,
+      "minerals": 150,
+      "vespene": 0,
+      "supply": 2
+    },
+    "roachwarren": {
+      "minerals": 200,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "sporecrawler": {
+      "minerals": 125,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "swarmhost": {
+      "is_army": true,
+      "minerals": 200,
+      "vespene": 100,
+      "supply": 3
+    },
+    "spire": {
+      "minerals": 250,
+      "vespene": 200,
+      "supply": 0,
+      "is_building": true
+    },
+    "spawningpool": {
+      "minerals": 250,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "roach": {
+      "is_army": true,
+      "minerals": 75,
+      "vespene": 25,
+      "supply": 2
+    },
+    "extractor": {
+      "minerals": 75,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "spinecrawler": {
+      "minerals": 150,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "overlord": {
+      "is_army": true,
+      "minerals": 100,
+      "vespene": 0,
+      "supply": 0
+    },
+    "lair": {
+      "minerals": 500,
+      "vespene": 100,
+      "supply": 0,
+      "is_building": true
+    },
+    "infestationpit": {
+      "minerals": 150,
+      "vespene": 100,
+      "supply": 0,
+      "is_building": true
+    },
+    "hydralisk": {
+      "is_army": true,
+      "minerals": 100,
+      "vespene": 50,
+      "supply": 2
+    },
+    "infestor": {
+      "is_army": true,
+      "minerals": 100,
+      "vespene": 150,
+      "supply": 2
+    },
+    "corruptor": {
+      "is_army": true,
+      "minerals": 150,
+      "vespene": 100,
+      "supply": 2
+    },
+    "hive": {
+      "minerals": 750,
+      "vespene": 250,
+      "supply": 0,
+      "is_building": true
+    },
+    "hatchery": {
+      "minerals": 350,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "greaterspire": {
+      "minerals": 350,
+      "vespene": 350,
+      "supply": 0,
+      "is_building": true
+    },
+    "drone": {
+      "minerals": 50,
+      "vespene": 0,
+      "supply": 1,
+      "is_worker": true
+    },
+    "ultralisk": {
+      "is_army": true,
+      "minerals": 300,
+      "vespene": 200,
+      "supply": 6
+    },
+    "viper": {
+      "is_army": true,
+      "minerals": 100,
+      "vespene": 200,
+      "supply": 3
+    },
+    "ultraliskcavern": {
+      "minerals": 200,
+      "vespene": 200,
+      "supply": 0,
+      "is_building": true
+    },
+    "overseer": {
+      "is_army": true,
+      "minerals": 150,
+      "vespene": 50,
+      "supply": 0
+    },
+    "hydraliskden": {
+      "minerals": 150,
+      "vespene": 100,
+      "supply": 0,
+      "is_building": true
+    },
+    "infestedterran": {
+      "is_army": true,
+      "minerals": 0,
+      "vespene": 0,
+      "supply": 0
+    },
+    "mutalisk": {
+      "is_army": true,
+      "minerals": 100,
+      "vespene": 100,
+      "supply": 2
+    },
+    "broodlord": {
+      "is_army": true,
+      "minerals": 300,
+      "vespene": 250,
+      "supply": 4
+    }
+  },
+  "Protoss": {
+    "assimilator": {
+      "minerals": 75,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "twilightcouncil": {
+      "minerals": 150,
+      "vespene": 100,
+      "supply": 0,
+      "is_building": true
+    },
+    "colossus": {
+      "is_army": true,
+      "minerals": 300,
+      "vespene": 200,
+      "supply": 6
+    },
+    "voidray": {
+      "is_army": true,
+      "minerals": 250,
+      "vespene": 150,
+      "supply": 2
+    },
+    "observer": {
+      "is_army": true,
+      "minerals": 25,
+      "vespene": 75,
+      "supply": 1
+    },
+    "mothershipcore": {
+      "is_army": true,
+      "minerals": 100,
+      "vespene": 100,
+      "supply": 2
+    },
+    "fleetbeacon": {
+      "minerals": 300,
+      "vespene": 200,
+      "supply": 0,
+      "is_building": true
+    },
+    "probe": {
+      "minerals": 50,
+      "vespene": 0,
+      "supply": 1,
+      "is_worker": true
+    },
+    "forge": {
+      "minerals": 150,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "immortal": {
+      "is_army": true,
+      "minerals": 250,
+      "vespene": 100,
+      "supply": 4
+    },
+    "hightemplar": {
+      "is_army": true,
+      "minerals": 50,
+      "vespene": 150,
+      "supply": 2
+    },
+    "photoncannon": {
+      "minerals": 150,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "cyberneticscore": {
+      "minerals": 150,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "warpgate": {
+      "minerals": 150,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "pylon": {
+      "minerals": 100,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "stalker": {
+      "is_army": true,
+      "minerals": 125,
+      "vespene": 50,
+      "supply": 2
+    },
+    "gateway": {
+      "minerals": 150,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "archon": {
+      "is_army": true,
+      "minerals": 175,
+      "vespene": 275,
+      "supply": 4
+    },
+    "darktemplar": {
+      "is_army": true,
+      "minerals": 125,
+      "vespene": 125,
+      "supply": 2
+    },
+    "robiticsfacility": {
+      "minerals": 200,
+      "vespene": 100,
+      "supply": 0,
+      "is_building": true
+    },
+    "phoenix": {
+      "is_army": true,
+      "minerals": 150,
+      "vespene": 100,
+      "supply": 2
+    },
+    "templararchives": {
+      "minerals": 150,
+      "vespene": 200,
+      "supply": 0,
+      "is_building": true
+    },
+    "mothership": {
+      "is_army": true,
+      "minerals": 400,
+      "vespene": 400,
+      "supply": 6
+    },
+    "sentry": {
+      "is_army": true,
+      "minerals": 50,
+      "vespene": 100,
+      "supply": 2
+    },
+    "roboticsbay": {
+      "minerals": 200,
+      "vespene": 200,
+      "supply": 0,
+      "is_building": true
+    },
+    "tempest": {
+      "is_army": true,
+      "minerals": 300,
+      "vespene": 200,
+      "supply": 4
+    },
+    "nexus": {
+      "minerals": 400,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "zealot": {
+      "is_army": true,
+      "minerals": 100,
+      "vespene": 0,
+      "supply": 2
+    },
+    "warpprism": {
+      "is_army": true,
+      "minerals": 200,
+      "vespene": 0,
+      "supply": 2
+    },
+    "stargate": {
+      "minerals": 150,
+      "vespene": 150,
+      "supply": 0,
+      "is_building": true
+    },
+    "carrier": {
+      "is_army": true,
+      "minerals": 350,
+      "vespene": 250,
+      "supply": 6
+    },
+    "oracle": {
+      "is_army": true,
+      "minerals": 150,
+      "vespene": 150,
+      "supply": 3
+    },
+    "darkshrine": {
+      "minerals": 100,
+      "vespene": 250,
+      "supply": 0,
+      "is_building": true
+    }
+  },
+  "Terran": {
+    "fusioncore": {
+      "minerals": 150,
+      "vespene": 150,
+      "supply": 0,
+      "is_building": true
+    },
+    "refinery": {
+      "minerals": 100,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "hellion": {
+      "is_army": true,
+      "minerals": 100,
+      "vespene": 0,
+      "supply": 2
+    },
+    "banshee": {
+      "is_army": true,
+      "minerals": 150,
+      "vespene": 100,
+      "supply": 3
+    },
+    "battlehellion": {
+      "is_army": true,
+      "minerals": 100,
+      "vespene": 0,
+      "supply": 2
+    },
+    "scv": {
+      "minerals": 50,
+      "vespene": 0,
+      "supply": 1,
+      "is_worker": true
+    },
+    "factory": {
+      "minerals": 150,
+      "vespene": 100,
+      "supply": 0,
+      "is_building": true
+    },
+    "sensortower": {
+      "minerals": 125,
+      "vespene": 100,
+      "supply": 0,
+      "is_building": true
+    },
+    "commandcenter": {
+      "minerals": 400,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "armory": {
+      "minerals": 150,
+      "vespene": 100,
+      "supply": 0,
+      "is_building": true
+    },
+    "engineeringbay": {
+      "minerals": 125,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "missileturret": {
+      "minerals": 100,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "raven": {
+      "is_army": true,
+      "minerals": 100,
+      "vespene": 200,
+      "supply": 2
+    },
+    "viking": {
+      "is_army": true,
+      "minerals": 150,
+      "vespene": 75,
+      "supply": 2
+    },
+    "widowmine": {
+      "is_army": true,
+      "minerals": 75,
+      "vespene": 25,
+      "supply": 2
+    },
+    "ghostacademy": {
+      "minerals": 150,
+      "vespene": 50,
+      "supply": 0,
+      "is_building": true
+    },
+    "battlecruiser": {
+      "is_army": true,
+      "minerals": 400,
+      "vespene": 300,
+      "supply": 6
+    },
+    "siegetank": {
+      "is_army": true,
+      "minerals": 150,
+      "vespene": 125,
+      "supply": 2
+    },
+    "starport": {
+      "minerals": 150,
+      "vespene": 100,
+      "supply": 0,
+      "is_building": true
+    },
+    "medivac": {
+      "is_army": true,
+      "minerals": 100,
+      "vespene": 100,
+      "supply": 2
+    },
+    "bunker": {
+      "minerals": 100,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "orbitalcommand": {
+      "minerals": 550,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "marine": {
+      "is_army": true,
+      "minerals": 50,
+      "vespene": 0,
+      "supply": 1
+    },
+    "planetaryfortress": {
+      "minerals": 150,
+      "vespene": 150,
+      "supply": 0,
+      "is_building": true
+    },
+    "ghost": {
+      "is_army": true,
+      "minerals": 200,
+      "vespene": 100,
+      "supply": 2
+    },
+    "warhound": {
+      "is_army": true,
+      "minerals": 150,
+      "vespene": 75,
+      "supply": 2
+    },
+    "thor": {
+      "is_army": true,
+      "minerals": 300,
+      "vespene": 200,
+      "supply": 6
+    },
+    "supplydepot": {
+      "minerals": 100,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "reaper": {
+      "is_army": true,
+      "minerals": 50,
+      "vespene": 50,
+      "supply": 2
+    },
+    "barracks": {
+      "minerals": 150,
+      "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "marauder": {
+      "is_army": true,
+      "minerals": 100,
+      "vespene": 25,
+      "supply": 2
+    }
+  }
+}

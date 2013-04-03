@@ -575,16 +575,12 @@ class Replay(Resource):
         self.register_datapack(datapacks['WoL']['17326'], lambda r: r.expansion=='WoL' and 17326 <= r.build < 18092)
         self.register_datapack(datapacks['WoL']['18092'], lambda r: r.expansion=='WoL' and 18092 <= r.build < 19458)
         self.register_datapack(datapacks['WoL']['19458'], lambda r: r.expansion=='WoL' and 19458 <= r.build < 22612)
-        self.register_datapack(datapacks['WoL']['22612'], lambda r: r.expansion=='WoL' and 22612 <= r.build)
+        self.register_datapack(datapacks['WoL']['22612'], lambda r: r.expansion=='WoL' and 22612 <= r.build < 24944)
+        self.register_datapack(datapacks['WoL']['24944'], lambda r: r.expansion=='WoL' and 24944 <= r.build)
         self.register_datapack(datapacks['HotS']['base'], lambda r: r.expansion=='HotS' and r.build < 23925)
         self.register_datapack(datapacks['HotS']['23925'], lambda r: r.expansion=='HotS' and 23925 <= r.build < 24247)
         self.register_datapack(datapacks['HotS']['24247'], lambda r: r.expansion=='HotS' and 24247 <= r.build <= 24764 )
         self.register_datapack(datapacks['HotS']['24764'], lambda r: r.expansion=='HotS' and 24764 <= r.build )
-        # self.register_datapack(data.build16117, lambda r: 16117 <= r.build < 17326)
-        # self.register_datapack(data.build17326, lambda r: 17326 <= r.build < 18092)
-        # self.register_datapack(data.build18092, lambda r: 18092 <= r.build < 19458)
-        # self.register_datapack(data.build19458, lambda r: 19458 <= r.build < 22612)
-        # self.register_datapack(data.build22612, lambda r: 22612 <= r.build)
 
 
     # Internal Methods
