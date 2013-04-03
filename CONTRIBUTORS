@@ -1,0 +1,17 @@
+Support
+=========
+
+For real-time support, please visit #sc2reader on the FreeNode.net IRC. For all other support please use the sc2reader@googlegroups.com mailing list or open an issue in the github tracker.
+
+Issues
+=========
+
+Please include links to the relevant replays and a code sample to replicate. If you can't share your code/replays publicly try to replicate with a smaller script or a replay you can share. If you can't even do that, say so in your issue and you can send me your materials privately.
+
+Patches
+=========
+
+Please submit patches by pull request where possible. Patches should add a test to confirm their fix and should not break previously working tests.
+
+If you are having trouble running/add/fixing tests for your patch let me know and I'll see if I can help.
+
