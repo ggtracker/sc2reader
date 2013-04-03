@@ -27,21 +27,56 @@ class Unit(object):
     def __init__(self, unit_id, flags):
         self.id = unit_id
         self.flags = flags
-        self.type = None
-        self.name = 'Unknown Unit'
+        self._type_class = None
         self.hallucinated = (flags & 2 == 2)
 
     def is_type(self, unit_type):
         if isinstance(unit_type, int):
-            if self.type:
-                return self.type.id == unit_type
-            else:
-                return unit_type == 0
+            # Compare integer ids. Unknown units have id==0 and should be equal
+            return self._type_class.id if self._type_class else unit_type == 0
         else:
-            return self.type == unit_type
+            return self._type_class == unit_type
 
-    def get_race(self):
-        return self.type.race if self.type else None
+    @property
+    def name(self):
+        return self._type_class.name if self._type_class else None
+
+    @property
+    def title(self):
+        return self._type_class.title if self._type_class else None
+
+    @property
+    def type(self):
+        """ For backwards compatibility this returns the int id instead of the actual class """
+        return self._type_class.id if self._type_class else None
+
+    @property
+    def race(self):
+        return self._type_class.race if self._type_class else None
+
+    @property
+    def minerals(self):
+        return self._type_class.minerals if self._type_class else None
+
+    @property
+    def vespene(self):
+        return self._type_class.vespene if self._type_class else None
+
+    @property
+    def supply(self):
+        return self._type_class.supply if self._type_class else None
+
+    @property
+    def is_worker(self):
+        return self._type_class.is_worker if self._type_class else False
+
+    @property
+    def is_building(self):
+        return self._type_class.is_building if self._type_class else False
+
+    @property
+    def is_army(self):
+        return self._type_class.is_army if self._type_class else False
 
     def __str__(self):
         return "{0} [{1:X}]".format(self.name, self.id)
@@ -74,8 +109,7 @@ class Build(object):
     def change_type(self, unit, new_type):
         if new_type in self.units:
             reference_unit = self.units[new_type]
-            unit.type = reference_unit
-            unit.name = reference_unit.name
+            unit._type_class = reference_unit
         else:
             self.logger.error("Unable to change type of {0} to {1}; unit type not found in build {2}".format(unit,hex(new_type),self.id))
 
