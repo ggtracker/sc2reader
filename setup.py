@@ -34,11 +34,12 @@ setuptools.setup(
             'sc2replayer = sc2reader.scripts.sc2replayer:main',
             'sc2boprinter = sc2reader.scripts.sc2boprinter:main',
             'sc2parse = sc2reader.scripts.sc2parse:main',
+            'sc2attributes = sc2reader.scripts.sc2attributes:main',
         ]
     },
     install_requires=['mpyq','argparse'] if float(sys.version[:3]) < 2.7 else ['mpyq'],
     packages=['sc2reader', 'sc2reader.scripts', 'sc2reader.plugins', 'sc2reader.data'],
-    package_data={'sc2reader.data': ['*.csv']},
+    package_data={'sc2reader.data':['*.csv','*.json']},
     include_package_data=True,
     zip_safe=True
 )

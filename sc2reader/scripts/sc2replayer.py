@@ -2,29 +2,31 @@
 # -*- coding: utf-8 -*-
 
 import sys, os, re
-import termios
-import fcntl
+# import termios
+# import fcntl
 
 import sc2reader
-from sc2reader.objects import *
+from sc2reader.events import *
 
 def myGetch():
-    fd = sys.stdin.fileno()
-    oldterm = termios.tcgetattr(fd)
-    newattr = termios.tcgetattr(fd)
-    newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
-    termios.tcsetattr(fd, termios.TCSANOW, newattr)
-    oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
-    fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
-    try:
-        while 1:
-            try:
-                c = sys.stdin.read(1)
-                break
-            except IOError: pass
-    finally:
-        termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
-        fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
+    sys.stdin.read(1)
+
+    # fd = sys.stdin.fileno()
+    # oldterm = termios.tcgetattr(fd)
+    # newattr = termios.tcgetattr(fd)
+    # newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
+    # termios.tcsetattr(fd, termios.TCSANOW, newattr)
+    # oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
+    # fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
+    # try:
+    #     while 1:
+    #         try:
+    #             c = sys.stdin.read(1)
+    #             break
+    #         except IOError: pass
+    # finally:
+    #     termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
+    #     fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
 
 def get_args():
     import argparse
@@ -51,7 +53,7 @@ def get_args():
 def main():
     args = get_args()
     for filename in sc2reader.utils.get_files(args.FILE):
-        replay = sc2reader.read_file(filename,debug=True)
+        replay = sc2reader.load_replay(filename,debug=True)
         print "Release {0}".format(replay.release_string)
         print "{0} on {1}".format(replay.type,replay.map)
         for player in replay.players:
@@ -65,10 +67,11 @@ def main():
             events = replay.events
 
         # Loop through the events
-        data = sc2reader.config.build_data[replay.build]
+        #data = sc2reader.config.build_data[replay.build]
         for event in events:
             try:
-                event.apply(data)
+                pass
+                #event.apply(data)
             except ValueError as e:
                 if str(e) == "Using invalid abilitiy matchup.":
                     myGetch()

@@ -1,10 +1,10 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-import sys
+import sys, os
 
 # import submodules
 from sc2reader import plugins, data, scripts
-
 from sc2reader import factories, log_utils
 
 # setup the library logging
@@ -42,6 +42,16 @@ def useDictCache(cache_max_size=0, **options):
 def useDoubleCache(cache_dir, cache_max_size=0, **options):
     setFactory(factories.DoubleCachedSC2Factory(cache_dir, cache_max_size, **options))
 
-setFactory(factories.SC2Factory())
 
+# Allow environment variables to activate caching
+cache_dir = os.getenv('SC2READER_CACHE_DIR')
+cache_max_size = os.getenv('SC2READER_CACHE_MAX_SIZE')
+if cache_dir and cache_max_size:
+    useDoubleCache(cache_dir, cache_max_size)
+elif cache_dir:
+    useFileCache(cache_dir)
+elif cache_max_size:
+    useDictCache(cache_max_size)
+else:
+    setFactory(factories.SC2Factory())
 

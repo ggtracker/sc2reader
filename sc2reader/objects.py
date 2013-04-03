@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
 import hashlib
@@ -5,14 +6,11 @@ import hashlib
 from collections import namedtuple
 
 from sc2reader.constants import *
-from sc2reader.utils import PersonDict, AttributeDict
 
 Location = namedtuple('Location',('x','y'))
-
 MapData = namedtuple('MapData',['gateway','map_hash'])
-PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result'])
 ColorData = namedtuple('ColorData',['a','r','g','b'])
-BnetData = namedtuple('BnetData',['unknown1','unknown2','subregion','uid'])
+BnetData = namedtuple('BnetData',['gateway','unknown2','subregion','uid'])
 
 class DepotFile(object):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.{2}'
@@ -76,43 +74,16 @@ class Team(object):
 
 class Attribute(object):
 
-    """ Still unknown
-        3e9: yes
-        bbe: 10
-        7d0: t2 (player 16) #Number of teams?
-        bbf: Part
-        3e8: Dflt
-        bc0: obs
-    """
-    id_map = {
-        0x01F4: ("Player Type", PLAYER_TYPE_CODES),
-        0x07D1: ("Game Type", GAME_FORMAT_CODES),
-        0x0BB8: ("Game Speed", GAME_SPEED_CODES),
-        0x0BB9: ("Race", RACE_CODES),
-        0x0BBA: ("Color", TEAM_COLOR_CODES),
-        0x0BBB: ("Handicap", lambda value: value),
-        0x0BBC: ("Difficulty", DIFFICULTY_CODES),
-        0x0BC1: ("Category", GAME_TYPE_CODES),
-        0x07D2: ("Teams1v1", lambda value: int(value[1])),
-        0x07D3: ("Teams2v2", lambda value: int(value[1])),
-        0x07D4: ("Teams3v3", lambda value: int(value[1])),
-        0x07D5: ("Teams4v4", lambda value: int(value[1])),
-        0x07D6: ("TeamsFFA", lambda value: int(value[1])),
-        0x07D7: ("Teams5v5", lambda value: int(value[1]))
-    }
+    def __init__(self, header, attr_id, player, value):
+        self.header = header
+        self.id = attr_id
+        self.player = player
 
-    def __init__(self, data):
-        #Unpack the data values and add a default name of unknown to be
-        #overridden by known attributes; acts as a flag for exclusion
-        self.header, self.id, self.player, self.value, self.name = tuple(data+["Unknown"])
-
-        if self.id in self.id_map:
-            self.name, lookup = self.id_map[self.id]
-            if lookup:
-                if callable(lookup):
-                    self.value = lookup(self.value)
-                else:
-                    self.value = lookup[self.value]
+        if self.id not in LOBBY_PROPERTIES:
+            raise ValueError("Unknown attribute id: "+self.id)
+        else:
+            self.name, lookup = LOBBY_PROPERTIES[self.id]
+            self.value = lookup[value.strip("\x00 ")[::-1]]
 
     def __repr__(self):
         return str(self)
@@ -165,6 +136,9 @@ class Person(object):
         self.is_observer = bool()
         self.messages = list()
         self.events = list()
+        self.camera_events = list()
+        self.ability_events = list()
+        self.selection_events = list()
         self.is_human = bool()
         self.region = str()
         self.recorder = False # Actual recorder will be determined using the replay.message.events file
@@ -219,7 +193,8 @@ class Player(Person):
     subregion = int()
 
     #: The player's bnet uid for his region/subregion.
-    #: Used to construct the bnet profile url.
+    #: Used to construct the bnet profile url. This value can be zero for games
+    #: played offline when a user was not logged in to battle.net.
     uid = int()
 
     def __init__(self, pid, name):
@@ -301,15 +276,20 @@ class PlayerSummary():
 
     def __str__(self):
         if not self.is_ai:
-            return '{0} - {1} - {2}/{3}/'.format(self.teamid, self.race, self.subregion, self.bnetid)
+            return '{0} - {1} - {2}/{3}/'.format(self.teamid, self.play_race, self.subregion, self.bnetid)
         else:
-            return '{0} - {1} - AI'.format(self.teamid, self.race)
+            return '{0} - {1} - AI'.format(self.teamid, self.play_race)
+
+    def __repr__(self):
+        return str(self)
 
     def get_stats(self):
         s = ''
         for k in self.stats:
             s += '{0}: {1}\n'.format(self.stats_pretty_names[k], self.stats[k])
         return s.strip()
+
+BuildEntry = namedtuple('BuildEntry',['supply','total_supply','time','order','build_index'])
 
 # TODO: Are there libraries with classes like this in them
 class Graph():
@@ -339,3 +319,4 @@ class Graph():
 
     def __str__(self):
         return "Graph with {0} values".format(len(self.times))
+

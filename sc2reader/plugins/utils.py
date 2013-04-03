@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
 import json
@@ -121,5 +122,5 @@ class PlayerSelection(defaultdict):
     def copy(self):
         new = PlayerSelection()
         for bank, selection in self.iteritems():
-            new[bank] = UnitSelection(selection.objects[:])
+            new[bank] = selection #UnitSelection(selection.objects[:])
         return new

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 
 LEVEL_MAP = dict(
