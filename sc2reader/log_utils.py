@@ -30,24 +30,18 @@ def add_log_handler(handler, level='WARN', format=None, datefmt=None):
 
 def get_logger(entity):
     """
-        Retrieves loggers from the enties fully scoped name. Accepts strings,
-        classes, and functions.
+        Retrieves loggers from the enties fully scoped name.
 
             get_logger(Replay)     -> sc2reader.replay.Replay
-            get_logger(__name__)   -> sc2reader.utils
             get_logger(get_logger) -> sc2reader.utils.get_logger
 
         :param entity: The entity for which we want a logger.
     """
     try:
-        if isinstance(entity, basestring):
-            return logging.getLogger(entity)
-        else:
-            return logging.getLogger(entity.__module__+'.'+entity.__name__)
+        return logging.getLogger(entity.__module__+'.'+entity.__name__)
 
     except AttributeError as e:
-        msg = "Cannot retrieve logger for {0}. Only strings, classes, and functions supported."
-        raise TypeError(msg.format(entity))
+        raise TypeError("Cannot retrieve logger for {0}.".format(entity))
 
 def loggable(cls):
     cls.logger = get_logger(cls)
