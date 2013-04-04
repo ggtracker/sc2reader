@@ -10,7 +10,7 @@ setuptools.setup(
     url="https://github.com/GraylinKim/sc2reader",
 
     description="Utility for parsing Starcraft II replay files",
-    long_description=open("README.txt").read(),
+    long_description=open("README.rst").read(),
     keywords=["starcraft 2","sc2","parser","replay"],
     classifiers=[
             "Environment :: Console",
