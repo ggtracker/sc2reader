@@ -338,6 +338,10 @@ class SelectionEvent(PlayerActionEvent):
         objects = list()
         data = replay.datapack
         for (obj_id, obj_type, obj_flags) in self.raw_objects:
+            # Hack that defaults viking selection to fighter mode instead of assault
+            if replay.versions[1] == 2 and replay.build >= 23925 and obj_type == 71:
+                obj_type = 72
+
             if (obj_id, obj_type) in replay.objects:
                 obj = replay.objects[(obj_id,obj_type)]
             else:
