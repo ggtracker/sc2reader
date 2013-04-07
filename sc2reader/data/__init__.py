@@ -158,7 +158,7 @@ train_commands = {
     'BuildwarHound': ('WarHound',45),
     'BuildWidowMine': ('WidowMine',40),
     'BuildHellion': ('Hellion',30),
-    'BuildBattleHellion': ('BattleHellion',30),
+    'BuildBattleHellion': ('Hellion',30),
     'TrainMedivac': ('Medivac',42),
     'TrainBanshee': ('Banshee',60),
     'TrainRaven': ('Raven',60),
