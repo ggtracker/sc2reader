@@ -276,12 +276,7 @@ class Unit(object):
         return "{0} [{1:X}]".format(self.name, self.id)
 
     def __cmp__(self, other):
-        if self._cmp_val == other._cmp_val:
-            return 0
-        elif  self._cmp_val > other._cmp_val:
-            return 1
-        else:
-            return -1
+        return cmp(self._cmp_val, other._cmp_val)
 
     def __hash__(self):
         return hash(self._cmp_val)
@@ -289,18 +284,6 @@ class Unit(object):
     def __repr__(self):
         return str(self)
 
-    def __cmp__(self, other):
-        if other.id > self.id:
-            return -1
-        elif other.id < self.id:
-            return 1
-        else:
-            if other.type > self.type:
-                return -1
-            elif other.type < self.type:
-                return 1
-            else:
-                return 0
 
 class Ability(object):
     pass
