@@ -1,6 +1,29 @@
 # -*- coding: utf-8 -*-
 import logging
 
+try:
+    from logging import NullHandler
+except ImportError:
+    # Copied from the Python 2.7 source code.
+    class NullHandler(logging.Handler):
+        """
+        This handler does nothing. It's intended to be used to avoid the
+        "No handlers could be found for logger XXX" one-off warning. This is
+        important for library code, which may contain code to log events. If a user
+        of the library does not configure logging, the one-off warning might be
+        produced; to avoid this, the library developer simply needs to instantiate
+        a NullHandler and add it to the top-level logger of the library module or
+        package.
+        """
+        def handle(self, record):
+            pass
+
+        def emit(self, record):
+            pass
+
+        def createLock(self):
+            self.lock = None
+
 LEVEL_MAP = dict(
     DEBUG=logging.DEBUG,
     INFO=logging.INFO,
@@ -10,7 +33,7 @@ LEVEL_MAP = dict(
 )
 
 def setup():
-    logging.getLogger('sc2reader').addHandler(logging.NullHandler())
+    logging.getLogger('sc2reader').addHandler(NullHandler())
 
 def log_to_file(filename, level='WARN', format=None, datefmt=None, **options):
     add_log_handler(logging.FileHandler(filename, **options),level, format, datefmt)
