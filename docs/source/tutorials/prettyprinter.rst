@@ -241,8 +241,8 @@ Many of your replay files might be custom games for which events cannot be parse
 There are 4 available load levels:
 
 * 0: Parses the replay header for version, build, and length information
-* 1: Also parses the replay.details file for player, team, winner, map, and time information
-* 2: Also parses the replay.message.events file for chat messages and player pings.
-* 3: Also parses the replay.events file for game event information.
+* 1: Also parses the replay.details, replay.attribute.events and replay.initData files for game settings, map, and time information
+* 2: Also parses the replay.message.events file and constructs game teams and players.
+* 3: Also parses the replay.game.events file for player action events.
 
 So that's it! An ideal prettyPrinter script might let the user configure these options as arguments using the argparse library. Such an expansion is beyond the scope of sc2reader though, so we'll leave it that one to you.
