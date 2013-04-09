@@ -1,4 +1,4 @@
 include LICENSE.txt
 include CONTRIBUTORS.txt
-include README.txt
-recursive-include sc2reader *.csv
+include README.rst
+recursive-include sc2reader *.csv *.json

@@ -1,31 +1,38 @@
-import setuptools, sys
+import sys
+import setuptools
 
+print setuptools.find_packages()
 setuptools.setup(
+    license="MIT",
     name="sc2reader",
     version='0.4.0',
-    license="MIT",
+    keywords=["starcraft 2","sc2","replay","parser"],
+    description="Utility for parsing Starcraft II replay files",
+    long_description=open("README.rst").read(),
 
     author="Graylin Kim",
     author_email="graylin.kim@gmail.com",
     url="https://github.com/GraylinKim/sc2reader",
 
-    description="Utility for parsing Starcraft II replay files",
-    long_description=open("README.rst").read(),
-    keywords=["starcraft 2","sc2","parser","replay"],
+    platforms=["any"],
+
     classifiers=[
-            "Environment :: Console",
             "Development Status :: 4 - Beta",
-            "Programming Language :: Python",
-            "Programming Language :: Python :: 2.7",
+            "Environment :: Console",
             "Intended Audience :: Developers",
             "License :: OSI Approved :: MIT License",
             "Natural Language :: English",
             "Operating System :: OS Independent",
-            "Environment :: Other Environment",
-            "Topic :: Utilities",
-            "Topic :: Software Development :: Libraries",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.6",
+            "Programming Language :: Python :: 2.7",
+            "Topic :: Games/Entertainment",
             "Topic :: Games/Entertainment :: Real Time Strategy",
+            "Topic :: Software Development",
+            "Topic :: Software Development :: Libraries",
+            "Topic :: Utilities",
         ],
+
     entry_points={
         'console_scripts': [
             'sc2autosave = sc2reader.scripts.sc2autosave:main',
@@ -37,9 +44,9 @@ setuptools.setup(
             'sc2attributes = sc2reader.scripts.sc2attributes:main',
         ]
     },
+
     install_requires=['mpyq','argparse'] if float(sys.version[:3]) < 2.7 else ['mpyq'],
-    packages=['sc2reader', 'sc2reader.scripts', 'sc2reader.plugins', 'sc2reader.data'],
-    package_data={'sc2reader.data':['*.csv','*.json']},
+    packages=setuptools.find_packages(),
     include_package_data=True,
     zip_safe=True
 )
