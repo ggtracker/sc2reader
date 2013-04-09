@@ -23,8 +23,15 @@ implementations in other languages:
 * Javascript: `comsat`_
 * PHP: `phpsc2replay`_
 
+Unfortunately sc2reader does not implement a battle.net scraper for profile
+information. If you need the information I know of two projects that can get
+you started:
+
+* Ruby: `bnet_scraper`_ - Maintained by Agora Games
+* Python: `sc2profile`_ - Currently unmaintained, slightly dated.
+
 If you'd like your tool, site, project, or implementation listed above, drop
-us a line on our mailing list or stop by our #sc2reader IRC channel and say hi!
+us a line on our `mailing list`_ or stop by our #sc2reader IRC channel and say hi!
 
 
 Current Status
@@ -285,3 +292,5 @@ support.
 .. _developers mailing list: http://groups.google.com/group/sc2reader-dev
 .. _phpsc2replay: http://code.google.com/p/phpsc2replay/
 .. _issue tracker: https://github.com/GraylinKim/sc2reader/issues
+.. _bnet_scraper: https://github.com/agoragames/bnet_scraper
+.. _sc2profile: https://github.com/srounet/sc2profile
