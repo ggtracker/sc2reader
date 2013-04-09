@@ -1,7 +1,6 @@
 import sys
 import setuptools
 
-print setuptools.find_packages()
 setuptools.setup(
     license="MIT",
     name="sc2reader",
@@ -13,6 +12,7 @@ setuptools.setup(
     author="Graylin Kim",
     author_email="graylin.kim@gmail.com",
     url="https://github.com/GraylinKim/sc2reader",
+    download_url="https://github.com/GraylinKim/sc2reader/archive/v0.4.0.tar.gz",
 
     platforms=["any"],
 
