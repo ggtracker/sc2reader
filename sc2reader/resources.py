@@ -137,9 +137,6 @@ class Replay(Resource):
     #: An integrated list of all the game events
     events = list()
 
-    #: A dict mapping team numbers to their game result
-    results = dict()
-
     #: A list of :class:`Team` objects from the game
     teams = list()
 
@@ -214,7 +211,6 @@ class Replay(Resource):
         self.gateway = ""
         self.events = list()
         self.events_by_type = defaultdict(list)
-        self.results = dict()
         self.teams, self.team = list(), dict()
         self.players, self.player = list(), utils.PersonDict()
         self.observers = list() #Unordered list of Observer
