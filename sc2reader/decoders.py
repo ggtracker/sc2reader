@@ -5,6 +5,7 @@ from cStringIO import StringIO
 
 import struct
 import functools
+from collections import OrderedDict
 
 class ByteDecoder(object):
 
@@ -310,7 +311,7 @@ class BitPackedDecoder(object):
             data = self.read_struct() if exists else None
 
         elif datatype == 0x05: # Struct
-            data = dict()
+            data = OrderedDict()
             entries = self.read_vint()
             for i in xrange(entries):
                 key = self.read_vint() # Must be read first
