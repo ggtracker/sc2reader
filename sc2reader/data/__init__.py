@@ -32,8 +32,8 @@ class Unit(object):
 
     def is_type(self, unit_type):
         if isinstance(unit_type, int):
-            # Compare integer ids. Unknown units have id==0 and should be equal
-            return self._type_class.id if self._type_class else unit_type == 0
+            # Unknown units have id==0 and should be equal
+            return unit_type == self._type_class.id if self._type_class else unit_type == 0
         else:
             return self._type_class == unit_type
 
