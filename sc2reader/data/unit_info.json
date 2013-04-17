@@ -12,6 +12,12 @@
       "vespene": 25,
       "supply": 0.5
     },
+    "banelingcocoon": {
+      "is_army": true,
+      "minerals": 50,
+      "vespene": 25,
+      "supply": 0.5
+    },
     "banelingnest": {
       "minerals": 150,
       "vespene": 50,
@@ -25,6 +31,12 @@
       "supply": 0
     },
     "broodlord": {
+      "is_army": true,
+      "minerals": 300,
+      "vespene": 250,
+      "supply": 4
+    },
+    "broodlordcocoon": {
       "is_army": true,
       "minerals": 300,
       "vespene": 250,
@@ -175,6 +187,12 @@
       "supply": 0
     },
     "overseer": {
+      "is_army": true,
+      "minerals": 150,
+      "vespene": 50,
+      "supply": 0
+    },
+    "overseercocoon": {
       "is_army": true,
       "minerals": 150,
       "vespene": 50,
