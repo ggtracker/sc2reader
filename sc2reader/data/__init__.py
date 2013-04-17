@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import json
 import pkgutil
+from collections import OrderedDict
 from sc2reader.log_utils import loggable
 
 ABIL_LOOKUP = dict()
@@ -28,14 +29,30 @@ class Unit(object):
         self.id = unit_id
         self.flags = flags
         self._type_class = None
+        self.type_history = OrderedDict()
         self.hallucinated = (flags & 2 == 2)
 
-    def is_type(self, unit_type):
-        if isinstance(unit_type, int):
-            # Unknown units have id==0 and should be equal
-            return unit_type == self._type_class.id if self._type_class else unit_type == 0
+    def set_type(self, unit_type, frame):
+        self._type_class = unit_type
+        self.type_history[frame] = unit_type
+
+    def is_type(self, unit_type, strict=True):
+        if strict:
+            if isinstance(unit_type, int):
+                if self._type_class:
+                    return unit_type == self._type_class.id
+                else:
+                    return unit_type == 0
+            else:
+                return self._type_class == unit_type
         else:
-            return self._type_class == unit_type
+            if isinstance(unit_type, int):
+                if self._type_class:
+                    return unit_type in [utype.id for utype in self.type_history.values()]
+                else:
+                    return unit_type == 0
+            else:
+                return unit_type in self.type_history.values()
 
     @property
     def name(self):
@@ -101,17 +118,17 @@ class Build(object):
         self.units = dict()
         self.abilities = dict()
 
-    def create_unit(self, unit_id, unit_type, unit_flags):
+    def create_unit(self, unit_id, unit_type, unit_flags, frame):
         unit = Unit(unit_id, unit_flags)
-        self.change_type(unit, unit_type)
+        self.change_type(unit, unit_type, frame)
         return unit
 
-    def change_type(self, unit, new_type):
+    def change_type(self, unit, new_type, frame):
         if new_type in self.units:
-            reference_unit = self.units[new_type]
-            unit._type_class = reference_unit
+            unit_type = self.units[new_type]
+            unit.set_type(unit_type, frame)
         else:
-            self.logger.error("Unable to change type of {0} to {1}; unit type not found in build {2}".format(unit,hex(new_type),self.id))
+            self.logger.error("Unable to change type of {0} to {1} [frame {2}]; unit type not found in build {3}".format(unit,hex(new_type),frame,self.id))
 
     def add_ability(self, ability_id, name, title=None, is_build=False, build_time=None, build_unit=None):
         ability = type(name,(Ability,), dict(

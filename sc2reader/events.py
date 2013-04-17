@@ -255,7 +255,7 @@ class TargetAbilityEvent(AbilityEvent):
         if self.target_id in replay.objects:
             self.target = replay.objects[self.target_id]
             if not self.target.is_type(self.target_type):
-                replay.datapack.change_type(self.target, self.target_type)
+                replay.datapack.change_type(self.target, self.target_type, self.frame)
 
         else:
             if self.target_type not in replay.datapack.units:
@@ -263,7 +263,7 @@ class TargetAbilityEvent(AbilityEvent):
                 unit = Unit(self.target_id, 0x00)
 
             else:
-                unit = replay.datapack.create_unit(self.target_id, self.target_type, 0x00)
+                unit = replay.datapack.create_unit(self.target_id, self.target_type, 0x00, self.frame)
 
             self.target = unit
             replay.objects[self.target_id] = unit
@@ -337,10 +337,10 @@ class SelectionEvent(PlayerActionEvent):
             if unit_id in replay.objects:
                 unit = replay.objects[unit_id]
                 if not unit.is_type(unit_type):
-                    replay.datapack.change_type(unit, unit_type)
+                    replay.datapack.change_type(unit, unit_type, self.frame)
             else:
                 if unit_type in replay.datapack.units:
-                    unit = replay.datapack.create_unit(unit_id, unit_type, unit_flags)
+                    unit = replay.datapack.create_unit(unit_id, unit_type, unit_flags, self.frame)
                 else:
                     msg = "Unit Type {0} not found in {1}"
                     self.logger.error(msg.format(hex(unit_type), replay.datapack.__class__.__name__))
