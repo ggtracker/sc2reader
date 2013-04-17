@@ -965,7 +965,7 @@ class GameSummary(Resource):
                                     order=stat_name,
                                     build_index=command[1] >> 16
                                 ))
-            else:
+            elif stat_id != 83886080: # We know this one is always bad.
                 self.logger.warn("Untranslatable key = {0}".format(stat_id))
 
         # Once we've compiled all the build commands we need to make
