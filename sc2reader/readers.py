@@ -8,7 +8,8 @@ from itertools import chain
 
 from sc2reader.exceptions import ParseError, ReadError
 from sc2reader.objects import *
-from sc2reader.events import *
+from sc2reader.events.game import *
+from sc2reader.events.message import *
 from sc2reader.utils import AttributeDict
 from sc2reader.decoders import BitPackedDecoder, ByteDecoder
 

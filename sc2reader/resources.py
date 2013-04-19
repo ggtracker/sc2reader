@@ -23,7 +23,7 @@ from sc2reader import log_utils
 from sc2reader import readers
 from sc2reader import exceptions
 from sc2reader.data import builds as datapacks
-from sc2reader.events import AbilityEvent, CameraEvent, HotkeyEvent, SelectionEvent
+from sc2reader.events.game import AbilityEvent, CameraEvent, HotkeyEvent, SelectionEvent
 from sc2reader.exceptions import SC2ReaderLocalizationError
 from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotFile, BuildEntry
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, LOBBY_PROPERTIES, GATEWAY_LOOKUP
