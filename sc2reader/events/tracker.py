@@ -8,6 +8,10 @@ class TrackerEvent(object):
     def __str__(self):
         return json.dumps(self.__dict__)
 
+    def load_context(self, replay):
+        pass
+
+
 class PlayerStatsEvent(TrackerEvent):
     name = 'PlayerStatsEvent'
 
@@ -119,6 +123,10 @@ class PlayerStatsEvent(TrackerEvent):
         #: The total vespene value of all active forces
         self.vespene_used_active_forces = self.stats[32]
 
+    def load_context(self, replay):
+        self.player = replay.player[self.pid]
+
+
 class UnitBornEvent(TrackerEvent):
     name = 'UnitBornEvent'
 
@@ -152,6 +160,19 @@ class UnitBornEvent(TrackerEvent):
         #: The map location of the unit birth
         self.location = (self.x, self.y)
 
+    def load_context(self, replay):
+        if self.control_pid: # 0 means neutral unit
+            self.unit_controller = replay.player[self.control_pid]
+
+        if self.upkeep_pid: # 0 means neutral unit
+            self.unit_upkeeper = replay.player[self.upkeep_pid]
+
+        if self.unit_id in replay.objects:
+            self.unit = replay.objects[self.unit_id]
+        else:
+            # Create a new unit, but we don't have a type name map yet!
+            self.unit = None
+
 
 class UnitDiedEvent(TrackerEvent):
     name = 'UnitDiedEvent'
@@ -180,6 +201,16 @@ class UnitDiedEvent(TrackerEvent):
         #: The map location the unit was killed at.
         self.location = (self.x, self.y)
 
+    def load_context(self, replay):
+        if self.unit_id in replay.objects:
+            self.unit = replay.objects[self.unit_id]
+        else:
+            # Create a new unit, but we don't have a type name map yet!
+            self.unit = None
+
+        if self.killer_pid: # This field isn't always available
+            self.killer = replay.player[self.killer_pid]
+
 
 class UnitOwnerChangeEvent(TrackerEvent):
     name = 'UnitOwnerChangeEvent'
@@ -202,7 +233,20 @@ class UnitOwnerChangeEvent(TrackerEvent):
         #: The new id of the player that pays upkeep for this unit.
         self.upkeep_pid = data[3]
 
-    fields = ['unit_tag_index','unit_tag_recycle','control_player_id','upkeep_player_id']
+
+    def load_context(self, replay):
+        if self.control_pid: # 0 means neutral unit
+            self.unit_controller = replay.player[self.control_pid]
+
+        if self.upkeep_pid: # 0 means neutral unit
+            self.unit_upkeeper = replay.player[self.upkeep_pid]
+
+        if self.unit_id in replay.objects:
+            self.unit = replay.objects[self.unit_id]
+        else:
+            # Create a new unit, but we don't have a type name map yet!
+            self.unit = None
+
 
 class UnitTypeChangeEvent(TrackerEvent):
     name = 'UnitTypeChangeEvent'
@@ -222,6 +266,14 @@ class UnitTypeChangeEvent(TrackerEvent):
         #: The the new unit type name
         self.unit_type_name = data[2]
 
+    def load_context(self, replay):
+        if self.unit_id in replay.objects:
+            self.unit = replay.objects[self.unit_id]
+        else:
+            # Create a new unit, but we don't have a type name map yet!
+            self.unit = None
+
+
 class UpgradeCompleteEvent(TrackerEvent):
     name = 'UpgradeCompleteEvent'
 
@@ -236,6 +288,12 @@ class UpgradeCompleteEvent(TrackerEvent):
 
         #: The number of times this upgrade as been researched
         self.count = data[2]
+
+
+    def load_context(self, replay):
+        self.player = replay.player[self.pid]
+        # TODO: We don't have upgrade -> ability maps
+
 
 class UnitInitEvent(TrackerEvent):
     name = 'UnitInitEvent'
@@ -252,20 +310,37 @@ class UnitInitEvent(TrackerEvent):
         #: The unique id of the stated unit
         self.unit_id = self.unit_id_index << 16 | self.unit_id_recycle
 
+        #: The the new unit type name
+        self.unit_type_name = data[2]
+
         #: The id of the player that controls this unit.
-        self.control_pid = data[2]
+        self.control_pid = data[3]
 
         #: The id of the player that pays upkeep for this unit.
-        self.upkeep_pid = data[3]
+        self.upkeep_pid = data[4]
 
         #: The x coordinate of the location
-        self.x = data[4]
+        self.x = data[5]
 
         #: The y coordinate of the location
-        self.y = data[5]
+        self.y = data[6]
 
         #: The map location the unit was started at
         self.location = (self.x, self.y)
+
+    def load_context(self, replay):
+        if self.control_pid: # 0 means neutral unit
+            self.unit_controller = replay.player[self.control_pid]
+
+        if self.upkeep_pid: # 0 means neutral unit
+            self.unit_upkeeper = replay.player[self.upkeep_pid]
+
+        if self.unit_id in replay.objects:
+            self.unit = replay.objects[self.unit_id]
+        else:
+            # Create a new unit, but we don't have a type name map yet!
+            self.unit = None
+
 
 class UnitDoneEvent(TrackerEvent):
     name = 'UnitDoneEvent'
@@ -282,6 +357,14 @@ class UnitDoneEvent(TrackerEvent):
         #: The unique id of the finished unit
         self.unit_id = self.unit_id_index << 16 | self.unit_id_recycle
 
+    def load_context(self, replay):
+        if self.unit_id in replay.objects:
+            self.unit = replay.objects[self.unit_id]
+        else:
+            # Create a new unit, but we don't have a type name map yet!
+            self.unit = None
+
+
 class UnitPositionsEvent(TrackerEvent):
     name = 'UnitPositionsEvent'
 
@@ -293,3 +376,12 @@ class UnitPositionsEvent(TrackerEvent):
 
         #: ???
         self.items = data[1]
+
+        """ We need to be able to find units without the recycle id, can't do this yet!
+        unitTagIndex = event['m_firstUnitIndex']
+        for i in xrange(len(event['m_items']) / 3):
+            unitTagIndex += event['m_items'][i * 3 + 0]
+            x = event['m_items'][i * 3 + 1] * 4
+            y = event['m_items'][i * 3 + 2] * 4
+            # the unit with unitTagIndex is now at coordinate (x, y)
+        """

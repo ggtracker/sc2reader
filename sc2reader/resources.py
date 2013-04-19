@@ -502,6 +502,15 @@ class Replay(Resource):
                 elif is_ability:
                     event.player.ability_events.append(event)
 
+    def load_tracker_events(self):
+        if 'replay.tracker.events' not in self.raw_data:
+            return
+
+        self.tracker_events = self.raw_data['replay.tracker.events']
+
+        for event in self.tracker_events:
+            event.load_context(self)
+
     def register_reader(self, data_file, reader, filterfunc=lambda r: True):
         """
         Allows you to specify your own reader for use when reading the data
