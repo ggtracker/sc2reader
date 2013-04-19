@@ -10,6 +10,7 @@ from sc2reader.exceptions import ParseError, ReadError
 from sc2reader.objects import *
 from sc2reader.events.game import *
 from sc2reader.events.message import *
+from sc2reader.events.tracker import *
 from sc2reader.utils import AttributeDict
 from sc2reader.decoders import BitPackedDecoder, ByteDecoder
 
@@ -838,4 +839,34 @@ class GameEventsReader_Beta(GameEventsReader_22612):
 
 class GameEventsReader_Beta_23925(GameEventsReader_Beta):
     PLAYER_JOIN_FLAGS = 32
+
+
+class TrackerEventsReader_Base(Reader):
+
+    def __init__(self):
+        self.EVENT_DISPATCH = {
+            0: PlayerStatsEvent,
+            1: UnitBornEvent,
+            2: UnitDiedEvent,
+            3: UnitOwnerChangeEvent,
+            4: UnitTypeChangeEvent,
+            5: UpgradeCompleteEvent,
+            6: UnitInitEvent,
+            7: UnitDoneEvent,
+            8: UnitPositionsEvent,
+        }
+
+    def __call__(self, data, replay):
+        decoder = BitPackedDecoder(data)
+
+        frames = 0
+        events = list()
+        while not decoder.done():
+            frames += decoder.read_struct()
+            etype = decoder.read_struct()
+            event_data = decoder.read_struct()
+            event = self.EVENT_DISPATCH[etype](frames, event_data)
+            events.append(event)
+
+        return events
 
