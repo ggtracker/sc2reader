@@ -254,29 +254,29 @@ class SelectionEvent(PlayerActionEvent):
         if not replay.datapack:
             return
 
-        objects = list()
-        data = replay.datapack
-        for (obj_id, obj_type, obj_flags) in self.raw_objects:
+        units = list()
+        for (unit_id, unit_type, unit_flags) in self.raw_objects:
             # Hack that defaults viking selection to fighter mode instead of assault
-            if replay.versions[1] == 2 and replay.build >= 23925 and obj_type == 71:
-                obj_type = 72
+            if replay.versions[1] == 2 and replay.build >= 23925 and unit_type == 71:
+                unit_type = 72
 
-            if (obj_id, obj_type) in replay.objects:
-                obj = replay.objects[(obj_id,obj_type)]
+            if unit_id in replay.objects:
+                unit = replay.objects[unit_id]
+                if not unit.is_type(unit_type):
+                    replay.datapack.change_type(unit, unit_type, self.frame)
             else:
-                if obj_type in data.units:
-                    obj = data.units[obj_type](obj_id, obj_flags)
+                if unit_type in replay.datapack.units:
+                    unit = replay.datapack.create_unit(unit_id, unit_type, unit_flags, self.frame)
                 else:
                     msg = "Unit Type {0} not found in {1}"
-                    self.logger.error(msg.format(hex(obj_type), data.__class__.__name__))
-                    obj = Unit(obj_id, obj_flags)
+                    self.logger.error(msg.format(hex(unit_type), replay.datapack.__class__.__name__))
+                    unit = Unit(unit_id, unit_flags)
 
-                replay.objects[(obj_id,obj_type)] = obj
+                replay.objects[unit_id] = unit
 
-            objects.append(obj)
+            units.append(unit)
 
-
-        self.objects = objects
+        self.units = self.objects = units
 
     def __str__(self):
         return GameEvent.__str__(self)+str([str(u) for u in self.objects])
