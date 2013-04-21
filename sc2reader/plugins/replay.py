@@ -7,7 +7,7 @@ from collections import defaultdict
 
 from sc2reader import log_utils
 from sc2reader.utils import Length
-from sc2reader.events import SelectionEvent, HotkeyEvent, AddToHotkeyEvent, GetFromHotkeyEvent, SetToHotkeyEvent
+from sc2reader.events.game import SelectionEvent, HotkeyEvent, AddToHotkeyEvent, GetFromHotkeyEvent, SetToHotkeyEvent
 from sc2reader.plugins.utils import PlayerSelection, GameState, JSONDateEncoder, plugin
 
 @plugin
