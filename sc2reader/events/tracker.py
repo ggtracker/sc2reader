@@ -3,9 +3,11 @@ import json
 
 class TrackerEvent(object):
     def __init__(self, frames):
+        #: The frame of the game this event was applied
         self.frame = frames
 
     def __str__(self):
+        """ Dumps the event data to a json string. """
         return json.dumps(self.__dict__)
 
     def load_context(self, replay):
@@ -20,6 +22,9 @@ class PlayerStatsEvent(TrackerEvent):
 
         #: Id of the player the stats are for
         self.pid = data[0]
+
+        #: The Player object that these stats apply to
+        self.player = None
 
         #: An ordered list of all the available stats
         self.stats = data[1]
@@ -142,6 +147,9 @@ class UnitBornEvent(TrackerEvent):
         #: The unique id of the unit being born
         self.unit_id = self.unit_id_index << 16 | self.unit_id_recycle
 
+        #: The unit object that was born
+        self.unit = None
+
         #: The unit type name of the unit being born
         self.unit_type_name = data[2]
 
@@ -150,6 +158,12 @@ class UnitBornEvent(TrackerEvent):
 
         #: The id of the player that pays upkeep for this unit.
         self.upkeep_pid = data[4]
+
+        #: The player object that pays upkeep for this one. 0 means neutral unit
+        self.unit_upkeeper = None
+
+        #: The player object that controls this unit. 0 means neutral unit
+        self.unit_controller = None
 
         #: The x coordinate of the location
         self.x = data[5]
@@ -168,13 +182,17 @@ class UnitBornEvent(TrackerEvent):
             self.unit_upkeeper = replay.player[self.upkeep_pid]
 
         if self.unit_id in replay.objects:
+            # This can happen because game events are done first
             self.unit = replay.objects[self.unit_id]
         else:
             # TODO: How to tell if something is hallucination?
             self.unit = replay.datapack.create_unit(self.unit_id, self.unit_type_name, 0, self.frame)
-            self.unit.location = self.location
             replay.objects[self.unit_id] = self.unit
             replay.active_units[self.unit_id_index] = self.unit
+
+        self.unit.location = self.location
+        self.unit.birth = self.frame
+        self.unit.owner = self.unit_upkeeper
 
 
 class UnitDiedEvent(TrackerEvent):
@@ -192,8 +210,14 @@ class UnitDiedEvent(TrackerEvent):
         #: The unique id of the unit being killed
         self.unit_id = self.unit_id_index << 16 | self.unit_id_recycle
 
+        #: The unit object that died
+        self.unit = None
+
         #: The id of the player that killed this unit. None when not available.
         self.killer_pid = data[2]
+
+        #: The player object of the that killed the unit. Not always available.
+        self.killer = None
 
         #: The x coordinate of the location
         self.x = data[3]
@@ -207,12 +231,11 @@ class UnitDiedEvent(TrackerEvent):
     def load_context(self, replay):
         if self.unit_id in replay.objects:
             self.unit = replay.objects[self.unit_id]
+            self.unit.death = self.frame
             self.unit.location = self.location
             del replay.active_units[self.unit_id_index]
         else:
-            # Create a new unit, but we don't have a type name map yet!
             print "Unit died before it was born!"
-            self.unit = None
 
         if self.killer_pid: # This field isn't always available
             self.killer = replay.player[self.killer_pid]
@@ -233,26 +256,33 @@ class UnitOwnerChangeEvent(TrackerEvent):
         #: The unique id of the unit changing ownership
         self.unit_id = self.unit_id_index << 16 | self.unit_id_recycle
 
+        #: The unit object that is affected by this event
+        self.unit = None
+
         #: The new id of the player that controls this unit.
         self.control_pid = data[2]
 
         #: The new id of the player that pays upkeep for this unit.
         self.upkeep_pid = data[3]
 
+        #: The player object that pays upkeep for this one. 0 means neutral unit
+        self.unit_upkeeper = None
+
+        #: The player object that controls this unit. 0 means neutral unit
+        self.unit_controller = None
 
     def load_context(self, replay):
-        if self.control_pid: # 0 means neutral unit
+        if self.control_pid:
             self.unit_controller = replay.player[self.control_pid]
 
-        if self.upkeep_pid: # 0 means neutral unit
+        if self.upkeep_pid:
             self.unit_upkeeper = replay.player[self.upkeep_pid]
 
         if self.unit_id in replay.objects:
             self.unit = replay.objects[self.unit_id]
+            self.unit.owner = self.unit_upkeeper
         else:
-            # Create a new unit, but we don't have a type name map yet!
             print "Unit owner changed before it was born!"
-            self.unit = None
 
 
 class UnitTypeChangeEvent(TrackerEvent):
@@ -270,6 +300,9 @@ class UnitTypeChangeEvent(TrackerEvent):
         #: The unique id of the unit changing type
         self.unit_id = self.unit_id_index << 16 | self.unit_id_recycle
 
+        #: The unit object that was changed
+        self.unit = None
+
         #: The the new unit type name
         self.unit_type_name = data[2]
 
@@ -279,7 +312,6 @@ class UnitTypeChangeEvent(TrackerEvent):
             replay.datapack.change_type(self.unit, self.unit_type_name, self.frame)
         else:
             print "Unit type changed before it was born!"
-            self.unit = None
 
 
 class UpgradeCompleteEvent(TrackerEvent):
@@ -290,6 +322,9 @@ class UpgradeCompleteEvent(TrackerEvent):
 
         #: The player that completed the upgrade
         self.pid = data[0]
+
+        #: The Player object that completed the upgrade
+        self.player = None
 
         #: The name of the upgrade
         self.upgrade_type_name = data[1]
@@ -319,6 +354,9 @@ class UnitInitEvent(TrackerEvent):
         #: The unique id of the stated unit
         self.unit_id = self.unit_id_index << 16 | self.unit_id_recycle
 
+        #: The unit object that was started (e.g. started to warp in)
+        self.unit = None
+
         #: The the new unit type name
         self.unit_type_name = data[2]
 
@@ -327,6 +365,12 @@ class UnitInitEvent(TrackerEvent):
 
         #: The id of the player that pays upkeep for this unit.
         self.upkeep_pid = data[4]
+
+        #: The player object that pays upkeep for this one. 0 means neutral unit
+        self.unit_upkeeper = None
+
+        #: The player object that controls this unit. 0 means neutral unit
+        self.unit_controller = None
 
         #: The x coordinate of the location
         self.x = data[5]
@@ -345,6 +389,7 @@ class UnitInitEvent(TrackerEvent):
             self.unit_upkeeper = replay.player[self.upkeep_pid]
 
         if self.unit_id in replay.objects:
+            # This can happen because game events are done first
             self.unit = replay.objects[self.unit_id]
         else:
             # TODO: How to tell if something is hallucination?
@@ -352,7 +397,9 @@ class UnitInitEvent(TrackerEvent):
             replay.objects[self.unit_id] = self.unit
             replay.active_units[self.unit_id_index] = self.unit
 
+        self.unit.owner = self.unit_upkeeper
         self.unit.location = self.location
+        self.unit.birth = self.frame
 
 
 class UnitDoneEvent(TrackerEvent):
@@ -370,12 +417,14 @@ class UnitDoneEvent(TrackerEvent):
         #: The unique id of the finished unit
         self.unit_id = self.unit_id_index << 16 | self.unit_id_recycle
 
+        #: The unit object that was finished
+        self.unit = None
+
     def load_context(self, replay):
         if self.unit_id in replay.objects:
             self.unit = replay.objects[self.unit_id]
         else:
             print "Unit done before it was started!"
-            self.unit = None
 
 
 class UnitPositionsEvent(TrackerEvent):
@@ -384,30 +433,24 @@ class UnitPositionsEvent(TrackerEvent):
     def __init__(self, frames, data):
         super(UnitPositionsEvent, self).__init__(frames)
 
-        #: ???
+        #: The starting unit index point.
         self.first_unit_index = data[0]
 
-        #: ???
+        #: An ordered list of unit/point data interpreted as below.
         self.items = data[1]
 
-
+        #: A list of units that had their position updated by this event
         self.units = list()
 
+        #: A list of (unit_index, (x,y)) derived from the first_unit_index and items
         self.positions = list()
+
         unit_index = self.first_unit_index
         for i in range(0, len(self.items), 3):
             unit_index += self.items[i]
             x = self.items[i+1]*4
             y = self.items[i+2]*4
             self.positions.append((unit_index, (x,y)))
-        """ We need to be able to find units without the recycle id, can't do this yet!
-        unitTagIndex = event['m_firstUnitIndex']
-        for i in xrange(len(event['m_items']) / 3):
-            unitTagIndex += event['m_items'][i * 3 + 0]
-            x = event['m_items'][i * 3 + 1] * 4
-            y = event['m_items'][i * 3 + 2] * 4
-            # the unit with unitTagIndex is now at coordinate (x, y)
-        """
 
     def load_context(self, replay):
         for unit_index, (x,y) in self.positions:
