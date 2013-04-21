@@ -170,8 +170,11 @@ class UnitBornEvent(TrackerEvent):
         if self.unit_id in replay.objects:
             self.unit = replay.objects[self.unit_id]
         else:
-            # Create a new unit, but we don't have a type name map yet!
-            self.unit = None
+            # TODO: How to tell if something is hallucination?
+            self.unit = replay.datapack.create_unit(self.unit_id, self.unit_type_name, 0, self.frame)
+            self.unit.location = self.location
+            replay.objects[self.unit_id] = self.unit
+            replay.active_units[self.unit_id_index] = self.unit
 
 
 class UnitDiedEvent(TrackerEvent):
@@ -204,8 +207,11 @@ class UnitDiedEvent(TrackerEvent):
     def load_context(self, replay):
         if self.unit_id in replay.objects:
             self.unit = replay.objects[self.unit_id]
+            self.unit.location = self.location
+            del replay.active_units[self.unit_id_index]
         else:
             # Create a new unit, but we don't have a type name map yet!
+            print "Unit died before it was born!"
             self.unit = None
 
         if self.killer_pid: # This field isn't always available
@@ -245,6 +251,7 @@ class UnitOwnerChangeEvent(TrackerEvent):
             self.unit = replay.objects[self.unit_id]
         else:
             # Create a new unit, but we don't have a type name map yet!
+            print "Unit owner changed before it was born!"
             self.unit = None
 
 
@@ -269,8 +276,9 @@ class UnitTypeChangeEvent(TrackerEvent):
     def load_context(self, replay):
         if self.unit_id in replay.objects:
             self.unit = replay.objects[self.unit_id]
+            replay.datapack.change_type(self.unit, self.unit_type_name, self.frame)
         else:
-            # Create a new unit, but we don't have a type name map yet!
+            print "Unit type changed before it was born!"
             self.unit = None
 
 
@@ -293,6 +301,7 @@ class UpgradeCompleteEvent(TrackerEvent):
     def load_context(self, replay):
         self.player = replay.player[self.pid]
         # TODO: We don't have upgrade -> ability maps
+        # TODO: we can probably do the same thing we did for units
 
 
 class UnitInitEvent(TrackerEvent):
@@ -338,8 +347,12 @@ class UnitInitEvent(TrackerEvent):
         if self.unit_id in replay.objects:
             self.unit = replay.objects[self.unit_id]
         else:
-            # Create a new unit, but we don't have a type name map yet!
-            self.unit = None
+            # TODO: How to tell if something is hallucination?
+            self.unit = replay.datapack.create_unit(self.unit_id, self.unit_type_name, 0, self.frame)
+            replay.objects[self.unit_id] = self.unit
+            replay.active_units[self.unit_id_index] = self.unit
+
+        self.unit.location = self.location
 
 
 class UnitDoneEvent(TrackerEvent):
@@ -361,7 +374,7 @@ class UnitDoneEvent(TrackerEvent):
         if self.unit_id in replay.objects:
             self.unit = replay.objects[self.unit_id]
         else:
-            # Create a new unit, but we don't have a type name map yet!
+            print "Unit done before it was started!"
             self.unit = None
 
 
@@ -377,6 +390,16 @@ class UnitPositionsEvent(TrackerEvent):
         #: ???
         self.items = data[1]
 
+
+        self.units = list()
+
+        self.positions = list()
+        unit_index = self.first_unit_index
+        for i in range(0, len(self.items), 3):
+            unit_index += self.items[i]
+            x = self.items[i+1]*4
+            y = self.items[i+2]*4
+            self.positions.append((unit_index, (x,y)))
         """ We need to be able to find units without the recycle id, can't do this yet!
         unitTagIndex = event['m_firstUnitIndex']
         for i in xrange(len(event['m_items']) / 3):
@@ -385,3 +408,12 @@ class UnitPositionsEvent(TrackerEvent):
             y = event['m_items'][i * 3 + 2] * 4
             # the unit with unitTagIndex is now at coordinate (x, y)
         """
+
+    def load_context(self, replay):
+        for unit_index, (x,y) in self.positions:
+            if unit_index in replay.active_units:
+                unit = replay.active_units[unit_index]
+                unit.location = (x,y)
+                self.units.append(unit)
+            else:
+                print "Unit moved that doesn't exist!"
