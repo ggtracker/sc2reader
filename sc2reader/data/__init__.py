@@ -142,9 +142,10 @@ class Build(object):
         setattr(self, name, ability)
         self.abilities[ability_id] = ability
 
-    def add_unit_type(self, type_id, name, title=None, race='Neutral', minerals=0, vespene=0, supply=0, is_building=False, is_worker=False, is_army=False):
+    def add_unit_type(self, type_id, str_id, name, title=None, race='Neutral', minerals=0, vespene=0, supply=0, is_building=False, is_worker=False, is_army=False):
         unit = type(name,(Unit,), dict(
             id=type_id,
+            str_id=str_id,
             name=name,
             title=title or name,
             race=race,
@@ -157,6 +158,7 @@ class Build(object):
         ))
         setattr(self, name, unit)
         self.units[type_id] = unit
+        self.units[str_id] = unit
 
 def load_build(expansion, version):
     build = Build(version)
@@ -168,7 +170,7 @@ def load_build(expansion, version):
         unit_type = int(int_id,10)
         title = UNIT_LOOKUP[str_id]
 
-        values = dict(type_id=unit_type, name=title)
+        values = dict(type_id=unit_type, str_id=str_id, name=title)
         for race in ('Protoss','Terran','Zerg'):
             if title.lower() in unit_lookup[race]:
                 values.update(unit_lookup[race][title.lower()])
