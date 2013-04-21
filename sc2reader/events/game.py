@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
+from sc2reader.data import Unit
 from sc2reader.events.base import Event
 from sc2reader.log_utils import loggable
 
@@ -174,9 +175,10 @@ class TargetAbilityEvent(AbilityEvent):
         if not replay.datapack:
             return
 
-        uid = (self.target_id, self.target_type)
-        if uid in replay.objects:
-            self.target = replay.objects[uid]
+        if self.target_id in replay.objects:
+            self.target = replay.objects[self.target_id]
+            if not self.target.is_type(self.target_type):
+                replay.datapack.change_type(self.target, self.target_type, self.frame)
 
         else:
             if self.target_type not in replay.datapack.units:
@@ -184,11 +186,10 @@ class TargetAbilityEvent(AbilityEvent):
                 unit = Unit(self.target_id, 0x00)
 
             else:
-                unit_class = replay.datapack.units[self.target_type]
-                unit = unit_class(self.target_id, 0x00)
+                unit = replay.datapack.create_unit(self.target_id, self.target_type, 0x00, self.frame)
 
             self.target = unit
-            replay.objects[uid] = unit
+            replay.objects[self.target_id] = unit
 
     def __str__(self):
         if self.target:
