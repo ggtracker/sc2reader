@@ -188,8 +188,8 @@ class UnitBornEvent(TrackerEvent):
             # TODO: How to tell if something is hallucination?
             self.unit = replay.datapack.create_unit(self.unit_id, self.unit_type_name, 0, self.frame)
             replay.objects[self.unit_id] = self.unit
-            replay.active_units[self.unit_id_index] = self.unit
 
+        replay.active_units[self.unit_id_index] = self.unit
         self.unit.location = self.location
         self.unit.birth = self.frame
         self.unit.owner = self.unit_upkeeper
@@ -395,8 +395,8 @@ class UnitInitEvent(TrackerEvent):
             # TODO: How to tell if something is hallucination?
             self.unit = replay.datapack.create_unit(self.unit_id, self.unit_type_name, 0, self.frame)
             replay.objects[self.unit_id] = self.unit
-            replay.active_units[self.unit_id_index] = self.unit
 
+        replay.active_units[self.unit_id_index] = self.unit
         self.unit.owner = self.unit_upkeeper
         self.unit.location = self.location
         self.unit.birth = self.frame
