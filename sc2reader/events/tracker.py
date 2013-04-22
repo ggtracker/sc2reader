@@ -196,7 +196,7 @@ class UnitBornEvent(TrackerEvent):
         self.unit_id_recycle = data[1]
 
         #: The unique id of the unit being born
-        self.unit_id = self.unit_id_index << 16 | self.unit_id_recycle
+        self.unit_id = self.unit_id_index << 18 | self.unit_id_recycle
 
         #: The unit object that was born
         self.unit = None
@@ -269,7 +269,7 @@ class UnitDiedEvent(TrackerEvent):
         self.unit_id_recycle = data[1]
 
         #: The unique id of the unit being killed
-        self.unit_id = self.unit_id_index << 16 | self.unit_id_recycle
+        self.unit_id = self.unit_id_index << 18 | self.unit_id_recycle
 
         #: The unit object that died
         self.unit = None
@@ -326,7 +326,7 @@ class UnitOwnerChangeEvent(TrackerEvent):
         self.unit_id_recycle = data[1]
 
         #: The unique id of the unit changing ownership
-        self.unit_id = self.unit_id_index << 16 | self.unit_id_recycle
+        self.unit_id = self.unit_id_index << 18 | self.unit_id_recycle
 
         #: The unit object that is affected by this event
         self.unit = None
@@ -383,7 +383,7 @@ class UnitTypeChangeEvent(TrackerEvent):
         self.unit_id_recycle = data[1]
 
         #: The unique id of the unit changing type
-        self.unit_id = self.unit_id_index << 16 | self.unit_id_recycle
+        self.unit_id = self.unit_id_index << 18 | self.unit_id_recycle
 
         #: The unit object that was changed
         self.unit = None
@@ -445,7 +445,7 @@ class UnitInitEvent(TrackerEvent):
         self.unit_id_recycle = data[1]
 
         #: The unique id of the stated unit
-        self.unit_id = self.unit_id_index << 16 | self.unit_id_recycle
+        self.unit_id = self.unit_id_index << 18 | self.unit_id_recycle
 
         #: The unit object that was started (e.g. started to warp in)
         self.unit = None
@@ -521,7 +521,7 @@ class UnitDoneEvent(TrackerEvent):
         self.unit_id_recycle = data[1]
 
         #: The unique id of the finished unit
-        self.unit_id = self.unit_id_index << 16 | self.unit_id_recycle
+        self.unit_id = self.unit_id_index << 18 | self.unit_id_recycle
 
         #: The unit object that was finished
         self.unit = None
