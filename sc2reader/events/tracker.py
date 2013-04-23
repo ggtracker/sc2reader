@@ -175,11 +175,15 @@ class UnitBornEvent(TrackerEvent):
         self.location = (self.x, self.y)
 
     def load_context(self, replay):
-        if self.control_pid: # 0 means neutral unit
+        if self.control_pid in replay.player:
             self.unit_controller = replay.player[self.control_pid]
+        elif self.control_pid != 0:
+            print "Unknown controller pid", self.control_pid
 
-        if self.upkeep_pid: # 0 means neutral unit
+        if self.upkeep_pid in replay.player:
             self.unit_upkeeper = replay.player[self.upkeep_pid]
+        elif self.upkeep_pid != 0:
+            print "Unknown upkeep pid", self.upkeep_pid
 
         if self.unit_id in replay.objects:
             # This can happen because game events are done first
@@ -233,12 +237,17 @@ class UnitDiedEvent(TrackerEvent):
             self.unit = replay.objects[self.unit_id]
             self.unit.death = self.frame
             self.unit.location = self.location
-            del replay.active_units[self.unit_id_index]
+            if self.unit_id_index in replay.active_units:
+                del replay.active_units[self.unit_id_index]
+            else:
+                print "Unable to delete unit, not index not active", self.unit_id_index
         else:
             print "Unit died before it was born!"
 
-        if self.killer_pid: # This field isn't always available
+        if self.killer_pid in replay.player:
             self.killer = replay.player[self.killer_pid]
+        elif self.killer_pid:
+            print "Unknown killer pid", self.killer_pid
 
 
 class UnitOwnerChangeEvent(TrackerEvent):
@@ -272,11 +281,15 @@ class UnitOwnerChangeEvent(TrackerEvent):
         self.unit_controller = None
 
     def load_context(self, replay):
-        if self.control_pid:
+        if self.control_pid in replay.player:
             self.unit_controller = replay.player[self.control_pid]
+        elif self.control_pid != 0:
+            print "Unknown controller pid", self.control_pid
 
-        if self.upkeep_pid:
+        if self.upkeep_pid in replay.player:
             self.unit_upkeeper = replay.player[self.upkeep_pid]
+        elif self.upkeep_pid != 0:
+            print "Unknown upkeep pid", self.upkeep_pid
 
         if self.unit_id in replay.objects:
             self.unit = replay.objects[self.unit_id]
@@ -334,7 +347,10 @@ class UpgradeCompleteEvent(TrackerEvent):
 
 
     def load_context(self, replay):
-        self.player = replay.player[self.pid]
+        if self.pid in replay.player:
+            self.player = replay.player[self.pid]
+        else:
+            print "Unknown upgrade pid", self.pid
         # TODO: We don't have upgrade -> ability maps
         # TODO: we can probably do the same thing we did for units
 
@@ -382,15 +398,21 @@ class UnitInitEvent(TrackerEvent):
         self.location = (self.x, self.y)
 
     def load_context(self, replay):
-        if self.control_pid: # 0 means neutral unit
+        if self.control_pid in replay.player:
             self.unit_controller = replay.player[self.control_pid]
+        elif self.control_pid != 0:
+            print "Unknown controller pid", self.control_pid
 
-        if self.upkeep_pid: # 0 means neutral unit
+        if self.upkeep_pid in replay.player:
             self.unit_upkeeper = replay.player[self.upkeep_pid]
+        elif self.upkeep_pid != 0:
+            print "Unknown upkeep pid", self.upkeep_pid
 
         if self.unit_id in replay.objects:
             # This can happen because game events are done first
             self.unit = replay.objects[self.unit_id]
+            if self.unit._type_class.str_id != self.unit_type_name:
+                print "CONFLICT {} <-_-> {}".format(self.unit._type_class.str_id, self.unit_type_name)
         else:
             # TODO: How to tell if something is hallucination?
             self.unit = replay.datapack.create_unit(self.unit_id, self.unit_type_name, 0, self.frame)
