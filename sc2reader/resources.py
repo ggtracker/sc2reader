@@ -472,7 +472,7 @@ class Replay(Resource):
         self.events = sorted(self.events, key=lambda e: e.frame)
 
         # hideous hack for HotS 2.0.0.23925, see https://github.com/GraylinKim/sc2reader/issues/87
-        if self.events[-1].frame > self.frames:
+        if self.events and self.events[-1].frame > self.frames:
             self.frames = self.events[-1].frame
             self.length = utils.Length(seconds=int(self.frames/self.game_fps))
 
@@ -493,7 +493,7 @@ class Replay(Resource):
 
             event.load_context(self)
             # TODO: Should this be documented or removed? I don't like it.
-            if event.pid != 16:
+            if event.pid != 16 and hasattr(event,'player'):
                 event.player.events.append(event)
                 if is_camera:
                     event.player.camera_events.append(event)
