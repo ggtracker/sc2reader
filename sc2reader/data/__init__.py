@@ -128,7 +128,7 @@ class Build(object):
             unit_type = self.units[new_type]
             unit.set_type(unit_type, frame)
         else:
-            self.logger.error("Unable to change type of {0} to {1} [frame {2}]; unit type not found in build {3}".format(unit,hex(new_type),frame,self.id))
+            self.logger.error("Unable to change type of {0} to {1} [frame {2}]; unit type not found in build {3}".format(unit,new_type,frame,self.id))
 
     def add_ability(self, ability_id, name, title=None, is_build=False, build_time=None, build_unit=None):
         ability = type(name,(Ability,), dict(
