@@ -23,7 +23,6 @@ from sc2reader import log_utils
 from sc2reader import readers
 from sc2reader import exceptions
 from sc2reader.data import builds as datapacks
-from sc2reader.events.game import AbilityEvent, CameraEvent, HotkeyEvent, SelectionEvent
 from sc2reader.exceptions import SC2ReaderLocalizationError
 from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotFile, BuildEntry
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, LOBBY_PROPERTIES, GATEWAY_LOOKUP
@@ -481,27 +480,9 @@ class Replay(Resource):
         self.selection_events = list()
         self.ability_events = list()
         for event in self.events:
-            is_camera = isinstance(event, CameraEvent)
-            is_selection = isinstance(event, SelectionEvent) or isinstance(event,HotkeyEvent)
-            is_ability = isinstance(event, AbilityEvent)
-
-            if is_camera:
-                self.camera_events.append(event)
-            elif is_selection:
-                self.selection_events.append(event)
-            elif is_ability:
-                self.ability_events.append(event)
-
             event.load_context(self)
-            # TODO: Should this be documented or removed? I don't like it.
             if event.pid != 16 and hasattr(event,'player'):
                 event.player.events.append(event)
-                if is_camera:
-                    event.player.camera_events.append(event)
-                elif is_selection:
-                    event.player.selection_events.append(event)
-                elif is_ability:
-                    event.player.ability_events.append(event)
 
     def load_tracker_events(self):
         if 'replay.tracker.events' not in self.raw_data:
@@ -570,9 +551,10 @@ class Replay(Resource):
         self.register_reader('replay.game.events', readers.GameEventsReader_16561(), lambda r: 16561 <= r.build < 18574)
         self.register_reader('replay.game.events', readers.GameEventsReader_18574(), lambda r: 18574 <= r.build < 19595)
         self.register_reader('replay.game.events', readers.GameEventsReader_19595(), lambda r: 19595 <= r.build < 22612)
-        self.register_reader('replay.game.events', readers.GameEventsReader_22612(), lambda r: 22612 <= r.build and r.versions[1]==1)
-        self.register_reader('replay.game.events', readers.GameEventsReader_Beta(), lambda r: r.versions[1]==2 and r.build < 23925)
-        self.register_reader('replay.game.events', readers.GameEventsReader_Beta_23925(), lambda r: r.versions[1]==2 and 23925 <= r.build)
+        self.register_reader('replay.game.events', readers.GameEventsReader_22612(), lambda r: r.versions[1]==1 and 22612 <= r.build) # Last WoL
+        self.register_reader('replay.game.events', readers.GameEventsReader_HotS_Beta(), lambda r: r.versions[1]==2 and r.build < 24247) #HotS Beta
+        self.register_reader('replay.game.events', readers.GameEventsReader_HotS(), lambda r: r.versions[1]==2 and 24247 <= r.build ) # First HotS
+        self.register_reader('replay.tracker.events', readers.TrackerEventsReader_Base(), lambda r: True)
 
 
     def register_default_datapacks(self):

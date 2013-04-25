@@ -82,7 +82,10 @@ class UnitSelection(object):
         """Returns false if there was a data error when deselecting"""
         size = len(self.objects)
 
-        if mode == 0x01:
+        if mode == 'None':
+            return True
+
+        elif mode == 'Mask':
             """ Deselect objects according to deselect mask """
             mask = data
             if len(mask) < size:
@@ -93,20 +96,20 @@ class UnitSelection(object):
             self.objects = [ obj for (slct, obj) in filter(lambda (slct, obj): not slct, zip(mask, self.objects)) ]
             return len(mask) <= size
 
-        elif mode == 0x02:
+        elif mode == 'OneIndices':
             """ Deselect objects according to indexes """
             clean_data = filter(lambda i: i < size, data)
             self.objects = [ self.objects[i] for i in range(len(self.objects)) if i not in clean_data ]
             return len(clean_data) == len(data)
 
-        elif mode == 0x03:
+        elif mode == 'ZeroIndices':
             """ Deselect objects according to indexes """
             clean_data = filter(lambda i: i < size, data)
             self.objects = [ self.objects[i] for i in clean_data ]
             return len(clean_data) == len(data)
 
         else:
-            return True
+            return False
 
     def __str__(self):
         return ', '.join(str(obj) for obj in self.objects)
