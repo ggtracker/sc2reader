@@ -43,16 +43,26 @@ class Unit(object):
                     return unit_type == self._type_class.id
                 else:
                     return unit_type == 0
-            else:
+            elif isinstance(unit_type, Unit):
                 return self._type_class == unit_type
+            else:
+                if self._type_class:
+                    return unit_type == self._type_class.str_id
+                else:
+                    return unit_type == None
         else:
             if isinstance(unit_type, int):
                 if self._type_class:
                     return unit_type in [utype.id for utype in self.type_history.values()]
                 else:
                     return unit_type == 0
-            else:
+            elif isinstance(unit_type, Unit):
                 return unit_type in self.type_history.values()
+            else:
+                if self._type_class:
+                    return unit_type in [utype.str_id for utype in self.type_history.values()]
+                else:
+                    return unit_type == None
 
     @property
     def name(self):
