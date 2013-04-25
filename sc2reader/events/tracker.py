@@ -178,12 +178,12 @@ class UnitBornEvent(TrackerEvent):
         if self.control_pid in replay.player:
             self.unit_controller = replay.player[self.control_pid]
         elif self.control_pid != 0:
-            print "Unknown controller pid", self.control_pid
+            pass#print "Unknown controller pid", self.control_pid
 
         if self.upkeep_pid in replay.player:
             self.unit_upkeeper = replay.player[self.upkeep_pid]
         elif self.upkeep_pid != 0:
-            print "Unknown upkeep pid", self.upkeep_pid
+            pass#print "Unknown upkeep pid", self.upkeep_pid
 
         if self.unit_id in replay.objects:
             # This can happen because game events are done first
@@ -240,14 +240,14 @@ class UnitDiedEvent(TrackerEvent):
             if self.unit_id_index in replay.active_units:
                 del replay.active_units[self.unit_id_index]
             else:
-                print "Unable to delete unit, not index not active", self.unit_id_index
+                pass#print "Unable to delete unit, not index not active", self.unit_id_index
         else:
-            print "Unit died before it was born!"
+            pass#print "Unit died before it was born!"
 
         if self.killer_pid in replay.player:
             self.killer = replay.player[self.killer_pid]
         elif self.killer_pid:
-            print "Unknown killer pid", self.killer_pid
+            pass#print "Unknown killer pid", self.killer_pid
 
 
 class UnitOwnerChangeEvent(TrackerEvent):
@@ -284,12 +284,12 @@ class UnitOwnerChangeEvent(TrackerEvent):
         if self.control_pid in replay.player:
             self.unit_controller = replay.player[self.control_pid]
         elif self.control_pid != 0:
-            print "Unknown controller pid", self.control_pid
+            pass#print "Unknown controller pid", self.control_pid
 
         if self.upkeep_pid in replay.player:
             self.unit_upkeeper = replay.player[self.upkeep_pid]
         elif self.upkeep_pid != 0:
-            print "Unknown upkeep pid", self.upkeep_pid
+            pass#print "Unknown upkeep pid", self.upkeep_pid
 
         if self.unit_id in replay.objects:
             self.unit = replay.objects[self.unit_id]
@@ -350,7 +350,7 @@ class UpgradeCompleteEvent(TrackerEvent):
         if self.pid in replay.player:
             self.player = replay.player[self.pid]
         else:
-            print "Unknown upgrade pid", self.pid
+            pass#print "Unknown upgrade pid", self.pid
         # TODO: We don't have upgrade -> ability maps
         # TODO: we can probably do the same thing we did for units
 
@@ -401,12 +401,12 @@ class UnitInitEvent(TrackerEvent):
         if self.control_pid in replay.player:
             self.unit_controller = replay.player[self.control_pid]
         elif self.control_pid != 0:
-            print "Unknown controller pid", self.control_pid
+            pass#print "Unknown controller pid", self.control_pid
 
         if self.upkeep_pid in replay.player:
             self.unit_upkeeper = replay.player[self.upkeep_pid]
         elif self.upkeep_pid != 0:
-            print "Unknown upkeep pid", self.upkeep_pid
+            pass#print "Unknown upkeep pid", self.upkeep_pid
 
         if self.unit_id in replay.objects:
             # This can happen because game events are done first
