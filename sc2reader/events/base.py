@@ -19,6 +19,7 @@ class Event(object):
         if replay.versions[1]==1 or (replay.versions[1]==2 and replay.build < 24247):
             if self.pid <= len(replay.people):
                 self.player = replay.person[self.pid]
+                self.player.events.append(self)
             elif self.pid != 16:
                 self.logger.error("Bad pid ({0}) for event {1} at {2}.".format(self.pid, self.__class__, Length(seconds=self.second)))
             else:
@@ -27,6 +28,7 @@ class Event(object):
         else:
             if self.pid < len(replay.clients):
                 self.player = replay.client[self.pid]
+                self.player.events.append(self)
             elif self.pid != 16:
                 self.logger.error("Bad pid ({0}) for event {1} at {2}.".format(self.pid, self.__class__, Length(seconds=self.second)))
             else:

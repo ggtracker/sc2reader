@@ -281,6 +281,7 @@ class Replay(Resource):
         for event in self.events:
             event.load_context(self)
 
+
     def load_details(self):
         if 'replay.attributes.events' in self.raw_data:
             # Organize the attribute data to be useful
@@ -475,21 +476,17 @@ class Replay(Resource):
     def load_events(self):
         # Copy the events over
         # TODO: the events need to be fixed both on the reader and processor side
-        if 'replay.game.events' in self.raw_data:
-            self.game_events = self.raw_data['replay.game.events']
-            self.events = sorted(self.game_events+self.events, key=lambda e: e.frame)
+        if 'replay.game.events' not in self.raw_data:
+            return
+
+        self.game_events = self.raw_data['replay.game.events']
+        self.events = sorted(self.game_events+self.events, key=lambda e: e.frame)
 
         # hideous hack for HotS 2.0.0.23925, see https://github.com/GraylinKim/sc2reader/issues/87
         if self.events and self.events[-1].frame > self.frames:
             self.frames = self.events[-1].frame
             self.length = utils.Length(seconds=int(self.frames/self.game_fps))
 
-        self.camera_events = list()
-        self.selection_events = list()
-        self.ability_events = list()
-        for event in self.events:
-            if event.pid != 16 and hasattr(event,'player'):
-                event.player.events.append(event)
 
     def load_tracker_events(self):
         if 'replay.tracker.events' not in self.raw_data:

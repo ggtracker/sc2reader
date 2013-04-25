@@ -26,6 +26,18 @@ train_commands = json.loads(command_data)
 class Unit(object):
 
     def __init__(self, unit_id, flags):
+        #: A reference to the player that owns this unit
+        self.owner = None
+
+        #: The frame the unit was started at
+        self.started_at = None
+
+        #: The frame the unit was finished at
+        self.finished_at = None
+
+        #: The frame the unit died at
+        self.died_at = None
+
         self.id = unit_id
         self.flags = flags
         self._type_class = None

@@ -115,7 +115,6 @@ def SelectionTracker(replay):
         player_selections = GameState(PlayerSelection())
         for event in person.events:
             error = False
-
             if event.name == 'SelectionEvent':
                 selections = player_selections[event.frame]
                 control_group = selections[event.control_group].copy()

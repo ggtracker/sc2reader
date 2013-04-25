@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 import json
+from sc2reader.utils import Length
 
 class TrackerEvent(object):
     def __init__(self, frames):
         #: The frame of the game this event was applied
         self.frame = frames
 
-    def __str__(self):
-        """ Dumps the event data to a json string. """
-        return json.dumps(self.__dict__)
-
     def load_context(self, replay):
         pass
 
+    def _str_prefix(self):
+        return "{0}\t ".format(Length(seconds=int(self.frame/16)))
+
+    def __str__(self):
+        return self._str_prefix() + self.name
 
 class PlayerStatsEvent(TrackerEvent):
     name = 'PlayerStatsEvent'
@@ -131,6 +133,8 @@ class PlayerStatsEvent(TrackerEvent):
     def load_context(self, replay):
         self.player = replay.player[self.pid]
 
+    def __str__(self):
+        return self._str_prefix()+"{0: >15} - Stats Update".format(self.player)
 
 class UnitBornEvent(TrackerEvent):
     name = 'UnitBornEvent'
@@ -195,9 +199,15 @@ class UnitBornEvent(TrackerEvent):
 
         replay.active_units[self.unit_id_index] = self.unit
         self.unit.location = self.location
-        self.unit.birth = self.frame
-        self.unit.owner = self.unit_upkeeper
+        self.unit.started_at = self.frame
+        self.unit.finished_at = self.frame
 
+        if self.unit_upkeeper:
+            self.unit.owner = self.unit_upkeeper
+            self.unit.owner.units.append(self.unit)
+
+    def __str__(self):
+        return self._str_prefix()+"{0: >15} - Unit born {1}".format(self.unit_upkeeper,self.unit)
 
 class UnitDiedEvent(TrackerEvent):
     name = 'UnitDiedEvent'
@@ -235,7 +245,7 @@ class UnitDiedEvent(TrackerEvent):
     def load_context(self, replay):
         if self.unit_id in replay.objects:
             self.unit = replay.objects[self.unit_id]
-            self.unit.death = self.frame
+            self.unit.died_at = self.frame
             self.unit.location = self.location
             if self.unit_id_index in replay.active_units:
                 del replay.active_units[self.unit_id_index]
@@ -248,6 +258,9 @@ class UnitDiedEvent(TrackerEvent):
             self.killer = replay.player[self.killer_pid]
         elif self.killer_pid:
             pass#print "Unknown killer pid", self.killer_pid
+
+    def __str__(self):
+        return self._str_prefix()+"{0: >15} - Unit died {1}.".format(self.unit.owner, self.unit)
 
 
 class UnitOwnerChangeEvent(TrackerEvent):
@@ -293,9 +306,18 @@ class UnitOwnerChangeEvent(TrackerEvent):
 
         if self.unit_id in replay.objects:
             self.unit = replay.objects[self.unit_id]
-            self.unit.owner = self.unit_upkeeper
         else:
             print "Unit owner changed before it was born!"
+
+        if self.unit_upkeeper:
+            if unit.owner:
+                print "stduff"
+                unit.owner.units.remove(unit)
+            unit.owner = self.unit_upkeeper
+            self.unit_upkeeper.units.append(unit)
+
+    def __str__(self):
+        return self._str_prefix()+"{0: >15} took {1}".format(self.unit_upkeeper, self.unit)
 
 
 class UnitTypeChangeEvent(TrackerEvent):
@@ -326,6 +348,9 @@ class UnitTypeChangeEvent(TrackerEvent):
         else:
             print "Unit type changed before it was born!"
 
+    def __str__(self):
+        return self._str_prefix()+"{0: >15} - Unit {0} type changed to {1}".format(self.unit.owner, self.unit, self.unit_type_name)
+
 
 class UpgradeCompleteEvent(TrackerEvent):
     name = 'UpgradeCompleteEvent'
@@ -354,6 +379,8 @@ class UpgradeCompleteEvent(TrackerEvent):
         # TODO: We don't have upgrade -> ability maps
         # TODO: we can probably do the same thing we did for units
 
+    def __str__(self):
+        return self._str_prefix()+"{0: >15} - {1}upgrade completed".format(self.player, self.upgrade_type_name)
 
 class UnitInitEvent(TrackerEvent):
     name = 'UnitInitEvent'
@@ -419,9 +446,16 @@ class UnitInitEvent(TrackerEvent):
             replay.objects[self.unit_id] = self.unit
 
         replay.active_units[self.unit_id_index] = self.unit
-        self.unit.owner = self.unit_upkeeper
         self.unit.location = self.location
-        self.unit.birth = self.frame
+        self.unit.started_at = self.frame
+        # self.unit.finished_at = self.frame
+
+        if self.unit_upkeeper:
+            self.unit.owner = self.unit_upkeeper
+            self.unit.owner.units.append(self.unit)
+
+    def __str__(self):
+        return self._str_prefix()+"{0: >15} - Unit inititated {1}".format(self.unit_upkeeper, self.unit)
 
 
 class UnitDoneEvent(TrackerEvent):
@@ -445,9 +479,12 @@ class UnitDoneEvent(TrackerEvent):
     def load_context(self, replay):
         if self.unit_id in replay.objects:
             self.unit = replay.objects[self.unit_id]
+            self.unit.finished_at = self.frame
         else:
             print "Unit done before it was started!"
 
+    def __str__(self):
+        return self._str_prefix()+"{0: >15} - Unit {1} done".format(self.unit.owner, self.unit)
 
 class UnitPositionsEvent(TrackerEvent):
     name = 'UnitPositionsEvent'
@@ -482,3 +519,6 @@ class UnitPositionsEvent(TrackerEvent):
                 self.units.append(unit)
             else:
                 print "Unit moved that doesn't exist!"
+
+    def __str__(self):
+        return self._str_prefix()+"Unit positions update"

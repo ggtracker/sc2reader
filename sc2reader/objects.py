@@ -201,6 +201,10 @@ class Player(Person):
         super(Player,self).__init__(pid, name)
         self.is_observer = False
 
+        #: A list of references to the units the player had this game
+        self.units = list()
+
+
     @property
     def url(self):
         """The player's battle.net profile url"""
