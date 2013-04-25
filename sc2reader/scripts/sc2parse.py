@@ -82,7 +82,7 @@ def main():
                         print pid, info
                     for message in replay.raw_data['replay.message.events'].messages:
                         print message.pid, message.text
-                    print replay.raw_data['replay.initData'].player_names
+#                    print replay.raw_data['replay.initData'].player_names
                     traceback.print_exc()
                     print
                 except Exception as e2:
