@@ -411,7 +411,7 @@ class UnitInitEvent(TrackerEvent):
         if self.unit_id in replay.objects:
             # This can happen because game events are done first
             self.unit = replay.objects[self.unit_id]
-            if self.unit._type_class.str_id != self.unit_type_name:
+            if self.unit.is_type(self.unit_type_name):
                 print "CONFLICT {} <-_-> {}".format(self.unit._type_class.str_id, self.unit_type_name)
         else:
             # TODO: How to tell if something is hallucination?
