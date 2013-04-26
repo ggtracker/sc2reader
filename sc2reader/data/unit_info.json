@@ -390,7 +390,7 @@
       "is_army": true,
       "minerals": 400,
       "vespene": 400,
-      "supply": 6
+      "supply": 8
     },
     "mothershipcore": {
       "is_army": true,
@@ -492,7 +492,7 @@
       "is_army": true,
       "minerals": 250,
       "vespene": 150,
-      "supply": 2
+      "supply": 4
     },
     "warpgate": {
       "minerals": 150,
@@ -668,7 +668,7 @@
       "is_army": true,
       "minerals": 50,
       "vespene": 50,
-      "supply": 2
+      "supply": 1
     },
     "refinery": {
       "minerals": 100,
