@@ -204,6 +204,9 @@ class Player(Person):
         #: A list of references to the units the player had this game
         self.units = list()
 
+        #: A list of references to the units that the player killed this game
+        self.killed_units = list()
+
 
     @property
     def url(self):

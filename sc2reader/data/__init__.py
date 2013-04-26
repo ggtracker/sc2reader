@@ -38,6 +38,9 @@ class Unit(object):
         #: The frame the unit died at
         self.died_at = None
 
+        #: A reference to the player that killed this unit. Not always available.
+        self.killed_by = None
+
         self.id = unit_id
         self.flags = flags
         self._type_class = None

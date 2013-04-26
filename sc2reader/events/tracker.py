@@ -256,6 +256,9 @@ class UnitDiedEvent(TrackerEvent):
 
         if self.killer_pid in replay.player:
             self.killer = replay.player[self.killer_pid]
+            if self.unit:
+                self.unit.killed_by = self.killer
+                self.killer.killed_units.append(self.unit)
         elif self.killer_pid:
             pass#print "Unknown killer pid", self.killer_pid
 
