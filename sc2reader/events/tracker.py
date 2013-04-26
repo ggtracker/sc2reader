@@ -498,8 +498,8 @@ class UnitPositionsEvent(TrackerEvent):
         #: An ordered list of unit/point data interpreted as below.
         self.items = data[1]
 
-        #: A list of units that had their position updated by this event
-        self.units = list()
+        #: A dict mapping of units that had their position updated to their positions
+        self.units = dict()
 
         #: A list of (unit_index, (x,y)) derived from the first_unit_index and items
         self.positions = list()
@@ -516,7 +516,7 @@ class UnitPositionsEvent(TrackerEvent):
             if unit_index in replay.active_units:
                 unit = replay.active_units[unit_index]
                 unit.location = (x,y)
-                self.units.append(unit)
+                self.units[unit] = unit.location
             else:
                 print "Unit moved that doesn't exist!"
 
