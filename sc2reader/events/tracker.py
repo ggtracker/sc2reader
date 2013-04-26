@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 import json
+import functools
+
 from sc2reader.utils import Length
+
+clamp = functools.partial(max, 0)
 
 class TrackerEvent(object):
     def __init__(self, frames):
@@ -17,6 +21,13 @@ class TrackerEvent(object):
         return self._str_prefix() + self.name
 
 class PlayerStatsEvent(TrackerEvent):
+    """
+        Sometimes values in these fields can be negative.
+        Clamp them to 0 until this is fixed.
+
+        An additional stats event is sent the frame that a player leaves.
+        That player still gets normal stats events for the rest of the game though.
+    """
     name = 'PlayerStatsEvent'
 
     def __init__(self, frames, data):
@@ -32,91 +43,127 @@ class PlayerStatsEvent(TrackerEvent):
         self.stats = data[1]
 
         #: Minerals currently available to the player
-        self.minerals_current = self.stats[0]
+        self.minerals_current = clamp(self.stats[0])
 
         #: Vespene currently available to the player
-        self.vespene_current = self.stats[1]
+        self.vespene_current = clamp(self.stats[1])
 
         #: The rate the player is collecting minerals
-        self.minerals_collection_rate = self.stats[2]
+        self.minerals_collection_rate = clamp(self.stats[2])
 
         #: The rate the player is collecting vespene
-        self.vespene_collection_rate = self.stats[3]
+        self.vespene_collection_rate = clamp(self.stats[3])
 
         #: The number of active workers the player has
-        self.workers_active_count = self.stats[4]
+        self.workers_active_count = clamp(self.stats[4])
 
         #: The total mineral cost of army units (buildings?) currently being built/queued
-        self.minerals_used_in_progress_army = self.stats[5]
+        self.minerals_used_in_progress_army = clamp(self.stats[5])
 
         #: The total mineral cost of economy units (buildings?) currently being built/queued
-        self.minerals_used_in_progress_economy = self.stats[6]
+        self.minerals_used_in_progress_economy = clamp(self.stats[6])
 
         #: The total mineral cost of technology research (buildings?) currently being built/queued
-        self.minerals_used_in_process_technology = self.stats[7]
+        self.minerals_used_in_progress_technology = clamp(self.stats[7])
+
+        #: The total mineral cost of all things in progress
+        self.minerals_used_in_progress = self.minerals_used_in_progress_army + self.minerals_used_in_progress_economy + self.minerals_used_in_progress_technology
 
         #: The total vespene cost of army units (buildings?) currently being built/queued
-        self.vespene_used_in_progress_army = self.stats[8]
+        self.vespene_used_in_progress_army = clamp(self.stats[8])
 
         #: The total vespene cost of economy units (buildings?) currently being built/queued.
-        self.vespene_used_in_progress_economy = self.stats[9]
+        self.vespene_used_in_progress_economy = clamp(self.stats[9])
 
         #: The total vespene cost of technology research (buildings?) currently being built/queued.
-        self.vespene_used_in_progress_technology = self.stats[10]
+        self.vespene_used_in_progress_technology = clamp(self.stats[10])
+
+        #: The total vespene cost of all things in progress
+        self.vespene_used_in_progress = self.vespene_used_in_progress_army + self.vespene_used_in_progress_economy + self.vespene_used_in_progress_technology
+
+        #: The total cost of all things in progress
+        self.resources_used_in_progress = self.minerals_used_in_progress + self.vespene_used_in_progress
 
         #: The total mineral cost of current army units (buildings?)
-        self.minerals_used_current_army = self.stats[11]
+        self.minerals_used_current_army = clamp(self.stats[11])
 
         #: The total mineral cost of current economy units (buildings?)
-        self.minerals_used_current_economy = self.stats[12]
+        self.minerals_used_current_economy = clamp(self.stats[12])
 
         #: The total mineral cost of current technology research (buildings?)
-        self.minerals_used_current_technology = self.stats[13]
+        self.minerals_used_current_technology = clamp(self.stats[13])
+
+        #: The total mineral cost of all current things
+        self.minerals_used_current = self.minerals_used_current_army + self.minerals_used_current_economy + self.minerals_used_current_technology
 
         #: The total vespene cost of current army units (buildings?)
-        self.vespene_used_current_army = self.stats[14]
+        self.vespene_used_current_army = clamp(self.stats[14])
 
         #: The total vespene cost of current economy units (buildings?)
-        self.vespene_used_current_economy = self.stats[15]
+        self.vespene_used_current_economy = clamp(self.stats[15])
 
         #: The total vespene cost of current technology research (buildings?)
-        self.vespene_used_current_technology = self.stats[16]
+        self.vespene_used_current_technology = clamp(self.stats[16])
+
+        #: The total vepsene cost of all current things
+        self.vespene_used_current = self.vespene_used_current_army + self.vespene_used_current_economy + self.vespene_used_current_technology
+
+        #: The total cost of all things current
+        self.resources_used_current = self.minerals_used_current + self.vespene_used_current
 
         #: The total mineral cost of all army units (buildings?) lost
-        self.minerals_lost_army = self.stats[17]
+        self.minerals_lost_army = clamp(self.stats[17])
 
-        #: The total minerals cost of all economy units (buildings?) lost
-        self.minerals_lost_economy = self.stats[18]
+        #: The total mineral cost of all economy units (buildings?) lost
+        self.minerals_lost_economy = clamp(self.stats[18])
 
-        #: The total minerals cost of all technology research (buildings?) lost
-        self.minerals_lost_technology = self.stats[19]
+        #: The total mineral cost of all technology research (buildings?) lost
+        self.minerals_lost_technology = clamp(self.stats[19])
+
+        #: The total mineral cost of all lost things
+        self.minerals_lost = self.minerals_lost_army + self.minerals_lost_economy + self.minerals_lost_technology
 
         #: The total vespene cost of all army units (buildings?) lost
-        self.vespene_lost_army = self.stats[20]
+        self.vespene_lost_army = clamp(self.stats[20])
 
         #: The total vespene cost of all economy units (buildings?) lost
-        self.vespene_lost_economy = self.stats[21]
+        self.vespene_lost_economy = clamp(self.stats[21])
 
         #: The total vespene cost of all technology research (buildings?) lost
-        self.vespene_lost_technology = self.stats[22]
+        self.vespene_lost_technology = clamp(self.stats[22])
+
+        #: The total vepsene cost of all lost things
+        self.vespene_lost = self.vespene_lost_army + self.vespene_lost_economy + self.vespene_lost_technology
+
+        #: The total resource cost of all lost things
+        self.resources_lost = self.minerals_lost + self.vespene_lost
 
         #: The total mineral value of enemy army units (buildings?) killed
-        self.minerals_killed_army = self.stats[23]
+        self.minerals_killed_army = clamp(self.stats[23])
 
         #: The total mineral value of enemy economy units (buildings?) killed
-        self.minerals_killed_economy = self.stats[24]
+        self.minerals_killed_economy = clamp(self.stats[24])
 
         #: The total mineral value of enemy technology research (buildings?) killed
-        self.minerals_killed_technology = self.stats[25]
+        self.minerals_killed_technology = clamp(self.stats[25])
+
+        #: The total mineral value of all killed things
+        self.minerals_killed = self.minerals_killed_army + self.minerals_killed_economy + self.minerals_killed_technology
 
         #: The total vespene value of enemy army units (buildings?) killed
-        self.vespene_killed_army = self.stats[26]
+        self.vespene_killed_army = clamp(self.stats[26])
 
         #: The total vespene value of enemy economy units (buildings?) killed
-        self.vespene_killed_economy = self.stats[27]
+        self.vespene_killed_economy = clamp(self.stats[27])
 
         #: The total vespene value of enemy technology research (buildings?) killed
-        self.vespene_killed_technology = self.stats[28]
+        self.vespene_killed_technology = clamp(self.stats[28])
+
+        #: The total vespene cost of all killed things
+        self.vespene_killed = self.vespene_killed_army + self.vespene_killed_economy + self.vespene_killed_technology
+
+        #: The total resource cost of all killed things
+        self.resources_killed = self.minerals_killed + self.vespene_killed
 
         #: The food supply currently used
         self.food_used = self.stats[29]
