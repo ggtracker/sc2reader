@@ -97,7 +97,7 @@
       "is_building": true
     },
     "hive": {
-      "minerals": 750,
+      "minerals": 700,
       "vespene": 250,
       "supply": 0,
       "is_building": true
@@ -345,8 +345,8 @@
       "is_building": true
     },
     "darkshrine": {
-      "minerals": 100,
-      "vespene": 250,
+      "minerals": 150,
+      "vespene": 150,
       "supply": 0,
       "is_building": true
     },
@@ -671,7 +671,7 @@
       "supply": 1
     },
     "refinery": {
-      "minerals": 100,
+      "minerals": 75,
       "vespene": 0,
       "supply": 0,
       "is_building": true
