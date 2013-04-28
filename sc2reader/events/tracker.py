@@ -217,10 +217,10 @@ class UnitBornEvent(TrackerEvent):
         self.unit_controller = None
 
         #: The x coordinate of the location
-        self.x = data[5]
+        self.x = data[5] * 4
 
         #: The y coordinate of the location
-        self.y = data[6]
+        self.y = data[6] * 4
 
         #: The map location of the unit birth
         self.location = (self.x, self.y)
@@ -281,10 +281,10 @@ class UnitDiedEvent(TrackerEvent):
         self.killer = None
 
         #: The x coordinate of the location
-        self.x = data[3]
+        self.x = data[3] * 4
 
         #: The y coordinate of the location
-        self.y = data[4]
+        self.y = data[4] * 4
 
         #: The map location the unit was killed at.
         self.location = (self.x, self.y)
@@ -466,10 +466,10 @@ class UnitInitEvent(TrackerEvent):
         self.unit_controller = None
 
         #: The x coordinate of the location
-        self.x = data[5]
+        self.x = data[5] * 4
 
         #: The y coordinate of the location
-        self.y = data[6]
+        self.y = data[6] * 4
 
         #: The map location the unit was started at
         self.location = (self.x, self.y)
