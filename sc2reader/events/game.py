@@ -5,9 +5,6 @@ from sc2reader.data import Unit
 from sc2reader.events.base import Event
 from sc2reader.log_utils import loggable
 
-import json
-from collections import namedtuple
-
 from itertools import chain
 
 @loggable
