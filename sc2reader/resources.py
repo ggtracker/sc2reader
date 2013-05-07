@@ -593,7 +593,7 @@ class Replay(Resource):
         data = utils.extract_data_file(data_file,self.archive)
         if data:
             self.raw_data[data_file] = reader(data, self)
-        elif self.opt.debug and data_file != 'replay.message.events':
+        elif self.opt.debug and data_file not in ['replay.message.events','replay.tracker.events']:
             raise ValueError("{0} not found in archive".format(data_file))
 
 
