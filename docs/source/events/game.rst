@@ -7,3 +7,4 @@ Coming soon!
 
 .. automodule:: sc2reader.events.game
 	:members:
+	:undoc-members:

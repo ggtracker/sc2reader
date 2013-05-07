@@ -5,3 +5,4 @@ Tracker Events
 
 .. automodule:: sc2reader.events.tracker
 	:members:
+	:undoc-members:
