@@ -12,25 +12,6 @@ MapData = namedtuple('MapData',['gateway','map_hash'])
 ColorData = namedtuple('ColorData',['a','r','g','b'])
 BnetData = namedtuple('BnetData',['gateway','unknown2','subregion','uid'])
 
-class DepotFile(object):
-    url_template = 'http://{0}.depot.battle.net:1119/{1}.{2}'
-
-    def __init__(self, bytes):
-        self.server = bytes[4:8].strip('\x00 ')
-        self.hash = bytes[8:].encode('hex')
-        self.type = bytes[0:4]
-
-    @property
-    def url(self):
-        return self.url_template.format(self.server, self.hash, self.type)
-
-    def __hash__(self):
-        return hash(self.url)
-
-    def __str__(self):
-        return self.url
-
-
 class Team(object):
     """
     The team object primarily a container object for organizing :class:`Player`

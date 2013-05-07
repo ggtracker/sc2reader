@@ -24,7 +24,7 @@ from sc2reader import readers
 from sc2reader import exceptions
 from sc2reader.data import builds as datapacks
 from sc2reader.exceptions import SC2ReaderLocalizationError
-from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, DepotFile, BuildEntry
+from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, BuildEntry
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, LOBBY_PROPERTIES, GATEWAY_LOOKUP
 
 
@@ -761,7 +761,7 @@ class GameSummary(Resource):
         # The s2gs file also keeps reference to a series of s2mv files
         # Some of these appear to be encoded bytes and others appear to be
         # the preview images that authors may bundle with their maps.
-        self.s2mv_urls = [str(DepotFile(file_hash)) for file_hash in self.parts[0][6][7]]
+        self.s2mv_urls = [str(utils.DepotFile(file_hash)) for file_hash in self.parts[0][6][7]]
 
     def load_translations(self):
         # This section of the file seems to map numerical ids to their
@@ -807,7 +807,7 @@ class GameSummary(Resource):
             files = list()
             for file_hash in localization[1]:
                 if file_hash[:4] != '\x00\x00\x00\x00':
-                    files.append(DepotFile(file_hash))
+                    files.append(utils.DepotFile(file_hash))
             self.localization_urls[language] = files
 
         # Grab the gateway from the one of the files

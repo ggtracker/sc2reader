@@ -8,6 +8,39 @@ from datetime import timedelta
 from sc2reader.exceptions import MPQError
 from sc2reader.constants import COLOR_CODES, COLOR_CODES_INV
 
+class DepotFile(object):
+    """
+    :param bytes: The raw bytes representing the depot file
+
+    The DepotFile object parses bytes for a dependency into their components
+    and assembles them into a URL so that the dependency can be fetched.
+    """
+
+    #: The url template for all DepotFiles
+    url_template = 'http://{0}.depot.battle.net:1119/{1}.{2}'
+
+    def __init__(self, bytes):
+        #: The server the file is hosted on
+        self.server = bytes[4:8].strip('\x00 ')
+
+        #: The unique content based hash of the file
+        self.hash = bytes[8:].encode('hex')
+
+        #: The extension of the file on the server
+        self.type = bytes[0:4]
+
+    @property
+    def url(self):
+        """ Returns url of the depot file. """
+        return self.url_template.format(self.server, self.hash, self.type)
+
+    def __hash__(self):
+        return hash(self.url)
+
+    def __str__(self):
+        return self.url
+
+
 class PersonDict(dict):
     """
     Supports lookup on both the player name and player id

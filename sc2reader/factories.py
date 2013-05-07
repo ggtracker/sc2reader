@@ -12,7 +12,6 @@ from collections import defaultdict
 import urlparse, time
 from sc2reader import utils
 from sc2reader import log_utils
-from sc2reader.objects import DepotFile
 from sc2reader.resources import Resource, Replay, Map, GameSummary, MapInfo, MapHeader, Localization
 
 @log_utils.loggable
@@ -186,7 +185,7 @@ class SC2Factory(object):
         """http links, filesystem locations, and file-like objects"""
         options = options or self._get_options(Resource, **new_options)
 
-        if isinstance(resource, DepotFile):
+        if isinstance(resource, utils.DepotFile):
             resource = resource.url
 
         if isinstance(resource, basestring):

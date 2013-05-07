@@ -11,7 +11,7 @@ from sc2reader.objects import *
 from sc2reader.events.game import *
 from sc2reader.events.message import *
 from sc2reader.events.tracker import *
-from sc2reader.utils import AttributeDict
+from sc2reader.utils import AttributeDict, DepotFile
 from sc2reader.decoders import BitPackedDecoder, ByteDecoder
 
 class Reader(object):
