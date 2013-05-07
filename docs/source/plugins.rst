@@ -38,22 +38,13 @@ is stored in ``person.selection`` as a two dimensional array of lists.
 
     unit_list = replay.player[1].selection[frame][buffer]
 
-Where buffer is a hotkey 0-9 or 10 which represents the active selection.
+Where buffer is a control group 0-9 or 10 which represents the active selection.
 
-There are a number of known flaws with the current tracking algorithm and/or the
-source information on which it works:
+Keep in mind that the buffers are only updated for the following events:
 
-* Deaths are not recorded. A selected unit that dies will be deselected though.
-* Transformations are not recorded. A hotkey'd egg that hatches into 2 zerglings
-  will not register and the egg will stay hotkeyed until the hotkey is over
-  written. If the transformed unit is part of active selection the
-  selection/deslection is handled properly.
+ * The active selection changes
+ * When unit types change (eggs hatch, tanks siege)
 
-To help expose these short comings a ``person.selection_errors`` tally is kept. An
-error is recorded every time a selection event instructs us to do something that
-would not be possible with what we believe to be the current selection. Such an
-event would mean that our tracker went wrong previously.
-
-Players that consistently use ``shift+ctrl+hotkey`` to add to hotkeys instead of
-resetting hotkeys with ``ctrl+hotkey`` create tons of issues for this tracker
-because selection changes in hotkeys are not recorded in the replay file.
+Buffers are not updated when units die unless the unit dies while selected (because
+the active selection must change). Units that die while deslected won't get deselected
+until the next time the control group they were saved in becomes active.

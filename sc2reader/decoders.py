@@ -8,6 +8,12 @@ import functools
 from collections import OrderedDict
 
 class ByteDecoder(object):
+    """
+    :param contents: The string or file-like object to decode
+    :param endian: Either > or <. Indicates the endian the bytes are stored in.
+
+    Used to unpack parse byte aligned files.
+    """
 
     #: The StringIO object used internaly for reading from the
     #: decoder contents. cStringIO is faster than managing our
@@ -85,7 +91,15 @@ class ByteDecoder(object):
         return self._unpack_bytes(self.read(count))
 
 class BitPackedDecoder(object):
+    """
+    :param contents: The string of file-like object to decode
 
+    Extends :class:`ByteDecoder`. Always packed BIG_ENDIAN
+
+    Adds capabilities for parsing files that Blizzard has packed in
+    bits and not in bytes.
+
+    """
     #: The ByteDecoder used internally to read byte
     #: aligned values.
     _buffer = None

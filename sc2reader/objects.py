@@ -74,11 +74,12 @@ class Attribute(object):
 
 class Person(object):
     """
-    The person object is never actually instanciated but instead acts as a
-    parent class for the :class:`Observer` and :class:`Player` classes.
-
     :param integer pid: The person's unique id in this game.
     :param string name: The person's battle.net name
+
+    Base class for :class:`Player` and :class:`Observer` classes.
+
+    Contains attributes shared by all starcraft II clients in a game.
     """
 
     #: The person's unique in this game
@@ -94,7 +95,7 @@ class Person(object):
     #: A flag indicating if the person is a human or computer
     is_human = bool()
 
-    #: A list of :class:`ChatEvent` objects representing all of the chat
+    #: A list of :class:`~sc2reader.events.message.ChatEvent` objects representing all of the chat
     #: messages the person sent during the game
     messages = list()
 
@@ -126,10 +127,9 @@ class Person(object):
 
 class Observer(Person):
     """
-    A subclass of the :class:`Person` class for observers. Fewer attributes
-    are made available for observers in the replay file.
+    Extends :class:`Person`.
 
-    All Observers are human.
+    Represents observers in the game.
     """
 
     def __init__(self, pid, name):
@@ -144,7 +144,10 @@ class Observer(Person):
 
 class Player(Person):
     """
-    A subclass of the :class:`Person` class for players.
+    Extends :class:`Person`.
+
+    Represents an active player in the game. Observers are represented via  the
+    :class:`Observer` class.
     """
 
     URL_TEMPLATE = "http://%s.battle.net/sc2/en/profile/%s/%s/%s/"
@@ -152,7 +155,7 @@ class Player(Person):
     #: A reference to the player's :class:`Team` object
     team = None
 
-    #: A reference to a :class:`Color` object representing the player's color
+    #: A reference to a :class:`~sc2reader.utils.Color` object representing the player's color
     color = None
 
     #: The race the player picked prior to the game starting.
@@ -164,7 +167,8 @@ class Player(Person):
     play_race = str()
 
     #: The difficulty setting for the player. Always Medium for human players.
-    #: Very easy, East, Medium, Hard, Very hard, Insane
+    #: Very Easy, Easy, Medium, Hard, Harder, Very hard, Elite, Insane,
+    #: Cheater 2 (Resources), Cheater 1 (Vision)
     difficulty = str()
 
     #: The player's handicap as set prior to game start, ranges from 50-100
@@ -191,7 +195,7 @@ class Player(Person):
 
     @property
     def url(self):
-        """The player's battle.net profile url"""
+        """The player's formatted battle.net profile url"""
         return self.URL_TEMPLATE % (self.gateway, self.uid, self.subregion, self.name)
 
     def __str__(self):
@@ -210,6 +214,10 @@ class Player(Person):
 
 
 class PlayerSummary():
+    """
+    Resents a player as loaded from a :class:`~sc2reader.resources.GameSummary`
+    file.
+    """
 
     #: The index of the player in the game
     pid = int()
@@ -281,7 +289,10 @@ BuildEntry = namedtuple('BuildEntry',['supply','total_supply','time','order','bu
 
 # TODO: Are there libraries with classes like this in them
 class Graph():
-    """A class to represent a graph on the score screen."""
+    """
+    A class to represent a graph on the score screen. Derived from data in the
+    :class:`~sc2reader.resources.GameSummary` file.
+    """
 
     #: Times in seconds on the x-axis of the graph
     times = list()

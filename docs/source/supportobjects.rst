@@ -6,16 +6,10 @@ Support Structures
 These dumb data structures help to give meaningful organization and structure to the information in their respective parent resources.
 
 
-Team
-----------------
+Player
+------------------
 
-.. autoclass:: Team
-
-
-Person
--------------
-
-.. autoclass:: Person
+.. autoclass:: Player
     :members:
 
 
@@ -26,11 +20,18 @@ Observer
     :members:
 
 
-Player
-------------------
+Person
+-------------
 
-.. autoclass:: Player
+.. autoclass:: Person
     :members:
+
+
+Team
+----------------
+
+.. autoclass:: Team
+	:members:
 
 
 PlayerSummary
@@ -44,4 +45,3 @@ Graph
 
 .. autoclass:: Graph
     :members:
-

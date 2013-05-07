@@ -35,16 +35,21 @@ The best way to learn how to pick sc2Reader up and get started is probably by ex
 Reference Pages
 -----------------------
 
-SC2 replays hold a ton of information. The following reference pages were put together to help you quickly find the information you need.
+The following reference pages were put together to help you quickly find the information you need.
 
 .. toctree::
 
     faq
     sc2reader
-    primaryresources
+    mainobjects
     supportobjects
-    utilityclasses
+    dataobjects
     plugins
+    factories
+    decoders
+    utilities
+    events/index
+
 
 
 .. toctree::
@@ -54,8 +59,12 @@ SC2 replays hold a ton of information. The following reference pages were put to
 
     faq
     sc2reader
-    primaryresources
+    mainobjects
     supportobjects
-    utilityclasses
+    dataobjects
     plugins
+    factories
+    decoders
+    utilities
     tutorials/*
+    events/index

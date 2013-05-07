@@ -1,9 +1,15 @@
 .. currentmodule:: sc2reader.utils
 
-Utility Classes
+Utilities
 ===================
 
-These classes are provided to make working with certain types of data a bit easier or more flexible in interpretation.
+These utilities are provided to make working with certain types of data a bit easier.
+
+DepotFile
+--------------
+
+.. autoclass:: DepotFile
+	:members:
 
 
 Color
@@ -33,9 +39,7 @@ AttributeDict
 .. autoclass:: AttributeDict
     :members:
 
+get_files
+---------------
 
-ReplayBuffer
--------------------
-
-.. autoclass:: ReplayBuffer
-    :members:
+.. autofunction:: get_files

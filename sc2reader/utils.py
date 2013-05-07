@@ -82,6 +82,10 @@ def windows_to_unix(windows_time):
     return (windows_time-116444735995904000)/10**7
 
 class AttributeDict(dict):
+    """
+    Support access to dictionary items via the dot syntax as though they
+    were class attributes. Also support setting new keys via dot syntax.
+    """
     def __getattr__(self, name):
         try:
             return self[name]
@@ -179,6 +183,15 @@ def merged_dict(a, b):
     return c
 
 def get_files(path, exclude=list(), depth=-1, followlinks=False, extension=None, **extras):
+    """
+    Retrieves files from the given path with configurable behavior.
+
+    :param path: Path to search for files
+    :param depth: Limits the depth of the search. -1 = Unlimited
+    :param followLinks: Enables the search to follow links.
+    :param exclude: Excludes subdirectories with names in this list.
+    :param extension: Restricts results to files matching the given extension."
+    """
     # os.walk and os.path.isfile fail silently. We want to be loud!
     if not os.path.exists(path):
         raise ValueError("Location `{0}` does not exist".format(path))

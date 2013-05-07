@@ -24,6 +24,9 @@ command_data = pkgutil.get_data('sc2reader.data', 'train_commands.json')
 train_commands = json.loads(command_data)
 
 class Unit(object):
+    """
+    Represents an in-game unit.
+    """
 
     def __init__(self, unit_id, flags):
         #: A reference to the player that owns this unit
@@ -41,10 +44,20 @@ class Unit(object):
         #: A reference to the player that killed this unit. Not always available.
         self.killed_by = None
 
+        #: The unique in-game id for this unit
         self.id = unit_id
+
         self.flags = flags
+
+        #: A reference to the unit type this unit is current in.
+        #: e.g. SeigeTank is a different type than SeigeTankSeiged
         self._type_class = None
+
+        #: A history of all the unit types this unit has had stored
+        #: in order by frame the type was acquired.
         self.type_history = OrderedDict()
+
+
         self.hallucinated = (flags & 2 == 2)
 
     def set_type(self, unit_type, frame):
@@ -81,6 +94,7 @@ class Unit(object):
 
     @property
     def name(self):
+        """The name of the unit type currently active. None if no type is assigned"""
         return self._type_class.name if self._type_class else None
 
     @property
@@ -89,35 +103,42 @@ class Unit(object):
 
     @property
     def type(self):
-        """ For backwards compatibility this returns the int id instead of the actual class """
+        """ The internal type id of the current unit type of this unit. None if no type is assigned"""
         return self._type_class.id if self._type_class else None
 
     @property
     def race(self):
+        """ The race of this unit. One of Terran, Protoss, Zerg, Neutral, or None"""
         return self._type_class.race if self._type_class else None
 
     @property
     def minerals(self):
+        """ The mineral cost of the unit. None if no type is assigned"""
         return self._type_class.minerals if self._type_class else None
 
     @property
     def vespene(self):
+        """ The vespene cost of the unit. None if no type is assigned"""
         return self._type_class.vespene if self._type_class else None
 
     @property
     def supply(self):
+        """ The supply used by this unit. Negative for supply providers. None if no type is assigned """
         return self._type_class.supply if self._type_class else None
 
     @property
     def is_worker(self):
+        """ Boolean flagging units as worker units. SCV, MULE, Drone, Probe """
         return self._type_class.is_worker if self._type_class else False
 
     @property
     def is_building(self):
+        """ Boolean flagging units as buildings. """
         return self._type_class.is_building if self._type_class else False
 
     @property
     def is_army(self):
+        """ Boolean flagging units as army units. """
         return self._type_class.is_army if self._type_class else False
 
     def __str__(self):
@@ -134,21 +155,63 @@ class Unit(object):
 
 
 class Ability(object):
-    pass
+
+    #: The internal integer id representing this ability.
+    id = None
+
+    #: The name of this ability
+    name = ""
+
+    #: Boolean flagging this ability as creating a new unit.
+    is_build = False
+
+    #: The number of seconds required to build this unit. 0 if not ``is_build``.
+    build_time = 0
+
+    #: A reference to the :class:`Unit` type built by this ability. None if not ``is_build``.
+    build_unit = None
+
 
 @loggable
 class Build(object):
+    """
+    :param build_id: The build number identifying this dataset.
+
+    The datapack for a particualr group of builds. Maps internal integer ids
+    to :class:`Unit` and :class:`Ability` types. Also contains builder methods
+    for creating new units and changing their types.
+
+    All build data is valid for standard games only. For arcade maps milage
+    may vary.
+    """
     def __init__(self, build_id):
+        #: The integer id of the build
         self.id=build_id
+
+        #: A dictionary mapping integer ids to available unit types.
         self.units = dict()
+
+        #: A dictionary mapping integer ids to available abilities.
         self.abilities = dict()
 
     def create_unit(self, unit_id, unit_type, unit_flags, frame):
+        """
+        :param unit_id: The unique id of this unit.
+        :param unit_type: The unit type to assign to the new unit
+
+        Creates a new unit and assigns it to the specified type.
+        """
         unit = Unit(unit_id, unit_flags)
         self.change_type(unit, unit_type, frame)
         return unit
 
     def change_type(self, unit, new_type, frame):
+        """
+        :param unit: The changing types.
+        :param unit_type: The unit type to assign to this unit
+
+        Assigns the given type to a unit.
+        """
         if new_type in self.units:
             unit_type = self.units[new_type]
             unit.set_type(unit_type, frame)

@@ -18,7 +18,7 @@ from sc2reader.resources import Resource, Replay, Map, GameSummary, MapInfo, Map
 class SC2Factory(object):
     """The SC2Factory class acts as a generic loader interface for all
     available to sc2reader resources. At current time this includes
-    :class:`Replay` and :class:`Map` resources. These resources can be
+    :class:`~sc2reader.resources.Replay` and :class:`~sc2reader.resources.Map` resources. These resources can be
     loaded in both singular and plural contexts with:
 
         * :meth:`load_replay` - :class:`Replay`
@@ -28,9 +28,9 @@ class SC2Factory(object):
 
     The load behavior can be configured in three ways:
 
-        # Passing options to the factory constructor
-        # Using the :meth:`configure` method of a factory instance
-        # Passing overried options into the load method
+        * Passing options to the factory constructor
+        * Using the :meth:`configure` method of a factory instance
+        * Passing overried options into the load method
 
     See the :meth:`configure` method for more details on configuration
     options.
@@ -243,6 +243,13 @@ class CachedSC2Factory(SC2Factory):
         raise NotImplemented()
 
 class FileCachedSC2Factory(CachedSC2Factory):
+    """
+    :param cache_dir: Local directory to cache files in.
+
+    Extends :class:`SC2Factory`.
+
+    Caches remote depot resources on the file system in the ``cache_dir``.
+    """
     def __init__(self, cache_dir, **options):
         super(FileCachedSC2Factory, self).__init__(**options)
         self.cache_dir = os.path.abspath(cache_dir)
@@ -270,6 +277,14 @@ class FileCachedSC2Factory(CachedSC2Factory):
         return os.path.join(self.cache_dir,*(cache_key))
 
 class DictCachedSC2Factory(CachedSC2Factory):
+    """
+    :param cache_max_size: The max number of cache entries to hold in memory.
+
+    Extends :class:`SC2Factory`.
+
+    Caches remote depot resources in memory. Does not write to the file system.
+    The cache is effectively cleared when the process exits.
+    """
     def __init__(self, cache_max_size=0, **options):
         super(DictCachedSC2Factory, self).__init__(**options)
         self.cache_dict = dict()
@@ -292,7 +307,15 @@ class DictCachedSC2Factory(CachedSC2Factory):
         return cache_key in self.cache_dict
 
 class DoubleCachedSC2Factory(DictCachedSC2Factory, FileCachedSC2Factory):
+    """
+    :param cache_dir: Local directory to cache files in.
+    :param cache_max_size: The max number of cache entries to hold in memory.
 
+    Extends :class:`SC2Factory`.
+
+    Caches remote depot resources to the file system AND holds a subset of them
+    in memory for more efficient access.
+    """
     def __init__(self, cache_dir, cache_max_size=0, **options):
         super(DoubleCachedSC2Factory, self).__init__(cache_max_size, cache_dir=cache_dir, **options)
 

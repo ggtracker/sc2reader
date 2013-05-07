@@ -4,6 +4,3 @@ SC2Reader
 ======================
 
 The replay factory
-
-.. autoclass:: SC2Factory
-    :members:
