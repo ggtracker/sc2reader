@@ -97,7 +97,7 @@ def APMTracker(replay):
                 break
 
         if len(player.apm) > 0:
-            player.avg_apm = sum(player.apm.values())/float(len(player.apm))#float(player.seconds_played)*60
+            player.avg_apm = sum(player.apm.values())/float(player.seconds_played)*60
         else:
             player.avg_apm = 0
 
