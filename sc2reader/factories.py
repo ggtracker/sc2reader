@@ -106,7 +106,7 @@ class SC2Factory(object):
 
     def load_map_headers(self, sources, options=None, **new_options):
         """Loads a collection of s2mh files, returns a generator."""
-        return plugins_all(MapHeader, sources, options, extension='s2mh', **new_options)
+        return self.load_all(MapHeader, sources, options, extension='s2mh', **new_options)
 
     def configure(self, cls=None, **options):
         """ Configures the factory to use the supplied options. If cls is specified
