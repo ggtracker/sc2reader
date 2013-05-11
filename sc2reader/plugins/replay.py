@@ -2,18 +2,19 @@
 from __future__ import absolute_import
 
 import json
-import functools
 from collections import defaultdict
 
 from sc2reader import log_utils
 from sc2reader.utils import Length
 from sc2reader.plugins.utils import PlayerSelection, GameState, JSONDateEncoder, plugin
 
+
 @plugin
 def toJSON(replay, **user_options):
     options = dict(cls=JSONDateEncoder)
     options.update(user_options)
     return json.dumps(toDict()(replay), **options)
+
 
 @plugin
 def toDict(replay):
@@ -46,6 +47,7 @@ def toDict(replay):
         players.append({
             'avg_apm': getattr(player, 'avg_apm', None),
             'color': player.color.__dict__ if hasattr(player, 'color') else None,
+            'handicap': getattr(player, 'handicap', None),
             'name': getattr(player, 'name', None),
             'pick_race': getattr(player, 'pick_race', None),
             'pid': getattr(player, 'pid', None),
@@ -60,8 +62,9 @@ def toDict(replay):
     # Consolidate replay metadata into dictionary
     return {
         'gateway': getattr(replay, 'gateway', None),
-        'map': getattr(replay, 'map', None),
+        'map_name': getattr(replay, 'map_name', None),
         'file_time': getattr(replay, 'file_time', None),
+        'filehash': getattr(replay, 'filehash', None),
         'unix_timestamp': getattr(replay, 'unix_timestamp', None),
         'date': getattr(replay, 'date', None),
         'utc_date': getattr(replay, 'utc_date', None),
@@ -75,9 +78,14 @@ def toDict(replay):
         'frames': getattr(replay, 'frames', None),
         'build': getattr(replay, 'build', None),
         'release': getattr(replay, 'release_string', None),
-        'length': getattr(getattr(replay, 'length', None),'seconds', None),
+        'game_fps': getattr(replay, 'game_fps', None),
+        'game_length': getattr(getattr(replay, 'game_length', None), 'seconds', None),
         'players': players,
-        'observers': observers
+        'observers': observers,
+        'real_length': getattr(getattr(replay, 'real_length', None), 'seconds', None),
+        'real_type': getattr(replay, 'real_type', None),
+        'time_zone': getattr(replay, 'time_zone', None),
+        'versions': getattr(replay, 'versions', None)
     }
 
 @plugin
