@@ -15,8 +15,10 @@ under the open MIT license. Currently powering:
 * Experiments: `Midi Conversion`_
 
 Our secondary goal is to become a reference implementation for people looking
-to implement parsers in other languages. The following is a list of partial
-implementations in other languages:
+to implement libraries in other languages. For replays, it implements the 
+replay format as specified in Blizzard's `s2protocol`_  project.
+
+The following is a list of partial implementations in other languages:
 
 * C#: `sc2replay-csharp`_ (special thanks for v1.5 help)
 * C++: `sc2pp`_
@@ -295,9 +297,11 @@ and kept this project going.
   and assisting with our v1.5 upgrade.
 * Thanks to `ggtracker.com`_ for sponsoring further development and providing
   the thousands of test files used while adding s2gs and HotS support.
-* Thanks to Blizzard for allowing and supporting development of 3rd party tools.
+* Thanks to Blizzard for supporting development of 3rd party tools and releasing
+  their `s2protocol`_ reference implementation.
 
 
+.. _s2protocol: https://github.com/Blizzard/s2protocol
 .. _ggtracker.com: http://ggtracker.com
 .. _gamereplays.org: http://www.gamereplays.org/starcraft2/
 .. _Midi Conversion: https://github.com/obohrer/sc2midi
