@@ -103,13 +103,16 @@ class Replay(Resource):
     #: A reference to the loaded :class:`Map` resource.
     map = None
 
-    #: The UTC time the game was ended as represented by the Windows OS
+    #: The UTC time (according to the client NOT the server) that the game
+    #: was ended as represented by the Windows OS
     windows_timestamp = int()
 
-    #: The UTC time the game was ended as represented by the Unix OS
+    #: The UTC time (according to the client NOT the server) that the game
+    #: was ended as represented by the Unix OS
     unix_timestamp = int()
 
-    #: The time zone adjustment for the location the replay was recorded at
+    #: The time zone adjustment for the time zone registered on the local
+    #: computer that recorded this replay.
     time_zone= int()
 
     #: Deprecated: See `end_time` below.
