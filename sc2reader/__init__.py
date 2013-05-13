@@ -5,7 +5,7 @@ import os
 import sys
 
 # import submodules
-from sc2reader import plugins, data, scripts
+from sc2reader import engine
 from sc2reader import factories, log_utils
 
 # setup the library logging

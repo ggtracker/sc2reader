@@ -2,11 +2,12 @@
 import json
 import functools
 
+from sc2reader.events.base import Event
 from sc2reader.utils import Length
 
 clamp = functools.partial(max, 0)
 
-class TrackerEvent(object):
+class TrackerEvent(Event):
     def __init__(self, frames):
         #: The frame of the game this event was applied
         self.frame = frames
@@ -183,9 +184,6 @@ class PlayerStatsEvent(TrackerEvent):
         #: The total vespene value of all active forces
         self.vespene_used_active_forces = clamp(self.stats[32])
 
-    def load_context(self, replay):
-        self.player = replay.player[self.pid]
-
     def __str__(self):
         return self._str_prefix()+"{0: >15} - Stats Update".format(self.player)
 
@@ -231,34 +229,6 @@ class UnitBornEvent(TrackerEvent):
         #: The map location of the unit birth
         self.location = (self.x, self.y)
 
-    def load_context(self, replay):
-        if self.control_pid in replay.player:
-            self.unit_controller = replay.player[self.control_pid]
-        elif self.control_pid != 0:
-            pass#print "Unknown controller pid", self.control_pid
-
-        if self.upkeep_pid in replay.player:
-            self.unit_upkeeper = replay.player[self.upkeep_pid]
-        elif self.upkeep_pid != 0:
-            pass#print "Unknown upkeep pid", self.upkeep_pid
-
-        if self.unit_id in replay.objects:
-            # This can happen because game events are done first
-            self.unit = replay.objects[self.unit_id]
-        else:
-            # TODO: How to tell if something is hallucination?
-            self.unit = replay.datapack.create_unit(self.unit_id, self.unit_type_name, 0, self.frame)
-            replay.objects[self.unit_id] = self.unit
-
-        replay.active_units[self.unit_id_index] = self.unit
-        self.unit.location = self.location
-        self.unit.started_at = self.frame
-        self.unit.finished_at = self.frame
-
-        if self.unit_upkeeper:
-            self.unit.owner = self.unit_upkeeper
-            self.unit.owner.units.append(self.unit)
-
     def __str__(self):
         return self._str_prefix()+"{0: >15} - Unit born {1}".format(self.unit_upkeeper,self.unit)
 
@@ -295,26 +265,6 @@ class UnitDiedEvent(TrackerEvent):
         #: The map location the unit was killed at.
         self.location = (self.x, self.y)
 
-    def load_context(self, replay):
-        if self.unit_id in replay.objects:
-            self.unit = replay.objects[self.unit_id]
-            self.unit.died_at = self.frame
-            self.unit.location = self.location
-            if self.unit_id_index in replay.active_units:
-                del replay.active_units[self.unit_id_index]
-            else:
-                pass#print "Unable to delete unit, not index not active", self.unit_id_index
-        else:
-            pass#print "Unit died before it was born!"
-
-        if self.killer_pid in replay.player:
-            self.killer = replay.player[self.killer_pid]
-            if self.unit:
-                self.unit.killed_by = self.killer
-                self.killer.killed_units.append(self.unit)
-        elif self.killer_pid:
-            pass#print "Unknown killer pid", self.killer_pid
-
     def __str__(self):
         return self._str_prefix()+"{0: >15} - Unit died {1}.".format(self.unit.owner, self.unit)
 
@@ -349,28 +299,6 @@ class UnitOwnerChangeEvent(TrackerEvent):
         #: The player object that controls this unit. 0 means neutral unit
         self.unit_controller = None
 
-    def load_context(self, replay):
-        if self.control_pid in replay.player:
-            self.unit_controller = replay.player[self.control_pid]
-        elif self.control_pid != 0:
-            pass#print "Unknown controller pid", self.control_pid
-
-        if self.upkeep_pid in replay.player:
-            self.unit_upkeeper = replay.player[self.upkeep_pid]
-        elif self.upkeep_pid != 0:
-            pass#print "Unknown upkeep pid", self.upkeep_pid
-
-        if self.unit_id in replay.objects:
-            self.unit = replay.objects[self.unit_id]
-        else:
-            print "Unit owner changed before it was born!"
-
-        if self.unit_upkeeper:
-            if self.unit.owner:
-                self.unit.owner.units.remove(self.unit)
-            self.unit.owner = self.unit_upkeeper
-            self.unit_upkeeper.units.append(self.unit)
-
     def __str__(self):
         return self._str_prefix()+"{0: >15} took {1}".format(self.unit_upkeeper, self.unit)
 
@@ -396,13 +324,6 @@ class UnitTypeChangeEvent(TrackerEvent):
         #: The the new unit type name
         self.unit_type_name = data[2]
 
-    def load_context(self, replay):
-        if self.unit_id in replay.objects:
-            self.unit = replay.objects[self.unit_id]
-            replay.datapack.change_type(self.unit, self.unit_type_name, self.frame)
-        else:
-            print "Unit type changed before it was born!"
-
     def __str__(self):
         return self._str_prefix()+"{0: >15} - Unit {0} type changed to {1}".format(self.unit.owner, self.unit, self.unit_type_name)
 
@@ -424,15 +345,6 @@ class UpgradeCompleteEvent(TrackerEvent):
 
         #: The number of times this upgrade as been researched
         self.count = data[2]
-
-
-    def load_context(self, replay):
-        if self.pid in replay.player:
-            self.player = replay.player[self.pid]
-        else:
-            pass#print "Unknown upgrade pid", self.pid
-        # TODO: We don't have upgrade -> ability maps
-        # TODO: we can probably do the same thing we did for units
 
     def __str__(self):
         return self._str_prefix()+"{0: >15} - {1}upgrade completed".format(self.player, self.upgrade_type_name)
@@ -479,36 +391,6 @@ class UnitInitEvent(TrackerEvent):
         #: The map location the unit was started at
         self.location = (self.x, self.y)
 
-    def load_context(self, replay):
-        if self.control_pid in replay.player:
-            self.unit_controller = replay.player[self.control_pid]
-        elif self.control_pid != 0:
-            pass#print "Unknown controller pid", self.control_pid
-
-        if self.upkeep_pid in replay.player:
-            self.unit_upkeeper = replay.player[self.upkeep_pid]
-        elif self.upkeep_pid != 0:
-            pass#print "Unknown upkeep pid", self.upkeep_pid
-
-        if self.unit_id in replay.objects:
-            # This can happen because game events are done first
-            self.unit = replay.objects[self.unit_id]
-            if not self.unit.is_type(self.unit_type_name):
-                print "CONFLICT {} <-_-> {}".format(self.unit._type_class.str_id, self.unit_type_name)
-        else:
-            # TODO: How to tell if something is hallucination?
-            self.unit = replay.datapack.create_unit(self.unit_id, self.unit_type_name, 0, self.frame)
-            replay.objects[self.unit_id] = self.unit
-
-        replay.active_units[self.unit_id_index] = self.unit
-        self.unit.location = self.location
-        self.unit.started_at = self.frame
-        # self.unit.finished_at = self.frame
-
-        if self.unit_upkeeper:
-            self.unit.owner = self.unit_upkeeper
-            self.unit.owner.units.append(self.unit)
-
     def __str__(self):
         return self._str_prefix()+"{0: >15} - Unit inititated {1}".format(self.unit_upkeeper, self.unit)
 
@@ -530,13 +412,6 @@ class UnitDoneEvent(TrackerEvent):
 
         #: The unit object that was finished
         self.unit = None
-
-    def load_context(self, replay):
-        if self.unit_id in replay.objects:
-            self.unit = replay.objects[self.unit_id]
-            self.unit.finished_at = self.frame
-        else:
-            print "Unit done before it was started!"
 
     def __str__(self):
         return self._str_prefix()+"{0: >15} - Unit {1} done".format(self.unit.owner, self.unit)
@@ -565,15 +440,6 @@ class UnitPositionsEvent(TrackerEvent):
             x = self.items[i+1]*4
             y = self.items[i+2]*4
             self.positions.append((unit_index, (x,y)))
-
-    def load_context(self, replay):
-        for unit_index, (x,y) in self.positions:
-            if unit_index in replay.active_units:
-                unit = replay.active_units[unit_index]
-                unit.location = (x,y)
-                self.units[unit] = unit.location
-            else:
-                print "Unit moved that doesn't exist!"
 
     def __str__(self):
         return self._str_prefix()+"Unit positions update"

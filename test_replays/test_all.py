@@ -11,6 +11,7 @@ else:
     import unittest
 
 import sc2reader
+
 sc2reader.log_utils.log_to_console("INFO")
 
 
@@ -284,12 +285,16 @@ class TestReplays(unittest.TestCase):
         self.assertEquals(controllers, [(0, 3), (1, 1), (2, 1), (15, 4)])
 
     def test_plugins(self):
-        from sc2reader.plugins.replay import APMTracker, SelectionTracker, toJSON
-        factory = sc2reader.factories.SC2Factory()
-        factory.register_plugin("Replay", APMTracker())
-        factory.register_plugin("Replay", SelectionTracker())
-        factory.register_plugin("Replay", toJSON())
-        replay = factory.load_replay("test_replays/2.0.5.25092/cn1.SC2Replay")
+        from sc2reader.engine.plugins import ContextLoader, APMTracker, SelectionTracker
+
+        replay = sc2reader.load_replay(
+            "test_replays/2.0.5.25092/cn1.SC2Replay",
+            engine=sc2reader.engine.GameEngine(plugins=[
+                ContextLoader(),
+                APMTracker(),
+                SelectionTracker(),
+            ])
+        )
 
         # Load and quickly check the JSON output consistency
         result = json.loads(replay)

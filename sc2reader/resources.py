@@ -17,6 +17,7 @@ import urllib2
 from mpyq import MPQArchive
 
 import mpyq
+import sc2reader
 from sc2reader import utils
 from sc2reader.decoders import BitPackedDecoder
 from sc2reader import log_utils
@@ -196,7 +197,7 @@ class Replay(Resource):
     #: SC2 Expansion. One of 'WoL', 'HotS'
     expasion = str()
 
-    def __init__(self, replay_file, filename=None, load_level=4, **options):
+    def __init__(self, replay_file, filename=None, load_level=4, engine=sc2reader.engine, **options):
         super(Replay, self).__init__(replay_file, filename, **options)
         self.datapack = None
         self.raw_data = dict()
@@ -273,14 +274,14 @@ class Replay(Resource):
         if load_level >= 2:
             for data_file in ['replay.message.events']:
                 self._read_data(data_file, self._get_reader(data_file))
-            self.load_messages()
+            self.load_message_events()
             self.load_players()
 
         # Load events if requested
         if load_level >= 3:
             for data_file in ['replay.game.events']:
                 self._read_data(data_file, self._get_reader(data_file))
-            self.load_events()
+            self.load_game_events()
 
         # Load tracker events if requested
         if load_level >= 4:
@@ -288,8 +289,9 @@ class Replay(Resource):
                 self._read_data(data_file, self._get_reader(data_file))
             self.load_tracker_events()
 
-        for event in self.events:
-            event.load_context(self)
+        # Run this replay through the engine as indicated
+        if engine:
+            engine.run(self)
 
     def load_details(self):
         if 'replay.attributes.events' in self.raw_data:
@@ -448,16 +450,18 @@ class Replay(Resource):
         if len(self.observers) > 0 or len(self.humans) != len(self.players):
             self.is_ladder = False
 
-    def load_messages(self):
-        if 'replay.message.events' in self.raw_data:
-            self.messages = self.raw_data['replay.message.events'].messages
-            self.pings = self.raw_data['replay.message.events'].pings
-            self.packets = self.raw_data['replay.message.events'].packets
-            self.events += self.messages+self.pings+self.packets
+    def load_message_events(self):
+        if 'replay.message.events' not in self.raw_data:
+            return
 
-        self.events = sorted(self.events, key=lambda e: e.frame)
+        self.messages = self.raw_data['replay.message.events'].messages
+        self.pings = self.raw_data['replay.message.events'].pings
+        self.packets = self.raw_data['replay.message.events'].packets
 
-    def load_events(self):
+        self.message_events = self.messages+self.pings+self.packets
+        self.events = sorted(self.events + self.message_events, key=lambda e: e.frame)
+
+    def load_game_events(self):
         # Copy the events over
         # TODO: the events need to be fixed both on the reader and processor side
         if 'replay.game.events' not in self.raw_data:

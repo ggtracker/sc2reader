@@ -3,7 +3,8 @@ from __future__ import absolute_import
 
 import os
 import sys
-from datetime import timedelta
+import json
+from datetime import timedelta, datetime
 
 from sc2reader.log_utils import loggable
 from sc2reader.exceptions import MPQError
@@ -248,3 +249,86 @@ class Length(timedelta):
             return "{0:0>2}.{1:0>2}.{2:0>2}".format(self.hours,self.mins,self.secs)
         else:
             return "{0:0>2}.{1:0>2}".format(self.mins,self.secs)
+
+
+class JSONDateEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.strftime("%Y-%m-%d %H:%M:%S")
+        return json.JSONEncoder.default(self, obj)
+
+def toJSON(replay, **user_options):
+    options = dict(cls=JSONDateEncoder)
+    options.update(user_options)
+    return json.dumps(toDict(replay), **options)
+
+def toDict(replay):
+    # Build observers into dictionary
+    observers = list()
+    for observer in replay.observers:
+        messages = list()
+        for message in getattr(observer,'messages',list()):
+            messages.append({
+                'time': message.time.seconds,
+                'text': message.text,
+                'is_public': message.to_all
+            })
+        observers.append({
+            'name': getattr(observer, 'name', None),
+            'pid': getattr(observer, 'pid', None),
+            'messages': messages,
+        })
+
+    # Build players into dictionary
+    players = list()
+    for player in replay.players:
+        messages = list()
+        for message in player.messages:
+            messages.append({
+                'time': message.time.seconds,
+                'text': message.text,
+                'is_public': message.to_all
+            })
+        players.append({
+            'avg_apm': getattr(player, 'avg_apm', None),
+            'color': player.color.__dict__ if hasattr(player, 'color') else None,
+            'handicap': getattr(player, 'handicap', None),
+            'name': getattr(player, 'name', None),
+            'pick_race': getattr(player, 'pick_race', None),
+            'pid': getattr(player, 'pid', None),
+            'play_race': getattr(player, 'play_race', None),
+            'result': getattr(player, 'result', None),
+            'type': getattr(player, 'type', None),
+            'uid': getattr(player, 'uid', None),
+            'url': getattr(player, 'url', None),
+            'messages': messages,
+        })
+
+    # Consolidate replay metadata into dictionary
+    return {
+        'gateway': getattr(replay, 'gateway', None),
+        'map_name': getattr(replay, 'map_name', None),
+        'file_time': getattr(replay, 'file_time', None),
+        'filehash': getattr(replay, 'filehash', None),
+        'unix_timestamp': getattr(replay, 'unix_timestamp', None),
+        'date': getattr(replay, 'date', None),
+        'utc_date': getattr(replay, 'utc_date', None),
+        'speed': getattr(replay, 'speed', None),
+        'category': getattr(replay, 'category', None),
+        'type': getattr(replay, 'type', None),
+        'is_ladder': getattr(replay, 'is_ladder', False),
+        'is_private': getattr(replay, 'is_private', False),
+        'filename': getattr(replay, 'filename', None),
+        'file_time': getattr(replay, 'file_time', None),
+        'frames': getattr(replay, 'frames', None),
+        'build': getattr(replay, 'build', None),
+        'release': getattr(replay, 'release_string', None),
+        'game_fps': getattr(replay, 'game_fps', None),
+        'game_length': getattr(getattr(replay, 'game_length', None), 'seconds', None),
+        'players': players,
+        'observers': observers,
+        'real_length': getattr(getattr(replay, 'real_length', None), 'seconds', None),
+        'real_type': getattr(replay, 'real_type', None),
+        'time_zone': getattr(replay, 'time_zone', None),
+        'versions': getattr(replay, 'versions', None)
+    }
