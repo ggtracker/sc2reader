@@ -360,11 +360,10 @@ class UnitOwnerChangeEvent(TrackerEvent):
             print "Unit owner changed before it was born!"
 
         if self.unit_upkeeper:
-            if unit.owner:
-                print "stduff"
-                unit.owner.units.remove(unit)
-            unit.owner = self.unit_upkeeper
-            self.unit_upkeeper.units.append(unit)
+            if self.unit.owner:
+                self.unit.owner.units.remove(self.unit)
+            self.unit.owner = self.unit_upkeeper
+            self.unit_upkeeper.units.append(self.unit)
 
     def __str__(self):
         return self._str_prefix()+"{0: >15} took {1}".format(self.unit_upkeeper, self.unit)
