@@ -148,11 +148,10 @@ class ContextLoader(object):
             print "Unit owner changed before it was born!"
 
         if event.unit_upkeeper:
-            if unit.owner:
-                print "stduff"
-                unit.owner.units.remove(unit)
-            unit.owner = event.unit_upkeeper
-            event.unit_upkeeper.units.append(unit)
+            if event.unit.owner:
+                event.unit.owner.units.remove(unit)
+            event.unit.owner = event.unit_upkeeper
+            event.unit_upkeeper.units.append(event.unit)
 
     def handleUnitTypeChangeEvent(self, event, replay):
         if not replay.datapack: return
