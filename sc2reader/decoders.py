@@ -306,7 +306,7 @@ class BitPackedDecoder(object):
         datatype = self.read_uint8() if datatype == None else datatype
 
         if datatype == 0x00: # array
-            data = [self.read_struct() for i in xrange(self.read_vint())]
+            data = [self.read_struct() for i in range(self.read_vint())]
 
         elif datatype == 0x01: # bitarray, weird alignment requirements
             bits = self.read_vint()
