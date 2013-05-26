@@ -76,8 +76,41 @@ class AbilityEvent(GameEvent):
     def __init__(self, frame, pid, data):
         super(AbilityEvent, self).__init__(frame, pid)
 
+
         #: Flags on the command???
         self.flags = data['flags']
+
+
+        #: A dictionary of possible ability flags. Flag names are: alternate,
+        #: queued, preempt, smart_click, smart_rally, subgroup, set_autocast,
+        #: set_autocast_on, user, data_a, data_b, data_passenger, data_abil_queue_order_id,
+        #: ai, ai_ignore_on_finish, is_order, script, homogenous_interruption,
+        #: minimap, repeat, dispatch_to_other_unit, and target_self
+        self.flag = dict(
+            alternate=0x1 & self.flags != 0,
+            queued=0x2 & self.flags != 0,
+            preempt=0x4 & self.flags != 0,
+            smart_click=0x8 & self.flags != 0,
+            smart_rally=0x10 & self.flags != 0,
+            subgroup=0x20 & self.flags != 0,
+            set_autocast=0x40 & self.flags != 0,
+            set_autocast_on=0x80 & self.flags != 0,
+            user=0x100 & self.flags != 0,
+            data_a=0x200 & self.flags != 0,
+            data_passenger=0x200 & self.flags != 0, # alt-name
+            data_b=0x400 & self.flags != 0,
+            data_abil_queue_order_id=0x400 & self.flags != 0, # alt-name
+            ai=0x800 & self.flags != 0,
+            ai_ignore_on_finish=0x1000 & self.flags != 0,
+            is_order=0x2000 & self.flags != 0,
+            script=0x4000 & self.flags != 0,
+            homogenous_interruption=0x8000 & self.flags != 0,
+            minimap=0x10000 & self.flags != 0,
+            repeat=0x20000 & self.flags != 0,
+            dispatch_to_other_unit=0x40000 & self.flags != 0,
+            target_self=0x80000 & self.flags != 0,
+        )
+
 
         #: Flag marking that the command had ability information
         self.has_ability = data['ability'] != None

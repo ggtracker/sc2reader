@@ -738,7 +738,7 @@ class GameEventsReader_16117(GameEventsReader_Base):
 
         # Still, return something with a consistent structure
         return dict(
-            flags = None,
+            flags = 0,
             ability = None,
             data = ('None',None),
             other_unit_tag = None,
