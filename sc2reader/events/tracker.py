@@ -172,10 +172,10 @@ class PlayerStatsEvent(TrackerEvent):
         self.resources_killed = self.minerals_killed + self.vespene_killed
 
         #: The food supply currently used
-        self.food_used = clamp(self.stats[29])
+        self.food_used = clamp(self.stats[29])/4096.0
 
         #: The food supply currently available
-        self.food_made = clamp(self.stats[30])
+        self.food_made = clamp(self.stats[30])/4096.0
 
         #: The total mineral value of all active forces
         self.minerals_used_active_forces = clamp(self.stats[31])
