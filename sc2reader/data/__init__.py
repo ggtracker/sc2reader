@@ -44,7 +44,9 @@ class Unit(object):
         #: A reference to the player that killed this unit. Not always available.
         self.killed_by = None
 
-        #: The unique in-game id for this unit
+        #: The unique in-game id for this unit. The id can sometimes be zero because
+        #: TargetAbilityEvents will create a new unit with id zero when a unit
+        #: behind the fog of war is targetted.
         self.id = unit_id
 
         self.flags = flags

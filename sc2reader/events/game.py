@@ -155,6 +155,7 @@ class AbilityEvent(GameEvent):
             self.target_unit_type = ability_type_data.get('unit_link',None)
 
             #: Integer player id of the controlling player. Available for TargetUnit type events starting in 19595.
+            #: When the targetted unit is under fog of war this id is zero.
             self.control_player_id = ability_type_data.get('control_player_id',None)
 
             #: Integer player id of the player paying upkeep. Available for TargetUnit type events.
