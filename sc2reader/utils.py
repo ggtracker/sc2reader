@@ -23,6 +23,10 @@ class DepotFile(object):
         #: The server the file is hosted on
         self.server = bytes[4:8].strip('\x00 ')
 
+        # There is no SEA depot, use US instead
+        if self.server == 'SEA':
+            self.server = 'US'
+
         #: The unique content based hash of the file
         self.hash = bytes[8:].encode('hex')
 
