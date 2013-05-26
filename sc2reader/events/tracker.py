@@ -22,11 +22,17 @@ class TrackerEvent(object):
 
 class PlayerStatsEvent(TrackerEvent):
     """
-        Sometimes values in these fields can be negative.
-        Clamp them to 0 until this is fixed.
+        Player Stats events are generated for all players that were in the game
+        even if they've since left every 10 seconds. An additional set of stats
+        events are generated at the end of the game.
 
-        An additional stats event is sent the frame that a player leaves.
-        That player still gets normal stats events for the rest of the game though.
+        When a player leaves the game, a single PlayerStatsEvent is generated
+        for that player and no one else. That player continues to generate
+        PlayerStatsEvents at 10 second intervals until the end of the game.
+
+        In 1v1 games, the above behavior can cause the losing player to have 2
+        events generated at the end of the game. One for leaving and one for
+        the  end of the game.
     """
     name = 'PlayerStatsEvent'
 
