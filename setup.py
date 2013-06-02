@@ -7,7 +7,7 @@ setuptools.setup(
     version='0.5.0',
     keywords=["starcraft 2","sc2","replay","parser"],
     description="Utility for parsing Starcraft II replay files",
-    long_description=open("README.rst").read(),
+    long_description=open("README.rst").read()+"\n\n"+open("CHANGELOG.rst").read(),
 
     author="Graylin Kim",
     author_email="graylin.kim@gmail.com",
