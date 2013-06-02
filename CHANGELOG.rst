@@ -7,10 +7,10 @@ CHANGELOG
 * Fixes several game event parsing issues for older replays.
 * Propperly maps ability ids for armory vehicle & ship armor upgrades.
 * Uses the US depot for SEA battle.net depot dependencies.
-* ``PlayerStatEvent.food_used`` and ``food_made`` are now properly divided by 4096, 3e314e81796c41f01ac116e3a115a03ffb883b3f
-* ``AbilityEvent.flags`` are now processed into a dictionary mapping flag name to True/False (``AbilityEvent.flag``), a515bfa886b355a0e18497497c57eb252a4496ef
-* Fixed error preventing UnitOwnerChangeEvents from being processed, ee0fc50caea5bc00dd94487791edaa8515b1cc35
-* Fixed the toJSON plugin and adds new fields, 7cef03efded356f6af5e932c06241583f3f52c26
+* ``PlayerStatEvent.food_used`` and ``food_made`` are now properly divided by 4096
+* ``AbilityEvent.flags`` are now processed into a dictionary mapping flag name to True/False (``AbilityEvent.flag``)
+* Fixed error preventing UnitOwnerChangeEvents from being processed
+* Fixed the toJSON plugin and adds new fields
 * Fixed error preventing parsing of MapHeader (s2mh) files
 * APMTracker now properly calculates average APM to the last second played by each player instead of using the number of replay minutes in the denominator.
 
