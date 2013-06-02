@@ -62,8 +62,11 @@ class Replay(Resource):
     #: Total number of frames in this game at 16 frames per second.
     frames = int()
 
-    #: The SCII game engine build number
+    #: The SCII client build number
     build = int()
+
+    #: The SCII game engine build number
+    base_build = int()
 
     #: The full version release string as seen on Battle.net
     release_string = str()
