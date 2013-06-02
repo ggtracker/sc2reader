@@ -327,6 +327,9 @@ def create_control_group_event(frame, pid, data):
         return AddToHotkeyEvent(frame, pid, data)
     elif update_type == 2:
         return GetFromHotkeyEvent(frame, pid, data)
+    elif update_type == 3:
+        # TODO: What could this be?!?
+        return HotkeyEvent(frame, pid, data)
 
 @loggable
 class HotkeyEvent(GameEvent):
