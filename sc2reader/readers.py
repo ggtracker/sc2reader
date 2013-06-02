@@ -509,7 +509,6 @@ class GameEventsReader_Base(Reader):
             33: (None, self.ai_communicate_event),
             34: (None, self.set_absolute_game_speed_event),
             35: (None, self.add_absolute_game_speed_event),
-            36: (None, self.trigger_ping_event),
             37: (None, self.broadcast_cheat_event),
             38: (None, self.alliance_event),
             39: (None, self.unit_click_event),
@@ -530,8 +529,6 @@ class GameEventsReader_Base(Reader):
             56: (None, self.trigger_sound_length_sync_event),
             57: (None, self.trigger_conversation_skipped_event),
             58: (None, self.trigger_mouse_clicked_event),
-            59: (None, self.trigger_mouse_moved_event),
-            60: (None, self.achievement_awarded_event),
             63: (None, self.trigger_planet_panel_replay_event),
             64: (None, self.trigger_soundtrack_done_event),
             65: (None, self.trigger_planet_mission_selected_event),
@@ -566,10 +563,6 @@ class GameEventsReader_Base(Reader):
             94: (None, self.trigger_purchase_panel_selected_purchase_category_changed_event),
             95: (None, self.trigger_button_pressed_event),
             96: (None, self.trigger_game_credits_finished_event),
-            97: (None, self.trigger_cutscene_bookmark_fired_event),
-            98: (None, self.trigger_cutscene_end_scene_fired_event),
-            99: (None, self.trigger_cutscene_conversation_line_event),
-            100: (None, self.trigger_cutscene_conversation_line_missing_event),
         }
 
     def __call__(self, data, replay):
@@ -648,7 +641,7 @@ class GameEventsReader_Base(Reader):
         # True => Deselect, False => Keep
         return [(bit_mask & bit != 0) for bit in self.SINGLE_BIT_MASKS[:mask_length]]
 
-class GameEventsReader_16117(GameEventsReader_Base):
+class GameEventsReader_15405(GameEventsReader_Base):
 
     def unknown_event(self, data):
         return dict(
@@ -691,11 +684,11 @@ class GameEventsReader_16117(GameEventsReader_Base):
     def user_options_event(self, data):
         return dict(
             # I'm just guessing which flags are available here
-            game_fully_downloaded = data.read_bool(),
+            game_fully_downloaded = None,
             development_cheats_enabled = data.read_bool(),
             multiplayer_cheats_enabled = data.read_bool(),
             sync_checksumming_enabled = data.read_bool(),
-            is_map_to_map_transition = None,
+            is_map_to_map_transition = data.read_bool(),
             use_ai_beacons = None,
             base_build_num = None,
             starting_rally = None,
@@ -706,7 +699,7 @@ class GameEventsReader_16117(GameEventsReader_Base):
             file_name = data.read_aligned_bytes(data.read_bits(11)),
             automatic = data.read_bool(),
             overwrite = data.read_bool(),
-            name = data.read_aligned_bytes(data.read_uint8(8)),
+            name = data.read_aligned_bytes(data.read_uint8()),
             description = data.read_aligned_bytes(data.read_bits(10)),
         )
 
@@ -728,50 +721,64 @@ class GameEventsReader_16117(GameEventsReader_Base):
         )
 
     def command_event(self, data):
-        # TODO: No idea what this is supposed to be like
-        data.read_bits(4)
-        data.read_bytes(7)
-        switch = data.read_uint8()
-        if switch in (0x30,0x50):
-            data.read_bytes(1)
-        data.read_bytes(24)
+        flags = data.read_uint32()
+        ability = dict(
+            ability_link = data.read_uint16(),
+            ability_command_index = data.read_uint8(),
+            ability_command_data = data.read_uint8(),
+        )
+        target_data = ('TargetUnit', dict(
+            flags = data.read_uint8(),
+            timer = data.read_uint8(),
+        ))
+        other_unit_tag = data.read_uint32()
 
-        # Still, return something with a consistent structure
+        target_data[1].update(dict(
+            unit_tag = data.read_uint32(),
+            unit_link = data.read_uint16(),
+            control_player_id = None,
+            upkeep_player_id = data.read_bits(4) if data.read_bool() else None,
+            point = dict(
+                x = data.read_uint32()-2147483648,
+                y = data.read_uint32()-2147483648,
+                z = data.read_uint32()-2147483648,
+            ),
+        ))
         return dict(
-            flags = 0,
-            ability = None,
-            data = ('None',None),
-            other_unit_tag = None,
+            flags=flags,
+            ability=ability,
+            data=target_data,
+            other_unit_tag=other_unit_tag,
         )
 
     def selection_delta_event(self, data):
         return dict(
             control_group_index = data.read_bits(4),
-            subgroup_index = data.read_bits(8),
-            remove_mask = ('Mask', self.read_selection_bitmask(data, data.read_bits(8))),
+            subgroup_index = data.read_uint8(),
+            remove_mask = ('Mask', self.read_selection_bitmask(data, data.read_uint8())),
             add_subgroups = [dict(
                     unit_link = data.read_uint16(),
                     subgroup_priority = None,
                     intra_subgroup_priority = data.read_uint8(),
-                    count = data.read_bits(8),
-                ) for i in range(data.read_bits(8))],
-            add_unit_tags = [data.read_uint32() for i in range(data.read_bits(8))],
+                    count = data.read_uint8(),
+                ) for i in range(data.read_uint8())],
+            add_unit_tags = [data.read_uint32() for i in range(data.read_uint8())],
         )
 
     def control_group_update_event(self, data):
         return dict(
             control_group_index = data.read_bits(4),
             control_group_update = data.read_bits(2),
-            remove_mask = ('None',None),
+            remove_mask = ('Mask', self.read_selection_bitmask(data, data.read_uint8())) if data.read_bool() else ('None',None),
         )
 
     def selection_sync_check_event(self, data):
         return dict(
             control_group_index = data.read_bits(4),
             selection_sync_data = dict(
-                count = data.read_bits(8),
-                subgroup_count = data.read_bits(8),
-                active_subgroup_index = data.read_bits(8),
+                count = data.read_uint8(),
+                subgroup_count = data.read_uint8(),
+                active_subgroup_index = data.read_uint8(),
                 unit_tags_checksum = data.read_uint32(),
                 subgroup_indices_checksum = data.read_uint32(),
                 subgroups_checksum = data.read_uint32(),
@@ -794,11 +801,11 @@ class GameEventsReader_16117(GameEventsReader_Base):
             beacon = data.read_uint8()-128,
             ally = data.read_uint8()-128,
             flags = data.read_uint8()-128,
-            build = data.read_uint8()-128,
+            build = None,
             target_unit_tag = data.read_uint32(),
             target_unit_link = data.read_uint16(),
-            target_upkeep_player_id = data.read_uint8()-128,
-            target_control_player_id = data.read_uint8()-128,
+            target_upkeep_player_id = data.read_bits(4) if data.read_bool() else None,
+            target_control_player_id = None,
             target_point = dict(
                     x = data.read_uint32()-2147483648,
                     y = data.read_uint32()-2147483648,
@@ -814,16 +821,6 @@ class GameEventsReader_16117(GameEventsReader_Base):
     def add_absolute_game_speed_event(self, data):
         return dict(
             delta = data.read_uint8()-128,
-        )
-
-    def trigger_ping_event(self, data):
-        return dict(
-            point = dict(
-                    x = data.read_uint32()-2147483648,
-                    y = data.read_uint32()-2147483648,
-                ),
-            unit_tag = data.read_uint32(),
-            pinged_minimap = data.read_bool(),
         )
 
     def broadcast_cheat_event(self, data):
@@ -925,8 +922,8 @@ class GameEventsReader_16117(GameEventsReader_Base):
     def trigger_sound_length_sync_event(self, data):
         return dict(
             sync_info = dict(
-                sound_hash = [data.read_uint32() for i in range(data.read_bits(8))],
-                length = [data.read_uint32() for i in range(data.read_bits(8))],
+                sound_hash = [data.read_uint32() for i in range(data.read_uint8())],
+                length = [data.read_uint32() for i in range(data.read_uint8())],
             )
         )
 
@@ -940,32 +937,14 @@ class GameEventsReader_16117(GameEventsReader_Base):
             button = data.read_uint32(),
             down = data.read_bool(),
             position_ui = dict(
-                    x = data.read_bits(11),
-                    y = data.read_bits(11),
+                    x = data.read_uint32(),
+                    y = data.read_uint32(),
                 ),
             position_world = dict(
-                    x = data.read_bits(20),
-                    y = data.read_bits(20),
+                    x = data.read_uint32()-2147483648,
+                    y = data.read_uint32()-2147483648,
                     z = data.read_uint32()-2147483648,
                 ),
-        )
-
-    def trigger_mouse_moved_event(self, data):
-        return dict(
-            position_ui = dict(
-                    x = data.read_bits(11),
-                    y = data.read_bits(11),
-                ),
-            position_world = dict(
-                    x = data.read_bits(20),
-                    y = data.read_bits(20),
-                    z = data.read_uint32()-2147483648,
-                ),
-        )
-
-    def achievement_awarded_event(self, data):
-        return dict(
-            achievement_link = data.read_uint16(),
         )
 
     def trigger_planet_panel_replay_event(self, data):
@@ -1075,7 +1054,7 @@ class GameEventsReader_16117(GameEventsReader_Base):
 
     def decrement_game_time_remaining_event(self, data):
         return dict(
-            decrement_ms = data.read_bits(19)
+            decrement_ms = data.read_uint32(),
         )
 
     def trigger_portrait_loaded_event(self, data):
@@ -1116,32 +1095,8 @@ class GameEventsReader_16117(GameEventsReader_Base):
     def trigger_game_credits_finished_event(self, data):
         return None
 
-    def trigger_cutscene_bookmark_fired_event(self, data):
-        return dict(
-            cutscene_id = data.read_uint32()-2147483648,
-            bookmark_name = data.read_aligned_bytes(data.read_bits(7)),
-        )
 
-    def trigger_cutscene_end_scene_fired_event(self, data):
-        return dict(
-            cutscene_id = data.read_uint32()-2147483648,
-        )
-
-    def trigger_cutscene_conversation_line_event(self, data):
-        return dict(
-            cutscene_id = data.read_uint32()-2147483648,
-            conversation_line = data.read_aligned_bytes(data.read_bits(7)),
-            alt_conversation_line = data.read_aligned_bytes(data.read_bits(7)),
-        )
-
-    def trigger_cutscene_conversation_line_missing_event(self, data):
-        return dict(
-            cutscene_id = data.read_uint32()-2147483648,
-            conversation_line = data.read_aligned_bytes(data.read_bits(7)),
-        )
-
-
-class GameEventsReader_16561(GameEventsReader_16117):
+class GameEventsReader_16561(GameEventsReader_15405):
 
     def command_event(self, data):
         return dict(
@@ -1181,20 +1136,20 @@ class GameEventsReader_16561(GameEventsReader_16117):
     def selection_delta_event(self, data):
         return dict(
             control_group_index = data.read_bits(4),
-            subgroup_index = data.read_bits(8),
+            subgroup_index = data.read_uint8(),
             remove_mask = { #Choice
                     0: lambda: ('None', None),
-                    1: lambda: ('Mask', self.read_selection_bitmask(data, data.read_bits(8))),
-                    2: lambda: ('OneIndices', [data.read_bits(8) for i in range(data.read_bits(8))]),
-                    3: lambda: ('ZeroIndices', [data.read_bits(8) for i in range(data.read_bits(8))]),
+                    1: lambda: ('Mask', self.read_selection_bitmask(data, data.read_uint8())),
+                    2: lambda: ('OneIndices', [data.read_uint8() for i in range(data.read_uint8())]),
+                    3: lambda: ('ZeroIndices', [data.read_uint8() for i in range(data.read_uint8())]),
                 }[data.read_bits(2)](),
             add_subgroups = [dict(
                     unit_link = data.read_uint16(),
                     subgroup_priority = None,
                     intra_subgroup_priority = data.read_uint8(),
-                    count = data.read_bits(8),
-                ) for i in range(data.read_bits(8))],
-            add_unit_tags = [data.read_uint32() for i in range(data.read_bits(8))],
+                    count = data.read_uint8(),
+                ) for i in range(data.read_uint8())],
+            add_unit_tags = [data.read_uint32() for i in range(data.read_uint8())],
         )
 
     def control_group_update_event(self, data):
@@ -1203,19 +1158,73 @@ class GameEventsReader_16561(GameEventsReader_16117):
             control_group_update = data.read_bits(2),
             remove_mask = { #Choice
                     0: lambda: ('None', None),
-                    1: lambda: ('Mask', self.read_selection_bitmask(data, data.read_bits(8))),
-                    2: lambda: ('OneIndices', [data.read_bits(8) for i in range(data.read_bits(8))]),
-                    3: lambda: ('ZeroIndices', [data.read_bits(8) for i in range(data.read_bits(8))]),
+                    1: lambda: ('Mask', self.read_selection_bitmask(data, data.read_uint8())),
+                    2: lambda: ('OneIndices', [data.read_uint8() for i in range(data.read_uint8())]),
+                    3: lambda: ('ZeroIndices', [data.read_uint8() for i in range(data.read_uint8())]),
                 }[data.read_bits(2)](),
         )
 
-class GameEventsReader_18574(GameEventsReader_16561):
+    def decrement_game_time_remaining_event(self, data):
+        return dict(
+            decrement_ms = data.read_bits(19)
+        )
+
+class GameEventsReader_16605(GameEventsReader_16561):
+    pass
+
+class GameEventsReader_16755(GameEventsReader_16605):
+    pass
+
+class GameEventsReader_16939(GameEventsReader_16755):
+    pass
+
+class GameEventsReader_17326(GameEventsReader_16939):
+
+    def __init__(self):
+        super(GameEventsReader_17326, self).__init__()
+
+        self.EVENT_DISPATCH.update({
+            59: (None, self.trigger_mouse_moved_event),
+        })
 
     def bank_signature_event(self, data):
         return dict(
             signature=[data.read_uint8() for i in range(data.read_bits(5))],
             toon_handle = None,
         )
+
+    def trigger_mouse_clicked_event(self, data):
+        return dict(
+            button = data.read_uint32(),
+            down = data.read_bool(),
+            position_ui = dict(
+                    x = data.read_bits(11),
+                    y = data.read_bits(11),
+                ),
+            position_world = dict(
+                    x = data.read_bits(20),
+                    y = data.read_bits(20),
+                    z = data.read_uint32()-2147483648,
+                ),
+        )
+
+    def trigger_mouse_moved_event(self, data):
+        return dict(
+            position_ui = dict(
+                    x = data.read_bits(11),
+                    y = data.read_bits(11),
+                ),
+            position_world = dict(
+                    x = data.read_bits(20),
+                    y = data.read_bits(20),
+                    z = data.read_uint32()-2147483648,
+                ),
+        )
+
+class GameEventsReader_18092(GameEventsReader_17326):
+    pass
+
+class GameEventsReader_18574(GameEventsReader_18092):
 
     def command_event(self, data):
         return dict(
@@ -1252,8 +1261,10 @@ class GameEventsReader_18574(GameEventsReader_16561):
             other_unit_tag = data.read_uint32() if data.read_bool() else None
         )
 
+class GameEventsReader_19132(GameEventsReader_18574):
+    pass
 
-class GameEventsReader_19595(GameEventsReader_18574):
+class GameEventsReader_19595(GameEventsReader_19132):
 
     def command_event(self, data):
         return dict(
@@ -1290,14 +1301,39 @@ class GameEventsReader_19595(GameEventsReader_18574):
             other_unit_tag = data.read_uint32() if data.read_bool() else None
         )
 
-    def trigger_transmission_offset_event(self, data):
-        # I'm not actually sure when this second int is introduced..
+    def ai_communicate_event(self, data):
         return dict(
-            transmission_id = data.read_uint32()-2147483648,
-            thread = data.read_uint32(),
+            beacon = data.read_uint8()-128,
+            ally = data.read_uint8()-128,
+            flags = data.read_uint8()-128, #autocast??
+            build = None,
+            target_unit_tag = data.read_uint32(),
+            target_unit_link = data.read_uint16(),
+            target_upkeep_player_id = data.read_bits(4) if data.read_bool() else None,
+            target_control_player_id = data.read_bits(4) if data.read_bool() else None,
+            target_point = dict(
+                    x = data.read_uint32()-2147483648,
+                    y = data.read_uint32()-2147483648,
+                    z = data.read_uint32()-2147483648,
+                ),
         )
 
-class GameEventsReader_22612(GameEventsReader_19595):
+class GameEventsReader_21029(GameEventsReader_19595):
+    pass
+
+class GameEventsReader_22612(GameEventsReader_21029):
+
+    def __init__(self):
+        super(GameEventsReader_22612, self).__init__()
+
+        self.EVENT_DISPATCH.update({
+            36: (None, self.trigger_ping_event),
+            60: (None, self.achievement_awarded_event),
+            97: (None, self.trigger_cutscene_bookmark_fired_event),
+            98: (None, self.trigger_cutscene_end_scene_fired_event),
+            99: (None, self.trigger_cutscene_conversation_line_event),
+            100: (None, self.trigger_cutscene_conversation_line_missing_event),
+        })
 
     def user_options_event(self, data):
         return dict(
@@ -1390,8 +1426,93 @@ class GameEventsReader_22612(GameEventsReader_19595):
             )
         )
 
+    def ai_communicate_event(self, data):
+        return dict(
+            beacon = data.read_uint8()-128,
+            ally = data.read_uint8()-128,
+            flags = data.read_uint8()-128,
+            build = data.read_uint8()-128,
+            target_unit_tag = data.read_uint32(),
+            target_unit_link = data.read_uint16(),
+            target_upkeep_player_id = data.read_uint8(),
+            target_control_player_id = data.read_uint8(),
+            target_point = dict(
+                    x = data.read_uint32()-2147483648,
+                    y = data.read_uint32()-2147483648,
+                    z = data.read_uint32()-2147483648,
+                ),
+        )
 
-class GameEventsReader_HotS_Beta(GameEventsReader_22612):
+    def trigger_ping_event(self, data):
+        return dict(
+            point = dict(
+                    x = data.read_uint32()-2147483648,
+                    y = data.read_uint32()-2147483648,
+                ),
+            unit_tag = data.read_uint32(),
+            pinged_minimap = data.read_bool(),
+        )
+
+    def trigger_transmission_offset_event(self, data):
+        # I'm not actually sure when this second int is introduced..
+        return dict(
+            transmission_id = data.read_uint32()-2147483648,
+            thread = data.read_uint32(),
+        )
+
+    def achievement_awarded_event(self, data):
+        return dict(
+            achievement_link = data.read_uint16(),
+        )
+
+    def trigger_cutscene_bookmark_fired_event(self, data):
+        return dict(
+            cutscene_id = data.read_uint32()-2147483648,
+            bookmark_name = data.read_aligned_bytes(data.read_bits(7)),
+        )
+
+    def trigger_cutscene_end_scene_fired_event(self, data):
+        return dict(
+            cutscene_id = data.read_uint32()-2147483648,
+        )
+
+    def trigger_cutscene_conversation_line_event(self, data):
+        return dict(
+            cutscene_id = data.read_uint32()-2147483648,
+            conversation_line = data.read_aligned_bytes(data.read_bits(7)),
+            alt_conversation_line = data.read_aligned_bytes(data.read_bits(7)),
+        )
+
+    def trigger_cutscene_conversation_line_missing_event(self, data):
+        return dict(
+            cutscene_id = data.read_uint32()-2147483648,
+            conversation_line = data.read_aligned_bytes(data.read_bits(7)),
+        )
+
+
+class GameEventsReader_23260(GameEventsReader_22612):
+
+    def trigger_sound_length_sync_event(self, data):
+        return dict(
+            sync_info = dict(
+                sound_hash = [data.read_uint32() for i in range(data.read_bits(7))],
+                length = [data.read_uint32() for i in range(data.read_bits(7))],
+            )
+        )
+
+    def user_options_event(self, data):
+        return dict(
+            game_fully_downloaded = data.read_bool(),
+            development_cheats_enabled = data.read_bool(),
+            multiplayer_cheats_enabled = data.read_bool(),
+            sync_checksumming_enabled = data.read_bool(),
+            is_map_to_map_transition = data.read_bool(),
+            starting_rally = data.read_bool(),
+            use_ai_beacons = data.read_bool(),
+            base_build_num = None,
+        )
+
+class GameEventsReader_HotSBeta(GameEventsReader_23260):
 
     def user_options_event(self, data):
         return dict(
@@ -1435,14 +1556,6 @@ class GameEventsReader_HotS_Beta(GameEventsReader_22612):
             yaw = data.read_uint16() if data.read_bool() else None,
         )
 
-    def trigger_sound_length_sync_event(self, data):
-        return dict(
-            sync_info = dict(
-                sound_hash = [data.read_uint32() for i in range(data.read_bits(7))],
-                length = [data.read_uint32() for i in range(data.read_bits(7))],
-            )
-        )
-
     def trigger_dialog_control_event(self, data):
         return dict(
             control_id = data.read_uint32()-2147483648,
@@ -1457,10 +1570,10 @@ class GameEventsReader_HotS_Beta(GameEventsReader_22612):
                 }[data.read_bits(3)](),
         )
 
-class GameEventsReader_HotS(GameEventsReader_HotS_Beta):
+class GameEventsReader_24247(GameEventsReader_HotSBeta):
 
     def __init__(self):
-        super(GameEventsReader_HotS, self).__init__()
+        super(GameEventsReader_24247, self).__init__()
 
         self.EVENT_DISPATCH.update({
             7: (UserOptionsEvent, self.user_options_event),     #Override
@@ -1512,20 +1625,6 @@ class GameEventsReader_HotS(GameEventsReader_HotS_Beta):
             method = data.read_bits(1),
         )
 
-    def trigger_dialog_control_event(self, data):
-        return dict(
-            control_id = data.read_uint32()-2147483648,
-            event_type = data.read_uint32()-2147483648,
-            event_data = { #Choice
-                    0: lambda: ('None', None),
-                    1: lambda: ('Checked', data.read_bool()),
-                    2: lambda: ('ValueChanged', data.read_uint32()),
-                    3: lambda: ('SelectionChanged', data.read_uint32()-2147483648),
-                    4: lambda: ('TextChanged', data.read_aligned_bytes(data.read_bits(11))),
-                    5: lambda: ('MouseButton', data.read_uint32())
-                }[data.read_bits(3)](),
-        )
-
     def trigger_target_mode_update_event(self, data):
         return dict(
             ability_link = data.read_uint16(),
@@ -1573,4 +1672,3 @@ class TrackerEventsReader_Base(Reader):
             events.append(event)
 
         return events
-

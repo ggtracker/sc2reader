@@ -247,6 +247,7 @@ class Replay(Resource):
             self.versions = header_data[1].values()
             self.frames = header_data[3]
             self.build = self.versions[4]
+            self.base_build = self.versions[5]
             self.release_string = "{0}.{1}.{2}.{3}".format(*self.versions[1:5])
             self.game_length = utils.Length(seconds=self.frames/16)
             self.length = self.real_length = utils.Length(seconds=int(self.frames/self.game_fps))
@@ -553,13 +554,15 @@ class Replay(Resource):
         self.register_reader('replay.message.events', readers.MessageEventsReader_Beta_24247(), lambda r: r.build >= 24247 and r.versions[1]==2)
         self.register_reader('replay.attributes.events', readers.AttributesEventsReader_Base(), lambda r: r.build <  17326)
         self.register_reader('replay.attributes.events', readers.AttributesEventsReader_17326(), lambda r: r.build >= 17326)
-        self.register_reader('replay.game.events', readers.GameEventsReader_16117(), lambda r: 16117 <= r.build < 16561)
-        self.register_reader('replay.game.events', readers.GameEventsReader_16561(), lambda r: 16561 <= r.build < 18574)
-        self.register_reader('replay.game.events', readers.GameEventsReader_18574(), lambda r: 18574 <= r.build < 19595)
-        self.register_reader('replay.game.events', readers.GameEventsReader_19595(), lambda r: 19595 <= r.build < 22612)
-        self.register_reader('replay.game.events', readers.GameEventsReader_22612(), lambda r: r.versions[1]==1 and 22612 <= r.build) # Last WoL
-        self.register_reader('replay.game.events', readers.GameEventsReader_HotS_Beta(), lambda r: r.versions[1]==2 and r.build < 24247) #HotS Beta
-        self.register_reader('replay.game.events', readers.GameEventsReader_HotS(), lambda r: r.versions[1]==2 and 24247 <= r.build ) # First HotS
+        self.register_reader('replay.game.events', readers.GameEventsReader_15405(), lambda r: 15405 <= r.base_build < 16561)
+        self.register_reader('replay.game.events', readers.GameEventsReader_16561(), lambda r: 16561 <= r.base_build < 17326)
+        self.register_reader('replay.game.events', readers.GameEventsReader_17326(), lambda r: 17326 <= r.base_build < 18574)
+        self.register_reader('replay.game.events', readers.GameEventsReader_18574(), lambda r: 18574 <= r.base_build < 19595)
+        self.register_reader('replay.game.events', readers.GameEventsReader_19595(), lambda r: 19595 <= r.base_build < 22612)
+        self.register_reader('replay.game.events', readers.GameEventsReader_22612(), lambda r: 22612 <= r.base_build < 23260)
+        self.register_reader('replay.game.events', readers.GameEventsReader_23260(), lambda r: 23260 <= r.base_build < 24247)
+        self.register_reader('replay.game.events', readers.GameEventsReader_24247(), lambda r: 24247 <= r.base_build )
+        self.register_reader('replay.game.events', readers.GameEventsReader_HotSBeta(), lambda r: r.versions[1]==2 and r.build < 24247)
         self.register_reader('replay.tracker.events', readers.TrackerEventsReader_Base(), lambda r: True)
 
 
