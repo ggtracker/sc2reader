@@ -1,7 +1,7 @@
 CHANGELOG
 ============
 
-0.5.1 - In progress
+0.5.1 - June 1, 2013
 --------------------
 
 * Fixes several game event parsing issues for older replays.
