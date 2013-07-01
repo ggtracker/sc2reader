@@ -2,7 +2,12 @@ from __future__ import absolute_import
 
 import json
 import pkgutil
-from collections import OrderedDict
+
+try:
+    from collections import OrderedDict
+except ImportError as e:
+    from ordereddict import OrderedDict
+
 from sc2reader.log_utils import loggable
 
 ABIL_LOOKUP = dict()

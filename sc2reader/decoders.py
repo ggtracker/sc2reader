@@ -5,7 +5,11 @@ from cStringIO import StringIO
 
 import struct
 import functools
-from collections import OrderedDict
+
+try:
+    from collections import OrderedDict
+except ImportError as e:
+    from ordereddict import OrderedDict
 
 class ByteDecoder(object):
     """

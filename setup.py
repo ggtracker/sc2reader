@@ -45,7 +45,7 @@ setuptools.setup(
         ]
     },
 
-    install_requires=['mpyq>=0.2.2','argparse'] if float(sys.version[:3]) < 2.7 else ['mpyq>=0.2.2'],
+    install_requires=['mpyq>=0.2.2','argparse','ordereddict'] if float(sys.version[:3]) < 2.7 else ['mpyq>=0.2.2'],
     packages=setuptools.find_packages(),
     include_package_data=True,
     zip_safe=True
