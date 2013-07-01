@@ -44,7 +44,8 @@ the three primary resource types listed below. For a more detailed and exact
 description of the information that can be extracted please consult the
 `documentation`_ hosted on Read the Docs.
 
-The library is production ready and reasonably stable.
+The library is production ready and reasonably stable. `travis-ci`_ provides a
+record of continuous testing which you can `see here`_
 
 
 Replays
@@ -321,3 +322,5 @@ and kept this project going.
 .. _issue tracker: https://github.com/GraylinKim/sc2reader/issues
 .. _bnet_scraper: https://github.com/agoragames/bnet_scraper
 .. _sc2profile: https://github.com/srounet/sc2profile
+.. _see here: https://travis-ci.org/GraylinKim/sc2reader
+.. _travis-ci: https://travis-ci.org/

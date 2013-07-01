@@ -1,6 +1,15 @@
 CHANGELOG
 ============
 
+0.5.2 -
+--------------------
+
+* Hooked up travis-ci for continuous testing. https://travis-ci.org/GraylinKim/sc2reader
+* Fixed player team assignment.
+* Log a warning instead of throwing an exception when using an unknown colors.
+** An unknown hex value will use the hex value as the name.
+** An unknown color name will use 0x000000 as the color.
+
 0.5.1 - June 1, 2013
 --------------------
 
@@ -19,10 +28,10 @@ CHANGELOG
 
 * Support for all replays (arcade replays now parse!) from all versions
 * Support for the new replay.tracker.events added in 2.0.8
-**Units now have birth frame, death frame, and owner information
-**New events for (roughly) tracking unit positions
-**New events for tracking player resource stockpiles and collection rates
-**More!
+** Units now have birth frame, death frame, and owner information
+** New events for (roughly) tracking unit positions
+** New events for tracking player resource stockpiles and collection rates
+** More!
 * Much more comprehensive documentation.
 * New unit model
 ** SiegeTank and SiegeTankSieged (and others with different forms) are no longer separate units.
