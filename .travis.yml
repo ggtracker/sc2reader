@@ -7,3 +7,5 @@ install:
  - python setup.py install
 script:
  - py.test test_replays test_s2gs
+notifications:
+  irc: "chat.freenode.net#sc2reader"
