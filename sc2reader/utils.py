@@ -5,6 +5,7 @@ import os
 import sys
 from datetime import timedelta
 
+from sc2reader.log_utils import loggable
 from sc2reader.exceptions import MPQError
 from sc2reader.constants import COLOR_CODES, COLOR_CODES_INV
 
@@ -102,6 +103,7 @@ class AttributeDict(dict):
     def copy(self):
         return AttributeDict(self.items())
 
+@loggable
 class Color(object):
     """
     Stores a color name and rgba representation of a color. Individual
@@ -120,11 +122,11 @@ class Color(object):
     def __init__(self, name=None, r=0, g=0, b=0, a=255):
         if name:
             if name not in COLOR_CODES_INV:
-                raise ValueError("Invalid color name: "+name)
-            hexstr = COLOR_CODES_INV[name]
-            self.r = int(hexstr[0:2],16)
-            self.g = int(hexstr[2:4],16)
-            self.b = int(hexstr[4:6],16)
+                self.logger.warn("Invalid color name: " + name)
+            hexstr = COLOR_CODES_INV.get(name, '000000')
+            self.r = int(hexstr[0:2], 16)
+            self.g = int(hexstr[2:4], 16)
+            self.b = int(hexstr[4:6], 16)
             self.a = 255
             self.name = name
         else:
@@ -132,10 +134,10 @@ class Color(object):
             self.g = g
             self.b = b
             self.a = a
-            if self.hex in COLOR_CODES:
-                self.name = COLOR_CODES[self.hex]
-            else:
-                raise ValueError("Invalid color hex code: "+self.hex)
+            if self.hex not in COLOR_CODES:
+                self.logger.warn("Invalid color hex value: " + self.hex)
+            self.name = COLOR_CODES.get(self.hex, self.hex)
+
 
     @property
     def rgba(self):
