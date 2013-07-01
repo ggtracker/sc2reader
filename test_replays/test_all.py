@@ -16,6 +16,14 @@ from sc2reader.plugins.replay import APMTracker, SelectionTracker, toJSON
 sc2reader.log_utils.log_to_console("INFO")
 
 
+def test_teams():
+    replay = sc2reader.load_replay("test_replays/1.2.2.17811/13.SC2Replay")
+    assert replay.player[1].team.number != replay.player[2].team.number
+
+    replay = sc2reader.load_replay("test_replays/2.0.8.25604/mlg1.SC2Replay")
+    assert replay.player[1].team.number != replay.player[2].team.number
+
+
 def test_standard_1v1():
     replay = sc2reader.load_replay("test_replays/1.2.2.17811/1.SC2Replay")
 
