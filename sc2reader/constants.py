@@ -100,7 +100,9 @@ COLOR_CODES = {
     '4E2A04': 'Brown',
     '96FF91': 'Light Green',
     '232323': 'Dark Grey',
-    'E55BB0': 'Pink'
+    'E55BB0': 'Pink',
+    'FFFFFF': 'White',
+    '000000': 'Black',
 }
 
 COLOR_CODES_INV = dict(zip(COLOR_CODES.values(),COLOR_CODES.keys()))
