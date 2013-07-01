@@ -372,7 +372,8 @@ class Replay(Resource):
 
             # In some beta patches attribute information is missing
             # Just assign them to team 2 to keep the issue from being fatal
-            team_number = pdata.team+1
+            team_number = int(attributes.get('Teams'+self.type, "Team 2")[5:])
+            # team_number = pdata.team+1
 
             if not team_number in self.team:
                 self.team[team_number] = Team(team_number)

@@ -5,7 +5,6 @@ CHANGELOG
 --------------------
 
 * Hooked up travis-ci for continuous testing. https://travis-ci.org/GraylinKim/sc2reader
-* Fixed player team assignment.
 * Log a warning instead of throwing an exception when using an unknown colors.
     * An unknown hex value will use the hex value as the name.
     * An unknown color name will use 0x000000 as the color.
