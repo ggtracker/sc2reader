@@ -364,8 +364,8 @@ class AttributesEventsReader_17326(AttributesEventsReader_Base):
 
 
 class DetailsReader_Base(Reader):
-    PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result'])
-    Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','dependencies','unknown8','unknown9','unknown10'])
+    PlayerData = namedtuple('PlayerData',['name','bnet','race','color','control','team','handicap','observe','result'])
+    Details = namedtuple('Details',['players','map','difficulty','thumbnail','blizzard_map','file_time','utc_adjustment','unknown4','unknown5','unknown6','dependencies','unknown8','unknown9','unknown10'])
 
     def __call__(self, data, replay):
         # The entire details file is just a serialized data structure
@@ -378,9 +378,10 @@ class DetailsReader_Base(Reader):
         #   List of Players:
         #       Name
         #       BnetData:
-        #           unknown1
-        #           unknown2
-        #           subregion_id
+        #           region_id
+        #           program_id
+        #           realm_id
+        #           name
         #           bnet_id
         #       actual_race (Terran, Protoss, Zerg)
         #       ColorData:
@@ -388,24 +389,30 @@ class DetailsReader_Base(Reader):
         #           red (0-255)
         #           green (0-255)
         #           blue (0-255)
-        #       Unknown1
-        #       Unknown2
+        #       control_id
+        #       team_id
         #       handicap (0-100)
-        #       Team Number - according to András
+        #       observe
         #       Result (0,1,2) - (Unknown, Win, Loss), thanks András
-        #   Map
-        #   Unknown1
-        #   Unknown2
-        #   Unknown3
-        #   file_time - Time file was created/replay was made
-        #   utc_adjustment
-        #   Unknown4
-        #   Unknown5
-        #   Unknown6
-        #   Unknown7
-        #   Unknown8
-        #   Unknown9
-        #   Unknown10
+        #       working set slot id
+        #   Map Title
+        #   difficulty
+        #   thumbnail
+        #       path
+        #   isBlizzardMap
+        #   file_time - UTC of end of the game
+        #   utc_adjustment - for the local timezone
+        #   description
+        #   image file path
+        #   campaign index
+        #   map file name
+        #   cache handles (optional array)
+        #       cache handle string
+        #   miniSave flag
+        #   game speed
+        #   defaultDifficulty
+        #   modPaths (optional array)
+        #       path string
         #
         details = BitPackedDecoder(data).read_struct()
 
@@ -432,13 +439,13 @@ class DetailsReader_Base(Reader):
         return self.Details(*ordered_values(details))
 
 class DetailsReader_22612(DetailsReader_Base):
-    Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','dependencies','unknown8','unknown9','unknown10', 'unknown11'])
+    Details = namedtuple('Details',['players','map','difficulty','thumbnail','blizzard_map','file_time','utc_adjustment','unknown4','unknown5','unknown6','dependencies','unknown8','unknown9','unknown10', 'unknown11'])
 
 class DetailsReader_Beta(DetailsReader_Base):
-    Details = namedtuple('Details',['players','map','unknown1','unknown2','os','file_time','utc_adjustment','unknown4','unknown5','unknown6','dependencies','unknown8','unknown9','unknown10', 'unknown11', 'unknown12'])
+    Details = namedtuple('Details',['players','map','difficulty','thumbnail','blizzard_map','file_time','utc_adjustment','unknown4','unknown5','unknown6','dependencies','unknown8','unknown9','unknown10', 'unknown11', 'unknown12'])
 
 class DetailsReader_Beta_24764(DetailsReader_Beta):
-    PlayerData = namedtuple('PlayerData',['name','bnet','race','color','unknown1','unknown2','handicap','unknown3','result','unknown4'])
+    PlayerData = namedtuple('PlayerData',['name','bnet','race','color','control','team','handicap','observe','result','working_set_slot'])
 
 class MessageEventsReader_Base(Reader):
     TARGET_BITS=3

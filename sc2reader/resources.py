@@ -367,16 +367,20 @@ class Replay(Resource):
             # make sure to strip the clan tag out of the name
             # in newer replays, the clan tag can be separated from the
             # player name with a <sp/> symbol. It should also be stripped.
-            name = pdata.name.split("]",1)[-1].split(">",1)[-1]
+            name = pdata.name.split("]", 1)[-1].split(">", 1)[-1]
             player = Player(pid, name)
 
             # In some beta patches attribute information is missing
             # Just assign them to team 2 to keep the issue from being fatal
-            team_number = int(attributes.get('Teams'+self.type,"Team 2")[5:])
+            team_number = pdata.team+1
 
             if not team_number in self.team:
                 self.team[team_number] = Team(team_number)
                 self.teams.append(self.team[team_number])
+
+                # Maintain order in case people depended on it
+                self.teams.sort(key=lambda t: t.number)
+
             self.team[team_number].players.append(player)
             player.team = self.team[team_number]
 
