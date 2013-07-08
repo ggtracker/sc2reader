@@ -10,6 +10,7 @@ class TrackerEvent(object):
     def __init__(self, frames):
         #: The frame of the game this event was applied
         self.frame = frames
+        self.second = frames >>4
 
     def load_context(self, replay):
         pass
