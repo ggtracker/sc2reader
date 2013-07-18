@@ -6,7 +6,7 @@ python:
 install:
  - python setup.py install
 script:
- - python -m unittest discover test_replays
- - python -m unittest discover test_s2gs
+ - python test_replays/test_all.py
+ - python test_s2gs/test_all.py
 notifications:
   irc: "chat.freenode.net#sc2reader"
