@@ -244,10 +244,9 @@ too much work. It'll make everyone happier in the long run.
 Testing
 -------------------
 
-We use py.test for testing. You can install it via pip/easy_install::
-
-    pip install pytest
-    easy_install pytest
+We use the built in ``unittest`` module for testing. If you are still on Python
+2.6 you will need to install ``unittest2`` because our test suite requires newer
+features than are included in the main distribution.
 
 To run the tests just use::
 
