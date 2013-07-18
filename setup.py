@@ -42,6 +42,7 @@ setuptools.setup(
             'sc2boprinter = sc2reader.scripts.sc2boprinter:main',
             'sc2parse = sc2reader.scripts.sc2parse:main',
             'sc2attributes = sc2reader.scripts.sc2attributes:main',
+            'sc2json = sc2reader.scripts.sc2json:main',
         ]
     },
 
