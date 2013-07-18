@@ -251,9 +251,8 @@ We use py.test for testing. You can install it via pip/easy_install::
 
 To run the tests just use::
 
-    py.test               # Runs all the tests
-    py.test test_replays  # Only run tests on replays
-    py.test test_s2gs     # Only run tests on summary files
+    python -m unittest discover test_replays
+    python -m unittest discover test_s2gs
 
 When repeatedly running tests it can be very helpful to make sure you've
 set a local cache directory to prevent long fetch times from battle.net::

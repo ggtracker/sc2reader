@@ -4,10 +4,13 @@ CHANGELOG
 0.5.2 -
 --------------------
 
+* Added a sc2json script contributed by @ChrisLundquist
 * Hooked up travis-ci for continuous testing. https://travis-ci.org/GraylinKim/sc2reader
+* Switched to built in python unittest module for testing.
 * Log a warning instead of throwing an exception when using an unknown colors.
     * An unknown hex value will use the hex value as the name.
     * An unknown color name will use 0x000000 as the color.
+
 
 0.5.1 - June 1, 2013
 --------------------
