@@ -2,7 +2,13 @@
 
 import datetime
 import json
-import unittest
+
+# Newer unittest features aren't built in for python 2.6
+import sys
+if sys.version_info[:2] <= (2, 7):
+    import unittest2 as unittest
+else:
+    import unittest
 
 import sc2reader
 sc2reader.log_utils.log_to_console("INFO")
