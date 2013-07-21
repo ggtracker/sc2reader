@@ -48,6 +48,8 @@ class DepotFile(object):
 
 class PersonDict(dict):
     """
+    Deprecated!
+
     Supports lookup on both the player name and player id
 
     ::
@@ -59,25 +61,17 @@ class PersonDict(dict):
 
     Delete is supported on the player id only
     """
-    def __init__(self, players=[]):
+    def __init__(self):
         super(PersonDict, self).__init__()
         self._key_map = dict()
 
-        # Support creation from iterables
-        for player in players:
-            self[player.pid] = player
-
     def name(self, player_name):
+        """ deprecated because it is possible for multiple players to have the same name. """
         return self[self._key_map[player_name]]
 
     def __setitem__(self, key, value):
-        if isinstance(key, str):
-            self._key_map[key] = value.pid
-            key = value.pid
-        elif isinstance(key, int):
-            self._key_map[value.name] = key
-
-        super(PersonDict, self).__setitem__(value.pid, value)
+        self._key_map[value.name] = key
+        super(PersonDict, self).__setitem__(key, value)
 
 
 def windows_to_unix(windows_time):
