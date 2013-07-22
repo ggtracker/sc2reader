@@ -453,18 +453,8 @@ class Replay(Resource):
         for obs in self.observers:
             obs.region = default_region
 
-        if 'replay.message.events' in self.raw_data:
-            # Figure out recorder
-            self.packets = self.raw_data['replay.message.events'].packets
-            packet_senders = set(map(lambda p: p.pid, self.packets))
-            human_pids = map(lambda p: p.pid, self.humans)
-            recorders = list(set(human_pids) - set(packet_senders))
-            if len(recorders) == 1:
-                self.recorder = self.person[recorders[0]]
-                self.recorder.recorder = True
-            else:
-                self.recorder = None
-                self.logger.error("{0} possible recorders remain: {1}".format(len(recorders), recorders))
+        # Pretty sure this just never worked, forget about it for now
+        self.recorder = None
 
         player_names = sorted(map(lambda p: p.name, self.people))
         hash_input = self.gateway+":"+','.join(player_names)
