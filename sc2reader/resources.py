@@ -341,7 +341,7 @@ class Replay(Resource):
             self.game_length = self.length
             self.real_length = utils.Length(seconds=int(self.length.seconds/GAME_SPEED_FACTOR[self.speed]))
             self.start_time = datetime.utcfromtimestamp(self.unix_timestamp-self.real_length.seconds)
-            self.date = self.end_time #backwards compatibility
+            self.date = self.end_time  # backwards compatibility
 
     def load_map(self):
         self.map = self.factory.load_map(self.map_file, **self.opt)
@@ -445,7 +445,7 @@ class Replay(Resource):
 
         # Assign the default region to computer players for consistency
         # We know there will be a default region because there must be
-        # at least 1 human player or we wouldn't have a self.
+        # at least 1 human player or we wouldn't have a replay.
         default_region = self.humans[0].region
         for player in self.players:
             if not player.is_human:
@@ -559,7 +559,8 @@ class Replay(Resource):
         self.register_reader('replay.initData', readers.InitDataReader_16561(), lambda r: 16561 <= r.base_build < 17326)
         self.register_reader('replay.initData', readers.InitDataReader_17326(), lambda r: 17326 <= r.base_build < 19132)
         self.register_reader('replay.initData', readers.InitDataReader_19132(), lambda r: 19132 <= r.base_build < 22612)
-        self.register_reader('replay.initData', readers.InitDataReader_22612(), lambda r: 22612 <= r.base_build < 24764)
+        self.register_reader('replay.initData', readers.InitDataReader_22612(), lambda r: 22612 <= r.base_build < 23925)
+        self.register_reader('replay.initData', readers.InitDataReader_23925(), lambda r: 23925 <= r.base_build < 24764)
         self.register_reader('replay.initData', readers.InitDataReader_24764(), lambda r: 24764 <= r.base_build)
         self.register_reader('replay.message.events', readers.MessageEventsReader_Base(), lambda r: r.build < 24247 or r.versions[1]==1)
         self.register_reader('replay.message.events', readers.MessageEventsReader_Beta_24247(), lambda r: r.build >= 24247 and r.versions[1]==2)
