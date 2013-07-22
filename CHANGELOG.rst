@@ -4,6 +4,11 @@ CHANGELOG
 0.5.2 -
 --------------------
 
+* Deprecated player.gateway for player.region
+* Reorganized the person/player/observer hierarchy. Top level classes are now Computer, Participant, and Observer. Participant and Computer are both children of player so any isinstance code should still work fine.
+* Player.uid now means something completely different! Use player.toon_id instead
+* Player.uid is now the user id of the player
+* PersonDict can no longer be constructed from a player list and new players cannot be added by string (name). Only integer keys accepted for setting.
 * Added a sc2json script contributed by @ChrisLundquist
 * Hooked up travis-ci for continuous testing. https://travis-ci.org/GraylinKim/sc2reader
 * Switched to built in python unittest module for testing.

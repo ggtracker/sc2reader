@@ -16,7 +16,6 @@ sc2reader.log_utils.log_to_console("INFO")
 
 class TestReplays(unittest.TestCase):
 
-    @unittest.expectedFailure
     def test_teams(self):
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/13.SC2Replay")
         self.assertNotEqual(replay.player[1].team.number, replay.player[2].team.number)

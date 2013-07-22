@@ -24,7 +24,7 @@ from sc2reader import readers
 from sc2reader import exceptions
 from sc2reader.data import builds as datapacks
 from sc2reader.exceptions import SC2ReaderLocalizationError
-from sc2reader.objects import Player, Observer, Team, PlayerSummary, Graph, BuildEntry
+from sc2reader.objects import Participant, Observer, Computer, Team, PlayerSummary, Graph, BuildEntry
 from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, LOBBY_PROPERTIES, GATEWAY_LOOKUP
 
 
@@ -288,7 +288,6 @@ class Replay(Resource):
         for event in self.events:
             event.load_context(self)
 
-
     def load_details(self):
         if 'replay.attributes.events' in self.raw_data:
             # Organize the attribute data to be useful
@@ -358,84 +357,70 @@ class Replay(Resource):
         self.clients = list()
         self.client = dict()
 
-        def createObserver(pid, name, attributes):
-            # TODO: Make use of that attributes, new in HotS
-            observer = Observer(pid, name)
-            return observer
+        # For players, we can use the details file to look up additional
+        # information. detail_id marks the current index into this data.
+        detail_id = 0
+        player_id = 1
+        details = self.raw_data['replay.details']
+        initData = self.raw_data['replay.initData']
 
-        def createPlayer(pid, pdata, attributes):
-            # make sure to strip the clan tag out of the name
-            # in newer replays, the clan tag can be separated from the
-            # player name with a <sp/> symbol. It should also be stripped.
-            name = pdata.name.split("]", 1)[-1].split(">", 1)[-1]
-            player = Player(pid, name)
+        # Assume that the first X map slots starting at 1 are player slots
+        # so that we can assign player ids without the map
+        self.entities = list()
+        for slot_id, slot_data in enumerate(initData['lobby_state']['slots']):
+            user_id = slot_data['user_id']
 
-            # In some beta patches attribute information is missing
-            # Just assign them to team 2 to keep the issue from being fatal
-            team_number = int(attributes.get('Teams'+self.type, "Team 2")[5:])
-            # team_number = pdata.team+1
+            if slot_data['control'] == 2:
+                if slot_data['observe'] == 0:
+                    self.entities.append(Participant(slot_id, slot_data, user_id, initData['player_init_data'][user_id], player_id, details.players[detail_id], self.attributes.get(player_id, dict())))
+                    detail_id += 1
+                    player_id += 1
 
-            if not team_number in self.team:
-                self.team[team_number] = Team(team_number)
-                self.teams.append(self.team[team_number])
+                else:
+                    self.entities.append(Observer(slot_id, slot_data, user_id, initData['player_init_data'][user_id], player_id))
+                    player_id += 1
 
-                # Maintain order in case people depended on it
-                self.teams.sort(key=lambda t: t.number)
+            elif slot_data['control'] == 3:
+                self.entities.append(Computer(slot_id, slot_data, player_id, details.players[detail_id], self.attributes.get(player_id, dict())))
+                detail_id += 1
+                player_id += 1
 
-            self.team[team_number].players.append(player)
-            player.team = self.team[team_number]
+        def get_team(team_id):
+            if team_id is not None and team_id not in self.team:
+                    team = Team(team_id)
+                    self.team[team_id] = team
+                    self.teams.append(team)
+            return self.team[team_id]
 
-            # Do basic win/loss processing from details data
-            if pdata.result == 1:
-                player.team.result = "Win"
-                self.winner = player.team
-            elif pdata.result == 2:
-                player.team.result = "Loss"
+        # Set up all our cross reference data structures
+        for entity in self.entities:
+            if entity.is_observer is False:
+                entity.team = get_team(entity.team_id)
+                entity.team.players.append(entity)
+                self.players.append(entity)
+                self.player[entity.pid] = entity
+
             else:
-                player.team.result = None
+                self.observers.append(entity)
 
-            player.pick_race = attributes.get('Race','Unknown')
-            player.play_race = LOCALIZED_RACES.get(pdata.race, pdata.race)
-            player.difficulty = attributes.get('Difficulty','Unknown')
-            player.is_human = (attributes.get('Controller','Computer') == 'User')
-            player.uid = pdata.bnet.uid
-            player.subregion = pdata.bnet.subregion
-            player.gateway = GATEWAY_LOOKUP[pdata.bnet.gateway]
-            player.handicap = pdata.handicap
-            player.color = utils.Color(**pdata.color._asdict())
-            return player
+            if entity.is_human:
+                self.person[entity.pid] = entity
+                self.client[entity.uid] = entity
+                self.people.append(entity)
 
-
-        pid = 0
-        init_data = self.raw_data['replay.initData']
-        clients = [d['name'] for d in init_data['player_init_data'] if d['name']]
-        for index, pdata in enumerate(self.raw_data['replay.details'].players):
-            pid += 1
-            attributes = self.attributes.get(pid, dict())
-            player = createPlayer(pid, pdata, attributes)
-            self.player[pid] = player
-            self.players.append(player)
-            self.player[pid] = player
-            self.people.append(player)
-            self.person[pid] = player
-
-        for cid, name in enumerate(clients):
-            if name not in self.player._key_map:
-                pid += 1
-                attributes = self.attributes.get(pid, dict())
-                client = createObserver(pid, name, attributes)
-                self.observers.append(client)
-                self.people.append(client)
-                self.person[pid] = client
+        # Pull results up for teams
+        for team in self.teams:
+            results = set([p.result for p in team.players])
+            if len(results) == 1:
+                team.result = list(results)[0]
+                if team.result == 'Win':
+                    self.winner = team
             else:
-                client = self.player.name(name)
+                self.logger.warn("Conflicting results: {0}".format(results))
+                team.result = 'Unknown'
 
-            client.cid = cid
-            self.clients.append(client)
-            self.client[cid] = client
-
-        # replay.clients replaces replay.humans
-        self.humans = self.clients
+        self.teams.sort(key=lambda t: t.number)
+        self.humans = self.clients = self.people
 
         #Create an store an ordered lineup string
         for team in self.teams:
@@ -447,11 +432,9 @@ class Replay(Resource):
         # We know there will be a default region because there must be
         # at least 1 human player or we wouldn't have a replay.
         default_region = self.humans[0].region
-        for player in self.players:
-            if not player.is_human:
-                player.region = default_region
-        for obs in self.observers:
-            obs.region = default_region
+        for entity in self.entities:
+            if not entity.region:
+                entity.region = default_region
 
         # Pretty sure this just never worked, forget about it for now
         self.recorder = None
