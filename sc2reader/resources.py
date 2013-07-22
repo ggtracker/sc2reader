@@ -229,6 +229,9 @@ class Replay(Resource):
         self.active_units = {}
         self.game_fps = 16.0
 
+        self.tracker_events = list()
+        self.game_events = list()
+
         # Bootstrap the readers.
         self.registered_readers = defaultdict(list)
         self.register_default_readers()

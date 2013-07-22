@@ -296,17 +296,27 @@ class SelectionEvent(GameEvent):
 
         units = list()
         for (unit_id, unit_type, subgroup, intra_subgroup) in self.new_unit_info:
-            # Hack that defaults viking selection to fighter mode instead of assault
-            if replay.versions[1] == 2 and replay.build >= 23925 and unit_type == 71:
-                unit_type = 72
+            # If we don't have access to tracker events, use selection events to create
+            # new units and track unit type changes. It won't be perfect, but it is better
+            # than nothing.
+            if not replay.tracker_events:
+                # Starting at 23925 the default viking mode is assault. Most people expect
+                # the default viking mode to be figher so fudge it a bit here.
+                if replay.versions[1] == 2 and replay.build >= 23925 and unit_type == 71:
+                    unit_type = 72
 
-            if unit_id in replay.objects:
-                unit = replay.objects[unit_id]
-                if not unit.is_type(unit_type):
-                    replay.datapack.change_type(unit, unit_type, self.frame)
+                if unit_id in replay.objects:
+                    unit = replay.objects[unit_id]
+                    if not unit.is_type(unit_type):
+                        replay.datapack.change_type(unit, unit_type, self.frame)
+                else:
+                    unit = replay.datapack.create_unit(unit_id, unit_type, 0x00, self.frame)
+                    replay.objects[unit_id] = unit
+
+            # If we have tracker events, the unit must already exist and must already
+            # have the correct unit type.
             else:
-                unit = replay.datapack.create_unit(unit_id, unit_type, 0x00, self.frame)
-                replay.objects[unit_id] = unit
+                unit = replay.objects[unit_id]
 
             units.append(unit)
 
