@@ -60,3 +60,15 @@ Graph
 
 .. autoclass:: Graph
     :members:
+
+MapInfo
+------------------
+
+.. autoclass:: MapInfo
+	:members:
+
+MapInfoPlayer
+------------------
+
+.. autoclass:: MapInfoPlayer
+	:members:

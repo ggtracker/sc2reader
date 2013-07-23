@@ -24,10 +24,6 @@ def setFactory(factory):
     module.load_map = factory.load_map
     module.load_game_summaries = factory.load_game_summaries
     module.load_game_summary = factory.load_game_summary
-    module.load_map_infos = factory.load_map_infos
-    module.load_map_info = factory.load_map_info
-    module.load_map_histories = factory.load_map_headers
-    module.load_map_history = factory.load_map_header
 
     module.configure = factory.configure
     module.reset = factory.reset

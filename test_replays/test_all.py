@@ -270,6 +270,19 @@ class TestReplays(unittest.TestCase):
         self.assertEquals(len(replay.players), 2)
         self.assertEquals(len(replay.people), 3)
 
+    def test_map_info(self):
+        replay = sc2reader.load_replay("test_replays/1.5.3.23260/ggtracker_109233.SC2Replay", load_map=True)
+        self.assertEquals(replay.map.map_info.tile_set, 'Avernus')
+        self.assertEquals(replay.map.map_info.fog_type, 'Dark')
+        self.assertEquals(replay.map.map_info.width, 176)
+        self.assertEquals(replay.map.map_info.height, 160)
+        self.assertEquals(replay.map.map_info.camera_top, 134)
+        self.assertEquals(replay.map.map_info.camera_left, 14)
+        self.assertEquals(replay.map.map_info.camera_right, 162)
+        self.assertEquals(replay.map.map_info.camera_bottom, 14)
+        controllers = [(p.pid, p.control) for p in replay.map.map_info.players]
+        self.assertEquals(controllers, [(0, 3), (1, 1), (2, 1), (15, 4)])
+
     def test_plugins(self):
         from sc2reader.plugins.replay import APMTracker, SelectionTracker, toJSON
         factory = sc2reader.factories.SC2Factory()

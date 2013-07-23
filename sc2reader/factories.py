@@ -92,22 +92,6 @@ class SC2Factory(object):
         """Loads a collection of s2gs files, returns a generator."""
         return self.load_all(GameSummary, sources, options, extension='s2gs', **new_options)
 
-    def load_map_info(self, source, options=None, **new_options):
-        """Loads a single s2mi file. Accepts file path, url, or file object."""
-        return self.load(MapInfo, source, options, **new_options)
-
-    def load_map_infos(self, sources, options=None, **new_options):
-        """Loads a collection of s2mi files, returns a generator."""
-        return self.load_all(MapInfo, sources, options, extension='s2mi', **new_options)
-
-    def load_map_header(self, source, options=None, **new_options):
-        """Loads a single s2mh file. Accepts file path, url, or file object."""
-        return self.load(MapHeader, source, options, **new_options)
-
-    def load_map_headers(self, sources, options=None, **new_options):
-        """Loads a collection of s2mh files, returns a generator."""
-        return self.load_all(MapHeader, sources, options, extension='s2mh', **new_options)
-
     def configure(self, cls=None, **options):
         """ Configures the factory to use the supplied options. If cls is specified
             the options will only be applied when loading that class"""

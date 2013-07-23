@@ -2,10 +2,11 @@
 from __future__ import absolute_import
 
 import hashlib
-
+import math
 from collections import namedtuple
 
-from sc2reader import utils
+from sc2reader import utils, log_utils
+from sc2reader.decoders import ByteDecoder
 from sc2reader.constants import *
 
 Location = namedtuple('Location',('x','y'))
@@ -408,3 +409,265 @@ class Graph():
     def __str__(self):
         return "Graph with {0} values".format(len(self.times))
 
+
+class MapInfoPlayer(object):
+    """
+    Describes the player data as found in the MapInfo document of SC2Map archives.
+    """
+    def __init__(self, pid, control, color, race, unknown, start_point, ai, decal):
+        #: The pid of the player
+        self.pid = pid
+
+        #: The controller of the player, one of:
+        #:
+        #: * 0 = Default?
+        #: * 1 = User
+        #: * 2 = Computer
+        #: * 3 = Neutral
+        #: * 4 = Hostile
+        #: * More?
+        #:
+        self.control = control
+
+        #: The color of the player, one of:
+        #:
+        #: * 0xffffffff = (Any)
+        #: * 0 = White
+        #: * 1 = Red
+        #: * 2 = Blue
+        #: * 3 = Teal
+        #: * 4 = Purple
+        #: * 5 = Yellow
+        #: * 6 = Orange
+        #: * 7 = Green
+        #: * 8 = Pink
+        #: * 9 = Violet
+        #: * 10 = Light Grey
+        #: * 11 = Dark Green
+        #: * 12 = Brown
+        #: * 13 = Light Green
+        #: * 14 = Dark Grey
+        #: * 15 = Lavender
+        #:
+        self.color = color
+
+        #: The player race, "" for unset
+        self.race = race
+
+        #: Unknown player setting
+        self.unknown = unknown
+
+        #: The point index of the player start location; 0 = random
+        self.start_point = start_point
+
+        #: The AI to use
+        self.ai = ai
+
+        #: The player decal
+        self.decal = decal
+
+
+@log_utils.loggable
+class MapInfo(object):
+    """
+    Represents the data encoded into the MapInfo file inside every SC2Map archive
+    """
+    def __init__(self, contents):
+        # According to http://www.galaxywiki.net/MapInfo_(File_Format)
+        # With a couple small changes for version 0x20+
+        data = ByteDecoder(contents, endian='LITTLE')
+        if data.read_bytes(4) != 'MapI':
+            self.logger.warn("Invalid MapInfo file")
+            return
+
+        #: The map info file format version
+        self.version = data.read_uint32()
+        if self.version >= 0x18:
+            self.unknown1 = data.read_uint32()
+            self.unknown2 = data.read_uint32()
+
+        #: The full map width
+        self.width = data.read_uint32()
+
+        #: The full map height
+        self.height = data.read_uint32()
+
+        #: Small map preview type: 0 = None, 1 = Minimap, 2 = Custom
+        self.small_preview_type = data.read_uint32()
+
+        #: (Optional) Small map preview path; relative to root of map archive
+        self.small_preview_path = str()
+        if self.small_preview_type == 2:
+            self.small_preview_path = data.read_cstring()
+
+        #: Large map preview type: 0 = None, 1 = Minimap, 2 = Custom
+        self.large_preview_type = data.read_uint32()
+
+        #: (Optional) Large map preview path; relative to root of map archive
+        self.large_preview_path = str()
+        if self.large_preview_type == 2:
+            self.large_preview_path = data.read_cstring()
+
+        if self.version >= 0x20:
+            self.unknown3 = data.read_cstring()
+            self.unknown4 = data.read_uint32()
+
+        self.unknown5 = data.read_uint32()
+
+        #: The type of fog of war used on the map
+        self.fog_type = data.read_cstring()
+
+        #: The tile set used on the map
+        self.tile_set = data.read_cstring()
+
+        #: The left bounds for the camera. This value is 7 less than the value shown in the editor.
+        self.camera_left = data.read_uint32()
+
+        #: The bottom bounds for the camera. This value is 4 less than the value shown in the editor.
+        self.camera_bottom = data.read_uint32()
+
+        #: The right bounds for the camera. This value is 7 more than the value shown in the editor.
+        self.camera_right = data.read_uint32()
+
+        #: The top bounds for the camera. This value is 4 more than the value shown in the editor.
+        self.camera_top = data.read_uint32()
+
+        #: The map base height (what is that?). This value is 4096*Base Height in the editor (giving a decimal value).
+        self.base_height = data.read_uint32()/4096
+
+        #: Load screen type: 0 = default, 1 = custom
+        self.load_screen_type = data.read_uint32()
+
+        #: (Optional) Load screen image path; relative to root of map archive
+        self.load_screen_path = data.read_cstring()
+
+        self.unknown6 = data.read_uint16()
+        #: Load screen image scaling strategy: 0 = normal, 1 = aspect scaling, 2 = stretch the image.
+        self.load_screen_scaling = data.read_uint32()
+
+        #: The text position on the loading screen. One of:
+        #:
+        #: * 0xffffffff = (Default)
+        #: * 0 = Top Left
+        #: * 1 = Top
+        #: * 2 = Top Right
+        #: * 3 = Left
+        #: * 4 = Center
+        #: * 5 = Right
+        #: * 6 = Bottom Left
+        #: * 7 = Bottom
+        #: * 8 = Bottom Right
+        #:
+        self.text_position = data.read_uint32()
+
+        #: Loading screen text position offset x
+        self.text_position_offset_x = data.read_uint32()
+
+        #: Loading screen text position offset y
+        self.text_position_offset_y = data.read_uint32()
+
+        #: Loading screen text size x
+        self.text_position_size_x = data.read_uint32()
+
+        #: Loading screen text size y
+        self.text_position_size_y = data.read_uint32()
+
+        #: A bit array of flags with the following options (possibly incomplete)
+        #:
+        #: * 0x00000001 = Disable Replay Recording
+        #: * 0x00000002 = Wait for Key (Loading Screen)
+        #: * 0x00000004 = Disable Trigger Preloading
+        #: * 0x00000008 = Enable Story Mode Preloading
+        #: * 0x00000010 = Use Horizontal Field of View
+        #:
+        self.data_flags = data.read_uint32()
+
+        self.unknown7 = data.read_uint32()
+
+        if self.version >= 0x20:
+            self.unknown9 = data.read_bytes(21)
+
+        #: The number of players enabled via the data editor
+        self.player_count = data.read_uint32()
+
+        #: A list of references to :class:`MapInfoPlayer` objects
+        self.players = list()
+        for i in range(self.player_count):
+            self.players.append(MapInfoPlayer(
+                pid=data.read_uint8(),
+                control=data.read_uint32(),
+                color=data.read_uint32(),
+                race=data.read_cstring(),
+                unknown=data.read_uint32(),
+                start_point=data.read_uint32(),
+                ai=data.read_uint32(),
+                decal=data.read_cstring(),
+            ))
+
+        #: A list of the start location point indexes used in Basic Team Settings.
+        #: The editor limits these to only Start Locations and not regular points.
+        self.start_locations = list()
+        for i in range(data.read_uint32()):
+            self.start_locations.append(data.read_uint32())
+
+        #: The number of start locations used
+        self.start_location_used = data.read_uint32()
+
+        #: The number of alliance flags encoded in :attr:`alliance_flags`.
+        self.alliance_flags_length = data.read_uint32()
+        # A set bit (1) indicates that the pair of Start Locations are to be allied.
+        # bit = 1; // Set up a bitmask
+        # // i will be the first Start Location in the Point Indexes array
+        # // j will the the Start Location after i
+        # for(i=0;i< Start Location Count;i++){
+        #    for(j=i+1;j < Start Location Count;j++){ // set j, and then iterate through the rest
+        #       bit <<= 1; // Shift left to move the mask to the next bit.
+        #       if((Team Enemy Flags & bit) != 0) { // These start locations are allies
+        #          // Add more to compensate for byte boundaries. This array can get big.
+        #       }
+        #    }
+        # }
+        #: A bit array of flags mapping out the player alliances
+        self.alliance_flags = data.read_uint(int(math.ceil(self.alliance_flags_length/8.0)))
+
+        #: A list of the advanced start location point indexes used in Advanced Team Settings.
+        #: The editor limits these to only Start Locations and not regular points.
+        self.advanced_start_locations = list()
+        for i in range(data.read_uint32()):
+            # point index for each start location used
+            self.advanced_start_locations.append(data.read_uint32())
+
+        #: A list of bit arrays marking which start locations below to which team.
+        self.advanced_teams_flags = list()
+        for i in range(data.read_uint32()):
+            # TODO:
+            # One set for each team. Each bit corresponds with the Point Indexes
+            # array index (i.e., bit 0 is PointIndexes[0], bit1 is PointIndex[1],
+            # etc.). If the bit is set, that start location is a part of that team.
+            self.advanced_teams_flags.append(data.read_uint32())
+
+        #: Possibly "number of teams used"? Similar to "start locations used"
+        self.advanced_teams_count2 = data.read_uint32()
+
+        #: The number of enemy flags encoded in :attr:`enemy_flags`.
+        self.enemy_flags_length = data.read_uint32()
+        # A set bit (1) indicates that the pair of teams are to be enemies.
+        # bit = 1; // Set up a bitmask
+        # // i will be the first Team in the Team Members array.
+        # // j will be the Team that comes after i
+        # for(i=0;i< Team Count;i++){
+        #    for(j=i+1;j < Team Count;j++){ // set j, and then iterate through the rest
+        #       bit <<= 1; // Shift left to move the mask to the next bit.
+        #       if((Team Enemy Flags & bit) != 0) { // These teams are enemies
+        #          // Add more code to compensate for byte boundaries.
+        #       }
+        #    }
+        # }
+        #: A bit array of flags mapping out the player enemies.
+        self.enemy_flags = data.read_uint(int(math.ceil(self.alliance_flags_length/8.0)))
+
+        if data.length != data.tell():
+            self.logger.warn("Not all of the MapInfo file was read!")
+
+    def __str__(self):
+        return self.map_name

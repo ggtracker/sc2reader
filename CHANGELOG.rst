@@ -4,6 +4,7 @@ CHANGELOG
 0.5.2 -
 --------------------
 
+* Adds experimental SC2Map.MapInfo parsing support. Replaces the useless MapInfo resource from before.
 * Summary.teams is now summary.team; summary.team is now summary.teams. To conform with replay name conventions
 * Fixed #136, unit types from tracker events are used when available.
 * Deprecated player.gateway for player.region

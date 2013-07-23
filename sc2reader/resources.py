@@ -24,7 +24,7 @@ from sc2reader import readers
 from sc2reader import exceptions
 from sc2reader.data import builds as datapacks
 from sc2reader.exceptions import SC2ReaderLocalizationError
-from sc2reader.objects import Participant, Observer, Computer, Team, PlayerSummary, Graph, BuildEntry
+from sc2reader.objects import Participant, Observer, Computer, Team, PlayerSummary, Graph, BuildEntry, MapInfo
 from sc2reader.constants import REGIONS, GAME_SPEED_FACTOR, LOBBY_PROPERTIES
 
 
@@ -590,16 +590,6 @@ class Replay(Resource):
 class Map(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
 
-    #: The unique hash used to identify this map on bnet's depots.
-    hash = str()
-
-    #: The gateway this map was posted to.
-    #: Maps must be posted individually to each gateway.
-    gateway = str()
-
-    #: A URL reference to the location of this map on bnet's depots.
-    url = str()
-
     #: The localized (only enUS supported right now) map name
     name = str()
 
@@ -609,15 +599,22 @@ class Map(Resource):
     #: The map description as written by author
     description = str()
 
-    #: A byte string representing the minimap in tga format.
-    minimap = str()
-
     def __init__(self, map_file, filename=None, gateway=None, map_hash=None, **options):
         super(Map, self).__init__(map_file, filename, **options)
+
+        #: The unique hash used to identify this map on bnet's depots.
         self.hash = map_hash
+
+        #: The gateway this map was posted to. Maps must be posted individually to each gateway.
         self.gateway = gateway
+
+        #: A URL reference to the location of this map on bnet's depots.
         self.url = Map.get_url(gateway, map_hash)
+
+        #: The opened MPQArchive for this map
         self.archive = MPQArchive(map_file)
+
+        #: A byte string representing the minimap in tga format.
         self.minimap = self.archive.read_file('Minimap.tga')
 
         # This will only populate the fields for maps with enUS localizations.
@@ -635,23 +632,28 @@ class Map(Resource):
                 elif parts[0] == 'DocInfo/DescLong':
                     self.description = parts[1]
 
+        #: A reference to the map's :class:`~sc2reader.objects.MapInfo` object
+        self.map_info = MapInfo(self.archive.read_file('MapInfo'))
+
     @classmethod
     def get_url(cls, gateway, map_hash):
         """Builds a download URL for the map from its components."""
         if gateway and map_hash:
             # it seems like sea maps are stored on us depots.
-            gateway = 'us' if gateway=='sea' else gateway
+            gateway = 'us' if gateway == 'sea' else gateway
             return cls.url_template.format(gateway, map_hash)
         else:
             return None
 
-class Localization(Resource,dict):
+
+class Localization(Resource, dict):
 
     def __init__(self, s2ml_file, **options):
         Resource.__init__(self, s2ml_file, **options)
         xml = ElementTree.parse(s2ml_file)
         for entry in xml.findall('e'):
             self[int(entry.attrib['id'])] = entry.text
+
 
 class GameSummary(Resource):
 
@@ -1052,36 +1054,6 @@ class GameSummary(Resource):
         return "{0} - {1} {2}".format(self.start_time,self.game_length,
                                          'v'.join(''.join(p.play_race[0] for p in team.players) for team in self.teams))
 
-
-
-class MapInfo(Resource):
-    """**Experimental**"""
-
-    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mi'
-
-    #: Name of the Map
-    map_name = str()
-
-    #: Language
-    language = str()
-
-    #: Hash of referenced s2mh file
-    s2mh_hash = str()
-
-    #: URL of referenced s2mh file
-    s2mh_url = str()
-
-    def __init__(self, info_file, filename=None, **options):
-        super(MapInfo, self).__init__(info_file, filename, **options)
-        self.data = BitPackedDecoder(info_file).read_struct()
-        self.map_name = self.data[0][7]
-        self.language = self.data[0][13]
-        parsed_hash = utils.parse_hash(self.data[0][1])
-        self.s2mh_hash =  parsed_hash['hash']
-        self.s2mh_url = MapHeader.url_template.format(parsed_hash['server'], self.s2mh_hash)
-
-    def __str__(self):
-        return self.map_name
 
 class MapHeader(Resource):
     """**Experimental**"""
