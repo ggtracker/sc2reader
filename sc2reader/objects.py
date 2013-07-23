@@ -243,7 +243,8 @@ class User(object):
 
 
 class Observer(Entity, User):
-    """
+    """ Extends :class:`Entity` and :class:`User`.
+
     :param integer sid: The entity's unique slot id.
     :param dict slot_data: The slot data associated with this entity
     :param integer uid: The user's unique user id
@@ -262,7 +263,8 @@ class Observer(Entity, User):
 
 
 class Computer(Entity, Player):
-    """
+    """ Extends :class:`Entity` and :class:`Player`
+
     :param integer sid: The entity's unique slot id.
     :param dict slot_data: The slot data associated with this entity
     :param integer pid: The player's unique player id.
@@ -281,7 +283,8 @@ class Computer(Entity, Player):
 
 
 class Participant(Entity, User, Player):
-    """
+    """ Extends :class:`Entity`, :class:`User`, and :class:`Player`
+
     :param integer sid: The entity's unique slot id.
     :param dict slot_data: The slot data associated with this entity
     :param integer uid: The user's unique user id
