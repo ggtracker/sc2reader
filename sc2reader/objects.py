@@ -53,6 +53,9 @@ class Team(object):
         raw_hash = ','.join(sorted(p.url for p in self.players))
         return hashlib.sha256(raw_hash).hexdigest()
 
+    def __str__(self):
+        return "Team {0}".format(self.number)
+
 
 class Attribute(object):
 
@@ -251,6 +254,9 @@ class Observer(Entity, User):
         #: The player id of the observer. Only meaningful in pre 2.0.4 replays
         self.pid = pid
 
+    def __str__(self):
+        return "Observer {0} - {1}".format(self.uid, self.name)
+
 
 class Computer(Entity, Player):
     """
@@ -267,6 +273,9 @@ class Computer(Entity, Player):
         #: The auto-generated in-game name for this computer player
         self.name = detail_data.name
 
+    def __str__(self):
+        return "Player {0} - {1} ({2})".format(self.pid, self.name, self.play_race)
+
 
 class Participant(Entity, User, Player):
     """
@@ -282,6 +291,9 @@ class Participant(Entity, User, Player):
         Entity.__init__(self, sid, slot_data)
         User.__init__(self, uid, init_data)
         Player.__init__(self, pid, detail_data, attribute_data)
+
+    def __str__(self):
+        return "Player {0} - {1} ({2})".format(self.pid, self.name, self.play_race)
 
 
 class PlayerSummary():
