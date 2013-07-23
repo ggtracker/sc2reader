@@ -47,19 +47,19 @@ class ByteDecoder(object):
         self.tell = self._buffer.tell
 
         # decode the endian value if necessary
-        endian = endian.lower()
-        if endian.lower() == 'little':
-            endian = "<"
-        elif endian.lower() == 'big':
-            endian = ">"
-        elif endian not in ('<','>'):
-            raise ValueError("Endian must be one of 'little', '<', 'big', or '>' but was: "+endian)
+        self.endian = endian.lower()
+        if self.endian.lower() == 'little':
+            self.endian = "<"
+        elif self.endian.lower() == 'big':
+            self.endian = ">"
+        elif self.endian not in ('<', '>'):
+            raise ValueError("Endian must be one of 'little', '<', 'big', or '>' but was: "+self.endian)
 
         # Pre-compiling
-        self._unpack_int = struct.Struct(endian+'I').unpack
-        self._unpack_short = struct.Struct(endian+'H').unpack
-        self._unpack_longlong = struct.Struct(endian+'Q').unpack
-        self._unpack_bytes = lambda bytes: bytes if endian == '>' else bytes[::-1]
+        self._unpack_int = struct.Struct(self.endian+'I').unpack
+        self._unpack_short = struct.Struct(self.endian+'H').unpack
+        self._unpack_longlong = struct.Struct(self.endian+'Q').unpack
+        self._unpack_bytes = lambda bytes: bytes if self.endian == '>' else bytes[::-1]
 
     def done(self):
         """ Returns true when all bytes have been decoded """
@@ -93,6 +93,25 @@ class ByteDecoder(object):
     def read_bytes(self, count):
         """ Returns the next ``count`` bytes as a byte string """
         return self._unpack_bytes(self.read(count))
+
+    def read_uint(self, count):
+        """ Returns the next ``count`` bytes as an unsigned integer """
+        unpack = struct.Struct(self.endian+'B'*count).unpack
+        uint = 0
+        for byte in unpack(self.read(count)):
+            uint = uint << 8 | byte
+        return uint
+
+    def read_cstring(self):
+        """ Read a NULL byte terminated character string. Ignores endian. """
+        cstring = StringIO()
+        while True:
+            c = self.read(1)
+            if ord(c) == 0:
+                return cstring.getvalue()
+            else:
+                cstring.write(c)
+
 
 class BitPackedDecoder(object):
     """
