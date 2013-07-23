@@ -358,9 +358,9 @@ class PlayerSummary():
 
     def __str__(self):
         if not self.is_ai:
-            return '{0} - {1} - {2}/{3}/'.format(self.teamid, self.play_race, self.subregion, self.bnetid)
+            return 'User {0}-S2-{1}-{2}'.format(self.region.upper(), self.subregion, self.bnetid)
         else:
-            return '{0} - {1} - AI'.format(self.teamid, self.play_race)
+            return 'AI ({0})'.format(self.play_race)
 
     def __repr__(self):
         return str(self)
