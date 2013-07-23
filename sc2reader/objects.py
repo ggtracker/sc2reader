@@ -35,18 +35,21 @@ class Team(object):
     #: One of "Win", "Loss", or "Unknown"
     result = str()
 
-    #: A string representation of the team play races like PP or TPZZ. Random
-    #: pick races are not reflected in this string
-    lineup = str()
-
     def __init__(self, number):
         self.number = number
         self.players = list()
         self.result = "Unknown"
-        self.lineup = ""
 
     def __iter__(self):
         return self.players.__iter__()
+
+    @property
+    def lineup(self):
+        """
+        A string representation of the team play races like PP or TPZZ. Random
+        pick races are not reflected in this string
+        """
+        return ''.join(sorted(p.play_race[0].upper() for p in self.players))
 
     @property
     def hash(self):

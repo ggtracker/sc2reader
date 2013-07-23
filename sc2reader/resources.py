@@ -425,10 +425,6 @@ class Replay(Resource):
         self.teams.sort(key=lambda t: t.number)
         self.humans = self.clients = self.people
 
-        #Create an store an ordered lineup string
-        for team in self.teams:
-            team.lineup = ''.join(sorted(player.play_race[0].upper() for player in team))
-
         self.real_type = real_type(self.teams)
 
         # Assign the default region to computer players for consistency
