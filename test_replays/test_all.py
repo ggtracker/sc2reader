@@ -252,6 +252,24 @@ class TestReplays(unittest.TestCase):
         self.assertEquals(hellion_times, [5180, 5183])
         self.assertEquals(hellbat_times, [6736, 6741, 7215, 7220, 12004, 12038])
 
+    @unittest.expectedFailure
+    def test_outmatched_pids(self):
+        replay = sc2reader.load_replay('test_replays/2.0.8.25604/issue131_arid_wastes.SC2Replay')
+        self.assertEquals(replay.players[0].pid, 1)
+        self.assertEquals(replay.players[1].pid, 3)
+        self.assertEquals(replay.players[2].pid, 4)
+
+        replay = sc2reader.load_replay('test_replays/2.0.8.25604/issue135.SC2Replay')
+        self.assertEquals(replay.players[0].pid, 1)
+        self.assertEquals(replay.players[1].pid, 2)
+        self.assertEquals(replay.players[2].pid, 4)
+
+        replay = sc2reader.load_replay("test_replays/2.0.8.25604/mlg1.SC2Replay")
+        self.assertEquals(replay.players[0].pid, 1)
+        self.assertEquals(replay.players[1].pid, 2)
+        self.assertEquals(len(replay.players), 2)
+        self.assertEquals(len(replay.people), 3)
+
     def test_plugins(self):
         from sc2reader.plugins.replay import APMTracker, SelectionTracker, toJSON
         factory = sc2reader.factories.SC2Factory()
