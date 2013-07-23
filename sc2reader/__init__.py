@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-import sys, os
+import os
+import sys
 
 # import submodules
 from sc2reader import plugins, data, scripts
@@ -12,6 +13,7 @@ log_utils.setup()
 
 # For backwards compatibility
 SC2Reader = factories.SC2Factory
+
 
 def setFactory(factory):
     # Expose a nice module level interface
@@ -33,11 +35,14 @@ def setFactory(factory):
     module.register_plugin = factory.register_plugin
     module._defaultFactory = factory
 
+
 def useFileCache(cache_dir, **options):
     setFactory(factories.FileCachedSC2Factory(cache_dir, **options))
 
+
 def useDictCache(cache_max_size=0, **options):
     setFactory(factories.DictCachedSC2Factory(cache_max_size, **options))
+
 
 def useDoubleCache(cache_dir, cache_max_size=0, **options):
     setFactory(factories.DoubleCachedSC2Factory(cache_dir, cache_max_size, **options))
@@ -54,4 +59,3 @@ elif cache_max_size:
     useDictCache(cache_max_size)
 else:
     setFactory(factories.SC2Factory())
-
