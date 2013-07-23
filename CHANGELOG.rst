@@ -4,6 +4,7 @@ CHANGELOG
 0.5.2 -
 --------------------
 
+* Summary.teams is now summary.team; summary.team is now summary.teams. To conform with replay name conventions
 * Fixed #136, unit types from tracker events are used when available.
 * Deprecated player.gateway for player.region
 * Reorganized the person/player/observer hierarchy. Top level classes are now Computer, Participant, and Observer. Participant and Computer are both children of player so any isinstance code should still work fine.

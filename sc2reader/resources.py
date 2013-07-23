@@ -25,7 +25,7 @@ from sc2reader import exceptions
 from sc2reader.data import builds as datapacks
 from sc2reader.exceptions import SC2ReaderLocalizationError
 from sc2reader.objects import Participant, Observer, Computer, Team, PlayerSummary, Graph, BuildEntry
-from sc2reader.constants import REGIONS, LOCALIZED_RACES, GAME_SPEED_FACTOR, LOBBY_PROPERTIES, GATEWAY_LOOKUP
+from sc2reader.constants import REGIONS, GAME_SPEED_FACTOR, LOBBY_PROPERTIES
 
 
 def real_type(teams):
@@ -687,11 +687,11 @@ class GameSummary(Resource):
     def __init__(self, summary_file, filename=None, lang='enUS', **options):
         super(GameSummary, self).__init__(summary_file, filename, lang=lang, **options)
 
-        #: A list of teams
+        #: A dict of team# -> teams
         self.team = dict()
 
-        #: A dict of team# -> team
-        self.teams = dict()
+        #: A list of teams
+        self.teams = list()
 
         #: Players, a dict of :class`PlayerSummary` from the game
         self.players = list()
@@ -712,7 +712,6 @@ class GameSummary(Resource):
         self.localization_urls = dict()
         self.lobby_properties = dict()
         self.lobby_player_properties = dict()
-        self.teams = dict()
         self.game_type = str()
         self.real_type = str()
 
@@ -745,8 +744,8 @@ class GameSummary(Resource):
         else:
             self.expansion = ''
 
-        self.game_type = self.settings['Teams'].replace(" ","")
-        self.real_type = real_type(self.teams.values())
+        self.game_type = self.settings['Teams'].replace(" ", "")
+        self.real_type = real_type(self.teams)
 
         # The s2gs file also keeps reference to a series of s2mv files
         # Some of these appear to be encoded bytes and others appear to be
@@ -810,9 +809,10 @@ class GameSummary(Resource):
         #
         # For now we'll only do this for english localizations.
         self.lang_sheets = dict()
-        self.translations =  dict()
+        self.translations = dict()
         for lang, files in self.localization_urls.items():
-            if lang != self.opt.lang: continue
+            if lang != self.opt.lang:
+                continue
 
             sheets = list()
             for depot_file in files:
@@ -824,7 +824,7 @@ class GameSummary(Resource):
                     translation[uid] = sheets[sheet][item]
                 elif self.opt.debug:
                     msg = "No {0} translation for sheet {1}, item {2}"
-                    raise SC2ReaderLocalizationError(msg.format(self.opt.lang,sheet,item))
+                    raise SC2ReaderLocalizationError(msg.format(self.opt.lang, sheet, item))
                 else:
                     translation[uid] = "Unknown"
 
@@ -853,10 +853,11 @@ class GameSummary(Resource):
                 settings[setting[0][1]] = [p[0] for p in setting[1]]
 
         activated = dict()
+
         def use_property(prop, player=None):
             # Check the cache before recomputing
             if (prop.id, player) in activated:
-                return activated[(prop.id,player)]
+                return activated[(prop.id, player)]
 
             # A property can only be used if it's requirements
             # are both active and have one if the required settings.
@@ -875,7 +876,7 @@ class GameSummary(Resource):
                 if requirement.is_lobby:
                     values = [setting]
                 else:
-                    values = [setting[player]] if player != None else setting
+                    values = [setting[player]] if player is not None else setting
 
                 # Because of the above complication we resort to a set intersection of
                 # the applicable values and the set of required values.
@@ -887,7 +888,7 @@ class GameSummary(Resource):
                 use = True
 
             # Record the result for future reference and return
-            activated[(prop.id,player)] = use
+            activated[(prop.id, player)] = use
             return use
 
         translation = self.translations[self.opt.lang]
@@ -896,7 +897,7 @@ class GameSummary(Resource):
             if prop.is_lobby:
                 if use_property(prop):
                     value = prop.values[settings[uid]][0]
-                    self.settings[name] = translation[(uid,value)]
+                    self.settings[name] = translation[(uid, value)]
             else:
                 for index, player_setting in enumerate(settings[uid]):
                     if use_property(prop, index):
@@ -906,7 +907,7 @@ class GameSummary(Resource):
     def load_player_stats(self):
         translation = self.translations[self.opt.lang]
 
-        stat_items = sum([p[0] for p in self.parts[3:]],[])
+        stat_items = sum([p[0] for p in self.parts[3:]], [])
 
         for item in stat_items:
             # Each stat item is laid out as follows
@@ -922,9 +923,10 @@ class GameSummary(Resource):
                 # Build order ids are generally 16 million+
                 if stat_id < 1000000:
                     for pid, value in enumerate(item[1]):
-                        if not value: continue
+                        if not value:
+                            continue
 
-                        if stat_name in ('Army Value','Resource Collection Rate','Upgrade Spending','Workers Active'):
+                        if stat_name in ('Army Value', 'Resource Collection Rate', 'Upgrade Spending', 'Workers Active'):
                             # Each point entry for the graph is laid out as follows
                             #
                             #   {0:Value, 1:0, 2:Time}
@@ -960,7 +962,8 @@ class GameSummary(Resource):
 
     def load_players(self):
         for index, struct in enumerate(self.parts[0][3]):
-            if not struct[0] or not struct[0][1]: continue # Slot is closed
+            if not struct[0] or not struct[0][1]:
+                continue  # Slot is closed
 
             player = PlayerSummary(struct[0][0])
             stats = self.player_stats.get(index, dict())
@@ -975,21 +978,23 @@ class GameSummary(Resource):
                 player.unknown2 = struct[0][1][1]
 
             # Either a referee or a spectator, nothing else to do
-            if settings.get('Participant Role','') != 'Participant':
+            if settings.get('Participant Role', '') != 'Participant':
                 self.observers.append(player)
                 continue
 
             player.play_race = LOBBY_PROPERTIES[0xBB9][1].get(struct[2], None)
 
-            player.is_winner = isinstance(struct[1],dict) and struct[1][0] == 0
+            player.is_winner = isinstance(struct[1], dict) and struct[1][0] == 0
             if player.is_winner:
                 self.winners.append(player.pid)
 
             team_id = int(settings['Team'].split(' ')[1])
-            if team_id not in self.teams:
-                self.teams[team_id] = Team(team_id)
-            player.team = self.teams[team_id]
-            self.teams[team_id].players.append(player)
+            if team_id not in self.team:
+                self.team[team_id] = Team(team_id)
+                self.teams.append(self.team[team_id])
+
+            player.team = self.team[team_id]
+            self.team[team_id].players.append(player)
 
             # We can just copy these settings right over
             player.color = utils.Color(name=settings.get('Color', None))
@@ -1017,7 +1022,7 @@ class GameSummary(Resource):
             # HotS Stats
             player.upgrade_spending_graph = stats.get('Upgrade Spending', None)
             player.workers_active_graph = stats.get('Workers Active', None)
-            player.enemies_destroyed = stats.get('Enemies Destroyed:',None)
+            player.enemies_destroyed = stats.get('Enemies Destroyed:', None)
             player.time_supply_capped = stats.get('Time Supply Capped', None)
             player.idle_production_time = stats.get('Idle Production Time', None)
             player.resources_spent = stats.get('Resources Spent:', None)
@@ -1045,7 +1050,7 @@ class GameSummary(Resource):
 
     def __str__(self):
         return "{0} - {1} {2}".format(self.start_time,self.game_length,
-                                         'v'.join(''.join(p.play_race[0] for p in team.players) for team in self.teams.values()))
+                                         'v'.join(''.join(p.play_race[0] for p in team.players) for team in self.teams))
 
 
 
