@@ -624,16 +624,35 @@ class Map(Resource):
         game_strings = self.archive.read_file('enUS.SC2Data\LocalizedData\GameStrings.txt')
         if game_strings:
             for line in game_strings.split('\r\n'):
-                parts = line.split('=')
-                if parts[0] == 'DocInfo/Name':
-                    self.name = parts[1]
-                elif parts[0] == 'DocInfo/Author':
-                    self.author = parts[1]
-                elif parts[0] == 'DocInfo/DescLong':
-                    self.description = parts[1]
+                if len(line) == 0:
+                    continue
+
+                key, value = line.split('=')
+                if key == 'DocInfo/Name':
+                    self.name = value
+                elif key == 'DocInfo/Author':
+                    self.author = value
+                elif key == 'DocInfo/DescLong':
+                    self.description = value
+                elif key == 'DocInfo/Website':
+                    self.website = value
 
         #: A reference to the map's :class:`~sc2reader.objects.MapInfo` object
         self.map_info = MapInfo(self.archive.read_file('MapInfo'))
+
+        doc_info = ElementTree.fromstring(self.archive.read_file('DocumentInfo'))
+
+        icon_path_node = doc_info.find('Icon/Value')
+        #: (Optional) The path to the icon for the map, relative to the archive root
+        self.icon_path = icon_path_node.text if icon_path_node is not None else None
+
+        #: (Optional) The icon image for the map in tga format
+        self.icon = self.archive.read_file(self.icon_path) if self.icon_path is not None else None
+
+        #: A list of module names this map depends on
+        self.dependencies = list()
+        for dependency_node in doc_info.findall('Dependencies/Value'):
+            self.dependencies.append(dependency_node.text)
 
     @classmethod
     def get_url(cls, gateway, map_hash):
