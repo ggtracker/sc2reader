@@ -284,14 +284,10 @@ class TestReplays(unittest.TestCase):
         controllers = [(p.pid, p.control) for p in replay.map.map_info.players]
         self.assertEquals(controllers, [(0, 3), (1, 1), (2, 1), (15, 4)])
 
-    def test_plugins(self):
+    def test_engine_plugins(self):
         from sc2reader.engine.plugins import ContextLoader, APMTracker, SelectionTracker
-        from sc2reader.factories.plugins.replay import toJSON
 
-        from sc2reader.factories import SC2Factory
-        factory = SC2Factory()
-        factory.register_plugin('Replay', toJSON())
-        replay = factory.load_replay(
+        replay = sc2reader.load_replay(
             "test_replays/2.0.5.25092/cn1.SC2Replay",
             engine=sc2reader.engine.GameEngine(plugins=[
                 ContextLoader(),
@@ -299,6 +295,15 @@ class TestReplays(unittest.TestCase):
                 SelectionTracker(),
             ])
         )
+
+    def test_factory_plugins(self):
+        from sc2reader.factories.plugins.replay import APMTracker, SelectionTracker, toJSON
+
+        factory = sc2reader.factories.SC2Factory()
+        factory.register_plugin("Replay", APMTracker())
+        factory.register_plugin("Replay", SelectionTracker())
+        factory.register_plugin("Replay", toJSON())
+        replay = factory.load_replay("test_replays/2.0.5.25092/cn1.SC2Replay")
 
         # Load and quickly check the JSON output consistency
         result = json.loads(replay)
