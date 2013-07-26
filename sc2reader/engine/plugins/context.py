@@ -67,9 +67,9 @@ class ContextLoader(object):
                 if unit_id in replay.objects:
                     unit = replay.objects[unit_id]
                     if not unit.is_type(unit_type):
-                        replay.datapack.change_type(unit, unit_type, self.frame)
+                        replay.datapack.change_type(unit, unit_type, event.frame)
                 else:
-                    unit = replay.datapack.create_unit(unit_id, unit_type, 0x00, self.frame)
+                    unit = replay.datapack.create_unit(unit_id, unit_type, 0x00, event.frame)
                     replay.objects[unit_id] = unit
 
             # If we have tracker events, the unit must already exist and must already

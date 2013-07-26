@@ -286,8 +286,12 @@ class TestReplays(unittest.TestCase):
 
     def test_plugins(self):
         from sc2reader.engine.plugins import ContextLoader, APMTracker, SelectionTracker
+        from sc2reader.factories.plugins.replay import toJSON
 
-        replay = sc2reader.load_replay(
+        from sc2reader.factories import SC2Factory
+        factory = SC2Factory()
+        factory.register_plugin('Replay', toJSON())
+        replay = factory.load_replay(
             "test_replays/2.0.5.25092/cn1.SC2Replay",
             engine=sc2reader.engine.GameEngine(plugins=[
                 ContextLoader(),
