@@ -739,7 +739,7 @@ class GameSummary(Resource):
         self.end_time = datetime.utcfromtimestamp(self.parts[0][8])
         self.game_speed = LOBBY_PROPERTIES[0xBB8][1][self.parts[0][0][1]]
         self.game_length = utils.Length(seconds=self.parts[0][7])
-        self.real_length = utils.Length(seconds=self.parts[0][7]/GAME_SPEED_FACTOR[self.game_speed])
+        self.real_length = utils.Length(seconds=int(self.parts[0][7]/GAME_SPEED_FACTOR[self.game_speed]))
         self.start_time = datetime.utcfromtimestamp(self.parts[0][8] - self.real_length.seconds)
 
         self.load_translations()
@@ -960,7 +960,7 @@ class GameSummary(Resource):
                             self.build_orders[pindex].append(BuildEntry(
                                 supply=command[0],
                                 total_supply=command[1] & 0xff,
-                                time=(command[2] >> 8) / 16,
+                                time=int((command[2] >> 8) / 16),
                                 order=stat_name,
                                 build_index=command[1] >> 16
                             ))
@@ -1043,7 +1043,7 @@ class GameSummary(Resource):
             # Economic Breakdown Tab
             if isinstance(player.income_graph, Graph):
                 values = player.income_graph.values
-                player.resource_collection_rate = sum(values)/len(values)
+                player.resource_collection_rate = int(sum(values)/len(values))
             else:
                 # In old s2gs files the field with this name was actually a number not a graph
                 player.resource_collection_rate = player.income_graph

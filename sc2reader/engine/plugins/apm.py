@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals, division
 
-from collections import Counter
+from collections import defaultdict
 
 
 class APMTracker(object):
@@ -18,13 +18,13 @@ class APMTracker(object):
 
     def handleInitGame(self, event, replay):
         for player in replay.players:
-            player.apm = Counter()
-            player.aps = Counter()
+            player.apm = defaultdict(int)
+            player.aps = defaultdict(int)
             player.seconds_played = replay.length.seconds
 
     def handlePlayerActionEvent(self, event, replay):
         event.player.aps[event.second] += 1
-        event.player.apm[event.second/60] += 1
+        event.player.apm[int(event.second/60)] += 1
 
     def handlePlayerLeaveEvent(self, event, replay):
         event.player.seconds_played = event.second
