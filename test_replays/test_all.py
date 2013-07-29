@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+from __future__ import unicode_literals
 
 import datetime
 import json
@@ -26,7 +27,7 @@ class TestReplays(unittest.TestCase):
 
     def test_private_category(self):
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/2.SC2Replay")
-        self.assertEquals(replay.expansion, "WoL")
+        self.assertEqual(replay.expansion, "WoL")
         self.assertTrue(replay.is_private, True)
         self.assertFalse(replay.is_ladder, False)
 
@@ -103,48 +104,48 @@ class TestReplays(unittest.TestCase):
 
     def test_2v2(self):
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/7.SC2Replay")
-        self.assertEquals(replay.type, "2v2")
+        self.assertEqual(replay.type, "2v2")
 
     def test_3v3(self):
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/3.SC2Replay")
-        self.assertEquals(replay.type, "3v3")
+        self.assertEqual(replay.type, "3v3")
 
         # Because it"s a 3v3 and all of the members of Team 2 quit, we should know the winner.
-        self.assertEquals(replay.team[1].result, "Win")
-        self.assertEquals(replay.team[2].result, "Loss")
+        self.assertEqual(replay.team[1].result, "Win")
+        self.assertEqual(replay.team[2].result, "Loss")
 
     def test_4v4(self):
         replay = sc2reader.load_replay("test_replays/1.2.0.17326/9.SC2Replay")
-        self.assertEquals(replay.type, "4v4")
+        self.assertEqual(replay.type, "4v4")
 
     def test_ffa(self):
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/8.SC2Replay")
-        self.assertEquals(replay.type, "FFA")
-        self.assertEquals(replay.winner.players[0].name, "Boom")
+        self.assertEqual(replay.type, "FFA")
+        self.assertEqual(replay.winner.players[0].name, "Boom")
 
     def test_unknown_winner(self):
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/10.SC2Replay")
 
         # Recording player (Boom) left second in a 4v4, so the winner shouldn"t be known
-        self.assertEquals(replay.winner, None)
+        self.assertEqual(replay.winner, None)
 
     def test_random_player(self):
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/3.SC2Replay")
         gogeta = next(player for player in replay.players if player.name == "Gogeta")
-        self.assertEquals(gogeta.pick_race, "Random")
-        self.assertEquals(gogeta.play_race, "Terran")
+        self.assertEqual(gogeta.pick_race, "Random")
+        self.assertEqual(gogeta.play_race, "Terran")
 
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/6.SC2Replay")
         permafrost = next(player for player in replay.players if player.name == "Permafrost")
-        self.assertEquals(permafrost.pick_race, "Random")
-        self.assertEquals(permafrost.play_race, "Protoss")
+        self.assertEqual(permafrost.pick_race, "Random")
+        self.assertEqual(permafrost.play_race, "Protoss")
 
     def test_us_realm(self):
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/5.SC2Replay")
         shadesofgray = [player for player in replay.players if player.name == "ShadesofGray"][0]
         reddawn = [player for player in replay.players if player.name == "reddawn"][0]
-        self.assertEquals(shadesofgray.url, "http://us.battle.net/sc2/en/profile/2358439/1/ShadesofGray/")
-        self.assertEquals(reddawn.url, "http://us.battle.net/sc2/en/profile/2198663/1/reddawn/")
+        self.assertEqual(shadesofgray.url, "http://us.battle.net/sc2/en/profile/2358439/1/ShadesofGray/")
+        self.assertEqual(reddawn.url, "http://us.battle.net/sc2/en/profile/2198663/1/reddawn/")
 
     def test_kr_realm_and_tampered_messages(self):
         """
@@ -152,13 +153,13 @@ class TestReplays(unittest.TestCase):
         # Waiting for response https://github.com/arkx/mpyq/issues/closed#issue/7
         """
         replay = sc2reader.load_replay("test_replays/1.1.3.16939/11.SC2Replay")
-        self.assertEquals(replay.expansion, "WoL")
+        self.assertEqual(replay.expansion, "WoL")
         first = [player for player in replay.players if player.name == "명지대학교"][0]
         second = [player for player in replay.players if player.name == "티에스엘사기수"][0]
-        self.assertEquals(first.url, "http://kr.battle.net/sc2/en/profile/258945/1/명지대학교/")
-        self.assertEquals(second.url, "http://kr.battle.net/sc2/en/profile/102472/1/티에스엘사기수/")
-        self.assertEquals(replay.messages[0].text, "sc2.replays.net")
-        self.assertEquals(replay.messages[5].text, "sc2.replays.net")
+        self.assertEqual(first.url, "http://kr.battle.net/sc2/en/profile/258945/1/명지대학교/")
+        self.assertEqual(second.url, "http://kr.battle.net/sc2/en/profile/102472/1/티에스엘사기수/")
+        self.assertEqual(replay.messages[0].text, "sc2.replays.net")
+        self.assertEqual(replay.messages[5].text, "sc2.replays.net")
 
     def test_referee(self):
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/14.SC2Replay")
@@ -175,15 +176,15 @@ class TestReplays(unittest.TestCase):
 
         # Played at 20 Feb 2011 22:44:48 UTC+2
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/1.SC2Replay")
-        self.assertEquals(replay.end_time, datetime.datetime(2011, 2, 20, 20, 44, 47))
+        self.assertEqual(replay.end_time, datetime.datetime(2011, 2, 20, 20, 44, 47))
 
         # Played at 21 Feb 2011 00:42:13 UTC+2
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/2.SC2Replay")
-        self.assertEquals(replay.end_time, datetime.datetime(2011, 2, 20, 22, 42, 12))
+        self.assertEqual(replay.end_time, datetime.datetime(2011, 2, 20, 22, 42, 12))
 
         # Played at 25 Feb 2011 16:36:28 UTC+2
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/3.SC2Replay")
-        self.assertEquals(replay.end_time, datetime.datetime(2011, 2, 25, 14, 36, 26))
+        self.assertEqual(replay.end_time, datetime.datetime(2011, 2, 25, 14, 36, 26))
 
     def test_hots_pids(self):
         for replayfilename in [
@@ -194,17 +195,17 @@ class TestReplays(unittest.TestCase):
             ]:
 
             replay = sc2reader.load_replay(replayfilename)
-            self.assertEquals(replay.expansion, "HotS")
+            self.assertEqual(replay.expansion, "HotS")
             player_pids = set([player.pid for player in replay.players if player.is_human])
             ability_pids = set([event.player.pid for event in replay.events if "AbilityEvent" in event.name])
-            self.assertEquals(ability_pids, player_pids)
+            self.assertEqual(ability_pids, player_pids)
 
     def test_wol_pids(self):
         replay = sc2reader.load_replay("test_replays/1.5.4.24540/ggtracker_1471849.SC2Replay")
-        self.assertEquals(replay.expansion, "WoL")
+        self.assertEqual(replay.expansion, "WoL")
         ability_pids = set([event.player.pid for event in replay.events if "AbilityEvent" in event.name])
         player_pids = set([player.pid for player in replay.players])
-        self.assertEquals(ability_pids, player_pids)
+        self.assertEqual(ability_pids, player_pids)
 
     def test_hots_hatchfun(self):
         replay = sc2reader.load_replay("test_replays/2.0.0.24247/molten.SC2Replay")
@@ -214,75 +215,75 @@ class TestReplays(unittest.TestCase):
 
     def test_hots_vs_ai(self):
         replay = sc2reader.load_replay("test_replays/2.0.0.24247/Cloud Kingdom LE (13).SC2Replay")
-        self.assertEquals(replay.expansion, "HotS")
+        self.assertEqual(replay.expansion, "HotS")
         replay = sc2reader.load_replay("test_replays/2.0.0.24247/Korhal City (19).SC2Replay")
-        self.assertEquals(replay.expansion, "HotS")
+        self.assertEqual(replay.expansion, "HotS")
 
     def test_oracle_parsing(self):
         replay = sc2reader.load_replay("test_replays/2.0.3.24764/ggtracker_1571740.SC2Replay")
-        self.assertEquals(replay.expansion, "HotS")
+        self.assertEqual(replay.expansion, "HotS")
         oracles = [unit for unit in replay.objects.values() if unit.name == "Oracle"]
-        self.assertEquals(len(oracles), 2)
+        self.assertEqual(len(oracles), 2)
 
     def test_resume_from_replay(self):
         replay = sc2reader.load_replay("test_replays/2.0.3.24764/resume_from_replay.SC2Replay")
 
     def test_clan_players(self):
         replay = sc2reader.load_replay("test_replays/2.0.4.24944/Lunar Colony V.SC2Replay")
-        self.assertEquals(replay.expansion, "WoL")
-        self.assertEquals(len(replay.people), 4)
+        self.assertEqual(replay.expansion, "WoL")
+        self.assertEqual(len(replay.people), 4)
 
     def test_WoL_204(self):
         replay = sc2reader.load_replay("test_replays/2.0.4.24944/ggtracker_1789768.SC2Replay")
-        self.assertEquals(replay.expansion, "WoL")
-        self.assertEquals(len(replay.people), 2)
+        self.assertEqual(replay.expansion, "WoL")
+        self.assertEqual(len(replay.people), 2)
 
     def test_send_resources(self):
         replay = sc2reader.load_replay("test_replays/2.0.4.24944/Backwater Complex (15).SC2Replay")
 
     def test_cn_replays(self):
         replay = sc2reader.load_replay("test_replays/2.0.5.25092/cn1.SC2Replay")
-        self.assertEquals(replay.gateway, "cn")
-        self.assertEquals(replay.expansion, "WoL")
+        self.assertEqual(replay.gateway, "cn")
+        self.assertEqual(replay.expansion, "WoL")
 
     def test_unit_types(self):
         """ sc2reader#136 regression test """
         replay = sc2reader.load_replay('test_replays/2.0.8.25604/issue136.SC2Replay')
         hellion_times = [u.started_at for u in replay.players[0].units if u.name == 'Hellion']
         hellbat_times = [u.started_at for u in replay.players[0].units if u.name == 'BattleHellion']
-        self.assertEquals(hellion_times, [5180, 5183])
-        self.assertEquals(hellbat_times, [6736, 6741, 7215, 7220, 12004, 12038])
+        self.assertEqual(hellion_times, [5180, 5183])
+        self.assertEqual(hellbat_times, [6736, 6741, 7215, 7220, 12004, 12038])
 
     @unittest.expectedFailure
     def test_outmatched_pids(self):
         replay = sc2reader.load_replay('test_replays/2.0.8.25604/issue131_arid_wastes.SC2Replay')
-        self.assertEquals(replay.players[0].pid, 1)
-        self.assertEquals(replay.players[1].pid, 3)
-        self.assertEquals(replay.players[2].pid, 4)
+        self.assertEqual(replay.players[0].pid, 1)
+        self.assertEqual(replay.players[1].pid, 3)
+        self.assertEqual(replay.players[2].pid, 4)
 
         replay = sc2reader.load_replay('test_replays/2.0.8.25604/issue135.SC2Replay')
-        self.assertEquals(replay.players[0].pid, 1)
-        self.assertEquals(replay.players[1].pid, 2)
-        self.assertEquals(replay.players[2].pid, 4)
+        self.assertEqual(replay.players[0].pid, 1)
+        self.assertEqual(replay.players[1].pid, 2)
+        self.assertEqual(replay.players[2].pid, 4)
 
         replay = sc2reader.load_replay("test_replays/2.0.8.25604/mlg1.SC2Replay")
-        self.assertEquals(replay.players[0].pid, 1)
-        self.assertEquals(replay.players[1].pid, 2)
-        self.assertEquals(len(replay.players), 2)
-        self.assertEquals(len(replay.people), 3)
+        self.assertEqual(replay.players[0].pid, 1)
+        self.assertEqual(replay.players[1].pid, 2)
+        self.assertEqual(len(replay.players), 2)
+        self.assertEqual(len(replay.people), 3)
 
     def test_map_info(self):
         replay = sc2reader.load_replay("test_replays/1.5.3.23260/ggtracker_109233.SC2Replay", load_map=True)
-        self.assertEquals(replay.map.map_info.tile_set, 'Avernus')
-        self.assertEquals(replay.map.map_info.fog_type, 'Dark')
-        self.assertEquals(replay.map.map_info.width, 176)
-        self.assertEquals(replay.map.map_info.height, 160)
-        self.assertEquals(replay.map.map_info.camera_top, 134)
-        self.assertEquals(replay.map.map_info.camera_left, 14)
-        self.assertEquals(replay.map.map_info.camera_right, 162)
-        self.assertEquals(replay.map.map_info.camera_bottom, 14)
+        self.assertEqual(replay.map.map_info.tile_set, 'Avernus')
+        self.assertEqual(replay.map.map_info.fog_type, 'Dark')
+        self.assertEqual(replay.map.map_info.width, 176)
+        self.assertEqual(replay.map.map_info.height, 160)
+        self.assertEqual(replay.map.map_info.camera_top, 134)
+        self.assertEqual(replay.map.map_info.camera_left, 14)
+        self.assertEqual(replay.map.map_info.camera_right, 162)
+        self.assertEqual(replay.map.map_info.camera_bottom, 14)
         controllers = [(p.pid, p.control) for p in replay.map.map_info.players]
-        self.assertEquals(controllers, [(0, 3), (1, 1), (2, 1), (15, 4)])
+        self.assertEqual(controllers, [(0, 3), (1, 1), (2, 1), (15, 4)])
 
     def test_engine_plugins(self):
         from sc2reader.engine.plugins import ContextLoader, APMTracker, SelectionTracker
@@ -307,14 +308,14 @@ class TestReplays(unittest.TestCase):
 
         # Load and quickly check the JSON output consistency
         result = json.loads(replay)
-        self.assertEquals(result["map_name"], u"生化实验区")
-        self.assertEquals(result["players"][2]["name"], "ImYoonA")
-        self.assertEquals(result["players"][2]["avg_apm"], 84.52332657200812)
-        self.assertEquals(result["release"], "2.0.5.25092")
-        self.assertEquals(result["game_length"], 986)
-        self.assertEquals(result["real_length"], 704)
-        self.assertEquals(result["gateway"], "cn")
-        self.assertEquals(result["game_fps"], 16.0)
+        self.assertEqual(result["map_name"], "生化实验区")
+        self.assertEqual(result["players"][2]["name"], "ImYoonA")
+        self.assertEqual(result["players"][2]["avg_apm"], 84.52332657200812)
+        self.assertEqual(result["release"], "2.0.5.25092")
+        self.assertEqual(result["game_length"], 986)
+        self.assertEqual(result["real_length"], 704)
+        self.assertEqual(result["gateway"], "cn")
+        self.assertEqual(result["game_fps"], 16.0)
         self.assertTrue(result["is_ladder"])
 
 

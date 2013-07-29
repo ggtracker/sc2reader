@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 import sc2reader
 from sc2reader.plugins.replay import toJSON
@@ -16,7 +17,7 @@ def main():
     factory = sc2reader.factories.SC2Factory()
     factory.register_plugin("Replay", toJSON(encoding=args.encoding, indent=args.indent))
     replay_json = factory.load_replay(args.path[0])
-    print replay_json
+    print(replay_json)
 
 if __name__ == '__main__':
     main()

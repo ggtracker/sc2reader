@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function, unicode_literals, division
 
-import json
-from functools import wraps
-from datetime import datetime
-from sc2reader.log_utils import loggable
-
-from functools import wraps
 from bisect import bisect_left
 from collections import defaultdict
+from datetime import datetime
+from functools import wraps
+import json
+
+from sc2reader.log_utils import loggable
+
 
 def plugin(func):
     @wraps(func)
@@ -20,6 +20,7 @@ def plugin(func):
             return func(*args, **opt)
         return call
     return wrapper
+
 
 class JSONDateEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -76,7 +77,7 @@ class UnitSelection(object):
 
     def select(self, new_objects):
         new_set = set(self.objects+list(new_objects))
-        self.objects = sorted(new_set,key=lambda obj: obj.id)
+        self.objects = sorted(new_set, key=lambda obj: obj.id)
 
     def deselect(self, mode, data):
         """Returns false if there was a data error when deselecting"""
@@ -90,22 +91,22 @@ class UnitSelection(object):
             mask = data
             if len(mask) < size:
                 # pad to the right
-                mask = mask+[False,]*(len(self.objects)-len(mask))
+                mask = mask+[False]*(len(self.objects)-len(mask))
 
             self.logger.debug("Deselection Mask: {0}".format(mask))
-            self.objects = [ obj for (slct, obj) in filter(lambda (slct, obj): not slct, zip(mask, self.objects)) ]
+            self.objects = [obj for (slct, obj) in filter(lambda slct_obj: not slct_obj[0], zip(mask, self.objects))]
             return len(mask) <= size
 
         elif mode == 'OneIndices':
             """ Deselect objects according to indexes """
-            clean_data = filter(lambda i: i < size, data)
-            self.objects = [ self.objects[i] for i in range(len(self.objects)) if i not in clean_data ]
+            clean_data = list(filter(lambda i: i < size, data))
+            self.objects = [self.objects[i] for i in range(len(self.objects)) if i not in clean_data]
             return len(clean_data) == len(data)
 
         elif mode == 'ZeroIndices':
             """ Deselect objects according to indexes """
-            clean_data = filter(lambda i: i < size, data)
-            self.objects = [ self.objects[i] for i in clean_data ]
+            clean_data = list(filter(lambda i: i < size, data))
+            self.objects = [self.objects[i] for i in clean_data]
             return len(clean_data) == len(data)
 
         else:
@@ -124,6 +125,6 @@ class PlayerSelection(defaultdict):
 
     def copy(self):
         new = PlayerSelection()
-        for bank, selection in self.iteritems():
-            new[bank] = selection #UnitSelection(selection.objects[:])
+        for bank, selection in self.items():
+            new[bank] = selection  # UnitSelection(selection.objects[:])
         return new

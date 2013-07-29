@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 # These are found in Repack-MPQ/fileset.{locale}#Mods#Core.SC2Mod#{locale}.SC2Data/LocalizedData/Editor/EditorCategoryStrings.txt
 # EDSTR_CATEGORY_Race
@@ -156,7 +157,7 @@ REGIONS = {
 import json
 import pkgutil
 
-attributes_json = pkgutil.get_data('sc2reader.data', 'attributes.json')
+attributes_json = pkgutil.get_data('sc2reader.data', 'attributes.json').decode('utf8')
 attributes_dict = json.loads(attributes_json)
 LOBBY_PROPERTIES = dict()
 for key, value in attributes_dict.get('attributes', dict()).items():

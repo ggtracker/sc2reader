@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 from sc2reader.events.base import Event
 from sc2reader.utils import Length
 from sc2reader.log_utils import loggable
+
 
 @loggable
 class MessageEvent(Event):
@@ -13,14 +14,15 @@ class MessageEvent(Event):
         self.pid = pid
         self.frame = frame
         self.second = frame >> 4
-        self.flags=flags
+        self.flags = flags
 
     def _str_prefix(self):
-        player_name = self.player.name if getattr(self,'pid', 16)!=16 else "Global"
+        player_name = self.player.name if getattr(self, 'pid', 16) != 16 else "Global"
         return "%s\t%-15s " % (Length(seconds=int(self.frame/16)), player_name)
 
     def __str__(self):
         return self._str_prefix() + self.name
+
 
 @loggable
 class ChatEvent(MessageEvent):
@@ -35,6 +37,7 @@ class ChatEvent(MessageEvent):
         self.to_allies = (self.target == 2)
         self.to_observers = (self.target == 4)
 
+
 @loggable
 class PacketEvent(MessageEvent):
     name = 'PacketEvent'
@@ -42,6 +45,7 @@ class PacketEvent(MessageEvent):
     def __init__(self, frame, pid, flags, info):
         super(PacketEvent, self).__init__(frame, pid, flags)
         self.info = info
+
 
 @loggable
 class PingEvent(MessageEvent):

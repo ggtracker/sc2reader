@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# TODO: Dry this up a bit!
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 from sc2reader.log_utils import loggable
+from sc2reader.utils import Length
 
-# TODO: Dry this up a bit!
 
 @loggable
 class ContextLoader(object):
@@ -24,7 +25,7 @@ class ContextLoader(object):
     def handleAbilityEvent(self, event, replay):
         if event.ability_id not in replay.datapack.abilities:
             if not getattr(replay, 'marked_error', None):
-                replay.marked_error=True
+                replay.marked_error = True
                 event.logger.error(replay.filename)
                 event.logger.error("Release String: "+replay.release_string)
                 for player in replay.players:
@@ -38,9 +39,8 @@ class ContextLoader(object):
 
         if event.other_unit_id in replay.objects:
             event.other_unit = replay.objects[event.other_unit_id]
-        elif event.other_unit_id != None:
+        elif event.other_unit_id is not None:
             self.logger.error("Other unit {0} not found".format(event.other_unit_id))
-
 
     def handleTargetAbilityEvent(self, event, replay):
         if event.target_unit_id in replay.objects:
@@ -110,7 +110,8 @@ class ContextLoader(object):
             event.unit.owner.units.append(event.unit)
 
     def handleUnitDiedEvent(self, event, replay):
-        if not replay.datapack: return
+        if not replay.datapack:
+            return
 
         if event.unit_id in replay.objects:
             event.unit = replay.objects[event.unit_id]
@@ -119,9 +120,9 @@ class ContextLoader(object):
             if event.unit_id_index in replay.active_units:
                 del replay.active_units[event.unit_id_index]
             else:
-                pass#print "Unable to delete unit, not index not active", event.unit_id_index
+                pass  # print("Unable to delete unit, not index not active: {0}".format(event.unit_id_index))
         else:
-            pass#print "Unit died before it was born!"
+            pass  # print("Unit died before it was born!")
 
         if event.killer_pid in replay.player:
             event.killer = replay.player[event.killer_pid]
@@ -129,23 +130,23 @@ class ContextLoader(object):
                 event.unit.killed_by = event.killer
                 event.killer.killed_units.append(event.unit)
         elif event.killer_pid:
-            pass#print "Unknown killer pid", event.killer_pid
+            pass  # print("Unknown killer pid: {0}".format(event.killer_pid))
 
     def handleUnitOwnerChangeEvent(self, event, replay):
         if event.control_pid in replay.player:
             event.unit_controller = replay.player[event.control_pid]
         elif event.control_pid != 0:
-            pass#print "Unknown controller pid", event.control_pid
+            pass  # print("Unknown controller pid: {0}".format(event.control_pid))
 
         if event.upkeep_pid in replay.player:
             event.unit_upkeeper = replay.player[event.upkeep_pid]
         elif event.upkeep_pid != 0:
-            pass#print "Unknown upkeep pid", event.upkeep_pid
+            pass  # print("Unknown upkeep pid: {0}".format(event.upkeep_pid))
 
         if event.unit_id in replay.objects:
             event.unit = replay.objects[event.unit_id]
         else:
-            print "Unit owner changed before it was born!"
+            pass  # print("Unit owner changed before it was born!")
 
         if event.unit_upkeeper:
             if event.unit.owner:
@@ -154,13 +155,14 @@ class ContextLoader(object):
             event.unit_upkeeper.units.append(event.unit)
 
     def handleUnitTypeChangeEvent(self, event, replay):
-        if not replay.datapack: return
+        if not replay.datapack:
+            return
 
         if event.unit_id in replay.objects:
             event.unit = replay.objects[event.unit_id]
             replay.datapack.change_type(event.unit, event.unit_type_name, event.frame)
         else:
-            print "Unit type changed before it was born!"
+            pass  # print("Unit type changed before it was born!")
 
     def handleUpgradeCompleteEvent(self, event, replay):
         self.load_tracker_player(event, replay)
@@ -175,7 +177,7 @@ class ContextLoader(object):
             # This can happen because game events are done first
             event.unit = replay.objects[event.unit_id]
             if not event.unit.is_type(event.unit_type_name):
-                print "CONFLICT {} <-_-> {}".format(event.unit._type_class.str_id, event.unit_type_name)
+                pass  # print("CONFLICT {0} <-_-> {1}".format(event.unit._type_class.str_id, event.unit_type_name))
         else:
             # TODO: How to tell if something is hallucination?
             event.unit = replay.datapack.create_unit(event.unit_id, event.unit_type_name, 0, event.frame)
@@ -194,27 +196,26 @@ class ContextLoader(object):
             event.unit = replay.objects[event.unit_id]
             event.unit.finished_at = event.frame
         else:
-            print "Unit done before it was started!"
+            pass  # print("Unit done before it was started!")
 
     def handleUnitPositionsEvent(self, event, replay):
-        for unit_index, (x,y) in event.positions:
+        for unit_index, (x, y) in event.positions:
             if unit_index in replay.active_units:
                 unit = replay.active_units[unit_index]
-                unit.location = (x,y)
+                unit.location = (x, y)
                 event.units[unit] = unit.location
             else:
-                print "Unit moved that doesn't exist!"
-
+                pass  # print("Unit moved that doesn't exist!")
 
     def load_message_game_player(self, event, replay):
-        if replay.versions[1]==1 or (replay.versions[1]==2 and replay.build < 24247):
+        if replay.versions[1] == 1 or (replay.versions[1] == 2 and replay.build < 24247):
             if event.pid <= len(replay.people):
                 event.player = replay.person[event.pid]
                 event.player.events.append(event)
             elif event.pid != 16:
                 self.logger.error("Bad pid ({0}) for event {1} at {2}.".format(event.pid, event.__class__, Length(seconds=event.second)))
             else:
-                pass # This is a global event
+                pass  # This is a global event
 
         else:
             if event.pid < len(replay.clients):
@@ -223,22 +224,22 @@ class ContextLoader(object):
             elif event.pid != 16:
                 self.logger.error("Bad pid ({0}) for event {1} at {2}.".format(event.pid, event.__class__, Length(seconds=event.second)))
             else:
-                pass # This is a global event
+                pass  # This is a global event
 
     def load_tracker_player(self, event, replay):
         if event.pid in replay.player:
             event.player = replay.player[event.pid]
         else:
-            pass#print "Unknown upgrade pid", event.pid
+            pass  # print("Unknown upgrade pid: {0}".format(event.pid))
 
     def load_tracker_upkeeper(self, event, replay):
         if event.upkeep_pid in replay.player:
             event.unit_upkeeper = replay.player[event.upkeep_pid]
         elif event.upkeep_pid != 0:
-            pass#print "Unknown upkeep pid", event.upkeep_pid
+            pass  # print("Unknown upkeep pid: {0}".format(event.upkeep_pid))
 
     def load_tracker_controller(self, event, replay):
         if event.control_pid in replay.player:
             event.unit_controller = replay.player[event.control_pid]
         elif event.control_pid != 0:
-            pass#print "Unknown controller pid", event.control_pid
+            pass  # print("Unknown controller pid: {0}".format(event.control_pid))

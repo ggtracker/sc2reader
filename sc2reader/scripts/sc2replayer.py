@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 try:
     # Assume that we are on *nix or Mac
@@ -57,14 +58,14 @@ def main():
 
     for filename in sc2reader.utils.get_files(args.FILE):
         replay = sc2reader.load_replay(filename, debug=True)
-        print "Release {0}".format(replay.release_string)
-        print "{0} on {1} at {2}".format(replay.type, replay.map_name, replay.start_time)
-        print
+        print("Release {0}".format(replay.release_string))
+        print("{0} on {1} at {2}".format(replay.type, replay.map_name, replay.start_time))
+        print("")
         for team in replay.teams:
-            print team
+            print(team)
             for player in team.players:
-                print "  {0}".format(player)
-        print "\n--------------------------\n\n"
+                print("  {0}".format(player))
+        print("\n--------------------------\n\n")
 
         # Allow picking of the player to 'watch'
         if args.player:
@@ -82,10 +83,10 @@ def main():
                     isinstance(event, GameStartEvent) or \
                     (args.hotkeys and isinstance(event, HotkeyEvent)) or \
                     (args.cameras and isinstance(event, CameraEvent)):
-                print event
+                print(event)
                 getch()
                 if args.bytes:
-                    print "\t"+event.bytes.encode('hex')
+                    print("\t"+event.bytes.encode('hex'))
 
 
 if __name__ == '__main__':

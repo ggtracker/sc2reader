@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-import json
+from __future__ import absolute_import, print_function, unicode_literals, division
+
 import functools
 
 from sc2reader.events.base import Event
 from sc2reader.utils import Length
 
 clamp = functools.partial(max, 0)
+
 
 class TrackerEvent(Event):
     def __init__(self, frames):
@@ -20,6 +22,7 @@ class TrackerEvent(Event):
 
     def __str__(self):
         return self._str_prefix() + self.name
+
 
 class PlayerStatsEvent(TrackerEvent):
     """
@@ -187,6 +190,7 @@ class PlayerStatsEvent(TrackerEvent):
     def __str__(self):
         return self._str_prefix()+"{0: >15} - Stats Update".format(self.player)
 
+
 class UnitBornEvent(TrackerEvent):
     name = 'UnitBornEvent'
 
@@ -206,7 +210,7 @@ class UnitBornEvent(TrackerEvent):
         self.unit = None
 
         #: The unit type name of the unit being born
-        self.unit_type_name = data[2]
+        self.unit_type_name = data[2].decode('utf8')
 
         #: The id of the player that controls this unit.
         self.control_pid = data[3]
@@ -230,7 +234,8 @@ class UnitBornEvent(TrackerEvent):
         self.location = (self.x, self.y)
 
     def __str__(self):
-        return self._str_prefix()+"{0: >15} - Unit born {1}".format(self.unit_upkeeper,self.unit)
+        return self._str_prefix()+"{0: >15} - Unit born {1}".format(self.unit_upkeeper, self.unit)
+
 
 class UnitDiedEvent(TrackerEvent):
     name = 'UnitDiedEvent'
@@ -322,7 +327,7 @@ class UnitTypeChangeEvent(TrackerEvent):
         self.unit = None
 
         #: The the new unit type name
-        self.unit_type_name = data[2]
+        self.unit_type_name = data[2].decode('utf8')
 
     def __str__(self):
         return self._str_prefix()+"{0: >15} - Unit {0} type changed to {1}".format(self.unit.owner, self.unit, self.unit_type_name)
@@ -349,6 +354,7 @@ class UpgradeCompleteEvent(TrackerEvent):
     def __str__(self):
         return self._str_prefix()+"{0: >15} - {1}upgrade completed".format(self.player, self.upgrade_type_name)
 
+
 class UnitInitEvent(TrackerEvent):
     name = 'UnitInitEvent'
 
@@ -368,7 +374,7 @@ class UnitInitEvent(TrackerEvent):
         self.unit = None
 
         #: The the new unit type name
-        self.unit_type_name = data[2]
+        self.unit_type_name = data[2].decode('utf8')
 
         #: The id of the player that controls this unit.
         self.control_pid = data[3]
@@ -416,6 +422,7 @@ class UnitDoneEvent(TrackerEvent):
     def __str__(self):
         return self._str_prefix()+"{0: >15} - Unit {1} done".format(self.unit.owner, self.unit)
 
+
 class UnitPositionsEvent(TrackerEvent):
     name = 'UnitPositionsEvent'
 
@@ -439,7 +446,7 @@ class UnitPositionsEvent(TrackerEvent):
             unit_index += self.items[i]
             x = self.items[i+1]*4
             y = self.items[i+2]*4
-            self.positions.append((unit_index, (x,y)))
+            self.positions.append((unit_index, (x, y)))
 
     def __str__(self):
         return self._str_prefix()+"Unit positions update"

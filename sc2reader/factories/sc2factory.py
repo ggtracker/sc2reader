@@ -1,18 +1,30 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
-import os
-import re
-
-import urllib2
-from cStringIO import StringIO
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 from collections import defaultdict
+from io import BytesIO
+import os
+import sys
 
-import urlparse, time
+try:
+    unicode
+except NameError:
+    basestring = unicode = str
+
+if sys.version_info.major < 3:
+    from urllib2 import urlopen
+    from urlparse import urlparse
+else:
+    from urllib.request import urlopen
+    from urllib.parse import urlparse
+
+import re
+import time
+
 from sc2reader import utils
 from sc2reader import log_utils
-from sc2reader.resources import Resource, Replay, Map, GameSummary, MapInfo, MapHeader, Localization
+from sc2reader.resources import Resource, Replay, Map, GameSummary, Localization
+
 
 @log_utils.loggable
 class SC2Factory(object):
@@ -40,11 +52,11 @@ class SC2Factory(object):
     process with the :meth:`register_plugins` method.
     """
 
-    _resource_name_map = dict(replay=Replay,map=Map)
+    _resource_name_map = dict(replay=Replay, map=Map)
 
     default_options = {
-        Resource: {'debug':False},
-        Replay: {'load_level':4, 'load_map':False},
+        Resource: {'debug': False},
+        Replay: {'load_level': 4, 'load_map': False},
     }
 
     def __init__(self, **options):
@@ -54,7 +66,6 @@ class SC2Factory(object):
         self.options = defaultdict(dict)
         for cls, options in self.default_options.items():
             self.options[cls] = options.copy()
-
 
         # Then configure with the options passed in
         self.configure(**options)
@@ -107,9 +118,8 @@ class SC2Factory(object):
     def register_plugin(self, cls, plugin):
         "Registers the given Plugin to be run on classes of the supplied name."
         if isinstance(cls, basestring):
-            cls = self._resource_name_map.get(cls.lower(),Resource)
+            cls = self._resource_name_map.get(cls.lower(), Resource)
         self.plugins.append((cls, plugin))
-
 
     # Support Functions
     def load(self, cls, source, options=None, **new_options):
@@ -122,11 +132,10 @@ class SC2Factory(object):
         for resource, filename in self._load_resources(sources, options=options):
             yield self._load(cls, resource, filename=filename, options=options)
 
-
     # Internal Functions
     def _load(self, cls, resource, filename, options):
         obj = cls(resource, filename=filename, factory=self, **options)
-        for plugin in options.get('plugins',self._get_plugins(cls)):
+        for plugin in options.get('plugins', self._get_plugins(cls)):
             obj = plugin(obj)
         return obj
 
@@ -158,7 +167,7 @@ class SC2Factory(object):
 
     def load_remote_resource_contents(self, resource, **options):
         self.logger.info("Fetching remote resource: "+resource)
-        return urllib2.urlopen(resource).read()
+        return urlopen(resource).read()
 
     def load_local_resource_contents(self, location, **options):
         # Extract the contents so we can close the file
@@ -173,37 +182,38 @@ class SC2Factory(object):
             resource = resource.url
 
         if isinstance(resource, basestring):
-            if re.match(r'https?://',resource):
+            if re.match(r'https?://', resource):
                 contents = self.load_remote_resource_contents(resource, **options)
 
             else:
-                directory = options.get('directory','')
+                directory = options.get('directory', '')
                 location = os.path.join(directory, resource)
                 contents = self.load_local_resource_contents(location, **options)
 
-            # StringIO implements a fuller file-like object
+            # BytesIO implements a fuller file-like object
             resource_name = resource
-            resource = StringIO(contents)
+            resource = BytesIO(contents)
 
         else:
             # Totally not designed for large files!!
-            # We need a multiread resource, so wrap it in StringIO
-            if not hasattr(resource,'seek'):
-                resource = StringIO(resource.read())
+            # We need a multiread resource, so wrap it in BytesIO
+            if not hasattr(resource, 'seek'):
+                resource = BytesIO(resource.read())
 
             resource_name = getattr(resource, 'name', 'Unknown')
 
         if options.get('verbose', None):
-            print resource_name
+            print(resource_name)
 
         return (resource, resource_name)
+
 
 class CachedSC2Factory(SC2Factory):
 
     def get_remote_cache_key(self, remote_resource):
         # Strip the port and use the domain as the bucket
         # and use the full path as the key
-        parseresult = urlparse.urlparse(remote_resource)
+        parseresult = urlparse(remote_resource)
         bucket = re.sub(r':.*', '', parseresult.netloc)
         key = parseresult.path.strip('/')
         return (bucket, key)
@@ -226,6 +236,7 @@ class CachedSC2Factory(SC2Factory):
     def cache_set(self, cache_key, value):
         raise NotImplemented()
 
+
 class FileCachedSC2Factory(CachedSC2Factory):
     """
     :param cache_dir: Local directory to cache files in.
@@ -239,14 +250,14 @@ class FileCachedSC2Factory(CachedSC2Factory):
         self.cache_dir = os.path.abspath(cache_dir)
         if not os.path.isdir(self.cache_dir):
             raise ValueError("cache_dir ({0}) must be an existing directory.".format(self.cache_dir))
-        elif not os.access(self.cache_dir, os.F_OK | os.W_OK | os.R_OK ):
+        elif not os.access(self.cache_dir, os.F_OK | os.W_OK | os.R_OK):
             raise ValueError("Must have read/write access to {0} for local file caching.".format(self.cache_dir))
 
     def cache_has(self, cache_key):
         return os.path.exists(self.cache_path(cache_key))
 
     def cache_get(self, cache_key, **options):
-        return self.load_local_resource_contents(self.cache_path(cache_key),**options)
+        return self.load_local_resource_contents(self.cache_path(cache_key), **options)
 
     def cache_set(self, cache_key, value):
         cache_path = self.cache_path(cache_key)
@@ -258,7 +269,8 @@ class FileCachedSC2Factory(CachedSC2Factory):
             out.write(value)
 
     def cache_path(self, cache_key):
-        return os.path.join(self.cache_dir,*(cache_key))
+        return os.path.join(self.cache_dir, *(cache_key))
+
 
 class DictCachedSC2Factory(CachedSC2Factory):
     """
@@ -289,6 +301,7 @@ class DictCachedSC2Factory(CachedSC2Factory):
 
     def cache_has(self, cache_key):
         return cache_key in self.cache_dict
+
 
 class DoubleCachedSC2Factory(DictCachedSC2Factory, FileCachedSC2Factory):
     """

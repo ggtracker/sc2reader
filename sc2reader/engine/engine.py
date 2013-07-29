@@ -1,13 +1,17 @@
-from __future__ import absolute_import
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 import collections
 from sc2reader.events import *
 
+
 class InitGameEvent(object):
     name = 'InitGame'
 
+
 class EndGameEvent(object):
     name = 'EndGame'
+
 
 class GameEngine(object):
     """ GameEngine Specification
@@ -123,28 +127,27 @@ class GameEngine(object):
             # need to reverse the list first to have them added in order.
             event_queue.extendleft(new_events)
 
-
     def _get_event_handlers(self, event):
-        return sum([self._get_plugin_event_handlers(plugin, event) for plugin in self._plugins],[])
+        return sum([self._get_plugin_event_handlers(plugin, event) for plugin in self._plugins], [])
 
     def _get_plugin_event_handlers(self, plugin, event):
         handlers = list()
         if isinstance(event, Event) and self._has_event_handler(plugin, Event):
-            handlers.append(self._get_event_handler(plugin,Event))
+            handlers.append(self._get_event_handler(plugin, Event))
         if isinstance(event, MessageEvent) and self._has_event_handler(plugin, MessageEvent):
-            handlers.append(self._get_event_handler(plugin,MessageEvent))
+            handlers.append(self._get_event_handler(plugin, MessageEvent))
         if isinstance(event, GameEvent) and self._has_event_handler(plugin, GameEvent):
-            handlers.append(self._get_event_handler(plugin,GameEvent))
+            handlers.append(self._get_event_handler(plugin, GameEvent))
         if isinstance(event, TrackerEvent) and self._has_event_handler(plugin, TrackerEvent):
-            handlers.append(self._get_event_handler(plugin,TrackerEvent))
+            handlers.append(self._get_event_handler(plugin, TrackerEvent))
         if isinstance(event, PlayerActionEvent) and self._has_event_handler(plugin, PlayerActionEvent):
-            handlers.append(self._get_event_handler(plugin,PlayerActionEvent))
+            handlers.append(self._get_event_handler(plugin, PlayerActionEvent))
         if isinstance(event, AbilityEvent) and self._has_event_handler(plugin, AbilityEvent):
-            handlers.append(self._get_event_handler(plugin,AbilityEvent))
+            handlers.append(self._get_event_handler(plugin, AbilityEvent))
         if isinstance(event, HotkeyEvent) and self._has_event_handler(plugin, HotkeyEvent):
-            handlers.append(self._get_event_handler(plugin,HotkeyEvent))
+            handlers.append(self._get_event_handler(plugin, HotkeyEvent))
         if self._has_event_handler(plugin, event):
-            handlers.append(self._get_event_handler(plugin,event))
+            handlers.append(self._get_event_handler(plugin, event))
         return handlers
 
     def _has_event_handler(self, plugin, event):
@@ -156,8 +159,10 @@ class GameEngine(object):
 
 if __name__ == '__main__':
     from sc2reader.events import UserOptionsEvent, GameStartEvent, PlayerLeaveEvent
+
     class TestEvent(object):
         name = 'TestEvent'
+
         def __init__(self, source):
             self.source = source
 
@@ -168,7 +173,7 @@ if __name__ == '__main__':
             yield TestEvent(event.name)
 
         def handleTestEvent(self, event, replay):
-            print event.source
+            print(event.source)
 
         def handleGameStartEvent(self, event, replay):
             yield TestEvent(event.name)

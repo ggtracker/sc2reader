@@ -1,4 +1,8 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, print_function, unicode_literals, division
+
 from collections import Counter
+
 
 class APMTracker(object):
     """
@@ -26,7 +30,6 @@ class APMTracker(object):
         event.player.seconds_played = event.second
 
     def handleEndGame(self, event, replay):
-        print "Handling End Game"
         for player in replay.players:
             if len(player.apm.keys()) > 0:
                 player.avg_apm = sum(player.aps.values())/float(player.seconds_played)*60

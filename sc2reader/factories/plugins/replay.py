@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 import json
 from collections import defaultdict
 
 from sc2reader import log_utils
 from sc2reader.utils import Length
-from sc2reader.plugins.utils import PlayerSelection, GameState, JSONDateEncoder, plugin
+from sc2reader.factories.plugins.utils import PlayerSelection, GameState, JSONDateEncoder, plugin
 
 
 @plugin
 def toJSON(replay, **user_options):
     options = dict(cls=JSONDateEncoder)
     options.update(user_options)
-    return json.dumps(toDict()(replay), **options)
+    obj = toDict()(replay)
+    return json.dumps(obj, **options)
 
 
 @plugin
@@ -22,7 +23,7 @@ def toDict(replay):
     observers = list()
     for observer in replay.observers:
         messages = list()
-        for message in getattr(observer,'messages',list()):
+        for message in getattr(observer, 'messages', list()):
             messages.append({
                 'time': message.time.seconds,
                 'text': message.text,
@@ -88,6 +89,7 @@ def toDict(replay):
         'versions': getattr(replay, 'versions', None)
     }
 
+
 @plugin
 def APMTracker(replay):
     """
@@ -136,12 +138,14 @@ def SelectionTracker(replay):
                 error = not control_group.deselect(event.mask_type, event.mask_data)
                 control_group.select(event.new_units)
                 selections[event.control_group] = control_group
-                if debug: logger.info("[{0}] {1} selected {2} units: {3}".format(Length(seconds=event.second),person.name,len(selections[0x0A].objects),selections[0x0A]))
+                if debug:
+                    logger.info("[{0}] {1} selected {2} units: {3}".format(Length(seconds=event.second), person.name, len(selections[0x0A].objects), selections[0x0A]))
 
             elif event.name == 'SetToHotkeyEvent':
                 selections = player_selections[event.frame]
                 selections[event.control_group] = selections[0x0A].copy()
-                if debug: logger.info("[{0}] {1} set hotkey {2} to current selection".format(Length(seconds=event.second),person.name,event.hotkey))
+                if debug:
+                    logger.info("[{0}] {1} set hotkey {2} to current selection".format(Length(seconds=event.second), person.name, event.hotkey))
 
             elif event.name == 'AddToHotkeyEvent':
                 selections = player_selections[event.frame]
@@ -149,14 +153,16 @@ def SelectionTracker(replay):
                 error = not control_group.deselect(event.mask_type, event.mask_data)
                 control_group.select(selections[0x0A].objects)
                 selections[event.control_group] = control_group
-                if debug: logger.info("[{0}] {1} added current selection to hotkey {2}".format(Length(seconds=event.second),person.name,event.hotkey))
+                if debug:
+                    logger.info("[{0}] {1} added current selection to hotkey {2}".format(Length(seconds=event.second), person.name, event.hotkey))
 
             elif event.name == 'GetFromHotkeyEvent':
                 selections = player_selections[event.frame]
                 control_group = selections[event.control_group].copy()
                 error = not control_group.deselect(event.mask_type, event.mask_data)
                 selections[0xA] = control_group
-                if debug: logger.info("[{0}] {1} retrieved hotkey {2}, {3} units: {4}".format(Length(seconds=event.second),person.name,event.control_group,len(selections[0x0A].objects),selections[0x0A]))
+                if debug:
+                    logger.info("[{0}] {1} retrieved hotkey {2}, {3} units: {4}".format(Length(seconds=event.second), person.name, event.control_group, len(selections[0x0A].objects), selections[0x0A]))
 
             else:
                 continue

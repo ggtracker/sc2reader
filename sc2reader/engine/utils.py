@@ -1,6 +1,8 @@
-from __future__ import absolute_import
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 from bisect import bisect_left
+
 
 class GameState(dict):
     def __init__(self, initial_state):

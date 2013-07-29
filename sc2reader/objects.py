@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 import hashlib
 import math
@@ -9,10 +9,8 @@ from sc2reader import utils, log_utils
 from sc2reader.decoders import ByteDecoder
 from sc2reader.constants import *
 
-Location = namedtuple('Location',('x','y'))
-MapData = namedtuple('MapData',['gateway','map_hash'])
-ColorData = namedtuple('ColorData',['a','r','g','b'])
-BnetData = namedtuple('BnetData',['gateway','unknown2','subregion','uid'])
+Location = namedtuple('Location', ['x', 'y'])
+
 
 class Team(object):
     """
@@ -161,9 +159,9 @@ class Player(object):
 
         #: The player result, one of "Win", "Loss", or None
         self.result = None
-        if detail_data.result == 1:
+        if detail_data['result'] == 1:
             self.result = "Win"
-        elif detail_data.result == 2:
+        elif detail_data['result'] == 2:
             self.result = "Loss"
 
         #: A reference to the player's :class:`Team` object
@@ -180,10 +178,10 @@ class Player(object):
 
         #: The race the player played the game with.
         #: One of Protoss, Terran, Zerg
-        self.play_race = LOCALIZED_RACES.get(detail_data.race, detail_data.race)
+        self.play_race = LOCALIZED_RACES.get(detail_data['race'], detail_data['race'])
 
         #: A reference to a :class:`~sc2reader.utils.Color` object representing the player's color
-        self.color = utils.Color(**detail_data.color._asdict())
+        self.color = utils.Color(**detail_data['color'])
 
         #: A list of references to the :class:`~sc2reader.data.Unit` objects the player had this game
         self.units = list()
@@ -192,18 +190,18 @@ class Player(object):
         self.killed_units = list()
 
         #: The Battle.net region the entity is registered to
-        self.region = GATEWAY_LOOKUP[detail_data.bnet.gateway]
+        self.region = GATEWAY_LOOKUP[detail_data['bnet']['region']]
 
         #: Deprecated, see `Player.region`
         self.gateway = self.region
 
         #: The Battle.net subregion the entity is registered to
-        self.subregion = detail_data.bnet.subregion
+        self.subregion = detail_data['bnet']['subregion']
 
         #: The Battle.net acount identifier. Used to construct the
         #: bnet profile url. This value can be zero for games
         #: played offline when a user was not logged in to battle.net.
-        self.toon_id = detail_data.bnet.uid
+        self.toon_id = detail_data['bnet']['uid']
 
 
 class User(object):
@@ -240,7 +238,7 @@ class User(object):
     @property
     def url(self):
         """The player's formatted Battle.net profile url"""
-        return self.URL_TEMPLATE.format(**self.__dict__)
+        return self.URL_TEMPLATE.format(**self.__dict__)  # region=self.region, toon_id=self.toon_id, subregion=self.subregion, name=self.name.('utf8'))
 
 
 class Observer(Entity, User):
@@ -277,7 +275,7 @@ class Computer(Entity, Player):
         Player.__init__(self, pid, detail_data, attribute_data)
 
         #: The auto-generated in-game name for this computer player
-        self.name = detail_data.name
+        self.name = detail_data['name']
 
     def __str__(self):
         return "Player {0} - {1} ({2})".format(self.pid, self.name, self.play_race)
@@ -375,7 +373,9 @@ class PlayerSummary():
             s += '{0}: {1}\n'.format(self.stats_pretty_names[k], self.stats[k])
         return s.strip()
 
-BuildEntry = namedtuple('BuildEntry',['supply','total_supply','time','order','build_index'])
+
+BuildEntry = namedtuple('BuildEntry', ['supply', 'total_supply', 'time', 'order', 'build_index'])
+
 
 # TODO: Are there libraries with classes like this in them
 class Graph():
@@ -476,8 +476,9 @@ class MapInfo(object):
         # According to http://www.galaxywiki.net/MapInfo_(File_Format)
         # With a couple small changes for version 0x20+
         data = ByteDecoder(contents, endian='LITTLE')
-        if data.read_bytes(4) != 'MapI':
-            self.logger.warn("Invalid MapInfo file")
+        magic = data.read_string(4)
+        if magic != 'MapI':
+            self.logger.warn("Invalid MapInfo file: {0}".format(magic))
             return
 
         #: The map info file format version
