@@ -26,6 +26,10 @@ setuptools.setup(
             "Programming Language :: Python",
             "Programming Language :: Python :: 2.6",
             "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3.2",
+            "Programming Language :: Python :: 3.3",
+            "Programming Language :: Python :: Implementation :: PyPy",
+            "Programming Language :: Python :: Implementation :: CPython",
             "Topic :: Games/Entertainment",
             "Topic :: Games/Entertainment :: Real Time Strategy",
             "Topic :: Software Development",
@@ -43,7 +47,7 @@ setuptools.setup(
         ]
     },
 
-    install_requires=['mpyq>=0.2.2', 'argparse', 'ordereddict'] if float(sys.version[:3]) < 2.7 else ['mpyq>=0.2.2'],
+    install_requires=['mpyq>=0.2.2', 'argparse', 'ordereddict', 'unittest2'] if float(sys.version[:3]) < 2.7 else ['mpyq>=0.2.2'],
     packages=setuptools.find_packages(),
     include_package_data=True,
     zip_safe=True

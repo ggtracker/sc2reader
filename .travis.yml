@@ -7,7 +7,6 @@ python:
  - pypy
 install:
  - python setup.py install
- - pip install unittest2
 script:
  - python test_replays/test_all.py
  - python test_s2gs/test_all.py
