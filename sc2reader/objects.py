@@ -404,7 +404,7 @@ class Graph():
 
     def as_points(self):
         """ Get the graph as a list of (x, y) tuples """
-        return zip(self.times, self.values)
+        return list(zip(self.times, self.values))
 
     def __str__(self):
         return "Graph with {0} values".format(len(self.times))

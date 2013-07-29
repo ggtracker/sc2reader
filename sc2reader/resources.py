@@ -737,7 +737,7 @@ class GameSummary(Resource):
             self.parts.append(buffer.read_struct())
 
         self.end_time = datetime.utcfromtimestamp(self.parts[0][8])
-        self.game_speed = LOBBY_PROPERTIES[0xBB8][1][self.parts[0][0][1]]
+        self.game_speed = LOBBY_PROPERTIES[0xBB8][1][self.parts[0][0][1].decode('utf8')]
         self.game_length = utils.Length(seconds=self.parts[0][7])
         self.real_length = utils.Length(seconds=int(self.parts[0][7]/GAME_SPEED_FACTOR[self.game_speed]))
         self.start_time = datetime.utcfromtimestamp(self.parts[0][8] - self.real_length.seconds)
@@ -803,16 +803,16 @@ class GameSummary(Resource):
         #
         # Sometimes these byte strings are all NULLed out and need to be ignored.
         for localization in self.parts[0][6][8]:
-            language = localization[0]
+            language = localization[0].decode('utf8')
 
             files = list()
             for file_hash in localization[1]:
-                if file_hash[:4] != '\x00\x00\x00\x00':
+                if file_hash[:4].decode('utf8') != '\x00\x00\x00\x00':
                     files.append(utils.DepotFile(file_hash))
             self.localization_urls[language] = files
 
         # Grab the gateway from the one of the files
-        self.gateway = self.localization_urls.values()[0][0].server.lower()
+        self.gateway = list(self.localization_urls.values())[0][0].server.lower()
 
         # Each of the localization urls points to an XML file with a set of
         # localization strings and their unique ids. After reading these mappings
