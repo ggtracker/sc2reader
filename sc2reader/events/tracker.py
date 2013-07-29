@@ -40,7 +40,7 @@ class PlayerStatsEvent(TrackerEvent):
     """
     name = 'PlayerStatsEvent'
 
-    def __init__(self, frames, data):
+    def __init__(self, frames, data, build):
         super(PlayerStatsEvent, self).__init__(frames)
 
         #: Id of the player the stats are for
@@ -187,6 +187,24 @@ class PlayerStatsEvent(TrackerEvent):
         #: The total vespene value of all active forces
         self.vespene_used_active_forces = clamp(self.stats[32])
 
+        #: Minerals of army value lost to friendly fire
+        self.ff_minerals_lost_army = clamp(self.stats[33]) if build >= 26490 else None
+
+        #: Minerals of economy value lost to friendly fire
+        self.ff_minerals_lost_economy = clamp(self.stats[34]) if build >= 26490 else None
+
+        #: Minerals of technology value lost to friendly fire
+        self.ff_minerals_lost_technology = clamp(self.stats[35]) if build >= 26490 else None
+
+        #: Vespene of army value lost to friendly fire
+        self.ff_vespene_lost_army = clamp(self.stats[36]) if build >= 26490 else None
+
+        #: Vespene of economy value lost to friendly fire
+        self.ff_vespene_lost_economy = clamp(self.stats[37]) if build >= 26490 else None
+
+        #: Vespene of technology value lost to friendly fire
+        self.ff_vespene_lost_technology = clamp(self.stats[38]) if build >= 26490 else None
+
     def __str__(self):
         return self._str_prefix()+"{0: >15} - Stats Update".format(self.player)
 
@@ -194,7 +212,7 @@ class PlayerStatsEvent(TrackerEvent):
 class UnitBornEvent(TrackerEvent):
     name = 'UnitBornEvent'
 
-    def __init__(self, frames, data):
+    def __init__(self, frames, data, build):
         super(UnitBornEvent, self).__init__(frames)
 
         #: The index portion of the unit id
@@ -240,7 +258,7 @@ class UnitBornEvent(TrackerEvent):
 class UnitDiedEvent(TrackerEvent):
     name = 'UnitDiedEvent'
 
-    def __init__(self, frames, data):
+    def __init__(self, frames, data, build):
         super(UnitDiedEvent, self).__init__(frames)
 
         #: The index portion of the unit id
@@ -277,7 +295,7 @@ class UnitDiedEvent(TrackerEvent):
 class UnitOwnerChangeEvent(TrackerEvent):
     name = 'UnitOwnerChangeEvent'
 
-    def __init__(self, frames, data):
+    def __init__(self, frames, data, build):
         super(UnitOwnerChangeEvent, self).__init__(frames)
 
         #: The index portion of the unit id
@@ -311,7 +329,7 @@ class UnitOwnerChangeEvent(TrackerEvent):
 class UnitTypeChangeEvent(TrackerEvent):
     name = 'UnitTypeChangeEvent'
 
-    def __init__(self, frames, data):
+    def __init__(self, frames, data, build):
         super(UnitTypeChangeEvent, self).__init__(frames)
 
         #: The index portion of the unit id
@@ -336,7 +354,7 @@ class UnitTypeChangeEvent(TrackerEvent):
 class UpgradeCompleteEvent(TrackerEvent):
     name = 'UpgradeCompleteEvent'
 
-    def __init__(self, frames, data):
+    def __init__(self, frames, data, build):
         super(UpgradeCompleteEvent, self).__init__(frames)
 
         #: The player that completed the upgrade
@@ -358,7 +376,7 @@ class UpgradeCompleteEvent(TrackerEvent):
 class UnitInitEvent(TrackerEvent):
     name = 'UnitInitEvent'
 
-    def __init__(self, frames, data):
+    def __init__(self, frames, data, build):
         super(UnitInitEvent, self).__init__(frames)
 
         #: The index portion of the unit id
@@ -404,7 +422,7 @@ class UnitInitEvent(TrackerEvent):
 class UnitDoneEvent(TrackerEvent):
     name = 'UnitDoneEvent'
 
-    def __init__(self, frames, data):
+    def __init__(self, frames, data, build):
         super(UnitDoneEvent, self).__init__(frames)
 
         #: The index portion of the unit id
@@ -426,7 +444,7 @@ class UnitDoneEvent(TrackerEvent):
 class UnitPositionsEvent(TrackerEvent):
     name = 'UnitPositionsEvent'
 
-    def __init__(self, frames, data):
+    def __init__(self, frames, data, build):
         super(UnitPositionsEvent, self).__init__(frames)
 
         #: The starting unit index point.

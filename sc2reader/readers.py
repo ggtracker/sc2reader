@@ -699,6 +699,14 @@ class InitDataReader_24764(InitDataReader_22612):
         )
 
 
+class InitDataReader_26490(InitDataReader_24764):
+
+    def __call__(self, data, replay):
+        data = super(InitDataReader_26490, self).__call__(data, replay)
+        data['game_description']['max_controls'] -= 1
+        return data
+
+
 class AttributesEventsReader_Base(Reader):
     header_length = 4
     offset = False
@@ -743,7 +751,7 @@ class DetailsReader(Reader):
                     region=p[1][0],
                     program_id=p[1][1],
                     subregion=p[1][2],
-                    # name=p[1][3].decode('utf8'),
+                    # name=p[1][3].decode('utf8'),  # This is documented but never available
                     uid=p[1][4],
                 ),
                 race=p[2].decode('utf8'),
@@ -775,6 +783,7 @@ class DetailsReader(Reader):
             default_difficulty=details[13],
             mod_paths=details[14] if (replay.build >= 22612 and replay.versions[1] == 1) else None,
             campaign_index=details[15] if replay.versions[1] == 2 else None,
+            restartAsTransitionMap=details[16] if replay.build > 26490 else None,
         )
 
 
@@ -1031,6 +1040,7 @@ class GameEventsReader_15405(GameEventsReader_Base):
             sync_checksumming_enabled=data.read_bool(),
             is_map_to_map_transition=data.read_bool(),
             use_ai_beacons=None,
+            debug_pause_enabled=None,
             base_build_num=None,
             starting_rally=None,
         )
@@ -1694,6 +1704,7 @@ class GameEventsReader_22612(GameEventsReader_21029):
             sync_checksumming_enabled=data.read_bool(),
             is_map_to_map_transition=data.read_bool(),
             use_ai_beacons=data.read_bool(),
+            debug_pause_enabled=None,
             base_build_num=None,
             starting_rally=None,
         )
@@ -1860,6 +1871,7 @@ class GameEventsReader_23260(GameEventsReader_22612):
             is_map_to_map_transition=data.read_bool(),
             starting_rally=data.read_bool(),
             use_ai_beacons=data.read_bool(),
+            debug_pause_enabled=None,
             base_build_num=None,
         )
 
@@ -1874,6 +1886,7 @@ class GameEventsReader_HotSBeta(GameEventsReader_23260):
             sync_checksumming_enabled=data.read_bool(),
             is_map_to_map_transition=data.read_bool(),
             starting_rally=data.read_bool(),
+            debug_pause_enabled=None,
             base_build_num=data.read_uint32(),
             use_ai_beacons=None,
         )
@@ -1997,6 +2010,52 @@ class GameEventsReader_24247(GameEventsReader_HotSBeta):
         )
 
 
+class GameEventsReader_26490(GameEventsReader_24247):
+
+    def user_options_event(self, data):
+        return dict(
+            game_fully_downloaded=data.read_bool(),
+            development_cheats_enabled=data.read_bool(),
+            multiplayer_cheats_enabled=data.read_bool(),
+            sync_checksumming_enabled=data.read_bool(),
+            is_map_to_map_transition=data.read_bool(),
+            starting_rally=data.read_bool(),
+            debug_pause_enabled=None,
+            base_build_num=data.read_uint32(),
+            use_ai_beacons=None,
+        )
+
+    def trigger_mouse_clicked_event(self, data):
+        return dict(
+            button=data.read_uint32(),
+            down=data.read_bool(),
+            position_ui=dict(
+                x=data.read_uint32(),
+                y=data.read_uint32(),
+            ),
+            position_world=dict(
+                x=data.read_uint32()-2147483648,
+                y=data.read_uint32()-2147483648,
+                z=data.read_uint32()-2147483648,
+            ),
+            flags=data.read_uint8()-128,
+        )
+
+    def trigger_mouse_moved_event(self, data):
+        return dict(
+            position_ui=dict(
+                x=data.read_bits(11),
+                y=data.read_bits(11),
+            ),
+            position_world=dict(
+                x=data.read_bits(20),
+                y=data.read_bits(20),
+                z=data.read_uint32()-2147483648,
+            ),
+            flags=data.read_uint8()-128,
+        )
+
+
 class TrackerEventsReader_Base(Reader):
 
     def __init__(self):
@@ -2021,7 +2080,7 @@ class TrackerEventsReader_Base(Reader):
             frames += decoder.read_struct()
             etype = decoder.read_struct()
             event_data = decoder.read_struct()
-            event = self.EVENT_DISPATCH[etype](frames, event_data)
+            event = self.EVENT_DISPATCH[etype](frames, event_data, replay.build)
             events.append(event)
 
         return events

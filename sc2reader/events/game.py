@@ -67,6 +67,9 @@ class UserOptionsEvent(GameEvent):
         self.starting_rally = data['starting_rally']
 
         #:
+        self.debug_pause_enabled = data['debug_pause_enabled']
+
+        #:
         self.base_build_num = data['base_build_num']
 
 
