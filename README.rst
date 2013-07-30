@@ -45,7 +45,7 @@ description of the information that can be extracted please consult the
 `documentation`_ hosted on Read the Docs.
 
 The library is production ready and reasonably stable. `travis-ci`_ provides a
-record of continuous testing which you can `see here`_
+record of our `continuous testing`_ and `coveralls.io`_ provides a record of our `test coverage`_.
 
 
 Replays
@@ -320,5 +320,7 @@ and kept this project going.
 .. _issue tracker: https://github.com/GraylinKim/sc2reader/issues
 .. _bnet_scraper: https://github.com/agoragames/bnet_scraper
 .. _sc2profile: https://github.com/srounet/sc2profile
-.. _see here: https://travis-ci.org/GraylinKim/sc2reader
+.. _continuous testing: https://travis-ci.org/GraylinKim/sc2reader
 .. _travis-ci: https://travis-ci.org/
+.. _coveralls.io: https://coveralls.io
+.. _test coverage: https://coveralls.io/r/GraylinKim/sc2reader
