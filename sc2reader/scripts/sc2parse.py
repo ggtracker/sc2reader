@@ -34,7 +34,7 @@ def main():
 
     releases_parsed = set()
     for folder in args.folders:
-        print("dealing with {-}".format(folder))
+        print("dealing with {0}".format(folder))
         for path in sc2reader.utils.get_files(folder, extension='SC2Replay'):
             try:
                 rs = sc2reader.load_replay(path, load_level=0).release_string
