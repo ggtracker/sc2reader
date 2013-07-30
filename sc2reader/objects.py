@@ -260,6 +260,9 @@ class Observer(Entity, User):
     def __str__(self):
         return "Observer {0} - {1}".format(self.uid, self.name)
 
+    def __repr__(self):
+        return str(self)
+
 
 class Computer(Entity, Player):
     """ Extends :class:`Entity` and :class:`Player`
@@ -280,6 +283,9 @@ class Computer(Entity, Player):
     def __str__(self):
         return "Player {0} - {1} ({2})".format(self.pid, self.name, self.play_race)
 
+    def __repr__(self):
+        return str(self)
+
 
 class Participant(Entity, User, Player):
     """ Extends :class:`Entity`, :class:`User`, and :class:`Player`
@@ -299,6 +305,9 @@ class Participant(Entity, User, Player):
 
     def __str__(self):
         return "Player {0} - {1} ({2})".format(self.pid, self.name, self.play_race)
+
+    def __repr__(self):
+        return str(self)
 
 
 class PlayerSummary():
