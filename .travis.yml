@@ -7,9 +7,12 @@ python:
  - pypy
 install:
  - python setup.py install
+ - pip install coveralls
 script:
- - python test_replays/test_all.py
- - python test_s2gs/test_all.py
+ - coverage run --source=sc2reader python test_replays/test_all.py
+ - coverage run --append --source=sc2reader python test_s2gs/test_all.py
+after_success:
+ - coveralls
 branches:
   only:
     - master
