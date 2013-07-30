@@ -9,8 +9,8 @@ install:
  - python setup.py install
  - pip install coveralls
 script:
- - coverage run --source=sc2reader test_replays/test_all.py
- - coverage run --append --source=sc2reader test_s2gs/test_all.py
+ - coverage run test_replays/test_all.py
+ - coverage run --append test_s2gs/test_all.py
 after_success:
  - coveralls
 branches:
