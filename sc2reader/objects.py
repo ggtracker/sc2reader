@@ -509,7 +509,7 @@ class MapInfo(object):
         if self.large_preview_type == 2:
             self.large_preview_path = data.read_cstring()
 
-        if self.version >= 0x20:
+        if self.version >= 0x1f:
             self.unknown3 = data.read_cstring()
             self.unknown4 = data.read_uint32()
 
@@ -542,7 +542,9 @@ class MapInfo(object):
         #: (Optional) Load screen image path; relative to root of map archive
         self.load_screen_path = data.read_cstring()
 
-        self.unknown6 = data.read_uint16()
+        #: Unknown string, usually empty
+        self.unknown6 = data.read_bytes(data.read_uint16()).decode('utf8')
+
         #: Load screen image scaling strategy: 0 = normal, 1 = aspect scaling, 2 = stretch the image.
         self.load_screen_scaling = data.read_uint32()
 
@@ -585,8 +587,14 @@ class MapInfo(object):
 
         self.unknown7 = data.read_uint32()
 
+        if self.version >= 0x19:
+            self.unknown8 = data.read_bytes(8)
+
+        if self.version >= 0x1f:
+            self.unknown9 = data.read_bytes(9)
+
         if self.version >= 0x20:
-            self.unknown9 = data.read_bytes(21)
+            self.unknown10 = data.read_bytes(4)
 
         #: The number of players enabled via the data editor
         self.player_count = data.read_uint32()
@@ -665,7 +673,7 @@ class MapInfo(object):
         #    }
         # }
         #: A bit array of flags mapping out the player enemies.
-        self.enemy_flags = data.read_uint(int(math.ceil(self.alliance_flags_length/8.0)))
+        self.enemy_flags = data.read_uint(int(math.ceil(self.enemy_flags_length/8.0)))
 
         if data.length != data.tell():
             self.logger.warn("Not all of the MapInfo file was read!")
