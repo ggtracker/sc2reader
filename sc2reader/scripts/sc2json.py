@@ -3,7 +3,7 @@
 from __future__ import absolute_import, print_function, unicode_literals, division
 
 import sc2reader
-from sc2reader.plugins.replay import toJSON
+from sc2reader.factories.plugins.replay import toJSON
 
 
 def main():
