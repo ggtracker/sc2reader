@@ -746,7 +746,7 @@ class DetailsReader(Reader):
         details = BitPackedDecoder(data).read_struct()
         return dict(
             players=[dict(
-                name=p[0],
+                name=p[0].decode('utf8'),
                 bnet=dict(
                     region=p[1][0],
                     program_id=p[1][1],
