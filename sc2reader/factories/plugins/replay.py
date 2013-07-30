@@ -126,7 +126,7 @@ def SelectionTracker(replay):
     debug = replay.opt.debug
     logger = log_utils.get_logger(SelectionTracker)
 
-    for person in replay.people:
+    for person in replay.entities:
         # TODO: A more robust person interface might be nice
         person.selection_errors = 0
         player_selections = GameState(PlayerSelection())

@@ -12,7 +12,7 @@ class SelectionTracker(object):
 
         Exposes the following interface, directly integrated into the player:
 
-            for person in replay.people:
+            for person in replay.entities:
                 total_errors = person.selection_errors
 
                 selection = person.selection
@@ -24,7 +24,7 @@ class SelectionTracker(object):
         # TODO: list a few error inducing sitations
     """
     def handleInitGame(self, event, replay):
-        for person in replay.people:
+        for person in replay.entities:
             person.selection = dict()
             for i in range(11):
                 person.selection[i] = list()

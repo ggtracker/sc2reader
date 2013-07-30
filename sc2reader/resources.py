@@ -164,6 +164,9 @@ class Replay(Resource):
     #: only the human players from the :attr:`people` list
     humans = list()
 
+    #: A list of :class:`Computer` objects from the game.
+    computers = list()
+
     #: A list of all the chat message events from the game
     messages = list()
 
@@ -211,10 +214,19 @@ class Replay(Resource):
         self.events = list()
         self.events_by_type = defaultdict(list)
         self.teams, self.team = list(), dict()
-        self.players, self.player = list(), utils.PersonDict()
+
+        self.player = utils.PersonDict()
+        self.observer = utils.PersonDict()
+        self.human = utils.PersonDict()
+        self.computer = utils.PersonDict()
+        self.entity = utils.PersonDict()
+
+        self.players = list()
         self.observers = list()  # Unordered list of Observer
-        self.people, self.humans = list(), list()  # Unordered list of Players+Observers
-        self.person = utils.PersonDict()  # Maps pid to Player/Observer
+        self.humans = list()
+        self.computers = list()
+        self.entities = list()
+
         self.attributes = defaultdict(dict)
         self.messages = list()
         self.recorder = None  # Player object
@@ -397,14 +409,19 @@ class Replay(Resource):
                 entity.team.players.append(entity)
                 self.players.append(entity)
                 self.player[entity.pid] = entity
-
             else:
                 self.observers.append(entity)
+                self.observer[entity.uid] = entity
 
             if entity.is_human:
-                self.person[entity.pid] = entity
-                self.client[entity.uid] = entity
-                self.people.append(entity)
+                self.humans.append(entity)
+                self.human[entity.uid] = entity
+            else:
+                self.computers.append(entity)
+                self.computer[entity.pid] = entity
+
+            # Index by pid so that we can match events to players in pre-HotS replays
+            self.entity[entity.pid] = entity
 
         # Pull results up for teams
         for team in self.teams:
@@ -418,7 +435,12 @@ class Replay(Resource):
                 team.result = 'Unknown'
 
         self.teams.sort(key=lambda t: t.number)
-        self.humans = self.clients = self.people
+
+        # These are all deprecated
+        self.clients = self.humans
+        self.people = self.entities
+        self.client = self.human
+        self.person = self.entity
 
         self.real_type = real_type(self.teams)
 
