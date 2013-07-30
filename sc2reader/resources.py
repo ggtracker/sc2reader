@@ -455,8 +455,8 @@ class Replay(Resource):
         # Pretty sure this just never worked, forget about it for now
         self.recorder = None
 
-        player_names = sorted(map(lambda p: p.name, self.people))
-        hash_input = self.gateway+":"+','.join(player_names)
+        entity_names = sorted(map(lambda p: p.name, self.entities))
+        hash_input = self.gateway+":"+','.join(entity_names)
         self.people_hash = hashlib.sha256(hash_input.encode('utf8')).hexdigest()
 
         # The presence of observers and/or computer players makes this not actually ladder
