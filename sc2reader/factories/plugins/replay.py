@@ -103,7 +103,7 @@ def APMTracker(replay):
     for player in replay.players:
         player.aps = defaultdict(int)
         player.apm = defaultdict(int)
-        seconds_played = replay.length.seconds
+        player.seconds_played = replay.length.seconds
 
         for event in player.events:
             if event.name == 'SelectionEvent' or 'AbilityEvent' in event.name or 'Hotkey' in event.name:
@@ -111,10 +111,10 @@ def APMTracker(replay):
                 player.apm[int(event.second/60)] += 1
 
             elif event.name == 'PlayerLeaveEvent':
-                seconds_played = event.second
+                player.seconds_played = event.second
 
         if len(player.apm) > 0:
-            player.avg_apm = sum(player.aps.values())/float(seconds_played)*60
+            player.avg_apm = sum(player.aps.values())/float(player.seconds_played)*60
         else:
             player.avg_apm = 0
 
