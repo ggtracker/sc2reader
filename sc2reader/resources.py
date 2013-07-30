@@ -618,7 +618,7 @@ class Map(Resource):
                 if len(line) == 0:
                     continue
 
-                key, value = line.split('=')
+                key, value = line.split('=', 1)
                 if key == 'DocInfo/Name':
                     self.name = value
                 elif key == 'DocInfo/Author':
