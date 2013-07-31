@@ -162,16 +162,17 @@ POST-Parse, how to do it?!?!?!?!
 import argparse
 import cPickle
 import os
-import gc
 import shutil
 import sys
 import time
 
 import sc2reader
 
+
 def run(args):
     #Reset wipes the destination clean so we can start over.
-    if args.reset: reset(args)
+    if args.reset:
+        reset(args)
 
     #Set up validates the destination and source directories.
     #It also loads the previous state or creates one as necessary.
@@ -186,12 +187,12 @@ def run(args):
             try:
                 #Read the file and expose useful aspects for renaming/filtering
                 replay = sc2reader.load_replay(path, load_level=2)
-            except KeyboardInterrupt as e:
+            except KeyboardInterrupt:
                 raise
             except:
                 #Failure to parse
                 file_name = os.path.basename(path)
-                directory = make_directory(args,('parse_error',))
+                directory = make_directory(args, ('parse_error',))
                 new_path = os.path.join(directory, file_name)
                 source_path = path[len(args.source):]
                 args.log.write("Error parsing replay: {0}".format(source_path))
@@ -204,7 +205,8 @@ def run(args):
             aspects = generate_aspects(args, replay)
 
             #Use the filter args to select files based on replay attributes
-            if filter_out_replay(args, replay): continue
+            if filter_out_replay(args, replay):
+                continue
 
             #Apply the aspects to the rename formatting.
             #'/' is a special character for creation of subdirectories.
@@ -232,13 +234,15 @@ def run(args):
         save_state(state, args)
 
         #We only run once in batch mode!
-        if args.mode == 'BATCH': break
+        if args.mode == 'BATCH':
+            break
 
         #Since new replays come in fairly infrequently, reduce system load
         #by sleeping for an acceptable response time before the next scan.
         time.sleep(args.period)
 
     args.log.write('Batch Completed')
+
 
 def filter_out_replay(args, replay):
     player_names = set([player.name for player in replay.players])
@@ -249,10 +253,12 @@ def filter_out_replay(args, replay):
     else:
         return not filter_out_player
 
+
 # We need to create these compare functions at runtime because the ordering
 # hinges on the --favored PLAYER options passed in from the command line.
 def create_compare_funcs(args):
     favored_set = set(name.lower() for name in args.favored)
+
     def player_compare(player1, player2):
         # Normalize the player names and generate our key metrics
         player1_name = player1.name.lower()
@@ -303,6 +309,7 @@ def create_compare_funcs(args):
 
     return team_compare, player_compare
 
+
 def generate_aspects(args, replay):
     teams = sorted(replay.teams, args.team_compare)
     matchups, team_strings = list(), list()
@@ -314,14 +321,15 @@ def generate_aspects(args, replay):
         team_strings.append(string)
 
     return sc2reader.utils.AttributeDict(
-            result=teams[0].result,
-            length=replay.length,
-            map=replay.map,
-            type=replay.type,
-            date=replay.date.strftime(args.date_format),
-            matchup='v'.join(matchups),
-            teams=' vs '.join(team_strings)
-        )
+        result=teams[0].result,
+        length=replay.length,
+        map=replay.map,
+        type=replay.type,
+        date=replay.date.strftime(args.date_format),
+        matchup='v'.join(matchups),
+        teams=' vs '.join(team_strings)
+    )
+
 
 def make_directory(args, path_parts):
     directory = args.dest
@@ -336,6 +344,7 @@ def make_directory(args, path_parts):
 
     return directory
 
+
 def scan(args, state):
     args.log.write("SCANNING: {0}\n".format(args.source))
     files = sc2reader.utils.get_files(
@@ -347,8 +356,10 @@ def scan(args, state):
         followlinks=args.follow_links)
     return filter(lambda f: os.path.getctime(f) > state.last_sync, files)
 
-def exit(msg,*args,**kwargs):
-    sys.exit(msg.format(*args,**kwargs)+"\n\nScript Aborted.")
+
+def exit(msg, *args, **kwargs):
+    sys.exit(msg.format(*args, **kwargs)+"\n\nScript Aborted.")
+
 
 def reset(args):
     if not os.path.exists(args.dest):
@@ -366,9 +377,10 @@ def reset(args):
     else:
         sys.exit("Script Aborted")
 
+
 def setup(args):
     args.team_compare, args.player_compare = create_compare_funcs(args)
-    args.action = sc2reader.utils.AttributeDict( type=args.action, run=shutil.copy if args.action=='COPY' else shutil.move)
+    args.action = sc2reader.utils.AttributeDict(type=args.action, run=shutil.copy if args.action == 'COPY' else shutil.move)
     if not os.path.exists(args.source):
         msg = 'Source does not exist: {0}.\n\nScript Aborted.'
         sys.exit(msg.format(args.source))
@@ -384,7 +396,7 @@ def setup(args):
     elif not os.path.isdir(args.dest):
         sys.exit('Destination must be a directory.\n\nScript Aborted')
 
-    data_file = os.path.join(args.dest,'sc2autosave.dat')
+    data_file = os.path.join(args.dest, 'sc2autosave.dat')
 
     args.log.write('Loading state from file: {0}\n'.format(data_file))
     if os.path.isfile(data_file) and not args.reset:
@@ -393,11 +405,12 @@ def setup(args):
     else:
         return sc2reader.utils.AttributeDict(last_sync=0)
 
+
 def save_state(state, args):
     state.last_sync = time.time()
-    data_file = os.path.join(args.dest,'sc2autosave.dat')
+    data_file = os.path.join(args.dest, 'sc2autosave.dat')
     if not args.dryrun:
-        with open(data_file,'w') as file:
+        with open(data_file, 'w') as file:
             cPickle.dump(state, file)
     else:
         args.log.write('Writing state to file: {0}\n'.format(data_file))
@@ -418,11 +431,11 @@ def main():
 
     general = parser.add_argument_group('General Options')
     general.add_argument('--mode', dest='mode',
-        type=str, choices=['BATCH','CYCLE'], default='BATCH',
+        type=str, choices=['BATCH', 'CYCLE'], default='BATCH',
         help='The operating mode for the organizer')
 
     general.add_argument('--action', dest='action',
-        choices=['COPY','MOVE'], default="COPY", type=str,
+        choices=['COPY', 'MOVE'], default="COPY", type=str,
         help='Have the organizer move your files instead of copying')
     general.add_argument('--period',
         dest='period', type=int, default=0,
@@ -497,7 +510,7 @@ def main():
 
     try:
         run(parser.parse_args())
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt:
         print "\n\nScript Interupted. Process Aborting"
 
 if __name__ == '__main__':

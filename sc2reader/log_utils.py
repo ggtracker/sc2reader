@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, print_function, unicode_literals, division
+
 import logging
+
+try:
+    unicode
+except NameError:
+    basestring = unicode = str
 
 try:
     from logging import NullHandler
@@ -32,14 +39,18 @@ LEVEL_MAP = dict(
     CRITICAL=logging.CRITICAL
 )
 
+
 def setup():
     logging.getLogger('sc2reader').addHandler(NullHandler())
 
+
 def log_to_file(filename, level='WARN', format=None, datefmt=None, **options):
-    add_log_handler(logging.FileHandler(filename, **options),level, format, datefmt)
+    add_log_handler(logging.FileHandler(filename, **options), level, format, datefmt)
+
 
 def log_to_console(level='WARN', format=None, datefmt=None, **options):
-    add_log_handler(logging.StreamHandler(**options),level, format, datefmt)
+    add_log_handler(logging.StreamHandler(**options), level, format, datefmt)
+
 
 def add_log_handler(handler, level='WARN', format=None, datefmt=None):
     handler.setFormatter(logging.Formatter(format, datefmt))
@@ -50,6 +61,7 @@ def add_log_handler(handler, level='WARN', format=None, datefmt=None):
     logger = logging.getLogger('sc2reader')
     logger.setLevel(level)
     logger.addHandler(handler)
+
 
 def get_logger(entity):
     """
@@ -63,8 +75,9 @@ def get_logger(entity):
     try:
         return logging.getLogger(entity.__module__+'.'+entity.__name__)
 
-    except AttributeError as e:
+    except AttributeError:
         raise TypeError("Cannot retrieve logger for {0}.".format(entity))
+
 
 def loggable(cls):
     cls.logger = get_logger(cls)

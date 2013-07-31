@@ -1,39 +1,27 @@
 STYLE GUIDE
 ==============
 
-Use your common sense and have some decency. Also try to stick to the following where reasonable.
+As a rough style guide, please lint your code with pep8::
+
+    pip install pep8
+    pep8 --ignore E501,E226,E241 sc2reader
 
 
-Absolute Imports
-----------------------
+All files should start with the following::
 
-Always use absolute imports::
+    # -*- coding: utf-8 -*-
+    #
+    # Optional Documentation on the module
+    #
+    from __future__ import absolute_import, print_function, unicode_literals, division
 
-	from __future__ import absolute_import
-
-That means imports should always start with sc2reader... instead of being relative to the current module.
-
-	from sc2reader.utils import ReplayBuffer
-
-
-Explicit Imports
----------------------
-
-Prefer explicit imports to globbed imports
-
-	from sc2reader.events import ChatEvent
-
-is better than
-
-	from sc2reader.events import *
+All imports should be absolute.
 
 
-Formatting Strings
------------------------
+All string formatting sound be done in the following style::
 
-Use string.format(args) instead string % (args).
+    "my {0} formatted {1} string {2}".format("super", "python", "example")
+    "the {x} style of {y} is also {z}".format(x="dict", y="arguments", z="acceptable")
 
-To support python 2.6, use numerical indexes even though it is a pain in the ass::
-
-	"{0} minerals, {1} gas, {2} terrazine, and {3} custom".format(self.minerals, self.vespene, self.terrazine, self.custom)
+The format argument index numbers are important for 2.6 support. ``%`` formatting is not allowed for 3.x support
 

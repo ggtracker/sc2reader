@@ -24,14 +24,3 @@ Game Summary
 .. autoclass:: GameSummary
     :members:
 
-MapInfo
----------------
-
-.. autoclass:: MapInfo
-    :members:
-
-MapHeader
----------------
-
-.. autoclass:: MapHeader
-    :members:

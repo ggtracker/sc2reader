@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function, unicode_literals, division
 
-from cStringIO import StringIO
+from io import BytesIO
 
 import struct
 import functools
@@ -11,6 +11,7 @@ try:
 except ImportError as e:
     from ordereddict import OrderedDict
 
+
 class ByteDecoder(object):
     """
     :param contents: The string or file-like object to decode
@@ -19,7 +20,7 @@ class ByteDecoder(object):
     Used to unpack parse byte aligned files.
     """
 
-    #: The StringIO object used internaly for reading from the
+    #: The Bytes object used internaly for reading from the
     #: decoder contents. cStringIO is faster than managing our
     #: own string access in python. For PyPy installations a
     #: managed string implementation might be faster.
@@ -33,33 +34,33 @@ class ByteDecoder(object):
         """ Accepts both strings and files implementing ``read()`` and
         decodes them in the specified endian format.
         """
-        if hasattr(contents,'read'):
+        if hasattr(contents, 'read'):
             self._contents = contents.read()
         else:
             self._contents = contents
 
-        self._buffer = StringIO(self._contents)
+        self._buffer = BytesIO(self._contents)
         self.length = len(self._contents)
 
-        # Expose the basic StringIO interface
+        # Expose the basic BytesIO interface
         self.read = self._buffer.read
         self.seek = self._buffer.seek
         self.tell = self._buffer.tell
 
         # decode the endian value if necessary
-        endian = endian.lower()
-        if endian.lower() == 'little':
-            endian = "<"
-        elif endian.lower() == 'big':
-            endian = ">"
-        elif endian not in ('<','>'):
-            raise ValueError("Endian must be one of 'little', '<', 'big', or '>' but was: "+endian)
+        self.endian = endian.lower()
+        if self.endian.lower() == 'little':
+            self.endian = "<"
+        elif self.endian.lower() == 'big':
+            self.endian = ">"
+        elif self.endian not in ('<', '>'):
+            raise ValueError("Endian must be one of 'little', '<', 'big', or '>' but was: "+self.endian)
 
         # Pre-compiling
-        self._unpack_int = struct.Struct(endian+'I').unpack
-        self._unpack_short = struct.Struct(endian+'H').unpack
-        self._unpack_longlong = struct.Struct(endian+'Q').unpack
-        self._unpack_bytes = lambda bytes: bytes if endian == '>' else bytes[::-1]
+        self._unpack_int = struct.Struct(str(self.endian+'I')).unpack
+        self._unpack_short = struct.Struct(str(self.endian+'H')).unpack
+        self._unpack_longlong = struct.Struct(str(self.endian+'Q')).unpack
+        self._unpack_bytes = lambda bytes: bytes if self.endian == '>' else bytes[::-1]
 
     def done(self):
         """ Returns true when all bytes have been decoded """
@@ -94,6 +95,29 @@ class ByteDecoder(object):
         """ Returns the next ``count`` bytes as a byte string """
         return self._unpack_bytes(self.read(count))
 
+    def read_uint(self, count):
+        """ Returns the next ``count`` bytes as an unsigned integer """
+        unpack = struct.Struct(str(self.endian+'B'*count)).unpack
+        uint = 0
+        for byte in unpack(self.read(count)):
+            uint = uint << 8 | byte
+        return uint
+
+    def read_string(self, count, encoding='utf8'):
+        """ Read a string in given encoding (default utf8) that is ``count`` bytes long """
+        return self.read_bytes(count).decode(encoding)
+
+    def read_cstring(self, encoding='utf8'):
+        """ Read a NULL byte terminated character string decoded with given encoding (default utf8). Ignores endian. """
+        cstring = BytesIO()
+        while True:
+            c = self.read(1)
+            if ord(c) == 0:
+                return cstring.getvalue().decode(encoding)
+            else:
+                cstring.write(c)
+
+
 class BitPackedDecoder(object):
     """
     :param contents: The string of file-like object to decode
@@ -126,7 +150,7 @@ class BitPackedDecoder(object):
 
     #: Maps bit shifts to high and low bit masks. Used for
     #: joining bytes when we are not byte aligned.
-    _bit_masks = zip(_lo_masks, _hi_masks)
+    _bit_masks = list(zip(_lo_masks, _hi_masks))
 
     def __init__(self, contents):
         self._buffer = ByteDecoder(contents, endian='BIG')
@@ -222,16 +246,21 @@ class BitPackedDecoder(object):
         self.byte_align()
         return self._buffer.read_bytes(count)
 
+    def read_aligned_string(self, count, encoding='utf8'):
+        """ Skips to the beginning of the next byte and returns the next ``count`` bytes decoded with encoding (default utf8) """
+        self.byte_align()
+        return self._buffer.read_string(count, encoding)
+
     def read_bytes(self, count):
         """ Returns the next ``count*8`` bits as a byte string """
         data = self._buffer.read_bytes(count)
 
         if self._bit_shift != 0:
-            temp_buffer = StringIO()
+            temp_buffer = BytesIO()
             prev_byte = self._next_byte
             lo_mask, hi_mask = self._bit_masks[self._bit_shift]
-            for next_byte in struct.unpack("B"*count, data):
-                temp_buffer.write(chr(prev_byte & hi_mask | next_byte & lo_mask))
+            for next_byte in struct.unpack(str("B")*count, data):
+                temp_buffer.write(struct.pack(str("B"), prev_byte & hi_mask | next_byte & lo_mask))
                 prev_byte = next_byte
 
             self._next_byte = prev_byte
@@ -247,7 +276,7 @@ class BitPackedDecoder(object):
         bit_shift = self._bit_shift
 
         # If we've got a byte in progress use it first
-        if bit_shift!=0:
+        if bit_shift != 0:
             bits_left = 8-bit_shift
 
             if bits_left < bits:
@@ -262,7 +291,7 @@ class BitPackedDecoder(object):
 
         # Then grab any additional whole bytes as needed
         if bits >= 8:
-            bytes = bits/8
+            bytes = int(bits/8)
 
             if bytes == 1:
                 bits -= 8
@@ -277,7 +306,7 @@ class BitPackedDecoder(object):
                 result |= self._buffer.read_uint32() << bits
 
             else:
-                for byte in struct.unpack("B"*bytes, self._read(bytes)):
+                for byte in struct.unpack(str("B")*bytes, self._read(bytes)):
                     bits -= 8
                     result |= byte << bits
 
@@ -306,45 +335,45 @@ class BitPackedDecoder(object):
         """ Reads a nested data structure. If the type is not specified the
         first byte is used as the type identifier.
         """
-        self.byte_align() # I think this is true
-        datatype = self.read_uint8() if datatype == None else datatype
+        self.byte_align()  # I think this is true
+        datatype = self.read_uint8() if datatype is None else datatype
 
-        if datatype == 0x00: # array
+        if datatype == 0x00:  # array
             data = [self.read_struct() for i in range(self.read_vint())]
 
-        elif datatype == 0x01: # bitarray, weird alignment requirements
+        elif datatype == 0x01:  # bitarray, weird alignment requirements
             bits = self.read_vint()
             data = self.read_bits(bits)
 
-        elif datatype == 0x02: # blob
+        elif datatype == 0x02:  # blob
             length = self.read_vint()
             data = self.read_bytes(length)
 
-        elif datatype == 0x03: # choice
+        elif datatype == 0x03:  # choice
             flag = self.read_vint()
             data = self.read_struct()
 
-        elif datatype == 0x04: # optional
+        elif datatype == 0x04:  # optional
             exists = self.read_uint8() != 0
             data = self.read_struct() if exists else None
 
-        elif datatype == 0x05: # Struct
+        elif datatype == 0x05:  # Struct
             data = OrderedDict()
             entries = self.read_vint()
-            for i in xrange(entries):
-                key = self.read_vint() # Must be read first
+            for i in range(entries):
+                key = self.read_vint()  # Must be read first
                 data[key] = self.read_struct()
 
-        elif datatype == 0x06: # u8
+        elif datatype == 0x06:  # u8
             data = self.read_uint8()
 
-        elif datatype == 0x07: # u32
-            data = self.read_bytes(4) #self.read_uint32()
+        elif datatype == 0x07:  # u32
+            data = self.read_bytes(4)  # self.read_uint32()
 
-        elif datatype == 0x08: # u64
+        elif datatype == 0x08:  # u64
             data = self.read_unit64()
 
-        elif datatype == 0x09: # vint
+        elif datatype == 0x09:  # vint
             data = self.read_vint()
 
         else:

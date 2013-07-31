@@ -1,34 +1,48 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function, unicode_literals, division
 
-from sc2reader.data import Unit
+from sc2reader.utils import Length
 from sc2reader.events.base import Event
 from sc2reader.log_utils import loggable
 
 from itertools import chain
 
+
 @loggable
 class GameEvent(Event):
     name = 'GameEvent'
+
     def __init__(self, frame, pid):
-        super(GameEvent, self).__init__(frame, pid)
+        self.pid = pid
+        self.frame = frame
+        self.second = frame >> 4
         self.is_local = (pid != 16)
+
+    def _str_prefix(self):
+        player_name = self.player.name if getattr(self, 'pid', 16) != 16 else "Global"
+        return "%s\t%-15s " % (Length(seconds=int(self.frame/16)), player_name)
+
+    def __str__(self):
+        return self._str_prefix() + self.name
 
 
 class GameStartEvent(GameEvent):
     name = 'GameStartEvent'
+
     def __init__(self, frame, pid, data):
         super(GameStartEvent, self).__init__(frame, pid)
 
 
 class PlayerLeaveEvent(GameEvent):
     name = 'PlayerLeaveEvent'
+
     def __init__(self, frame, pid, data):
         super(PlayerLeaveEvent, self).__init__(frame, pid)
 
 
 class UserOptionsEvent(GameEvent):
     name = 'UserOptionsEvent'
+
     def __init__(self, frame, pid, data):
         super(UserOptionsEvent, self).__init__(frame, pid)
         #:
@@ -53,7 +67,11 @@ class UserOptionsEvent(GameEvent):
         self.starting_rally = data['starting_rally']
 
         #:
+        self.debug_pause_enabled = data['debug_pause_enabled']
+
+        #:
         self.base_build_num = data['base_build_num']
+
 
 def create_command_event(frame, pid, data):
     ability_type = data['data'][0]
@@ -69,17 +87,21 @@ def create_command_event(frame, pid, data):
     elif ability_type == 'Data':
         return SelfAbilityEvent(frame, pid, data)
 
+
+class PlayerActionEvent(GameEvent):
+    name = 'PlayerActionEvent'
+
+
 @loggable
-class AbilityEvent(GameEvent):
+class AbilityEvent(PlayerActionEvent):
     name = 'AbilityEvent'
     is_player_action = True
+
     def __init__(self, frame, pid, data):
         super(AbilityEvent, self).__init__(frame, pid)
 
-
         #: Flags on the command???
         self.flags = data['flags']
-
 
         #: A dictionary of possible ability flags. Flag names are: alternate,
         #: queued, preempt, smart_click, smart_rally, subgroup, set_autocast,
@@ -97,9 +119,9 @@ class AbilityEvent(GameEvent):
             set_autocast_on=0x80 & self.flags != 0,
             user=0x100 & self.flags != 0,
             data_a=0x200 & self.flags != 0,
-            data_passenger=0x200 & self.flags != 0, # alt-name
+            data_passenger=0x200 & self.flags != 0,  # alt-name
             data_b=0x400 & self.flags != 0,
-            data_abil_queue_order_id=0x400 & self.flags != 0, # alt-name
+            data_abil_queue_order_id=0x400 & self.flags != 0,  # alt-name
             ai=0x800 & self.flags != 0,
             ai_ignore_on_finish=0x1000 & self.flags != 0,
             is_order=0x2000 & self.flags != 0,
@@ -111,9 +133,8 @@ class AbilityEvent(GameEvent):
             target_self=0x80000 & self.flags != 0,
         )
 
-
         #: Flag marking that the command had ability information
-        self.has_ability = data['ability'] != None
+        self.has_ability = data['ability'] is not None
 
         #: Link the the ability group
         self.ability_link = data['ability']['ability_link'] if self.has_ability else 0
@@ -140,36 +161,36 @@ class AbilityEvent(GameEvent):
 
         if self.ability_type == 'TargetUnit':
             #: Flags set on the target unit. Available for TargetUnit type events
-            self.target_flags = ability_type_data.get('flags',None)
+            self.target_flags = ability_type_data.get('flags', None)
 
             #: Timer??  Available for TargetUnit type events.
-            self.target_timer = ability_type_data.get('timer',None)
+            self.target_timer = ability_type_data.get('timer', None)
 
             #: Unique id of the target unit. Available for TargetUnit type events.
-            self.target_unit_id = ability_type_data.get('unit_tag',None)
+            self.target_unit_id = ability_type_data.get('unit_tag', None)
 
             #: A reference to the targetted unit
             self.target_unit = None
 
             #: Current integer type id of the target unit. Available for TargetUnit type events.
-            self.target_unit_type = ability_type_data.get('unit_link',None)
+            self.target_unit_type = ability_type_data.get('unit_link', None)
 
             #: Integer player id of the controlling player. Available for TargetUnit type events starting in 19595.
             #: When the targetted unit is under fog of war this id is zero.
-            self.control_player_id = ability_type_data.get('control_player_id',None)
+            self.control_player_id = ability_type_data.get('control_player_id', None)
 
             #: Integer player id of the player paying upkeep. Available for TargetUnit type events.
-            self.upkeep_player_id = ability_type_data.get('upkeep_player_id',None)
+            self.upkeep_player_id = ability_type_data.get('upkeep_player_id', None)
 
-        if self.ability_type in ('TargetPoint','TargetUnit'):
+        if self.ability_type in ('TargetPoint', 'TargetUnit'):
             #: The x coordinate of the target. Available for TargetPoint and TargetUnit type events.
-            self.x = ability_type_data['point'].get('x',0)/4096.0
+            self.x = ability_type_data['point'].get('x', 0)/4096.0
 
             #: The y coordinate of the target. Available for TargetPoint and TargetUnit type events.
-            self.y = ability_type_data['point'].get('y',0)/4096.0
+            self.y = ability_type_data['point'].get('y', 0)/4096.0
 
             #: The z coordinate of the target. Available for TargetPoint and TargetUnit type events.
-            self.z = ability_type_data['point'].get('z',0)
+            self.z = ability_type_data['point'].get('z', 0)
 
             #: The location of the target. Available for TargetPoint and TargetUnit type events
             self.location = (self.x, self.y, self.z)
@@ -184,42 +205,6 @@ class AbilityEvent(GameEvent):
         #: A reference to the other unit
         self.other_unit = None
 
-    def load_context(self, replay):
-        super(AbilityEvent, self).load_context(replay)
-
-        if not replay.datapack:
-            return
-
-        if self.ability_id not in replay.datapack.abilities:
-            if not getattr(replay, 'marked_error', None):
-                replay.marked_error=True
-                self.logger.error(replay.filename)
-                self.logger.error("Release String: "+replay.release_string)
-                for player in replay.players:
-                    self.logger.error("\t"+str(player))
-
-            self.logger.error("{0}\t{1}\tMissing ability {2:X} from {3}".format(self.frame, self.player.name, self.ability_id, replay.datapack.__class__.__name__))
-
-        else:
-            self.ability = replay.datapack.abilities[self.ability_id]
-            self.ability_name = self.ability.name
-
-
-        if self.ability_type == 'TargetUnit':
-            if self.target_unit_id in replay.objects:
-                self.target = replay.objects[self.target_unit_id]
-                if not self.target.is_type(self.target_unit_type):
-                    replay.datapack.change_type(self.target, self.target_unit_type, self.frame)
-            else:
-                unit = replay.datapack.create_unit(self.target_unit_id, self.target_unit_type, 0x00, self.frame)
-                self.target = unit
-                replay.objects[self.target_unit_id] = unit
-
-        if self.other_unit_id in replay.objects:
-            self.other_unit = replay.objects[self.other_unit_id]
-        elif self.other_unit_id != None:
-            print "Other unit {0} not found".format(self.other_unit_id)
-
     def __str__(self):
         string = self._str_prefix()
         if self.has_ability:
@@ -232,24 +217,29 @@ class AbilityEvent(GameEvent):
         if self.ability_type == 'TargetUnit':
             string += "; Target: {0} [{1:0>8X}]".format(self.target.name, self.target_unit_id)
 
-        if self.ability_type in ('TargetPoint','TargetUnit') :
+        if self.ability_type in ('TargetPoint', 'TargetUnit'):
             string += "; Location: {0}".format(str(self.location))
 
         return string
 
+
 class LocationAbilityEvent(AbilityEvent):
     name = 'LocationAbilityEvent'
+
 
 class TargetAbilityEvent(AbilityEvent):
     name = 'TargetAbilityEvent'
 
+
 class SelfAbilityEvent(AbilityEvent):
     name = 'SelfAbilityEvent'
 
+
 @loggable
-class SelectionEvent(GameEvent):
+class SelectionEvent(PlayerActionEvent):
     name = 'SelectionEvent'
     is_player_action = True
+
     def __init__(self, frame, pid, data):
         super(SelectionEvent, self).__init__(frame, pid)
 
@@ -269,7 +259,7 @@ class SelectionEvent(GameEvent):
         self.mask_data = data['remove_mask'][1]
 
         #: The unit type data for the new units
-        self.new_unit_types = [(d['unit_link'],d['subgroup_priority'],d['intra_subgroup_priority'],d['count']) for d in data['add_subgroups']]
+        self.new_unit_types = [(d['unit_link'], d['subgroup_priority'], d['intra_subgroup_priority'], d['count']) for d in data['add_subgroups']]
 
         #: The unit id data for the new units
         self.new_unit_ids = data['add_unit_tags']
@@ -287,30 +277,6 @@ class SelectionEvent(GameEvent):
 
         #: Deprecated, see new_units
         self.objects = None
-
-    def load_context(self, replay):
-        super(SelectionEvent, self).load_context(replay)
-
-        if not replay.datapack:
-            return
-
-        units = list()
-        for (unit_id, unit_type, subgroup, intra_subgroup) in self.new_unit_info:
-            # Hack that defaults viking selection to fighter mode instead of assault
-            if replay.versions[1] == 2 and replay.build >= 23925 and unit_type == 71:
-                unit_type = 72
-
-            if unit_id in replay.objects:
-                unit = replay.objects[unit_id]
-                if not unit.is_type(unit_type):
-                    replay.datapack.change_type(unit, unit_type, self.frame)
-            else:
-                unit = replay.datapack.create_unit(unit_id, unit_type, 0x00, self.frame)
-                replay.objects[unit_id] = unit
-
-            units.append(unit)
-
-        self.new_units = self.objects = units
 
     def __str__(self):
         if self.new_units:
@@ -331,10 +297,12 @@ def create_control_group_event(frame, pid, data):
         # TODO: What could this be?!?
         return HotkeyEvent(frame, pid, data)
 
+
 @loggable
-class HotkeyEvent(GameEvent):
+class HotkeyEvent(PlayerActionEvent):
     name = 'HotkeyEvent'
     is_player_action = True
+
     def __init__(self, frame, pid, data):
         super(HotkeyEvent, self).__init__(frame, pid)
 
@@ -343,6 +311,9 @@ class HotkeyEvent(GameEvent):
 
         #: Deprecated, use control_group
         self.bank = self.control_group
+
+        #: Deprecated, use control_group
+        self.hotkey = self.control_group
 
         #: The type of update being performed, 0 (set),1 (add),2 (get)
         self.update_type = data['control_group_update']
@@ -353,11 +324,14 @@ class HotkeyEvent(GameEvent):
         #: The data for the mask
         self.mask_data = data['remove_mask'][1]
 
+
 class SetToHotkeyEvent(HotkeyEvent):
     name = 'SetToHotkeyEvent'
 
+
 class AddToHotkeyEvent(HotkeyEvent):
     name = 'AddToHotkeyEvent'
+
 
 class GetFromHotkeyEvent(HotkeyEvent):
     name = 'GetFromHotkeyEvent'
@@ -366,17 +340,18 @@ class GetFromHotkeyEvent(HotkeyEvent):
 @loggable
 class CameraEvent(GameEvent):
     name = 'CameraEvent'
+
     def __init__(self, frame, pid, data):
         super(CameraEvent, self).__init__(frame, pid)
 
         #: The x coordinate of the center? of the camera
-        self.x = (data['target']['x'] if data['target'] != None else 0)/256.0
+        self.x = (data['target']['x'] if data['target'] is not None else 0)/256.0
 
         #: The y coordinate of the center? of the camera
-        self.y = (data['target']['y'] if data['target'] != None else 0)/256.0
+        self.y = (data['target']['y'] if data['target'] is not None else 0)/256.0
 
         #: The location of the center? of the camera
-        self.location = (self.x,self.y)
+        self.location = (self.x, self.y)
 
         #: The distance to the camera target ??
         self.distance = data['distance']
@@ -388,12 +363,13 @@ class CameraEvent(GameEvent):
         self.yaw = data['yaw']
 
     def __str__(self):
-        return self._str_prefix() + "{0} at ({1}, {2})".format(self.name, self.x,self.y)
+        return self._str_prefix() + "{0} at ({1}, {2})".format(self.name, self.x, self.y)
 
 
 @loggable
 class ResourceTradeEvent(GameEvent):
     name = 'ResourceTradeEvent'
+
     def __init__(self, frame, pid, data):
         super(ResourceTradeEvent, self).__init__(frame, pid)
 
@@ -427,14 +403,10 @@ class ResourceTradeEvent(GameEvent):
     def __str__(self):
         return self._str_prefix() + " transfer {0} minerals, {1} gas, {2} terrazine, and {3} custom to {4}" % (self.minerals, self.vespene, self.terrazine, self.custom, self.reciever)
 
-    def load_context(self, replay):
-        super(ResourceTradeEvent, self).load_context(replay)
-        self.sender = self.player
-        self.recipient = replay.players[self.recipient_id]
-
 
 class ResourceRequestEvent(GameEvent):
     name = 'ResourceRequestEvent'
+
     def __init__(self, frame, pid, data):
         super(ResourceRequestEvent, self).__init__(frame, pid)
 
@@ -459,6 +431,7 @@ class ResourceRequestEvent(GameEvent):
 
 class ResourceRequestFulfillEvent(GameEvent):
     name = 'ResourceRequestFulfillEvent'
+
     def __init__(self, frame, pid, data):
         super(ResourceRequestFulfillEvent, self).__init__(frame, pid)
 
@@ -468,6 +441,7 @@ class ResourceRequestFulfillEvent(GameEvent):
 
 class ResourceRequestCancelEvent(GameEvent):
     name = 'ResourceRequestCancelEvent'
+
     def __init__(self, frame, pid, data):
         super(ResourceRequestCancelEvent, self).__init__(frame, pid)
 

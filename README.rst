@@ -45,7 +45,7 @@ description of the information that can be extracted please consult the
 `documentation`_ hosted on Read the Docs.
 
 The library is production ready and reasonably stable. `travis-ci`_ provides a
-record of continuous testing which you can `see here`_
+record of our `continuous testing`_ and `coveralls.io`_ provides a record of our `test coverage`_.
 
 
 Replays
@@ -244,16 +244,14 @@ too much work. It'll make everyone happier in the long run.
 Testing
 -------------------
 
-We use py.test for testing. You can install it via pip/easy_install::
-
-    pip install pytest
-    easy_install pytest
+We use the built in ``unittest`` module for testing. If you are still on Python
+2.6 you will need to install ``unittest2`` because our test suite requires newer
+features than are included in the main distribution.
 
 To run the tests just use::
 
-    py.test               # Runs all the tests
-    py.test test_replays  # Only run tests on replays
-    py.test test_s2gs     # Only run tests on summary files
+    python -m unittest discover test_replays
+    python -m unittest discover test_s2gs
 
 When repeatedly running tests it can be very helpful to make sure you've
 set a local cache directory to prevent long fetch times from battle.net::
@@ -322,5 +320,7 @@ and kept this project going.
 .. _issue tracker: https://github.com/GraylinKim/sc2reader/issues
 .. _bnet_scraper: https://github.com/agoragames/bnet_scraper
 .. _sc2profile: https://github.com/srounet/sc2profile
-.. _see here: https://travis-ci.org/GraylinKim/sc2reader
+.. _continuous testing: https://travis-ci.org/GraylinKim/sc2reader
 .. _travis-ci: https://travis-ci.org/
+.. _coveralls.io: https://coveralls.io
+.. _test coverage: https://coveralls.io/r/GraylinKim/sc2reader

@@ -28,10 +28,18 @@
 # those decisions. The decisions are pickled instead of in json
 # because the data structure is too complex for the json format.
 #
-import sc2reader, sys, os, json, pickle, argparse
+from __future__ import absolute_import, print_function, unicode_literals, division
+
+import argparse
+import json
+import os
+import pickle
 import traceback
 
+import sc2reader
+
 decisions = dict()
+
 
 def main():
     global decisions
@@ -41,7 +49,7 @@ def main():
     args = parser.parse_args()
 
     scripts_dir = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.normpath(os.path.join(scripts_dir,'..','data','attributes.json'))
+    data_path = os.path.normpath(os.path.join(scripts_dir, '..', 'data', 'attributes.json'))
 
     attributes = dict()
     if os.path.exists(data_path):
@@ -51,7 +59,7 @@ def main():
             decisions = pickle.loads(data.get('decisions', '(dp0\n.'))
 
     for folder in args.folders:
-        for path in sc2reader.utils.get_files(folder,extension='s2gs'):
+        for path in sc2reader.utils.get_files(folder, extension='s2gs'):
             try:
                 summary = sc2reader.load_game_summary(path)
                 for prop in summary.parts[0][5]:
@@ -64,7 +72,7 @@ def main():
                             group_name = get_choice(group_key, attribute_name, group_name)
 
                     for value in prop[1]:
-                        value_key = value[0].strip("\x00 ").replace(' v ','v')
+                        value_key = value[0].strip("\x00 ").replace(' v ', 'v')
                         value_name = summary.lang_sheets['enUS'][value[1][0][1]][value[1][0][2]]
                         if str(value_key) in attribute_values:
                             attribute_value_name = attribute_values[str(value_key)]
@@ -80,8 +88,8 @@ def main():
                 else:
                     traceback.print_exc()
 
-    with open(data_path,'w') as data_file:
-        data = dict(attributes=attributes,decisions=pickle.dumps(decisions))
+    with open(data_path, 'w') as data_file:
+        data = dict(attributes=attributes, decisions=pickle.dumps(decisions))
         json.dump(data, data_file, indent=2, sort_keys=True)
 
 
@@ -91,18 +99,18 @@ def get_choice(s2gs_key, old_value, new_value):
     # This way old/new values can be swapped and decision is remembered
     key = frozenset([s2gs_key, old_value, new_value])
     if key not in decisions:
-        print "Naming conflict on {0}: {1} != {2}".format(s2gs_key, old_value, new_value)
-        print "Which do you want to use?"
-        print "  (o) Old value '{0}'".format(old_value)
-        print "  (n) New value '{0}'".format(new_value)
+        print("Naming conflict on {0}: {1} != {2}".format(s2gs_key, old_value, new_value))
+        print("Which do you want to use?")
+        print("  (o) Old value '{0}'".format(old_value))
+        print("  (n) New value '{0}'".format(new_value))
         while True:
             answer = raw_input("Choose 'o' or 'n' then press enter: ").lower()
-            if answer not in ('o','n'):
-                print 'Invalid choice `{0}`'.format(answer)
+            if answer not in ('o', 'n'):
+                print('Invalid choice `{0}`'.format(answer))
             else:
                 break
-        decisions[key] = {'o':old_value,'n':new_value}[answer]
-        print
+        decisions[key] = {'o': old_value, 'n': new_value}[answer]
+        print("")
     return decisions[key]
 
 

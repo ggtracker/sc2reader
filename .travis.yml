@@ -2,10 +2,19 @@ language: python
 python:
  - 2.6
  - 2.7
+ - 3.2
+ - 3.3
  - pypy
 install:
  - python setup.py install
+ - pip install coveralls
 script:
- - py.test test_replays test_s2gs
+ - coverage run test_replays/test_all.py
+ - coverage run --append test_s2gs/test_all.py
+after_success:
+ - coveralls
+branches:
+  only:
+    - master
 notifications:
   irc: "chat.freenode.net#sc2reader"

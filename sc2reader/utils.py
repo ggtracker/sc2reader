@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function, unicode_literals, division
 
+import binascii
 import os
-import sys
-from datetime import timedelta
+import json
+from datetime import timedelta, datetime
 
 from sc2reader.log_utils import loggable
 from sc2reader.exceptions import MPQError
 from sc2reader.constants import COLOR_CODES, COLOR_CODES_INV
+
 
 class DepotFile(object):
     """
@@ -22,17 +24,17 @@ class DepotFile(object):
 
     def __init__(self, bytes):
         #: The server the file is hosted on
-        self.server = bytes[4:8].strip('\x00 ')
+        self.server = bytes[4:8].decode('utf-8').strip('\x00 ')
 
         # There is no SEA depot, use US instead
         if self.server == 'SEA':
             self.server = 'US'
 
         #: The unique content based hash of the file
-        self.hash = bytes[8:].encode('hex')
+        self.hash = binascii.b2a_hex(bytes[8:]).decode('utf8')
 
         #: The extension of the file on the server
-        self.type = bytes[0:4]
+        self.type = bytes[0:4].decode('utf8')
 
     @property
     def url(self):
@@ -48,6 +50,8 @@ class DepotFile(object):
 
 class PersonDict(dict):
     """
+    Deprecated!
+
     Supports lookup on both the player name and player id
 
     ::
@@ -59,32 +63,25 @@ class PersonDict(dict):
 
     Delete is supported on the player id only
     """
-    def __init__(self, players=[]):
+    def __init__(self):
         super(PersonDict, self).__init__()
         self._key_map = dict()
 
-        # Support creation from iterables
-        for player in players:
-            self[player.pid] = player
-
     def name(self, player_name):
+        """ deprecated because it is possible for multiple players to have the same name. """
         return self[self._key_map[player_name]]
 
     def __setitem__(self, key, value):
-        if isinstance(key, str):
-            self._key_map[key] = value.pid
-            key = value.pid
-        elif isinstance(key, int):
-            self._key_map[value.name] = key
-
-        super(PersonDict, self).__setitem__(value.pid, value)
+        self._key_map[value.name] = key
+        super(PersonDict, self).__setitem__(key, value)
 
 
 def windows_to_unix(windows_time):
     # This windows timestamp measures the number of 100 nanosecond periods since
     # January 1st, 1601. First we subtract the number of nanosecond periods from
     # 1601-1970, then we divide by 10^7 to bring it back to seconds.
-    return (windows_time-116444735995904000)/10**7
+    return int((windows_time-116444735995904000)/10**7)
+
 
 class AttributeDict(dict):
     """
@@ -102,6 +99,7 @@ class AttributeDict(dict):
 
     def copy(self):
         return AttributeDict(self.items())
+
 
 @loggable
 class Color(object):
@@ -138,11 +136,10 @@ class Color(object):
                 self.logger.warn("Invalid color hex value: " + self.hex)
             self.name = COLOR_CODES.get(self.hex, self.hex)
 
-
     @property
     def rgba(self):
         """ Returns a tuple containing the color's (r,g,b,a) """
-        return (self.r,self.g,self.b,self.a)
+        return (self.r, self.g, self.b, self.a)
 
     @property
     def hex(self):
@@ -152,7 +149,15 @@ class Color(object):
     def __str__(self):
         return self.name
 
+
 def extract_data_file(data_file, archive):
+
+    def recovery_attempt():
+        try:
+            return archive.read_file(data_file)
+        except Exception:
+            return None
+
     # Wrap all mpyq related exceptions so they can be distinguished
     # from other sc2reader issues later on.
     try:
@@ -162,31 +167,32 @@ def extract_data_file(data_file, archive):
         # attempt decompression. If they under report a compressed
         # file might bypass decompression. So do this:
         #
-        #  * Force a decompression to catch under reporting
-        #  * If that fails, try to process normally
-        #  * mpyq doesn't allow you to skip decompression, so fail
+        # * Force a decompression to catch under reporting
+        # * If that fails, try to process normally
+        # * mpyq doesn't allow you to skip decompression, so fail
         #
         # Refs: arkx/mpyq#12, GraylinKim/sc2reader#102
         try:
             file_data = archive.read_file(data_file, force_decompress=True)
         except Exception as e:
-            exc_info = sys.exc_info()
-            try:
-                file_data = archive.read_file(data_file)
-            except Exception as e:
-                # raise the original exception
-                raise exc_info[1], None, exc_info[2]
+            file_data = recovery_attempt()
+            if file_data is None:
+                raise
 
         return file_data
 
     except Exception as e:
-        trace = sys.exc_info()[2]
-        raise MPQError("Unable to extract file: {0}".format(data_file),e), None, trace
+        # Python2 and Python3 handle wrapped exceptions with old tracebacks in incompatible ways
+        # Python3 handles it by default and Python2's method won't compile in python3
+        # Since the underlying traceback isn't important to most people, don't expose it anymore
+        raise MPQError("Unable to extract file: {0}".format(data_file), e)
+
 
 def merged_dict(a, b):
     c = a.copy()
     c.update(b)
     return c
+
 
 def get_files(path, exclude=list(), depth=-1, followlinks=False, extension=None, **extras):
     """
@@ -213,7 +219,7 @@ def get_files(path, exclude=list(), depth=-1, followlinks=False, extension=None,
         if type_check(path):
             yield path
         else:
-            pass # return and halt the generator
+            pass  # return and halt the generator
 
     else:
         for root, directories, filenames in os.walk(path, followlinks=followlinks):
@@ -237,20 +243,105 @@ class Length(timedelta):
     @property
     def hours(self):
         """ The number of hours in represented. """
-        return self.seconds/3600
+        return int(self.seconds/3600)
 
     @property
     def mins(self):
         """ The number of minutes in excess of the hours. """
-        return (self.seconds/60)%60
+        return int(self.seconds/60) % 60
 
     @property
     def secs(self):
         """ The number of seconds in excess of the minutes. """
-        return self.seconds%60
+        return self.seconds % 60
 
     def __str__(self):
         if self.hours:
-            return "{0:0>2}.{1:0>2}.{2:0>2}".format(self.hours,self.mins,self.secs)
+            return "{0:0>2}.{1:0>2}.{2:0>2}".format(self.hours, self.mins, self.secs)
         else:
-            return "{0:0>2}.{1:0>2}".format(self.mins,self.secs)
+            return "{0:0>2}.{1:0>2}".format(self.mins, self.secs)
+
+
+class JSONDateEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.strftime("%Y-%m-%d %H:%M:%S")
+        return json.JSONEncoder.default(self, obj)
+
+
+def toJSON(replay, **user_options):
+    options = dict(cls=JSONDateEncoder)
+    options.update(user_options)
+    return json.dumps(toDict(replay), **options)
+
+
+def toDict(replay):
+    # Build observers into dictionary
+    observers = list()
+    for observer in replay.observers:
+        messages = list()
+        for message in getattr(observer, 'messages', list()):
+            messages.append({
+                'time': message.time.seconds,
+                'text': message.text,
+                'is_public': message.to_all
+            })
+        observers.append({
+            'name': getattr(observer, 'name', None),
+            'pid': getattr(observer, 'pid', None),
+            'messages': messages,
+        })
+
+    # Build players into dictionary
+    players = list()
+    for player in replay.players:
+        messages = list()
+        for message in player.messages:
+            messages.append({
+                'time': message.time.seconds,
+                'text': message.text,
+                'is_public': message.to_all
+            })
+        players.append({
+            'avg_apm': getattr(player, 'avg_apm', None),
+            'color': player.color.__dict__ if hasattr(player, 'color') else None,
+            'handicap': getattr(player, 'handicap', None),
+            'name': getattr(player, 'name', None),
+            'pick_race': getattr(player, 'pick_race', None),
+            'pid': getattr(player, 'pid', None),
+            'play_race': getattr(player, 'play_race', None),
+            'result': getattr(player, 'result', None),
+            'type': getattr(player, 'type', None),
+            'uid': getattr(player, 'uid', None),
+            'url': getattr(player, 'url', None),
+            'messages': messages,
+        })
+
+    # Consolidate replay metadata into dictionary
+    return {
+        'gateway': getattr(replay, 'gateway', None),
+        'map_name': getattr(replay, 'map_name', None),
+        'file_time': getattr(replay, 'file_time', None),
+        'filehash': getattr(replay, 'filehash', None),
+        'unix_timestamp': getattr(replay, 'unix_timestamp', None),
+        'date': getattr(replay, 'date', None),
+        'utc_date': getattr(replay, 'utc_date', None),
+        'speed': getattr(replay, 'speed', None),
+        'category': getattr(replay, 'category', None),
+        'type': getattr(replay, 'type', None),
+        'is_ladder': getattr(replay, 'is_ladder', False),
+        'is_private': getattr(replay, 'is_private', False),
+        'filename': getattr(replay, 'filename', None),
+        'file_time': getattr(replay, 'file_time', None),
+        'frames': getattr(replay, 'frames', None),
+        'build': getattr(replay, 'build', None),
+        'release': getattr(replay, 'release_string', None),
+        'game_fps': getattr(replay, 'game_fps', None),
+        'game_length': getattr(getattr(replay, 'game_length', None), 'seconds', None),
+        'players': players,
+        'observers': observers,
+        'real_length': getattr(getattr(replay, 'real_length', None), 'seconds', None),
+        'real_type': getattr(replay, 'real_type', None),
+        'time_zone': getattr(replay, 'time_zone', None),
+        'versions': getattr(replay, 'versions', None)
+    }

@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, print_function, unicode_literals, division
+
 import argparse
 import re
 import textwrap
+
 
 class Formatter(argparse.RawTextHelpFormatter):
     """FlexiFormatter which respects new line formatting and wraps the rest
@@ -32,14 +35,14 @@ class Formatter(argparse.RawTextHelpFormatter):
 
     def _split_lines(self, text, width):
         lines = list()
-        main_indent = len(re.match(r'( *)',text).group(1))
+        main_indent = len(re.match(r'( *)', text).group(1))
         # Wrap each line individually to allow for partial formatting
         for line in text.splitlines():
 
             # Get this line's indent and figure out what indent to use
             # if the line wraps. Account for lists of small variety.
-            indent = len(re.match(r'( *)',line).group(1))
-            list_match = re.match(r'( *)(([*-+>]+|\w+\)|\w+\.) +)',line)
+            indent = len(re.match(r'( *)', line).group(1))
+            list_match = re.match(r'( *)(([*-+>]+|\w+\)|\w+\.) +)', line)
             if(list_match):
                 sub_indent = indent + len(list_match.group(2))
             else:
