@@ -38,19 +38,26 @@ class Unit(object):
     """
 
     def __init__(self, unit_id, flags):
-        #: A reference to the player that owns this unit
+        #: A reference to the player that currently owns this unit. Only available for 2.0.8+ replays.
         self.owner = None
 
-        #: The frame the unit was started at
+        #: The frame the unit was started at. Only available for 2.0.8+ replays.
+        #: Specifically, it is the frame the :class:`~sc2reader.events.tracker.UnitInitEvent` is received. For units
+        #: that are born and not initiated this will be the same as :attr:`finished_at`.
         self.started_at = None
 
-        #: The frame the unit was finished at
+        #: The frame the unit was finished at. Only available for 2.0.8+ replays.
+        #: Specifically, it is the frame that the :class:`~sc2reader.events.tracker.UnitDoneEvent` is received. For units
+        #: that are born and not initiated this will be the same as :attr:`started_at`.
         self.finished_at = None
 
-        #: The frame the unit died at
+        #: The frame the unit died at. Only available for 2.0.8+ replays.
+        #: Specifically, it is the frame that the :class:`~sc2reader.events.tracker.UnitDiedEvent` is received.
         self.died_at = None
 
-        #: A reference to the player that killed this unit. Not always available.
+        #: A reference to the player that killed this unit. Only available for 2.0.8+ replays.
+        #: This value is not set if the killer is unknown or not relevant (morphed into a
+        #: different unit or used to create a building, etc)
         self.killed_by = None
 
         #: The unique in-game id for this unit. The id can sometimes be zero because
