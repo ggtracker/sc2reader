@@ -10,12 +10,28 @@ from itertools import chain
 
 @loggable
 class GameEvent(Event):
+    """
+    This is the base class for all game events. The attributes below are universally available.
+    """
     name = 'GameEvent'
 
     def __init__(self, frame, pid):
+        #: The id of the player generating the event. This is 16 for global non-player events.
+        #: Prior to Heart of the Swarm this was the player id. Since HotS it is
+        #: now the user id (uid), we still call it pid for backwards compatibility.
         self.pid = pid
+
+        #: A reference to the :class:`~sc2reader.objects.Player` object representing
+        #: this player in the replay. Not available for global events (:attr:`pid` = 16)
+        self.player = None
+
+        #: The frame of the game that this event was recorded at. 16 frames per game second.
         self.frame = frame
+
+        #: The second of the game that this event was recorded at. 16 frames per game second.
         self.second = frame >> 4
+
+        #: A flag indicating if it is a local or global event.
         self.is_local = (pid != 16)
 
     def _str_prefix(self):
@@ -27,6 +43,11 @@ class GameEvent(Event):
 
 
 class GameStartEvent(GameEvent):
+    """
+    Recorded when the game starts and the frames start to roll. This is a global non-player
+    event.
+    """
+
     name = 'GameStartEvent'
 
     def __init__(self, frame, pid, data):
@@ -34,6 +55,10 @@ class GameStartEvent(GameEvent):
 
 
 class PlayerLeaveEvent(GameEvent):
+    """
+    Recorded when a player leaves the game.
+    """
+
     name = 'PlayerLeaveEvent'
 
     def __init__(self, frame, pid, data):
@@ -41,6 +66,11 @@ class PlayerLeaveEvent(GameEvent):
 
 
 class UserOptionsEvent(GameEvent):
+    """
+    This event is recorded for each player at the very beginning of the game before the
+    :class:`GameStartEvent`.
+    """
+
     name = 'UserOptionsEvent'
 
     def __init__(self, frame, pid, data):
@@ -94,7 +124,18 @@ class PlayerActionEvent(GameEvent):
 
 @loggable
 class AbilityEvent(PlayerActionEvent):
+    """
+    Ability events are generated when ever a player in the game issues a command
+    to a unit or group of units. They are split into three subclasses of ability,
+    each with their own set of associated data. The attributes listed below are
+    shared across all ability event types.
+
+    See :class:`LocationAbilityEvent`, :class:`TargetAbilityEvent`, and :class:`SelfAbilityEvent`
+    for individual details.
+    """
+
     name = 'AbilityEvent'
+
     is_player_action = True
 
     def __init__(self, frame, pid, data):
@@ -157,47 +198,8 @@ class AbilityEvent(PlayerActionEvent):
         #: The type of ability, one of: None (no target), TargetPoint, TargetUnit, or Data
         self.ability_type = data['data'][0]
 
-        ability_type_data = data['data'][1]
-
-        if self.ability_type == 'TargetUnit':
-            #: Flags set on the target unit. Available for TargetUnit type events
-            self.target_flags = ability_type_data.get('flags', None)
-
-            #: Timer??  Available for TargetUnit type events.
-            self.target_timer = ability_type_data.get('timer', None)
-
-            #: Unique id of the target unit. Available for TargetUnit type events.
-            self.target_unit_id = ability_type_data.get('unit_tag', None)
-
-            #: A reference to the targetted unit
-            self.target_unit = None
-
-            #: Current integer type id of the target unit. Available for TargetUnit type events.
-            self.target_unit_type = ability_type_data.get('unit_link', None)
-
-            #: Integer player id of the controlling player. Available for TargetUnit type events starting in 19595.
-            #: When the targetted unit is under fog of war this id is zero.
-            self.control_player_id = ability_type_data.get('control_player_id', None)
-
-            #: Integer player id of the player paying upkeep. Available for TargetUnit type events.
-            self.upkeep_player_id = ability_type_data.get('upkeep_player_id', None)
-
-        if self.ability_type in ('TargetPoint', 'TargetUnit'):
-            #: The x coordinate of the target. Available for TargetPoint and TargetUnit type events.
-            self.x = ability_type_data['point'].get('x', 0)/4096.0
-
-            #: The y coordinate of the target. Available for TargetPoint and TargetUnit type events.
-            self.y = ability_type_data['point'].get('y', 0)/4096.0
-
-            #: The z coordinate of the target. Available for TargetPoint and TargetUnit type events.
-            self.z = ability_type_data['point'].get('z', 0)
-
-            #: The location of the target. Available for TargetPoint and TargetUnit type events
-            self.location = (self.x, self.y, self.z)
-
-        if self.ability_type == 'Data':
-            #: Other target data. Available for Data type events.
-            self.target_data = ability_type_data.get('data', None)
+        #: The raw data associated with this ability type
+        self.ability_type_data = data['data'][1]
 
         #: Other unit id??
         self.other_unit_id = data['other_unit_tag']
@@ -224,19 +226,118 @@ class AbilityEvent(PlayerActionEvent):
 
 
 class LocationAbilityEvent(AbilityEvent):
+    """
+    Extends :class:`AbilityEvent`
+
+    This event is recorded when ever a player issues a command that targets a location
+    and NOT a unit. Commands like Psistorm, Attack Move, Fungal Growth, and EMP fall
+    under this category.
+
+    Note that like all AbilityEvents, the event will be recorded regardless
+    of whether or not the command was successful.
+    """
+
     name = 'LocationAbilityEvent'
+
+    def __init__(self, frame, pid, data):
+        super(LocationAbilityEvent, self).__init__(frame, pid, data)
+
+        #: The x coordinate of the target. Available for TargetPoint and TargetUnit type events.
+        self.x = self.ability_type_data['point'].get('x', 0)/4096.0
+
+        #: The y coordinate of the target. Available for TargetPoint and TargetUnit type events.
+        self.y = self.ability_type_data['point'].get('y', 0)/4096.0
+
+        #: The z coordinate of the target. Available for TargetPoint and TargetUnit type events.
+        self.z = self.ability_type_data['point'].get('z', 0)
+
+        #: The location of the target. Available for TargetPoint and TargetUnit type events
+        self.location = (self.x, self.y, self.z)
 
 
 class TargetAbilityEvent(AbilityEvent):
+    """
+    Extends :class:`AbilityEvent`
+
+    TargetAbilityEvents are recorded when ever a player issues a command that targets a unit.
+    The location of the target unit at the time of the command is also recorded. Commands like
+    Chronoboost, Transfuse, and Snipe fall under this category.
+
+    Note that all AbilityEvents are recorded regardless of whether or not the command was successful.
+    """
+
     name = 'TargetAbilityEvent'
+
+    def __init__(self, frame, pid, data):
+        super(TargetAbilityEvent, self).__init__(frame, pid, data)
+
+        #: Flags set on the target unit. Available for TargetUnit type events
+        self.target_flags = self.ability_type_data.get('flags', None)
+
+        #: Timer??  Available for TargetUnit type events.
+        self.target_timer = self.ability_type_data.get('timer', None)
+
+        #: Unique id of the target unit. Available for TargetUnit type events.
+        self.target_unit_id = self.ability_type_data.get('unit_tag', None)
+
+        #: A reference to the targetted unit
+        self.target_unit = None
+
+        #: Current integer type id of the target unit. Available for TargetUnit type events.
+        self.target_unit_type = self.ability_type_data.get('unit_link', None)
+
+        #: Integer player id of the controlling player. Available for TargetUnit type events starting in 19595.
+        #: When the targetted unit is under fog of war this id is zero.
+        self.control_player_id = self.ability_type_data.get('control_player_id', None)
+
+        #: Integer player id of the player paying upkeep. Available for TargetUnit type events.
+        self.upkeep_player_id = self.ability_type_data.get('upkeep_player_id', None)
+
+        #: The x coordinate of the target. Available for TargetPoint and TargetUnit type events.
+        self.x = self.ability_type_data['point'].get('x', 0)/4096.0
+
+        #: The y coordinate of the target. Available for TargetPoint and TargetUnit type events.
+        self.y = self.ability_type_data['point'].get('y', 0)/4096.0
+
+        #: The z coordinate of the target. Available for TargetPoint and TargetUnit type events.
+        self.z = self.ability_type_data['point'].get('z', 0)
+
+        #: The location of the target. Available for TargetPoint and TargetUnit type events
+        self.location = (self.x, self.y, self.z)
 
 
 class SelfAbilityEvent(AbilityEvent):
+    """
+    Extends :class:`AbilityEvent`
+
+    SelfAbilityEvents are recorded when ever a player issues a command that has no target. Commands
+    like Burrow, SeigeMode, Train XYZ, and Stop fall under this category.
+
+    Note that all AbilityEvents are recorded regardless of whether or not the command was successful.
+    """
+
     name = 'SelfAbilityEvent'
+
+    def __init__(self, frame, pid, data):
+        super(SelfAbilityEvent, self).__init__(frame, pid, data)
+
+        #: Other target data. Available for Data type events.
+        self.target_data = self.ability_type_data.get('data', None)
 
 
 @loggable
 class SelectionEvent(PlayerActionEvent):
+    """
+    Selection events are generated when ever the active selection of the
+    player is updated. Unlike other game events, these events can also be
+    generated by non-player actions like unit deaths or transformations.
+
+    Starting in Starcraft 2.0.0, selection events targetting control group
+    buffers are also generated when control group selections are modified
+    by non-player actions. When a player action updates a control group
+    a :class:`HotkeyEvent` is generated.
+    """
+
     name = 'SelectionEvent'
     is_player_action = True
 
@@ -300,6 +401,22 @@ def create_control_group_event(frame, pid, data):
 
 @loggable
 class HotkeyEvent(PlayerActionEvent):
+    """
+    Hotkey events are recorded when ever a player action modifies a control
+    group. I know that calling control group events hotkey events doesn't make
+    sense but for backwards compatibility I haven't changed it yet. Sorry.
+
+    There are three kinds of hotkey events, generated by each of the possible
+    player actions:
+
+    * :class:`SetToHotkeyEvent` - Recorded when a user sets a control group (ctrl+#).
+    * :class:`GetFromHotkeyEvent` - Recorded when a user retrieves a control group (#).
+    * :class:`AddToHotkeyEvent` - Recorded when a user adds to a control group (shift+ctrl+#)
+
+    All three events have the same set of data (shown below) but are interpretted differently.
+    See the class entry for details.
+    """
+
     name = 'HotkeyEvent'
     is_player_action = True
 
@@ -326,19 +443,46 @@ class HotkeyEvent(PlayerActionEvent):
 
 
 class SetToHotkeyEvent(HotkeyEvent):
+    """
+    Extends :class:`HotkeyEvent`
+
+    This event does a straight forward replace of the current control group contents
+    with the player's current selection. This event doesn't have masks set.
+    """
+
     name = 'SetToHotkeyEvent'
 
 
 class AddToHotkeyEvent(HotkeyEvent):
+    """
+    Extends :class:`HotkeyEvent`
+
+    This event adds the current selection to the control group.
+    """
+
     name = 'AddToHotkeyEvent'
 
 
 class GetFromHotkeyEvent(HotkeyEvent):
+    """
+    Extends :class:`HotkeyEvent`
+    This event replaces the current selection with the contents of the control group.
+    The mask data is used to limit that selection to units that are currently selectable.
+    You might have 1 medivac and 8 marines on the control group but if the 8 marines are
+    inside the medivac they cannot be part of your selection.
+    """
+
     name = 'GetFromHotkeyEvent'
 
 
 @loggable
 class CameraEvent(GameEvent):
+    """
+    Camera events are generated when ever the player camera moves, zooms, or rotates.
+    It does not matter why the camera changed, this event simply records the current
+    state of the camera after changing.
+    """
+
     name = 'CameraEvent'
 
     def __init__(self, frame, pid, data):
