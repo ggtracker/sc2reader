@@ -6,6 +6,8 @@ from sc2reader.engine.engine import GameEngine
 from sc2reader.engine.plugins.apm import APMTracker
 from sc2reader.engine.plugins.selection import SelectionTracker
 from sc2reader.engine.plugins.context import ContextLoader
+from sc2reader.engine.plugins.supply import SupplyTracker
+from sc2reader.engine.plugins.creeptracker import CreepTracker
 
 
 def setGameEngine(engine):
