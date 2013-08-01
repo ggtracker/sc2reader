@@ -38,6 +38,11 @@ class CreepTracker(object):
                                 (event.x,event.y),event.unit_type_name,event.second)
 
     def handleEndGame(self, event, replay):
+        if len( replay.tracker_events) ==0 :
+            for player in replay.players:
+                player.creep_spread_by_minute = 0
+                player.max_creep_spread  =0
+            return
         for player_id in replay.player:
             self.creepTracker.reduce_cgu_per_minute(player_id)
         for player in replay.players:
@@ -46,6 +51,7 @@ class CreepTracker(object):
             if player.creep_spread_by_minute:
                 player.max_creep_spread  = max(player.creep_spread_by_minute.items(),key=lambda x:x[1])
             else:
+                ## Else statement is for players with no creep spread(ie: not Z)
                 player.max_creep_spread  =0
 
 ## The class used to used to calculate the creep spread 
