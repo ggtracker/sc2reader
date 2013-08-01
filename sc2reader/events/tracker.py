@@ -217,6 +217,11 @@ class UnitBornEvent(TrackerEvent):
     include the Marine, Zergling, and Zealot (when trained from a gateway).
     Units that enter the game unfinished (all buildings, warped in units) generate
     a :class:`UnitInitEvent` instead.
+
+    Unfortunately, units that are born do not have events marking their beginnings
+    like :class:`UnitInitEvent` and :class:`UnitDoneEvent` do. The closest thing to
+    it are the :class:`~sc2reader.event.game.AbilityEvent` game events where the ability
+    is a train unit command.
     """
 
     name = 'UnitBornEvent'
