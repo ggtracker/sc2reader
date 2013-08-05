@@ -47,9 +47,18 @@ class SC2Factory(object):
     See the :meth:`configure` method for more details on configuration
     options.
 
-    sc2reader comes with some post processing capabilities which, depending
-    on your needs, may be useful. You can register these plugins to the load
-    process with the :meth:`register_plugins` method.
+    Resources can be loaded in the singular context from the following inputs:
+
+    * URLs - Uses the built-in package ``urllib``
+    * File path - Uses the built-in method ``open``
+    * File-like object - Must implement ``.read()``
+    * DepotFiles - Describes remote Battle.net depot resources
+
+    In the plural context the following inputs are acceptable:
+
+    * An iterable of the above inputs
+    * Directory path - Uses :meth:`~sc2reader.utils.get_files` with the appropriate extension to fine files.
+
     """
 
     _resource_name_map = dict(replay=Replay, map=Map)
