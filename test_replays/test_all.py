@@ -322,6 +322,37 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(result["game_fps"], 16.0)
         self.assertTrue(result["is_ladder"])
 
+    def test_gameheartnormalizer_plugin(self):
+        from sc2reader.engine.plugins.gameheart import GameHeartNormalizer
+        factory = sc2reader.factories.SC2Factory()
+        factory.register_plugin("Replay", GameHeartNormalizer())
+
+        replay = factory.load_replay("test_replays/gameheart/gameheart.SC2Replay")
+        self.assertEqual(replay.events[0].frame, 0)
+        self.assertEqual(replay.game_length.seconds, 636)
+        self.assertEqual(len(replay.observers), 5)
+        self.assertEqual(replay.players[0].name, 'SjoWBBII')
+        self.assertEqual(replay.players[0].play_race, 'Terran')
+        self.assertEqual(replay.players[1].name, 'Stardust')
+        self.assertEqual(replay.players[1].play_race, 'Protoss')
+        self.assertEqual(len(replay.teams), 2)
+        self.assertEqual(replay.teams[0].players[0].name, 'SjoWBBII')
+        self.assertEqual(replay.teams[1].players[0].name, 'Stardust')
+        self.assertEqual(replay.winner, replay.teams[1])
+
+        replay = factory.load_replay("test_replays/gameheart/gh_sameteam.SC2Replay")
+        self.assertEqual(replay.events[0].frame, 0)
+        self.assertEqual(replay.game_length.seconds, 424)
+        self.assertEqual(len(replay.observers), 5)
+        self.assertEqual(replay.players[0].name, 'EGJDRC')
+        self.assertEqual(replay.players[0].play_race, 'Zerg')
+        self.assertEqual(replay.players[1].name, 'LiquidTaeJa')
+        self.assertEqual(replay.players[1].play_race, 'Terran')
+        self.assertEqual(len(replay.teams), 2)
+        self.assertEqual(replay.teams[0].players[0].name, 'EGJDRC')
+        self.assertEqual(replay.teams[1].players[0].name, 'LiquidTaeJa')
+        self.assertEqual(replay.winner, replay.teams[0])
+
 
     def test_creepTracker(self):
       from sc2reader.engine.plugins import CreepTracker
