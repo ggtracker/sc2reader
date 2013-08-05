@@ -56,7 +56,10 @@ class Team(object):
         return hashlib.sha256(raw_hash).hexdigest()
 
     def __str__(self):
-        return "Team {0}".format(self.number)
+        return "Team {0}: {1}".format(self.number, ", ".join([str(p) for p in self.players]))
+
+    def __repr__(self):
+        return str(self)
 
 
 class Attribute(object):
