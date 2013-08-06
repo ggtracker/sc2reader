@@ -297,6 +297,10 @@ class TestReplays(unittest.TestCase):
             ])
         )
 
+        code, details = replay.plugins['ContextLoader']
+        self.assertEqual(code, 0)
+        self.assertEqual(details, dict())
+
     def test_factory_plugins(self):
         from sc2reader.factories.plugins.replay import APMTracker, SelectionTracker, toJSON
 
