@@ -51,11 +51,11 @@ class GameEngine(object):
             engine.reigster_plugin(Plugin(5))
             engine.run(replay)
 
-        Calls functions in the following order for a ``TargetUnitEvent``::
+        Calls functions in the following order for a ``TargetAbilityEvent``::
 
-            Plugin1.handleAbilityEvent(replay, event)
-            Plugin2.handleEvent(replay, event)
-            Plugin2.handleTargetAbilityEvent(replay, event)
+            Plugin1.handleAbilityEvent(event, replay)
+            Plugin2.handleEvent(event, replay)
+            Plugin2.handleTargetAbilityEvent(event, replay)
 
 
         Plugin Specification

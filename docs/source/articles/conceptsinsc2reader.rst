@@ -9,10 +9,10 @@ Factories
 
 All resources are loaded through a factory. There are four kinds:
 
-* SC2Factory - Basic factory. Loads resources.
-* DictCachedSC2Factory - Caches remote resources in memory. When loading remote resources, the dict cache is checked first.
-* FileCachedSC2Factory - Caches remote resources on the file system. When loading remote resources, the file system is checked first.
-* DoubleCachedSC2Factory - Caches remote resource in memory and on the file system.
+* :class:`~sc2reader.factories.SC2Factory` - Basic factory. Loads resources.
+* :class:`~sc2reader.factories.DictCachedSC2Factory` - Caches remote resources in memory. When loading remote resources, the dict cache is checked first.
+* :class:`~sc2reader.factories.FileCachedSC2Factory` - Caches remote resources on the file system. When loading remote resources, the file system is checked first.
+* :class:`~sc2reader.factories.DoubleCachedSC2Factory` - Caches remote resource in memory and on the file system.
 
 A default factory is automatically configured and attached to the ``sc2reader`` module when the library is imported. Calling any factory method on the sc2reader module will use this default factory::
 
