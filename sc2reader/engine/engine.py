@@ -13,6 +13,15 @@ class EndGameEvent(object):
     name = 'EndGame'
 
 
+class PluginExit(object):
+    name = 'PluginExit'
+
+    def __init__(self, plugin, code=0, details=None):
+        self.plugin = plugin
+        self.code = code
+        self.details = details or {}
+
+
 class GameEngine(object):
     """ GameEngine Specification
         --------------------------
@@ -80,8 +89,35 @@ class GameEngine(object):
             intermediate data caches.
 
         Event handlers can choose to ``yield`` additional events which will be injected
-        into the event stream directly after the event currently being processed. This is
-        a great way to send messages to downstream plugins.
+        into the event stream directly after the event currently being processed. This
+        feature allows for message passing between plugins. An ExpansionTracker plugin
+        could notify all other plugins of a new ExpansionEvent that they could opt to
+        process::
+
+            def handleUnitDoneEvent(self, event, replay):
+                if event.unit.name == 'Nexus':
+                    yield ExpansionEvent(event.frame, event.unit)
+                ....
+
+        If a plugin wishes to stop processing a replay it can yield a PluginExit event::
+
+            def handleEvent(self, event, replay):
+                if len(replay.tracker_events) == 0:
+                    yield PluginExit(self, code=0, details=dict(msg="tracker events required"))
+                ...
+
+            def handleAbilityEvent(self, event, replay):
+                try:
+                    possibly_throwing_error()
+                catch Error as e:
+                    logger.error(e)
+                    yield PluginExit(self, code=0, details=dict(msg="Unexpected exception"))
+
+        The GameEngine will intercept this event and remove the plugin from the list of
+        active plugins for this replay. The exit code and details will be available from the
+        replay::
+
+            code, details = replay.plugins['MyPlugin']
     """
     def __init__(self, plugins=[]):
         self._plugins = list()
@@ -99,6 +135,13 @@ class GameEngine(object):
         # ranked from most generic to most specific
         handlers = dict()
 
+        # Create a local copy of the plugins list. As plugins exit we can
+        # remove them from this list and regenerate event handlers.
+        plugins = list(self._plugins)
+
+        # Create a dict for storing plugin exit codes and details
+        replay.plugins = dict()
+
         # Fill event event queue with the replay events, bookmarked by Init and End events.
         event_queue = collections.deque()
         event_queue.append(InitGameEvent())
@@ -110,9 +153,15 @@ class GameEngine(object):
         while len(event_queue) > 0:
             event = event_queue.popleft()
 
+            if event.name == 'PluginExit':
+                # Remove the plugin and reset the handlers.
+                plugins.remove(event.plugin)
+                handlers.clear()
+                replay.plugins[event.plugin.name] = (event.code, event.details)
+
             # If we haven't compiled a list of handlers for this event yet, do so!
             if event.name not in handlers:
-                event_handlers = self._get_event_handlers(event)
+                event_handlers = self._get_event_handlers(event, plugins)
                 handlers[event.name] = event_handlers
             else:
                 event_handlers = handlers[event.name]
@@ -127,8 +176,13 @@ class GameEngine(object):
             # need to reverse the list first to have them added in order.
             event_queue.extendleft(new_events)
 
-    def _get_event_handlers(self, event):
-        return sum([self._get_plugin_event_handlers(plugin, event) for plugin in self._plugins], [])
+        # For any plugins that didn't yield a PluginExit event, record a successful
+        # completion.
+        for plugin in plugins:
+            replay.plugins[plugin.name] = (0, dict())
+
+    def _get_event_handlers(self, event, plugins):
+        return sum([self._get_plugin_event_handlers(plugin, event) for plugin in plugins], [])
 
     def _get_plugin_event_handlers(self, plugin, event):
         handlers = list()

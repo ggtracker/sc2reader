@@ -23,6 +23,8 @@ class SelectionTracker(object):
 
         # TODO: list a few error inducing sitations
     """
+    name = 'SelectionTracker'
+
     def handleInitGame(self, event, replay):
         for person in replay.entities:
             person.selection = dict()

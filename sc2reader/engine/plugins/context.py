@@ -8,6 +8,7 @@ from sc2reader.utils import Length
 
 @loggable
 class ContextLoader(object):
+    name='ContextLoader'
 
     def handleInitGame(self, event, replay):
         replay.units = set()

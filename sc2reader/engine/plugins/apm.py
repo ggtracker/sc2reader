@@ -15,6 +15,7 @@ class APMTracker(object):
 
     APM is 0 for games under 1 minute in length.
     """
+    name = 'APMTracker'
 
     def handleInitGame(self, event, replay):
         for player in replay.players:
