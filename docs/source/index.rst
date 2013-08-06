@@ -45,10 +45,10 @@ Scripts:
 * sc2json: Render basic replay information to json for use in other languages.
 * sc2replayer: Play back a replay one event at a time with detailed printouts.
 
-I am actively looking for community members to assist in documenting the replay data and in creating plugins that enhance functionality. Contact me!
+I am actively looking for community members to assist in documenting the replay data and in creating plugins that enhance functionality. `Contact me`_!
 
 .. _source: http://github.com/GraylinKim/sc2reader
-
+.. _Contact me: mailto://sc2reader@googlegroups.com
 
 Getting Started
 --------------------
@@ -59,7 +59,7 @@ I recommend the following steps when getting started:
 * Read this article on replays: :doc:`articles/whatsinareplay` (5 minutes).
 * Read this article on sc2reader: :doc:`articles/conceptsinsc2reader` (5 minutes).
 
-After that, you can see sc2reader in action by working through a couple of the tutorials below.
+Now that you've been oriented, you can see sc2reader in action by working through a couple of the tutorials below.
 
 .. _installation guide: https://github.com/GraylinKim/sc2reader#installation
 
@@ -70,6 +70,14 @@ Tutorials
 The best way to pick sc2reader up and get started is probably by example. With that in mind, we've written up a series of tutorials on getting various simple tasks done with sc2reader; hopefully they can serve as a quick on ramp for you.
 
 * :doc:`tutorials/prettyprinter` (10-15 minutes)
+
+
+Articles
+----------------
+
+* :doc:`articles/whatsinareplay` (5 minutes).
+* :doc:`articles/conceptsinsc2reader` (5 minutes).
+* :doc:`articles/creatingagameengineplugin` (10 minutes).
 
 
 Reference Pages
