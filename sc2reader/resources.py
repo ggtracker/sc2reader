@@ -21,15 +21,6 @@ from sc2reader.objects import Participant, Observer, Computer, Team, PlayerSumma
 from sc2reader.constants import REGIONS, GAME_SPEED_FACTOR, LOBBY_PROPERTIES
 
 
-def real_type(teams):
-    # Special case FFA games and sort outmatched games in ascending order
-    team_sizes = [len(team.players) for team in teams]
-    if len(team_sizes) > 2 and sum(team_sizes) == len(team_sizes):
-        return "FFA"
-    else:
-        return "v".join(str(size) for size in sorted(team_sizes))
-
-
 class Resource(object):
     def __init__(self, file_object, filename=None, factory=None, **options):
         self.factory = factory
@@ -442,7 +433,7 @@ class Replay(Resource):
         self.client = self.human
         self.person = self.entity
 
-        self.real_type = real_type(self.teams)
+        self.real_type = utils.get_real_type(self.teams)
 
         # Assign the default region to computer players for consistency
         # We know there will be a default region because there must be

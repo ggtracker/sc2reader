@@ -150,6 +150,15 @@ class Color(object):
         return self.name
 
 
+def get_real_type(teams):
+    # Special case FFA games and sort outmatched games in ascending order
+    team_sizes = [len(team.players) for team in teams]
+    if len(team_sizes) > 2 and sum(team_sizes) == len(team_sizes):
+        return "FFA"
+    else:
+        return "v".join(str(size) for size in sorted(team_sizes))
+
+
 def extract_data_file(data_file, archive):
 
     def recovery_attempt():
