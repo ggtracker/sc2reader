@@ -65,11 +65,12 @@ Event handlers can choose to ``yield`` additional events which will be injected 
 Early Exits
 --------------------
 
-If a plugin wishes to stop processing a replay it can yield a PluginExit event::
+If a plugin wishes to stop processing a replay it can yield a PluginExit event before returning::
 
 	def handleEvent(self, event, replay):
 		if len(replay.tracker_events) == 0:
 			yield PluginExit(self, code=0, details=dict(msg="tracker events required"))
+			return
 		...
 
 	def handleAbilityEvent(self, event, replay):
@@ -78,6 +79,7 @@ If a plugin wishes to stop processing a replay it can yield a PluginExit event::
 		catch Error as e:
 			logger.error(e)
 			yield PluginExit(self, code=0, details=dict(msg="Unexpected exception"))
+			return
 
 The GameEngine will intercept this event and remove the plugin from the list of active plugins for this replay. The exit code and details will be available from the replay::
 

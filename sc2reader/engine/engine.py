@@ -3,24 +3,7 @@ from __future__ import absolute_import, print_function, unicode_literals, divisi
 
 import collections
 from sc2reader.events import *
-
-
-class InitGameEvent(object):
-    name = 'InitGame'
-
-
-class EndGameEvent(object):
-    name = 'EndGame'
-
-
-class PluginExit(object):
-    name = 'PluginExit'
-
-    def __init__(self, plugin, code=0, details=None):
-        self.plugin = plugin
-        self.code = code
-        self.details = details or {}
-
+from sc2reader.engine.events import InitGameEvent, EndGameEvent, PluginExit
 
 class GameEngine(object):
     """ GameEngine Specification
@@ -77,7 +60,7 @@ class GameEngine(object):
             * handleAbilityEvent - called for all types of ability events
             * handleHotkeyEvent - called for all player hotkey events
 
-        Plugins may also handle optional InitGame and EndGame events generated
+        Plugins may also handle optional ``InitGame`` and ``EndGame`` events generated
         by the GameEngine before and after processing all the events:
 
           * handleInitGame - is called prior to processing a new replay to provide
@@ -99,11 +82,12 @@ class GameEngine(object):
                     yield ExpansionEvent(event.frame, event.unit)
                 ....
 
-        If a plugin wishes to stop processing a replay it can yield a PluginExit event::
+        If a plugin wishes to stop processing a replay it can yield a PluginExit event before returning::
 
             def handleEvent(self, event, replay):
                 if len(replay.tracker_events) == 0:
                     yield PluginExit(self, code=0, details=dict(msg="tracker events required"))
+                    return
                 ...
 
             def handleAbilityEvent(self, event, replay):
@@ -161,6 +145,7 @@ class GameEngine(object):
                 plugins.remove(event.plugin)
                 handlers.clear()
                 replay.plugins[event.plugin.name] = (event.code, event.details)
+                continue
 
             # If we haven't compiled a list of handlers for this event yet, do so!
             if event.name not in handlers:

@@ -239,19 +239,19 @@ class ContextLoader(object):
                 pass  # This is a global event
 
     def load_tracker_player(self, event, replay):
-        if event.pid in replay.player:
-            event.player = replay.player[event.pid]
+        if event.pid in replay.entity:
+            event.player = replay.entity[event.pid]
         else:
             self.logger.error("Bad pid ({0}) for event {1} at {2} [{3}].".format(event.pid, event.__class__, Length(seconds=event.second), event.frame))
 
     def load_tracker_upkeeper(self, event, replay):
-        if event.upkeep_pid in replay.player:
-            event.unit_upkeeper = replay.player[event.upkeep_pid]
+        if event.upkeep_pid in replay.entity:
+            event.unit_upkeeper = replay.entity[event.upkeep_pid]
         elif event.upkeep_pid != 0:
             self.logger.error("Bad upkeep_pid ({0}) for event {1} at {2} [{3}].".format(event.upkeep_pid, event.__class__, Length(seconds=event.second), event.frame))
 
     def load_tracker_controller(self, event, replay):
-        if event.control_pid in replay.player:
-            event.unit_controller = replay.player[event.control_pid]
+        if event.control_pid in replay.entity:
+            event.unit_controller = replay.entity[event.control_pid]
         elif event.control_pid != 0:
             self.logger.error("Bad control_pid ({0}) for event {1} at {2} [{3}].".format(event.control_pid, event.__class__, Length(seconds=event.second), event.frame))

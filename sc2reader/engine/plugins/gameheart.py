@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals, division
 
-from sc2reader import objects, utils
+from datetime import datetime
+from sc2reader.utils import Length, get_real_type
+from sc2reader.objects import Observer, Team
+from sc2reader.engine.events import PluginExit
+from sc2reader.constants import GAME_SPEED_FACTOR
 
 
-def GameHeartNormalizer(replay):
+class GameHeartNormalizer(object):
     """
     normalize a GameHeart replay to:
     1) reset frames to the game start
@@ -15,78 +19,96 @@ def GameHeartNormalizer(replay):
     Hopefully, the changes here will also extend to other replays that use
     in-game lobbies
 
-    This makes a few assumptions
-    1) 1v1 game
+    GameHeart games have some constraints we can use here:
+    * They are all 1v1's.
+    * You can't random in GameHeart
     """
+    name = 'GameHeartNormalizer'
 
-    PRIMARY_BUILDINGS = set (['Hatchery', 'Nexus', 'CommandCenter'])
-    start_frame = -1
-    actual_players = {}
+    PRIMARY_BUILDINGS = dict(Hatchery="Zerg", Nexus="Protoss", CommandCenter="Terran")
 
-    if not replay.tracker_events:
-        return replay  # necessary using this strategy
+    def handleInitGame(self, event, replay):
+        # without tracker events game heart games can't be fixed
+        if len(replay.tracker_events) == 0:
+            yield PluginExit(self, code=0, details=dict())
+            return
 
-    for event in replay.tracker_events:
-        if start_frame != -1 and event.frame > start_frame + 5:  # fuzz it a little
-            break
-        if event.name == 'UnitBornEvent' and event.control_pid and \
-                event.unit_type_name in PRIMARY_BUILDINGS:
-            if event.frame == 0:  # it's a normal, legit replay
-                return replay
-            start_frame = event.frame
-            actual_players[event.control_pid] = event.unit.race
+        start_frame = -1
+        actual_players = {}
+        for event in replay.tracker_events:
+            if start_frame != -1 and event.frame > start_frame + 5:  # fuzz it a little
+                break
+            if event.name == 'UnitBornEvent' and event.control_pid and event.unit_type_name in self.PRIMARY_BUILDINGS:
+                # In normal replays, starting units are born on frame zero.
+                if event.frame == 0:
+                    yield PluginExit(self, code=0, details=dict())
+                    return
+                else:
+                    start_frame = event.frame
+                    actual_players[event.control_pid] = self.PRIMARY_BUILDINGS[event.unit_type_name]
 
-    # set game length starting with the actual game start
-    replay.frames -= start_frame
-    replay.game_length = utils.Length(seconds=replay.frames / 16)
+        self.fix_entities(replay, actual_players)
+        self.fix_events(replay, start_frame)
 
-    # this should cover events of all types
-    # not nuking entirely because there are initializations that may be relevant
-    for event in replay.events:
-        if event.frame < start_frame:
-            event.frame = 0
-            event.second = 0
-        else:
-            event.frame -= start_frame
-            event.second = event.frame >> 4
+        replay.frames -= start_frame
+        replay.game_length = Length(seconds=replay.frames / 16)
+        replay.real_type = get_real_type(replay.teams)
+        replay.real_length = Length(seconds=int(replay.game_length.seconds/GAME_SPEED_FACTOR[replay.speed]))
+        replay.start_time = datetime.utcfromtimestamp(replay.unix_timestamp-replay.real_length.seconds)
 
-    # replay.humans is okay because they're all still humans
-    # replay.person and replay.people is okay because the mapping is still true
+    def fix_events(self, replay, start_frame):
+        # Set back the game clock for all events
+        for event in replay.events:
+            if event.frame < start_frame:
+                event.frame = 0
+                event.second = 0
+            else:
+                event.frame -= start_frame
+                event.second = event.frame >> 4
 
-    # add observers
-    # not reinitializing because players appear to have the properties of observers
-    # TODO in a better world, these players would get reinitialized
-    replay.observers += [player for player in replay.players if not player.pid in actual_players]
-    for observer in replay.observers:
-        observer.is_observer = True
-        observer.team_id = None
+    def fix_entities(self, replay, actual_players):
+        # Change the players that aren't playing into observers
+        for p in [p for p in replay.players if p.pid not in actual_players]:
+            obs = Observer(p.sid, p.slot_data, p.uid, p.init_data, p.pid)
 
-    # reset team
-    # reset teams
-    replay.team = {}
-    replay.teams = []
+            # Because these obs start the game as players the client
+            # creates various Beacon units for them.
+            obs.units = p.units
 
-    # reset players
-    replay.players = [player for player in replay.players if player.pid in actual_players]
-    for i, player in enumerate(replay.players):
-        race = actual_players[player.pid]
-        player.pick_race = race
-        player.play_race = race
+            # Remove all references to the old player
+            del replay.player[p.pid]
+            del replay.entity[p.pid]
+            del replay.human[p.uid]
+            replay.players.remove(p)
+            replay.entities.remove(p)
+            replay.humans.remove(p)
 
-        team = objects.Team(i + 1)
-        team.players.append(player)
-        team.result = player.result
-        player.team = team
-        replay.team[i + 1] = team
-        replay.teams.append(team)
+            # Create all the necessary references for the new observer
+            replay.observer[obs.uid] = obs
+            replay.entity[obs.pid] = obs
+            replay.human[obs.uid] = obs
+            replay.observers.append(obs)
+            replay.entities.append(obs)
+            replay.humans.append(obs)
 
-        # set winner
-        if team.result == 'Win':
-            replay.winner = team
+        # Maintain order, just in case someone is depending on it
+        replay.observers = sorted(replay.observers, key=lambda o: o.sid)
+        replay.entities = sorted(replay.entities, key=lambda o: o.sid)
+        replay.humans = sorted(replay.humans, key=lambda o: o.sid)
 
-    # clear observers out of the players list
-    for pid in replay.player.keys():
-        if not pid in actual_players:
-            del replay.player[pid]
-
-    return replay
+        # Assume one player per team, should be valid for GameHeart games
+        replay.team = dict()
+        replay.teams = list()
+        for index, player in enumerate(replay.players):
+            team_id = index+1
+            team = Team(team_id)
+            replay.team[team_id] = team
+            replay.teams.append(team)
+            player.team = team
+            team.result = player.result
+            player.pick_race = actual_players[player.pid]
+            player.play_race = player.pick_race
+            team.players = [player]
+            team.result = player.result
+            if team.result == 'Win':
+                replay.winner = team
