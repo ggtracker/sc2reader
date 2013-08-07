@@ -15,5 +15,6 @@ def setGameEngine(engine):
     module.register_plugins = engine.register_plugins
 
 _default_engine = GameEngine()
+_default_engine.register_plugin(plugins.GameHeartNormalizer())
 _default_engine.register_plugin(plugins.ContextLoader())
 setGameEngine(_default_engine)
