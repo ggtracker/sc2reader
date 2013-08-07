@@ -58,6 +58,7 @@ I recommend the following steps when getting started:
 * Follow the `installation guide`_
 * Read this article on replays: :doc:`articles/whatsinareplay` (5 minutes).
 * Read this article on sc2reader: :doc:`articles/conceptsinsc2reader` (5 minutes).
+* Short introduction to sc2reader: :doc:`articles/gettingstarted` (5 minutes)
 
 Now that you've been oriented, you can see sc2reader in action by working through a couple of the tutorials below.
 
@@ -75,7 +76,10 @@ The best way to pick sc2reader up and get started is probably by example. With t
 Articles
 ----------------
 
+A collection of short handwritten articles about aspects of working with replays and sc2reader.
+
 * :doc:`articles/whatsinareplay` (5 minutes).
+* :doc:`articles/gettingstarted` (5 minutes).
 * :doc:`articles/conceptsinsc2reader` (5 minutes).
 * :doc:`articles/creatingagameengineplugin` (10 minutes).
 

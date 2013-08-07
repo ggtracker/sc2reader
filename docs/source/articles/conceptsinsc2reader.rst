@@ -22,7 +22,7 @@ A default factory is automatically configured and attached to the ``sc2reader`` 
 The default factory can be configured with the following environment variables:
 
 * SC2READER_CACHE_DIR - Enables caching to file at the specified directory.
-* SC2READER_CACHE_MAX_SIZE - Enables memory caching of resources with a maximum number of entries (not based on memory imprint!)
+* SC2READER_CACHE_MAX_SIZE - Enables memory caching of resources with a maximum number of entries; not based on memory imprint!
 
 
 Resources

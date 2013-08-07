@@ -273,17 +273,18 @@ class Replay(Resource):
             self.load_message_events()
             self.load_players()
 
-        # Load events if requested
-        if load_level >= 3:
-            for data_file in ['replay.game.events']:
-                self._read_data(data_file, self._get_reader(data_file))
-            self.load_game_events()
-
         # Load tracker events if requested
-        if load_level >= 4:
+        if load_level >= 3:
             for data_file in ['replay.tracker.events']:
                 self._read_data(data_file, self._get_reader(data_file))
             self.load_tracker_events()
+
+
+        # Load events if requested
+        if load_level >= 4:
+            for data_file in ['replay.game.events']:
+                self._read_data(data_file, self._get_reader(data_file))
+            self.load_game_events()
 
         # Run this replay through the engine as indicated
         if engine:
