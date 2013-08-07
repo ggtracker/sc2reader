@@ -770,7 +770,7 @@ class GameSummary(Resource):
             self.expansion = ''
 
         self.game_type = self.settings['Teams'].replace(" ", "")
-        self.real_type = real_type(self.teams)
+        self.real_type = utils.get_real_type(self.teams)
 
         # The s2gs file also keeps reference to a series of s2mv files
         # Some of these appear to be encoded bytes and others appear to be
