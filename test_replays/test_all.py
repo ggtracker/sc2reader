@@ -323,11 +323,16 @@ class TestReplays(unittest.TestCase):
         self.assertTrue(result["is_ladder"])
 
     def test_gameheartnormalizer_plugin(self):
-        from sc2reader.engine.plugins.gameheart import GameHeartNormalizer
-        factory = sc2reader.factories.SC2Factory()
-        factory.register_plugin("Replay", GameHeartNormalizer())
+        from sc2reader.engine.plugins import GameHeartNormalizer
+        sc2reader.engine.register_plugin(GameHeartNormalizer())
 
-        replay = factory.load_replay("test_replays/gameheart/gameheart.SC2Replay")
+        # Not a GameHeart game!
+        replay = sc2reader.load_replay("test_replays/2.0.0.24247/molten.SC2Replay")
+        player_pids = set([ player.pid for player in replay.players])
+        spawner_pids = set([ event.player.pid for event in replay.events if "TargetAbilityEvent" in event.name and event.ability.name == "SpawnLarva"])
+        self.assertTrue(spawner_pids.issubset(player_pids))
+
+        replay = sc2reader.load_replay("test_replays/gameheart/gameheart.SC2Replay")
         self.assertEqual(replay.events[0].frame, 0)
         self.assertEqual(replay.game_length.seconds, 636)
         self.assertEqual(len(replay.observers), 5)
@@ -340,7 +345,7 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(replay.teams[1].players[0].name, 'Stardust')
         self.assertEqual(replay.winner, replay.teams[1])
 
-        replay = factory.load_replay("test_replays/gameheart/gh_sameteam.SC2Replay")
+        replay = sc2reader.load_replay("test_replays/gameheart/gh_sameteam.SC2Replay")
         self.assertEqual(replay.events[0].frame, 0)
         self.assertEqual(replay.game_length.seconds, 424)
         self.assertEqual(len(replay.observers), 5)
