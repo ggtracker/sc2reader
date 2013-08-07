@@ -422,7 +422,7 @@ class Replay(Resource):
                 if team.result == 'Win':
                     self.winner = team
             else:
-                self.logger.warn("Conflicting results: {0}".format(results))
+                self.logger.warn("Conflicting results for Team {0}: {1}".format(team.number, results))
                 team.result = 'Unknown'
 
         self.teams.sort(key=lambda t: t.number)
