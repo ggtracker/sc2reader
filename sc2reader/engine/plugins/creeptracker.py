@@ -7,6 +7,8 @@ from Image import open as PIL_open
 from Image import ANTIALIAS
 from StringIO import StringIO
 from collections import defaultdict
+from sc2reader.engine import PluginExit
+
 
 # The creep tracker plugin
 class CreepTracker(object):
@@ -15,9 +17,12 @@ class CreepTracker(object):
     player.creep_spread by minute
     This uses the creep_tracker class to calculate the features
     '''
+    name = "CreepTracker"
+
     def handleInitGame(self, event, replay):
-        if len( replay.tracker_events) ==0 :
-            return
+        if len(replay.tracker_events) == 0 :
+            yield PluginExit(self, code=0, details={})
+
         if replay.map is None:
             replay.load_map()
         self.creepTracker  = creep_tracker(replay)
@@ -38,8 +43,6 @@ class CreepTracker(object):
                                 (event.x,event.y),event.unit_type_name,event.second)
 
     def handleEndGame(self, event, replay):
-        if len( replay.tracker_events) ==0 :
-            return
         for player_id in replay.player:
             self.creepTracker.reduce_cgu_per_minute(player_id)
         for player in replay.players:
@@ -168,16 +171,16 @@ class creep_tracker():
         cgu_last_minute_list = list()
         for index,cgu_time in enumerate(self.creep_gen_units_times[player_id]):
             cgu_last_minute_list.append(self.creep_gen_units[player_id][index])
-            if (cgu_time/60) ==0:
+            if (cgu_time//60) ==0:
                 cgu_per_player_new.append(self.creep_gen_units[player_id][0])
                 cgu_time_per_player_new.append(0)
                 cgu_last_minute_list = list()
-            if (cgu_time/60)>last_minute_found:
+            if (cgu_time//60)>last_minute_found:
                 cgu_max_in_min = max(cgu_last_minute_list,key = len)
                 cgu_per_player_new.append(cgu_max_in_min)
                 cgu_max_in_min_index = self.creep_gen_units[player_id].index(cgu_max_in_min)
                 cgu_time_per_player_new.append(self.creep_gen_units_times[player_id][cgu_max_in_min_index])
-                last_minute_found = cgu_time/60
+                last_minute_found = cgu_time//60
                 cgu_last_minute_list=list()
 
         self.creep_gen_units[player_id] = cgu_per_player_new
@@ -187,17 +190,15 @@ class creep_tracker():
         ## iterates through all cgus and and calculate the area
         for index,cgu_per_player in enumerate(self.creep_gen_units[player_id]):
             # convert cgu list into centre of circles and radius
-            cgu_radius = map(lambda x: (x[1], self.unit_name_to_radius[x[2]]),\
-                                  cgu_per_player)
+            cgu_radius = map(lambda x: (x[1], self.unit_name_to_radius[x[2]]), cgu_per_player)
             # convert event coords to minimap coords
             cgu_radius = self.convert_cgu_radius_event_to_map_coord(cgu_radius)
             creep_area_positions = self.cgu_radius_to_map_positions(cgu_radius,self.radius_to_coordinates)
-            cgu_last_event_time = self.creep_gen_units_times[player_id][index]/60
-            if self.debug: 
+            cgu_last_event_time = self.creep_gen_units_times[player_id][index]//60
+            if self.debug:
                 self.print_image(creep_area_positions,player_id,cgu_last_event_time)
             creep_area = len(creep_area_positions)
-            self.creep_spread_by_minute[player_id][cgu_last_event_time]=\
-                                                    float(creep_area)/self.mapSize*100
+            self.creep_spread_by_minute[player_id][cgu_last_event_time]=float(creep_area)/self.mapSize*100
         return self.creep_spread_by_minute[player_id]
 
     def cgu_radius_to_map_positions(self,cgu_radius,radius_to_coordinates):

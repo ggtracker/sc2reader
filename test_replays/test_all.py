@@ -359,31 +359,27 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(replay.winner, replay.teams[0])
 
 
-def test_creepTracker():
-    from sc2reader.engine.plugins import CreepTracker
+    def test_creepTracker(self):
+        from sc2reader.engine.plugins import CreepTracker
+        pluginEngine = sc2reader.engine.GameEngine(plugins=[CreepTracker()])
 
-    for replayfilename in [
-        "test_replays/2.0.8.25605/ggtracker_3621322.SC2Replay",
-        "test_replays/2.0.8.25605/ggtracker_3621402.SC2Replay",
-        "test_replays/2.0.8.25605/ggtracker_3663861.SC2Replay",
-        "test_replays/2.0.8.25605/ggtracker_3695400.SC2Replay",
-        ]:
-        factory = sc2reader.factories.SC2Factory()
-        pluginEngine=sc2reader.engine.GameEngine(plugins=[
-                CreepTracker()
-            ])
-        replay =factory.load_replay(replayfilename,engine=pluginEngine,load_map= True,load_level=4)
-        
-        for player_id in replay.player:
-            if replay.player[player_id].play_race == "Zerg":
-                assert replay.player[player_id].max_creep_spread >0
-                assert replay.player[player_id].creep_spread_by_minute
+        for replayfilename in [
+            "test_replays/2.0.8.25605/ggtracker_3621322.SC2Replay",
+            "test_replays/2.0.8.25605/ggtracker_3621402.SC2Replay",
+            "test_replays/2.0.8.25605/ggtracker_3663861.SC2Replay",
+            "test_replays/2.0.8.25605/ggtracker_3695400.SC2Replay",
+            ]:
 
+            replay = sc2reader.load_replay(replayfilename, engine=pluginEngine, load_map=True)
+            for player_id in replay.player:
+                if replay.player[player_id].play_race == "Zerg":
+                    self.assertTrue(replay.player[player_id].max_creep_spread > 0)
+                    self.assertTrue(replay.player[player_id].creep_spread_by_minute)
 
-    replay =factory.load_replay("test_replays/2.0.8.25605/ggtracker_3621402.SC2Replay",load_map= True,engine=pluginEngine,load_level=4)
-    assert replay.player[2].max_creep_spread == (14,22.95)
-    assert  replay.player[2].creep_spread_by_minute[7] == 8.21
-    assert replay.player[2].creep_spread_by_minute[13] == 22.42
+        replay = sc2reader.load_replay("test_replays/2.0.8.25605/ggtracker_3621402.SC2Replay", load_map=True, engine=pluginEngine)
+        self.assertEqual(replay.player[2].max_creep_spread, (14,22.95))
+        self.assertEqual(replay.player[2].creep_spread_by_minute[7], 8.21)
+        self.assertEqual(replay.player[2].creep_spread_by_minute[13], 22.42)
 
 if __name__ == '__main__':
     unittest.main()
