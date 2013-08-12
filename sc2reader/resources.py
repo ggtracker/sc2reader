@@ -189,6 +189,9 @@ class Replay(Resource):
         self.datapack = None
         self.raw_data = dict()
 
+        # The current load level of the replay
+        self.load_level = None
+
         #default values, filled in during file read
         self.player_names = list()
         self.other_people = set()
@@ -240,6 +243,7 @@ class Replay(Resource):
         # Unpack the MPQ and read header data if requested
         # Since the underlying traceback isn't important to most people, don't expose it in python2 anymore
         if load_level >= 0:
+            self.load_level = 0
             try:
                 self.archive = mpyq.MPQArchive(replay_file, listfile=False)
             except Exception as e:
@@ -257,6 +261,7 @@ class Replay(Resource):
 
         # Load basic details if requested
         if load_level >= 1:
+            self.load_level = 1
             for data_file in ['replay.initData', 'replay.details', 'replay.attributes.events']:
                 self._read_data(data_file, self._get_reader(data_file))
             self.load_details()
@@ -268,6 +273,7 @@ class Replay(Resource):
 
         # Load players if requested
         if load_level >= 2:
+            self.load_level = 2
             for data_file in ['replay.message.events']:
                 self._read_data(data_file, self._get_reader(data_file))
             self.load_message_events()
@@ -275,6 +281,7 @@ class Replay(Resource):
 
         # Load tracker events if requested
         if load_level >= 3:
+            self.load_level = 3
             for data_file in ['replay.tracker.events']:
                 self._read_data(data_file, self._get_reader(data_file))
             self.load_tracker_events()
@@ -282,6 +289,7 @@ class Replay(Resource):
 
         # Load events if requested
         if load_level >= 4:
+            self.load_level = 4
             for data_file in ['replay.game.events']:
                 self._read_data(data_file, self._get_reader(data_file))
             self.load_game_events()
