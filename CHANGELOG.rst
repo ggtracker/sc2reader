@@ -1,10 +1,24 @@
 CHANGELOG
 ============
 
-0.5.2 -
---------------------
+0.6.0 - August 12th 2013
+------------------------
 
-* Adds experimental SC2Map.MapInfo parsing support. Replaces the useless MapInfo resource from before.
+New Stuff:
+~~~~~~~~~~~~~~~~
+
+* Adds python 3.2+ support
+* Adds experimental SC2Map.MapInfo parsing support.
+* Implements new replay GameEngine and plugin support.
+* Added a sc2json script contributed by @ChrisLundquist
+* Adds plugin GameHeartNormalizer plugin by @StoicLoofah
+* Hooked up coveralls.io for coverage reporting: https://coveralls.io/r/GraylinKim/sc2reader
+* Hooked up travis-ci for continuous testing: https://travis-ci.org/GraylinKim/sc2reader
+* Switched to built in python unittest module for testing.
+
+Changed Stuff (non-backwards compatible!):
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 * Summary.teams is now summary.team; summary.team is now summary.teams. To conform with replay name conventions
 * Fixed #136, unit types from tracker events are used when available.
 * Deprecated player.gateway for player.region
@@ -12,12 +26,17 @@ CHANGELOG
 * Player.uid now means something completely different! Use player.toon_id instead
 * Player.uid is now the user id of the player (was player.cid)
 * PersonDict can no longer be constructed from a player list and new players cannot be added by string (name). Only integer keys accepted for setting.
-* Added a sc2json script contributed by @ChrisLundquist
-* Hooked up travis-ci for continuous testing. https://travis-ci.org/GraylinKim/sc2reader
-* Switched to built in python unittest module for testing.
 * Log a warning instead of throwing an exception when using an unknown colors.
-    * An unknown hex value will use the hex value as the name.
-    * An unknown color name will use 0x000000 as the color.
+** An unknown hex value will use the hex value as the name.
+** An unknown color name will use 0x000000 as the color.
+* Finally straighten out all these replay player list/dicts
+** human/humans -> human entities, indexed by uid
+** computer/computers -> computer entities, indexed by pid
+** player/players -> actually playing in the game, indexed by pid
+** observer/observers -> observing the game, indexed by uid
+** entities -> players + observers || humans + computers, indexed by pid
+** client/clients - (deprecated) same as human/humans
+** people/person - (deprecated) same as entity/entities
 
 
 0.5.1 - June 1, 2013

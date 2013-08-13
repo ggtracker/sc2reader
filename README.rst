@@ -1,3 +1,4 @@
+
 What is sc2reader?
 ====================
 
@@ -18,10 +19,19 @@ sc2reader is currently powering:
 If you use sc2reader and you would like your tool, site, project, or implementation listed above, drop us a line on our `mailing list`_ or stop by our #sc2reader IRC channel and say hi!
 
 
+.. _ggtracker.com: http://ggtracker.com
+.. _gamereplays.org: http://www.gamereplays.org/starcraft2/
+.. _sc2companion.com: http://sc2companion.com
+.. _The Core: http://www.teamliquid.net/forum/viewmessage.php?topic_id=341878
+.. _Midi Conversion: https://github.com/obohrer/sc2midi
+
+
 Current Status
 =================
 
-sc2reader is production ready at release and under active development on github. It is currently capable of parsing varying levels of information out of the three primary resource types listed below. For a more detailed and exact description of the information that can be extracted please consult the `documentation`_ hosted on ReadTheDocs.
+sc2reader is production ready at release and under active development on Github. It is currently capable of parsing varying levels of information out of the three primary resource types listed below. For a more detailed and exact description of the information that can be extracted please consult the `documentation`_ hosted on ReadTheDocs.
+
+.. _documentation: http://sc2reader.rtfd.org/
 
 
 Replays
@@ -93,6 +103,8 @@ Parsing on these files is now production ready for those that can get them. See 
 
 Again, these files are generally unnecessary after the 2.0.8 release.
 
+.. _Team Liquid: http://www.teamliquid.net/forum/viewmessage.php?topic_id=330926
+
 
 Basic Usage
 =====================
@@ -126,6 +138,8 @@ This will load all replay data and fix GameHeart games. In some cases, you don't
 If you want to load a collection of replays, you can use the plural form. Loading resources in this way returns a replay generator::
 
     replays = sc2reader.load_replays('path/to/replay/directory')
+
+.. _sc2reader.scripts: https://github.com/GraylinKim/sc2reader/tree/master/sc2reader/scripts
 
 
 Loading Maps
@@ -168,7 +182,9 @@ There are a growing number of community generated plugins that you can take adva
     sc2reader.engine.register_plugin(SelectionTracker())
     sc2reader.engine.register_plugin(APMTracker())
 
-The :class:`~sc2reader.engine.plugins.ContextLoader` and :class:`~sc2reader.engine.plugins.GameHeartNormalizer` plugins are registered by default.
+The new GameHeartNormalizerplugin is registered by default.
+
+.. _Creating GameEngine Plugins: http://sc2reader.readthedocs.org/en/latest/articles/creatingagameengineplugin.html
 
 
 Installation
@@ -216,6 +232,11 @@ or with setuptools::
     cd sc2reader-master
     python setup.py install
 
+.. _travis-ci: https://travis-ci.org/
+.. _coveralls.io: https://coveralls.io
+.. _test coverage: https://coveralls.io/r/GraylinKim/sc2reader
+.. _continuous testing: https://travis-ci.org/GraylinKim/sc2reader
+
 
 For Contributors
 -------------------
@@ -227,6 +248,10 @@ Contributors should install from an active git repository using setuptools in `d
     python setup.py develop
 
 Please review the `CONTRIBUTING.md`_ file and get in touch with us before doing too much work. It'll make everyone happier in the long run.
+
+.. _develop: http://peak.telecommunity.com/DevCenter/setuptools#development-mode
+.. _CONTRIBUTING.md: https://github.com/GraylinKim/sc2reader/blob/master/CONTRIBUTING.md
+
 
 Testing
 -------------------
@@ -258,6 +283,9 @@ Issues and Support
 
 We have an `issue tracker`_ on Github that all bug reports and feature requests should be directed to. We have a `mailing list`_ with Google Groups that you can use to reach out for support. We are generally on FreeNode in the #sc2reader and can generally provide live support and address issues there as well.
 
+.. _mailing list: http://groups.google.com/group/sc2reader
+.. _issue tracker: https://github.com/GraylinKim/sc2reader/issues
+
 
 Acknowledgements
 =======================
@@ -275,31 +303,6 @@ and kept this project going.
 * Thanks to Blizzard for supporting development of 3rd party tools and releasing
   their `s2protocol`_ full reference implementation.
 
-
-.. _s2protocol: https://github.com/Blizzard/s2protocol
-.. _ggtracker.com: http://ggtracker.com
-.. _gamereplays.org: http://www.gamereplays.org/starcraft2/
-.. _Midi Conversion: https://github.com/obohrer/sc2midi
-.. _sc2reader.scripts: https://github.com/GraylinKim/sc2reader/tree/master/sc2reader/scripts
-.. _The Core: http://www.teamliquid.net/forum/viewmessage.php?topic_id=341878
-.. _PyPy: http://pypy.org/
-.. _sc2pp: https://github.com/zsol/sc2pp
+.. _phpsc2replay: http://code.google.com/p/phpsc2replay/
 .. _sc2replay-csharp: https://github.com/ascendedguard/sc2replay-csharp
-.. _comsat: https://github.com/tec27/comsat
-.. _phpsc2replay: http://code.google.com/p/phpsc2replay/
-.. _Team Liquid: http://www.teamliquid.net/forum/viewmessage.php?topic_id=330926
-.. _develop: http://peak.telecommunity.com/DevCenter/setuptools#development-mode
-.. _documentation: http://sc2reader.rtfd.org/
-.. _mailing list: http://groups.google.com/group/sc2reader
-.. _developers mailing list: http://groups.google.com/group/sc2reader-dev
-.. _phpsc2replay: http://code.google.com/p/phpsc2replay/
-.. _issue tracker: https://github.com/GraylinKim/sc2reader/issues
-.. _bnet_scraper: https://github.com/agoragames/bnet_scraper
-.. _sc2profile: https://github.com/srounet/sc2profile
-.. _continuous testing: https://travis-ci.org/GraylinKim/sc2reader
-.. _travis-ci: https://travis-ci.org/
-.. _coveralls.io: https://coveralls.io
-.. _test coverage: https://coveralls.io/r/GraylinKim/sc2reader
-.. _CONTRIBUTING.md: https://github.com/GraylinKim/sc2reader/blob/master/CONTRIBUTING.md
-.. _sc2companion.com: http://sc2companion.com
-.. _Creating GameEngine Plugins: http://sc2reader.readthedocs.org/en/latest/articles/creatingagameengineplugin.html
+.. _s2protocol: https://github.com/Blizzard/s2protocol
