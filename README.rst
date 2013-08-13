@@ -4,7 +4,7 @@ What is sc2reader?
 
 sc2reader is a python library for extracting information from various different Starcraft II resources. These resources currently include Replays, Maps, and Game Summaries; we have plans to add support for Battle.net profiles and would gladly accept adapters to the more entrenched SCII sites such as sc2ranks.
 
-There is a pressing need in the SC2 community for better statistics, better analytics, better tools for organizing and searching replays. Better websites for sharing replays and hosting tournaments. These tools can't be created with out first being able to open up Starcraft II game files and analyze the data within. Our goal is to give anyone and everyone the power to construct their own tools, do their own analysis, and hack on their own Starcraft II projects under the open MIT license.
+There is a pressing need in the SC2 community for better statistics, better analytics, better tools for organizing and searching replays. Better websites for sharing replays and hosting tournaments. These tools can't be created without first being able to open up Starcraft II game files and analyze the data within. Our goal is to give anyone and everyone the power to construct their own tools, do their own analysis, and hack on their own Starcraft II projects under the open MIT license.
 
 
 Who Uses sc2reader?
@@ -109,7 +109,10 @@ Again, these files are generally unnecessary after the 2.0.8 release.
 Basic Usage
 =====================
 
-For examples scripts, checkout the docs and the `sc2reader.scripts`_ package on Github or in the source.
+..note::
+
+    For example scripts, checkout the docs and the `sc2reader.scripts`_ package on Github or in the source.
+
 
 Loading Replays
 -------------------
@@ -211,7 +214,7 @@ or with setuptools (specify a valid x.x.x)::
     cd sc2reader-x.x.x
     python setup.py install
 
-Releases to PyPi can be very delayed, for the latest and greatest you are encouraged to install from Github master.
+Releases to PyPi can be very delayed (sorry!), for the latest and greatest you are encouraged to install from Github master.
 
 
 From Github
