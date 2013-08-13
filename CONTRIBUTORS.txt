@@ -8,8 +8,8 @@ Contributors:
     Jason Dana - @sheutka on github
     Cameron Zemek (grom) - @grom358 on github
     Fabien Reboia (srounet) - @srounet on github
+    Kevin Leung - @StoicLoofah on github
     Daniele Zannotti (Durrza)
     Mike Anderson
 
-Special thanks to ggtracker, inc (ggtracker.com) for sponsoring
-sc2reader's continued development.
+Special thanks to ggtracker, inc (ggtracker.com) for sponsoring sc2reader's continued development.
