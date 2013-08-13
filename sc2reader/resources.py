@@ -483,7 +483,7 @@ class Replay(Resource):
             return
 
         self.game_events = self.raw_data['replay.game.events']
-        self.events = sorted(self.game_events+self.events, key=lambda e: e.frame)
+        self.events = sorted(self.events+self.game_events, key=lambda e: e.frame)
 
         # hideous hack for HotS 2.0.0.23925, see https://github.com/GraylinKim/sc2reader/issues/87
         if self.events and self.events[-1].frame > self.frames:
