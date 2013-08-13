@@ -94,6 +94,9 @@ class GameEngine(object):
         for plugin in plugins:
             self.register_plugin(plugin)
 
+    def plugins(self):
+      return self._plugins
+
     def run(self, replay):
         # A map of [event.name] => event handlers in plugin registration order
         # ranked from most generic to most specific
