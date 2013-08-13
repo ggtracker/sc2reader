@@ -358,6 +358,9 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(replay.teams[1].players[0].name, 'LiquidTaeJa')
         self.assertEqual(replay.winner, replay.teams[0])
 
+    def test_replay_event_order(self):
+        replay = sc2reader.load_replay("test_replays/event_order.SC2Replay")
+
 
     def test_creepTracker(self):
       from sc2reader.engine.plugins import CreepTracker
