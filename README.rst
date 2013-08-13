@@ -306,6 +306,8 @@ and kept this project going.
 * Thanks to Blizzard for supporting development of 3rd party tools and releasing
   their `s2protocol`_ full reference implementation.
 
+
 .. _phpsc2replay: http://code.google.com/p/phpsc2replay/
 .. _sc2replay-csharp: https://github.com/ascendedguard/sc2replay-csharp
 .. _s2protocol: https://github.com/Blizzard/s2protocol
+
