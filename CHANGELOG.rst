@@ -1,6 +1,12 @@
 CHANGELOG
 ============
 
+0.6.1 - August 13th 2013
+------------------------
+
+* Fix bug in event ordering that caused game events to process before tracker events.
+* Fix APMTracker to count APM for all humans, not just players.
+
 0.6.0 - August 12th 2013
 ------------------------
 
