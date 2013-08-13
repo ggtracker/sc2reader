@@ -28,16 +28,16 @@ Changed Stuff (non-backwards compatible!):
 * Player.uid is now the user id of the player (was player.cid)
 * PersonDict can no longer be constructed from a player list and new players cannot be added by string (name). Only integer keys accepted for setting.
 * Log a warning instead of throwing an exception when using an unknown colors.
-  * An unknown hex value will use the hex value as the name.
-  * An unknown color name will use 0x000000 as the color.
+   * An unknown hex value will use the hex value as the name.
+   * An unknown color name will use 0x000000 as the color.
 * Finally straighten out all these replay player list/dicts
-  * human/humans -> human entities, indexed by uid
-  * computer/computers -> computer entities, indexed by pid
-  * player/players -> actually playing in the game, indexed by pid
-  * observer/observers -> observing the game, indexed by uid
-  * entities -> players + observers || humans + computers, indexed by pid
-  * client/clients - (deprecated) same as human/humans
-  * people/person - (deprecated) same as entity/entities
+   * human/humans -> human entities, indexed by uid
+   * computer/computers -> computer entities, indexed by pid
+   * player/players -> actually playing in the game, indexed by pid
+   * observer/observers -> observing the game, indexed by uid
+   * entities -> players + observers || humans + computers, indexed by pid
+   * client/clients - (deprecated) same as human/humans
+   * people/person - (deprecated) same as entity/entities
 
 
 0.5.1 - June 1, 2013
@@ -58,22 +58,22 @@ Changed Stuff (non-backwards compatible!):
 
 * Support for all replays (arcade replays now parse!) from all versions
 * Support for the new replay.tracker.events added in 2.0.8
-  * Units now have birth frame, death frame, and owner information
-  * New events for (roughly) tracking unit positions
-  * New events for tracking player resource stockpiles and collection rates
-  * More!
+   * Units now have birth frame, death frame, and owner information
+   * New events for (roughly) tracking unit positions
+   * New events for tracking player resource stockpiles and collection rates
+   * More!
 * Much more comprehensive documentation.
 * New unit model
-  * SiegeTank and SiegeTankSieged (and others with different forms) are no longer separate units.
-  * Units that can transform maintain a full type history.
-  * Units are correctly and uniquely identified by unit_id alone.
+   * SiegeTank and SiegeTankSieged (and others with different forms) are no longer separate units.
+   * Units that can transform maintain a full type history.
+   * Units are correctly and uniquely identified by unit_id alone.
 * Updated unit meta data:
-  * Mineral Cost
-  * Vespene Cost
-  * Supply Cost
-  * Flags for is_worker, is_army, is_building
+   * Mineral Cost
+   * Vespene Cost
+   * Supply Cost
+   * Flags for is_worker, is_army, is_building
 * Added ability meta data:
-  * is_build flag marking abilities that create units
-  * build_unit indicating the unit type that is built
-  * build_time indicating the build time for the ability
+   * is_build flag marking abilities that create units
+   * build_unit indicating the unit type that is built
+   * build_time indicating the build time for the ability
 
