@@ -4,7 +4,7 @@ import setuptools
 setuptools.setup(
     license="MIT",
     name="sc2reader",
-    version='0.6.0',
+    version='0.6.1',
     keywords=["starcraft 2", "sc2", "replay", "parser"],
     description="Utility for parsing Starcraft II replay files",
     long_description=open("README.rst").read()+"\n\n"+open("CHANGELOG.rst").read(),
