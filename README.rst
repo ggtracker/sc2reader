@@ -1,51 +1,37 @@
+
 What is sc2reader?
 ====================
 
-sc2reader is a python library for extracting information from various different
-Starcraft II resources. These resources currently include Replays, Maps, and
-Game Summaries; we may eventually include BNet profiles and possibly adapters
-to the more entrenched SCII sites like sc2ranks.
+sc2reader is a python library for extracting information from various different Starcraft II resources. These resources currently include Replays, Maps, and Game Summaries; we have plans to add support for Battle.net profiles and would gladly accept adapters to the more entrenched SCII sites such as sc2ranks.
 
-Our goal is to give anyone and everyone the power to construct their own
-tools, do their own analysis, and hack on their own Starcraft II projects
-under the open MIT license. Currently powering:
+There is a pressing need in the SC2 community for better statistics, better analytics, better tools for organizing and searching replays. Better websites for sharing replays and hosting tournaments. These tools can't be created without first being able to open up Starcraft II game files and analyze the data within. Our goal is to give anyone and everyone the power to construct their own tools, do their own analysis, and hack on their own Starcraft II projects under the open MIT license.
 
-* Websites: `ggtracker.com`_, `gamereplays.org`_
+
+Who Uses sc2reader?
+======================
+
+sc2reader is currently powering:
+
+* Websites: `ggtracker.com`_, `gamereplays.org`_, `sc2companion.com`_
 * Tools: `The Core`_
 * Experiments: `Midi Conversion`_
 
-Our secondary goal is to become a reference implementation for people looking
-to implement libraries in other languages. For replays, it implements the 
-replay format as specified in Blizzard's `s2protocol`_  project.
+If you use sc2reader and you would like your tool, site, project, or implementation listed above, drop us a line on our `mailing list`_ or stop by our #sc2reader IRC channel and say hi!
 
-The following is a list of partial implementations in other languages:
 
-* C#: `sc2replay-csharp`_ (special thanks for v1.5 help)
-* C++: `sc2pp`_
-* Javascript: `comsat`_
-* PHP: `phpsc2replay`_
-
-Unfortunately sc2reader does not implement a battle.net scraper for profile
-information. If you need the information I know of two projects that can get
-you started:
-
-* Ruby: `bnet_scraper`_ - Maintained by Agora Games
-* Python: `sc2profile`_ - Currently unmaintained, slightly dated.
-
-If you'd like your tool, site, project, or implementation listed above, drop
-us a line on our `mailing list`_ or stop by our #sc2reader IRC channel and say hi!
+.. _ggtracker.com: http://ggtracker.com
+.. _gamereplays.org: http://www.gamereplays.org/starcraft2/
+.. _sc2companion.com: http://sc2companion.com
+.. _The Core: http://www.teamliquid.net/forum/viewmessage.php?topic_id=341878
+.. _Midi Conversion: https://github.com/obohrer/sc2midi
 
 
 Current Status
 =================
 
-sc2reader is currently capable of parsing varying levels of information out of
-the three primary resource types listed below. For a more detailed and exact
-description of the information that can be extracted please consult the
-`documentation`_ hosted on Read the Docs.
+sc2reader is production ready at release and under active development on Github. It is currently capable of parsing varying levels of information out of the three primary resource types listed below. For a more detailed and exact description of the information that can be extracted please consult the `documentation`_ hosted on ReadTheDocs.
 
-The library is production ready and reasonably stable. `travis-ci`_ provides a
-record of our `continuous testing`_ and `coveralls.io`_ provides a record of our `test coverage`_.
+.. _documentation: http://sc2reader.rtfd.org/
 
 
 Replays
@@ -90,22 +76,20 @@ in future releases.
 Maps
 -------
 
-Maps are currently parsed in the most minimal way possible and are an area for
-big improvement in the future. Currently the Minimap.tga packaged with the map
-is made available along with Name, Author, Description for ONLY enUS localized
-SCII map files. More robust Map meta data extraction will likely be added in
-future releases.
+Maps can be parsed for the following information:
 
-There's a lot more in here to be had for the adventurous.
+* Minimap and Icon images (tga format)
+* enUS localized Name, Author, Description, Website (if available)
+* Map Dimensions, Camera Bounds, Tileset
+* Player Slot data and Advanced Teams alliance/enemy data.
+
+There is a lot more in here to be had for the adventurous.
 
 
 Game Summaries
 -----------------
 
-Game Summary files are downloaded by the client in order to allow you to view
-the game summary from your match history. Prior to 2.0.8 they were the only
-way to get the information from the summary screen. Since the 2.0.8 release
-you have been able to compute this information yourself from the replay files.
+Game Summary files are downloaded by the client in order to allow you to view the game summary from your match history. Prior to 2.0.8 they were the only way to get the information from the summary screen. Since the 2.0.8 release you have been able to compute this information yourself from the replay files.
 
 Thank you Prillan and `Team Liquid`_ for helping to decode this file.
 
@@ -115,76 +99,101 @@ Thank you Prillan and `Team Liquid`_ for helping to decode this file.
 * URLs to map localization files and images
 * Player build orders up to 64 (real) actions
 
-Parsing on these files is now production ready for those that can get them. See
-the `Team Liquid`_ thread for details on how to go about getting them.
+Parsing on these files is now production ready for those that can get them. See the `Team Liquid`_ thread for details on how to go about getting them.
 
 Again, these files are generally unnecessary after the 2.0.8 release.
 
+.. _Team Liquid: http://www.teamliquid.net/forum/viewmessage.php?topic_id=330926
 
 
-Example Usage
+Basic Usage
 =====================
 
-To demonstrate how you might use sc2reader in practice I've included some short
-contrived scripts below. For more elaborate examples, checkout the docs and the
-`sc2reader.scripts`_ package on Github or in the source.
+..note::
+
+    For example scripts, checkout the docs and the `sc2reader.scripts`_ package on Github or in the source.
 
 
-Downloading Maps
---------------------
+Loading Replays
+-------------------
+For many users, the most basic commands will handle all of their needs::
 
-Save all the minimaps for all the games you've ever played::
+    import sc2reader
+    replay = sc2reader.load_replay('MyReplay', load_map=true)
 
-    import sc2reader, os, sys
+This will load all replay data and fix GameHeart games. In some cases, you don't need the full extent of the replay data. You can use the load level option to limit replay loading and improve load times::
 
-    if not os.path.exists('minimaps'):
-        os.makedirs('minimaps')
+    # Release version and game length info. Nothing else
+    sc2reader.load_replay('MyReplay.SC2Replay', load_level=0)
 
-    # Only load details file (level 1) and fetch the map file from bnet
-    for replay in sc2reader.load_replays(sys.argv[1:], load_map=True, load_level=1):
-        minimap_path = os.path.join('minimaps', replay.map_name.replace(' ','_')+'.tga')
-        if not os.path.exists(minimap_path):
-            with open(minimap_path, 'w') as file_out:
-                file_out.write(replay.map.minimap)
-            print("Saved Map: {0} [{1}]".format(replay.map_name, replay.map_hash))
+    # Also loads game details: map, speed, time played, etc
+    sc2reader.load_replay('MyReplay.SC2Replay', load_level=1)
+
+    # Also loads players and chat events:
+    sc2reader.load_replay('MyReplay.SC2Replay', load_level=2)
+
+    # Also loads tracker events:
+    sc2reader.load_replay('MyReplay.SC2Replay', load_level=3)
+
+    # Also loads game events:
+    sc2reader.load_replay('MyReplay.SC2Replay', load_level=4)
+
+If you want to load a collection of replays, you can use the plural form. Loading resources in this way returns a replay generator::
+
+    replays = sc2reader.load_replays('path/to/replay/directory')
+
+.. _sc2reader.scripts: https://github.com/GraylinKim/sc2reader/tree/master/sc2reader/scripts
 
 
-Organizing Replays
-----------------------
+Loading Maps
+----------------
 
-Organizing your 1v1 replays by race played and matchup and sortable by length::
+If you have a replay and want the map file as well, sc2reader can download the corresponding map file and load it in one of two ways::
 
-    import sc2reader, os, shutil, sys
+    replay = sc2reader.load_replay('MyReplay.SC2Replay', load_map=true)
+    replay.load_map()
 
-    sorted_base = 'sorted'
-    path_to_replays = 'my/replays'
+If you are looking to only handle maps you can use the map specific load methods::
 
-    for replay in sc2reader.load_replays(sys.argv[1], load_level=2):
-        if replay.real_type != '1v1':
-            continue
+    map = sc2reader.load_map('MyMap.SC2Map')
+    map = sc2reader.load_maps('path/to/maps/directory')
 
-        try:
-            me = replay.player.name('ShadesofGray')
-            you = team[(me.team.number+1)%2].players[0]
 
-            matchup = "{0}v{1}".format(me.play_race[0], you.play_race[1])
+Using the Cache
+---------------------
 
-            sorted_path = os.path.join(sorted_base,me.play_race[0],matchup)
-            if not os.path.exists(sorted_path):
-                os.makedirs(sorted_path)
+If you are loading a lot of remote resources, you'll want to enable caching for sc2reader. Caching can be configured with the following environment variables:
 
-            filename = "{0} - {1}".format(replay.game_length, replay.filename)
-            src = os.join(path_to_replays,replay.filename)
-            dst = os.join(sorted_path, filename)
-            shutil.copyfile(src, dst)
+* SC2READER_CACHE_DIR - Enables caching to file at the specified directory.
+* SC2READER_CACHE_MAX_SIZE - Enables memory caching of resources with a maximum number of entries; not based on memory imprint!
 
-        except KeyError as e:
-            continue # A game I didn't play in!
+You can set these from inside your script with the following code **BEFORE** importing the sc2reader module::
+
+    os.environ['SC2READER_CACHE_DIR'] = "path/to/local/cache"
+    os.environ['SC2READER_CACHE_MAX_SIZE'] = 100
+
+    # if you have imported sc2reader anywhere already this won't work
+    import sc2reader
+
+
+Using Plugins
+------------------
+
+There are a growing number of community generated plugins that you can take advantage of in your project. See the article on `Creating GameEngine Plugins`_ for details on creating your own. To use these plugins you need to customize the game engine::
+
+    from sc2reader.engine.plugins import SelectionTracker, APMTracker
+    sc2reader.engine.register_plugin(SelectionTracker())
+    sc2reader.engine.register_plugin(APMTracker())
+
+The new GameHeartNormalizerplugin is registered by default.
+
+.. _Creating GameEngine Plugins: http://sc2reader.readthedocs.org/en/latest/articles/creatingagameengineplugin.html
 
 
 Installation
 ================
 
+sc2reader runs on any system with Python 2.6+, 3.2+, or PyPy installed.
 
 
 From PyPI (stable)
@@ -205,8 +214,7 @@ or with setuptools (specify a valid x.x.x)::
     cd sc2reader-x.x.x
     python setup.py install
 
-Releases to PyPi can be very delayed, for the latest and greatest you are encouraged
-to install from Github master which is **usually** kept quite stable.
+Releases to PyPi can be very delayed (sorry!), for the latest and greatest you are encouraged to install from Github master.
 
 
 From Github
@@ -214,7 +222,9 @@ From Github
 
 Github master is generally stable with development branches more unstable.
 
-Install from the latest source on github with pip::
+We use `travis-ci`_ to provide a record of our `continuous testing`_ and `coveralls.io`_ provides a record of our `test coverage`_. Please verify that tests are passing before installing development versions.
+
+Install from the latest source on Github with pip::
 
     pip install -e git+git://github.com/GraylinKim/sc2reader#egg=sc2reader
 
@@ -225,40 +235,42 @@ or with setuptools::
     cd sc2reader-master
     python setup.py install
 
+.. _travis-ci: https://travis-ci.org/
+.. _coveralls.io: https://coveralls.io
+.. _test coverage: https://coveralls.io/r/GraylinKim/sc2reader
+.. _continuous testing: https://travis-ci.org/GraylinKim/sc2reader
+
 
 For Contributors
 -------------------
 
-Contributors should install from an active git repository using setuptools in
-`develop`_ mode. This will install links to the live code so that local edits
-are available to external modules automatically::
+Contributors should install from an active git repository using setuptools in `develop`_ mode. This will install links to the live code so that local edits are available to external modules automatically::
 
     git clone https://github.com/GraylinKim/sc2reader.git
     cd sc2reader
     python setup.py develop
 
-Please review the CONTRIBUTING.md file and get in touch with us before doing
-too much work. It'll make everyone happier in the long run.
+Please review the `CONTRIBUTING.md`_ file and get in touch with us before doing too much work. It'll make everyone happier in the long run.
+
+.. _develop: http://peak.telecommunity.com/DevCenter/setuptools#development-mode
+.. _CONTRIBUTING.md: https://github.com/GraylinKim/sc2reader/blob/master/CONTRIBUTING.md
 
 
 Testing
 -------------------
 
-We use the built in ``unittest`` module for testing. If you are still on Python
-2.6 you will need to install ``unittest2`` because our test suite requires newer
-features than are included in the main distribution.
+We use the built in ``unittest`` module for testing. If you are still on Python 2.6 you will need to install ``unittest2`` because our test suite requires newer features than are included in the main distribution.
 
 To run the tests just use::
 
-    python -m unittest discover test_replays
-    python -m unittest discover test_s2gs
+    python test_replays/test_all.py
+    python test_s2gs/test_all.py
 
-When repeatedly running tests it can be very helpful to make sure you've
-set a local cache directory to prevent long fetch times from battle.net::
+When repeatedly running tests it can be very helpful to make sure you've set a local cache directory to prevent long fetch times from battle.net::
 
     export SC2READER_CACHE_DIR=local_cache
     # or
-    SC2READER_CACHE_DIR=local_cache py.test
+    SC2READER_CACHE_DIR=local_cache python test_replays/test_all.py
 
 Good luck, have fun!
 
@@ -266,21 +278,16 @@ Good luck, have fun!
 Community
 ==============
 
-sc2reader has a small but growing community of people looking to make tools and
-websites with Starcraft II data. If that sounds like something you'd like to be
-a part of please join our underused `mailing list`_ and start a conversation
-or stop by #sc2reader on FreeNode and say 'Hi'. We have members from all over
-Europe, Australia, and the United States currently, so regardless of the time,
-you can probably find someone to talk to.
+sc2reader has a small but growing community of people looking to make tools and websites with Starcraft II data. If that sounds like something you'd like to be a part of please join our underused `mailing list`_ and start a conversation or stop by #sc2reader on FreeNode and say 'Hi'. We have members from all over Europe, Australia, and the United States currently, so regardless of the time, you can probably find someone to talk to.
 
 
 Issues and Support
 =====================
 
-We have an `issue tracker`_ on Github that all bug reports and feature requests
-should be directed to. We have a `mailing list`_ with Google Groups that you can
-use to reach out for support. We are generally on FreeNode in the #sc2reader
-and can generally provide live support and address issues there as well.
+We have an `issue tracker`_ on Github that all bug reports and feature requests should be directed to. We have a `mailing list`_ with Google Groups that you can use to reach out for support. We are generally on FreeNode in the #sc2reader and can generally provide live support and address issues there as well.
+
+.. _mailing list: http://groups.google.com/group/sc2reader
+.. _issue tracker: https://github.com/GraylinKim/sc2reader/issues
 
 
 Acknowledgements
@@ -297,30 +304,10 @@ and kept this project going.
 * Thanks to `ggtracker.com`_ for sponsoring further development and providing
   the thousands of test files used while adding s2gs and HotS support.
 * Thanks to Blizzard for supporting development of 3rd party tools and releasing
-  their `s2protocol`_ reference implementation.
+  their `s2protocol`_ full reference implementation.
 
 
-.. _s2protocol: https://github.com/Blizzard/s2protocol
-.. _ggtracker.com: http://ggtracker.com
-.. _gamereplays.org: http://www.gamereplays.org/starcraft2/
-.. _Midi Conversion: https://github.com/obohrer/sc2midi
-.. _sc2reader.scripts: https://github.com/GraylinKim/sc2reader/tree/master/sc2reader/scripts
-.. _The Core: http://www.teamliquid.net/forum/viewmessage.php?topic_id=341878
-.. _PyPy: http://pypy.org/
-.. _sc2pp: https://github.com/zsol/sc2pp
+.. _phpsc2replay: http://code.google.com/p/phpsc2replay/
 .. _sc2replay-csharp: https://github.com/ascendedguard/sc2replay-csharp
-.. _comsat: https://github.com/tec27/comsat
-.. _phpsc2replay: http://code.google.com/p/phpsc2replay/
-.. _Team Liquid: http://www.teamliquid.net/forum/viewmessage.php?topic_id=330926
-.. _develop: http://peak.telecommunity.com/DevCenter/setuptools#development-mode
-.. _documentation: http://sc2reader.rtfd.org/
-.. _mailing list: http://groups.google.com/group/sc2reader
-.. _developers mailing list: http://groups.google.com/group/sc2reader-dev
-.. _phpsc2replay: http://code.google.com/p/phpsc2replay/
-.. _issue tracker: https://github.com/GraylinKim/sc2reader/issues
-.. _bnet_scraper: https://github.com/agoragames/bnet_scraper
-.. _sc2profile: https://github.com/srounet/sc2profile
-.. _continuous testing: https://travis-ci.org/GraylinKim/sc2reader
-.. _travis-ci: https://travis-ci.org/
-.. _coveralls.io: https://coveralls.io
-.. _test coverage: https://coveralls.io/r/GraylinKim/sc2reader
+.. _s2protocol: https://github.com/Blizzard/s2protocol
+

@@ -1,5 +1,7 @@
 include LICENSE.txt
 include CONTRIBUTORS.txt
+include CONTRIBUTING.md
+include STYLE_GUIDE.rst
 include README.rst
 include CHANGELOG.rst
 recursive-include sc2reader *.csv *.json
