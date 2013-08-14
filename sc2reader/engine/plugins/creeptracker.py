@@ -104,16 +104,25 @@ class creep_tracker():
         mapsio = StringIO(replayMap.minimap)
         im = PIL_open(mapsio)
         ##remove black box around minimap
-        cropped = im.crop(im.getbbox())
-        cropsize = cropped.size
+
+# https://github.com/jonomon/sc2reader/commit/2a793475c0358989e7fda4a75642035a810e2274
+#        cropped = im.crop(im.getbbox())
+#        cropsize = cropped.size
+
+        cropsizeX = replay.map.map_info.camera_right - replay.map.map_info.camera_left
+        cropsizeY = replay.map.map_info.camera_top - replay.map.map_info.camera_bottom
+        cropsize = (cropsizeX,cropsizeY)
+
         self.map_height = 100.0
         # resize height to MAPHEIGHT, and compute new width that
         # would preserve aspect ratio
         self.map_width = int(cropsize[0] * (float(self.map_height) / cropsize[1]))
         self.mapSize =self.map_height * self.map_width 
+
         ## the following parameters are only needed if minimaps have to be printed
-        minimapSize = ( self.map_width,int(self.map_height) )
-        self.minimap_image = cropped.resize(minimapSize, ANTIALIAS)
+#        minimapSize = ( self.map_width,int(self.map_height) )
+#        self.minimap_image = cropped.resize(minimapSize, ANTIALIAS)
+
         mapOffsetX= replayMap.map_info.camera_left
         mapOffsetY = replayMap.map_info.camera_bottom
         mapCenter = [mapOffsetX+ cropsize[0]/2.0, mapOffsetY + cropsize[1]/2.0]
@@ -121,7 +130,7 @@ class creep_tracker():
         imageCenter = [(self.map_width/2), self.map_height/2]
         # this is the scaling factor to go from the SC2 coordinate
         # system to pixel coordinates
-        self.image_scale = float(self.map_height) / cropsize[0] 
+        self.image_scale = float(self.map_height) / cropsize[1] 
         self.transX =imageCenter[0] + self.image_scale * (mapCenter[0])
         self.transY = imageCenter[1] + self.image_scale * (mapCenter[1])
         
@@ -172,7 +181,7 @@ class creep_tracker():
             cgu_per_player = self.creep_gen_units[player_id] [length_cgu_list-1]
             creep_generating_died =filter(lambda x:x[0]==unit_id,cgu_per_player)
             for creep_generating_died_unit in creep_generating_died:
-                new_cgu_per_player = filter(lambda x:x != creep_generating_died_unit, cgu_per_player )
+                new_cgu_per_player = list(filter(lambda x:x != creep_generating_died_unit, cgu_per_player ))
                 self.creep_gen_units[player_id].append(new_cgu_per_player)
                 self.creep_gen_units_times[player_id].append(time_frame)
 
@@ -180,7 +189,7 @@ class creep_tracker():
         ## this function returns the index and value of every cgu time 
         maximum_cgu_time = max(cgu_time_list)
         for i in range(0, maximum_cgu_time):
-            a = filter(lambda (x,y): int(y/60)==i, enumerate(cgu_time_list))
+            a = list(filter(lambda x_y: x_y[1]//60==i , enumerate(cgu_time_list)))
             if len(a)>0:
                 yield a
 
@@ -202,7 +211,7 @@ class creep_tracker():
     #the most cgus every minute will be used to represent that minute
        cgu_per_minute1, cgu_per_minute2 =  tee (self.cgu_gen_times_to_chunks(self.creep_gen_units_times[player_id]))
        cgu_unit_max_per_minute = self.cgu_in_min_to_cgu_units(player_id,cgu_per_minute1)
-       minutes = map(lambda x:int(x[0][1]/60)*60, cgu_per_minute2)
+       minutes = map(lambda x:int(x[0][1]//60)*60, cgu_per_minute2)
        self.creep_gen_units[player_id] = list(cgu_unit_max_per_minute)
        self.creep_gen_units_times[player_id] = list(minutes)
 
@@ -216,7 +225,7 @@ class creep_tracker():
             cgu_radius = self.convert_cgu_radius_event_to_map_coord(cgu_radius)
             creep_area_positions = self.cgu_radius_to_map_positions(cgu_radius,self.radius_to_coordinates)
             cgu_event_time = self.creep_gen_units_times[player_id][index]
-            cgu_event_time_str=str(int(cgu_event_time/60))+":"+str(cgu_event_time%60)
+            cgu_event_time_str=str(int(cgu_event_time//60))+":"+str(cgu_event_time%60)
             if self.debug: 
                 self.print_image(creep_area_positions,player_id,cgu_event_time_str)
             creep_area = len(creep_area_positions)
@@ -278,6 +287,6 @@ class creep_tracker():
         return cgu_radius_new
 
     def convert_event_coord_to_map_coord(self,x,y):
-        imageX = int(self.map_height - self.transX + self.image_scale * x)
+        imageX = int(self.map_width - self.transX + self.image_scale * x)
         imageY = int(self.transY - self.image_scale * y)
         return imageX, imageY
