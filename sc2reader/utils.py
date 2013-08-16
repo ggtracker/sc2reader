@@ -252,12 +252,12 @@ class Length(timedelta):
     @property
     def hours(self):
         """ The number of hours in represented. """
-        return int(self.seconds/3600)
+        return self.seconds//3600
 
     @property
     def mins(self):
         """ The number of minutes in excess of the hours. """
-        return int(self.seconds/60) % 60
+        return self.seconds//60 % 60
 
     @property
     def secs(self):
