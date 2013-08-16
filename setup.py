@@ -12,7 +12,6 @@ setuptools.setup(
     author="Graylin Kim",
     author_email="graylin.kim@gmail.com",
     url="https://github.com/GraylinKim/sc2reader",
-    download_url="https://github.com/GraylinKim/sc2reader/archive/v0.5.1.tar.gz",
 
     platforms=["any"],
 
