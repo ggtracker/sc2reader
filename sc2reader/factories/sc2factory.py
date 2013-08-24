@@ -274,7 +274,7 @@ class FileCachedSC2Factory(CachedSC2Factory):
         if not os.path.exists(bucket_dir):
             os.makedirs(bucket_dir)
 
-        with open(cache_path, 'w') as out:
+        with open(cache_path, 'wb') as out:
             out.write(value)
 
     def cache_path(self, cache_key):
