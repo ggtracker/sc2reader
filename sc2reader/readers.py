@@ -2077,8 +2077,10 @@ class TrackerEventsReader_Base(Reader):
         frames = 0
         events = list()
         while not decoder.done():
-            frames += decoder.read_struct()
-            etype = decoder.read_struct()
+            decoder._buffer.read(3) # 03 00 09
+            frames += decoder.read_vint()
+            decoder._buffer.read(1) # 09
+            etype = decoder.read_vint()
             event_data = decoder.read_struct()
             event = self.EVENT_DISPATCH[etype](frames, event_data, replay.build)
             events.append(event)
