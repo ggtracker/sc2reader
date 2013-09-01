@@ -48,7 +48,8 @@ class Unit(object):
 
         #: The frame the unit was finished at. Only available for 2.0.8+ replays.
         #: Specifically, it is the frame that the :class:`~sc2reader.events.tracker.UnitDoneEvent` is received. For units
-        #: that are born and not initiated this will be the same as :attr:`started_at`.
+        #: that are born and not initiated this will be the frame that the :class:`~sc2reader.events.tracker.UnitBornEvent`
+        #: is received.
         self.finished_at = None
 
         #: The frame the unit died at. Only available for 2.0.8+ replays.
