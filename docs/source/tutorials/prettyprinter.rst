@@ -75,7 +75,7 @@ The replay object itself is a dumb data structure; there are no access methods o
     datetime.datetime(2011, 9, 20, 21, 8, 8)
     >>> replay.type
     '2v2'
-    >>> replay.map
+    >>> replay.map_name
     'The Boneyard'
     >>> replay.length # string format is MM.SS
     Length(0, 1032)
@@ -104,7 +104,7 @@ So now all we need to do is build the ouput using the available replay attribute
     --------------------------------------------
     SC2 Version {release_string}
     {category} Game, {date}
-    {type} on {map}
+    {type} on {map_name}
     Length: {length}
 
     """.format(**replay.__dict__)
@@ -120,7 +120,7 @@ Similar formatting written in a more verbose and less pythonic way:
         output += "--------------------------------------------\n"
         output += "SC2 Version "+replay.release_string+'\n'
         output += replay.category+" Game, "+str(replay.date)+'\n'
-        output += replay.type+" on "+replay.map+'\n'
+        output += replay.type+" on "+replay.map_name+'\n'
         output += "Length: "+str(replay.length)
         return output
 
@@ -163,7 +163,7 @@ So lets put it all together into the final script, ``prettyPrinter.py``:
     --------------------------------------------
     SC2 Version {release_string}
     {category} Game, {date}
-    {type} on {map}
+    {type} on {map_name}
     Length: {length}
 
     {formattedTeams}
