@@ -49,9 +49,12 @@ class ContextLoader(object):
 
         if event.target_unit_id in replay.objects:
             event.target = replay.objects[event.target_unit_id]
-            if not event.target.is_type(event.target_unit_type):
+            if not replay.tracker_events and not event.target.is_type(event.target_unit_type):
                 replay.datapack.change_type(event.target, event.target_unit_type, event.frame)
         else:
+            # Often when the target_unit_id is not in replay.objects it is 0 because it
+            # is a target building/destructable hidden by fog of war. Perhaps we can match
+            # it through the fog using location?
             unit = replay.datapack.create_unit(event.target_unit_id, event.target_unit_type, 0x00, event.frame)
             event.target = unit
             replay.objects[event.target_unit_id] = unit

@@ -278,9 +278,12 @@ class TargetAbilityEvent(AbilityEvent):
         self.target_timer = self.ability_type_data.get('timer', None)
 
         #: Unique id of the target unit. Available for TargetUnit type events.
+        #: This id can be 0 when the target unit is shrouded by fog of war.
         self.target_unit_id = self.ability_type_data.get('unit_tag', None)
 
-        #: A reference to the targetted unit
+        #: A reference to the targetted unit. When the :attr:`target_unit_id` is
+        #: 0 this target unit is a generic, reused fog of war unit of the :attr:`target_unit_type`
+        #: with an id of zero. It should not be confused with a real unit.
         self.target_unit = None
 
         #: Current integer type id of the target unit. Available for TargetUnit type events.
