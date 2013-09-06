@@ -1,6 +1,13 @@
 CHANGELOG
 ============
 
+0.6.2 - September 5th 2013
+--------------------------
+* Fix rare bug where TargetedAbility events could overwrite unit types.
+* Substantial performance boost (20% in local testing)
+* Fixed serious bug with FileCaching that affected Python3 users.
+* Plugins can now yield PluginExit events to broadcast their shutdown.
+
 0.6.1 - August 13th 2013
 ------------------------
 
