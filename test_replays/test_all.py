@@ -361,7 +361,6 @@ class TestReplays(unittest.TestCase):
     def test_replay_event_order(self):
         replay = sc2reader.load_replay("test_replays/event_order.SC2Replay")
 
-
     def test_creepTracker(self):
       from sc2reader.engine.plugins import CreepTracker
 
@@ -387,6 +386,62 @@ class TestReplays(unittest.TestCase):
       assert replay.player[2].max_creep_spread == (840,24.83)
       assert  replay.player[2].creep_spread_by_minute[420] == 9.4
       assert replay.player[2].creep_spread_by_minute[780] == 22.42
+
+
+class TestGameEngine(unittest.TestCase):
+    class TestEvent(object):
+        name='TestEvent'
+        def __init__(self, value):
+            self.value = value
+        def __str__(self):
+            return self.value
+
+    class TestPlugin1(object):
+        name = 'TestPlugin1'
+
+        def handleInitGame(self, event, replay):
+            yield TestGameEngine.TestEvent('b')
+            yield TestGameEngine.TestEvent('c')
+
+        def handleTestEvent(self, event, replay):
+            print("morestuff")
+            if event.value == 'd':
+                yield sc2reader.engine.PluginExit(self, code=1, details=dict(msg="Fail!"))
+            else:
+                yield TestGameEngine.TestEvent('d')
+
+        def handleEndGame(self, event, replay):
+            yield TestGameEngine.TestEvent('g')
+
+    class TestPlugin2(object):
+        name = 'TestPlugin2'
+        def handleInitGame(self, event, replay):
+            replay.engine_events = list()
+
+        def handleTestEvent(self, event, replay):
+            replay.engine_events.append(event)
+
+        def handlePluginExit(self, event, replay):
+            yield TestGameEngine.TestEvent('e')
+
+        def handleEndGame(self, event, replay):
+            yield TestGameEngine.TestEvent('f')
+
+    class MockReplay(object):
+        def __init__(self, events):
+            self.events = events
+
+    def test_plugin1(self):
+        engine = sc2reader.engine.GameEngine()
+        engine.register_plugin(self.TestPlugin1())
+        engine.register_plugin(self.TestPlugin2())
+        replay = self.MockReplay([self.TestEvent('a')])
+        engine.run(replay)
+        self.assertEqual(''.join(str(e) for e in replay.engine_events), 'bdecaf')
+        self.assertEqual(replay.plugin_failures, ['TestPlugin1'])
+        self.assertEqual(replay.plugin_result['TestPlugin1'], (1, dict(msg="Fail!")))
+        self.assertEqual(replay.plugin_result['TestPlugin2'], (0, dict()))
+
 
 if __name__ == '__main__':
     unittest.main()
