@@ -1,6 +1,11 @@
 CHANGELOG
 ============
 
+0.6.3 - September 15th 2013
+---------------------------
+
+* Properly mark hallucinated units.
+
 0.6.2 - September 5th 2013
 --------------------------
 * Fix rare bug where TargetedAbility events could overwrite unit types.
