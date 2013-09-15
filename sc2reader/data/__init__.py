@@ -37,7 +37,7 @@ class Unit(object):
     Represents an in-game unit.
     """
 
-    def __init__(self, unit_id, flags):
+    def __init__(self, unit_id):
         #: A reference to the player that currently owns this unit. Only available for 2.0.8+ replays.
         self.owner = None
 
@@ -66,8 +66,6 @@ class Unit(object):
         #: behind the fog of war is targetted.
         self.id = unit_id
 
-        self.flags = flags
-
         #: A reference to the unit type this unit is current in.
         #: e.g. SeigeTank is a different type than SeigeTankSeiged
         self._type_class = None
@@ -76,8 +74,14 @@ class Unit(object):
         #: in order by frame the type was acquired.
         self.type_history = OrderedDict()
 
-        #: Is this unit type a hallucinated one? Unsure of this flag..
-        self.hallucinated = (flags & 2 == 2)
+        #: Is this unit type a hallucinated one?
+        self.hallucinated = False
+
+        self.flags = 0
+
+    def apply_flags(self, flags):
+        self.flags = flags
+        self.hallucinated = flags & 2 == 2
 
     def set_type(self, unit_type, frame):
         self._type_class = unit_type
@@ -231,14 +235,14 @@ class Build(object):
         #: A dictionary mapping integer ids to available abilities.
         self.abilities = dict()
 
-    def create_unit(self, unit_id, unit_type, unit_flags, frame):
+    def create_unit(self, unit_id, unit_type, frame):
         """
         :param unit_id: The unique id of this unit.
         :param unit_type: The unit type to assign to the new unit
 
         Creates a new unit and assigns it to the specified type.
         """
-        unit = Unit(unit_id, unit_flags)
+        unit = Unit(unit_id)
         self.change_type(unit, unit_type, frame)
         return unit
 
