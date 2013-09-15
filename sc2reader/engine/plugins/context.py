@@ -55,7 +55,7 @@ class ContextLoader(object):
             # Often when the target_unit_id is not in replay.objects it is 0 because it
             # is a target building/destructable hidden by fog of war. Perhaps we can match
             # it through the fog using location?
-            unit = replay.datapack.create_unit(event.target_unit_id, event.target_unit_type, 0x00, event.frame)
+            unit = replay.datapack.create_unit(event.target_unit_id, event.target_unit_type, event.frame)
             event.target = unit
             replay.objects[event.target_unit_id] = unit
 
@@ -64,7 +64,8 @@ class ContextLoader(object):
             return
 
         units = list()
-        for (unit_id, unit_type, subgroup, intra_subgroup) in event.new_unit_info:
+        # TODO: Blizzard calls these subgroup flags but that doesn't make sense right now
+        for (unit_id, unit_type, subgroup_flags, intra_subgroup_flags) in event.new_unit_info:
             # If we don't have access to tracker events, use selection events to create
             # new units and track unit type changes. It won't be perfect, but it is better
             # than nothing.
@@ -79,13 +80,16 @@ class ContextLoader(object):
                     if not unit.is_type(unit_type):
                         replay.datapack.change_type(unit, unit_type, event.frame)
                 else:
-                    unit = replay.datapack.create_unit(unit_id, unit_type, 0x00, event.frame)
+                    unit = replay.datapack.create_unit(unit_id, unit_type, event.frame)
                     replay.objects[unit_id] = unit
 
             # If we have tracker events, the unit must already exist and must already
             # have the correct unit type.
             else:
                 unit = replay.objects[unit_id]
+
+            # Selection events hold flags on units (like hallucination)
+            unit.apply_flags(intra_subgroup_flags)
 
             units.append(unit)
 
@@ -110,7 +114,7 @@ class ContextLoader(object):
             event.unit = replay.objects[event.unit_id]
         else:
             # TODO: How to tell if something is hallucination?
-            event.unit = replay.datapack.create_unit(event.unit_id, event.unit_type_name, 0, event.frame)
+            event.unit = replay.datapack.create_unit(event.unit_id, event.unit_type_name, event.frame)
             replay.objects[event.unit_id] = event.unit
 
         replay.active_units[event.unit_id_index] = event.unit
@@ -189,7 +193,7 @@ class ContextLoader(object):
             event.unit = replay.objects[event.unit_id]
         else:
             # TODO: How to tell if something is hallucination?
-            event.unit = replay.datapack.create_unit(event.unit_id, event.unit_type_name, 0, event.frame)
+            event.unit = replay.datapack.create_unit(event.unit_id, event.unit_type_name, event.frame)
             replay.objects[event.unit_id] = event.unit
 
         replay.active_units[event.unit_id_index] = event.unit
