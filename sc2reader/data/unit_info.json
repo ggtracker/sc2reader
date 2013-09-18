@@ -692,13 +692,13 @@
       "is_army": true,
       "minerals": 150,
       "vespene": 125,
-      "supply": 2
+      "supply": 3
     },
     "siegetanksieged": {
       "is_army": true,
       "minerals": 150,
       "vespene": 125,
-      "supply": 2
+      "supply": 3
     },
     "starport": {
       "minerals": 150,
