@@ -382,12 +382,12 @@ class Replay(Resource):
 
             if slot_data['control'] == 2:
                 if slot_data['observe'] == 0:
-                    self.entities.append(Participant(slot_id, slot_data, user_id, initData['player_init_data'][user_id], player_id, details['players'][detail_id], self.attributes.get(player_id, dict())))
+                    self.entities.append(Participant(slot_id, slot_data, user_id, initData['user_initial_data'][user_id], player_id, details['players'][detail_id], self.attributes.get(player_id, dict())))
                     detail_id += 1
                     player_id += 1
 
                 else:
-                    self.entities.append(Observer(slot_id, slot_data, user_id, initData['player_init_data'][user_id], player_id))
+                    self.entities.append(Observer(slot_id, slot_data, user_id, initData['user_initial_data'][user_id], player_id))
                     player_id += 1
 
             elif slot_data['control'] == 3:
@@ -540,18 +540,11 @@ class Replay(Resource):
     def register_default_readers(self):
         """Registers factory default readers."""
         self.register_reader('replay.details', readers.DetailsReader(), lambda r: True)
-        self.register_reader('replay.initData', readers.InitDataReader_Base(), lambda r: 15405 <= r.base_build < 16561)
-        self.register_reader('replay.initData', readers.InitDataReader_16561(), lambda r: 16561 <= r.base_build < 17326)
-        self.register_reader('replay.initData', readers.InitDataReader_17326(), lambda r: 17326 <= r.base_build < 19132)
-        self.register_reader('replay.initData', readers.InitDataReader_19132(), lambda r: 19132 <= r.base_build < 22612)
-        self.register_reader('replay.initData', readers.InitDataReader_22612(), lambda r: 22612 <= r.base_build < 23925)
-        self.register_reader('replay.initData', readers.InitDataReader_23925(), lambda r: 23925 <= r.base_build < 24764)
-        self.register_reader('replay.initData', readers.InitDataReader_24764(), lambda r: 24764 <= r.base_build < 26490)
-        self.register_reader('replay.initData', readers.InitDataReader_26490(), lambda r: 26490 <= r.base_build)
-        self.register_reader('replay.message.events', readers.MessageEventsReader_Base(), lambda r: r.build < 24247 or r.versions[1] == 1)
-        self.register_reader('replay.message.events', readers.MessageEventsReader_Beta_24247(), lambda r: r.build >= 24247 and r.versions[1] == 2)
-        self.register_reader('replay.attributes.events', readers.AttributesEventsReader_Base(), lambda r: r.build < 17326)
-        self.register_reader('replay.attributes.events', readers.AttributesEventsReader_17326(), lambda r: r.build >= 17326)
+        self.register_reader('replay.initData', readers.InitDataReader(), lambda r: True)
+        self.register_reader('replay.tracker.events', readers.TrackerEventsReader(), lambda r: True)
+        self.register_reader('replay.message.events', readers.MessageEventsReader(), lambda r: True)
+        self.register_reader('replay.attributes.events', readers.AttributesEventsReader(), lambda r: True)
+
         self.register_reader('replay.game.events', readers.GameEventsReader_15405(), lambda r: 15405 <= r.base_build < 16561)
         self.register_reader('replay.game.events', readers.GameEventsReader_16561(), lambda r: 16561 <= r.base_build < 17326)
         self.register_reader('replay.game.events', readers.GameEventsReader_17326(), lambda r: 17326 <= r.base_build < 18574)
@@ -562,7 +555,7 @@ class Replay(Resource):
         self.register_reader('replay.game.events', readers.GameEventsReader_24247(), lambda r: 24247 <= r.base_build < 26490)
         self.register_reader('replay.game.events', readers.GameEventsReader_26490(), lambda r: 26490 <= r.base_build)
         self.register_reader('replay.game.events', readers.GameEventsReader_HotSBeta(), lambda r: r.versions[1] == 2 and r.build < 24247)
-        self.register_reader('replay.tracker.events', readers.TrackerEventsReader_Base(), lambda r: True)
+
 
     def register_default_datapacks(self):
         """Registers factory default datapacks."""

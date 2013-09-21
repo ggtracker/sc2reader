@@ -12,128 +12,22 @@ from sc2reader.utils import AttributeDict, DepotFile
 from sc2reader.decoders import BitPackedDecoder, ByteDecoder
 
 
-class Reader(object):
-    def __init__(self, **options):
-        self.options = options
-
-    def __call__(self, data, replay):
-        raise NotImplementedError
-
-
-class InitDataReader_Base(Reader):
-
+class InitDataReader(object):
     def __call__(self, data, replay):
         data = BitPackedDecoder(data)
-        return dict(
-            player_init_data=[dict(
-                name=data.read_aligned_bytes(data.read_uint8()),
-                clan_tag=None,
-                highest_league=None,
-                combined_race_levels=None,
-                random_seed=data.read_uint32(),
-                race_preference=data.read_uint8() if data.read_bool() else None,
-                team_preference=None,
-                test_map=data.read_bool(),
-                test_auto=data.read_bool(),
-                examine=None,
-                custom_interface=None,
-                observe=data.read_bits(2),
-            ) for i in range(data.read_bits(5))],
-
-            game_description=dict(
-                random_value=data.read_uint32(),
-                game_cache_name=data.read_aligned_string(data.read_bits(10)),
-                game_options=dict(
-                    lock_teams=data.read_bool(),
-                    teams_together=data.read_bool(),
-                    advanced_shared_control=data.read_bool(),
-                    random_races=data.read_bool(),
-                    battle_net=data.read_bool(),
-                    amm=data.read_bool(),
-                    competitive=data.read_bool(),
-                    no_victory_or_defeat=data.read_bool(),
-                    fog=data.read_bits(2),
-                    observers=data.read_bits(2),
-                    user_difficulty=data.read_bits(2),
-                    client_debug_flags=None,
-                ),
-                game_speed=data.read_bits(3),
-                game_type=data.read_bits(3),
-                max_users=data.read_bits(5),
-                max_observers=data.read_bits(5),
-                max_players=data.read_bits(5),
-                max_teams=data.read_bits(4)+1,
-                max_colors=data.read_bits(5)+1,
-                max_races=data.read_uint8()+1,
-                max_controls=data.read_uint8()+1,
-                map_size_x=data.read_uint8(),
-                map_size_y=data.read_uint8(),
-                map_file_sync_checksum=data.read_uint32(),
-                map_file_name=data.read_aligned_string(data.read_bits(11)),
-                map_author_name=data.read_aligned_string(data.read_uint8()),
-                mod_file_sync_checksum=data.read_uint32(),
-                slot_descriptions=[dict(
-                    allowed_colors=data.read_bits(data.read_bits(6)),
-                    allowed_races=data.read_bits(data.read_uint8()),
-                    allowedDifficulty=data.read_bits(data.read_bits(6)),
-                    allowedControls=data.read_bits(data.read_uint8()),
-                    allowed_observe_types=data.read_bits(data.read_bits(2)),
-                    allowed_ai_builds=None,
-                ) for i in range(data.read_bits(5))],
-                default_difficulty=data.read_bits(6),
-                default_AI_build=None,
-                cache_handles=[DepotFile(data.read_aligned_bytes(40)) for i in range(data.read_bits(4))],
-                is_blizzardMap=data.read_bool(),
-                is_premade_ffa=data.read_bool(),
-                is_coop_mode=None,
-            ),
-
-            lobby_state=dict(
-                phase=data.read_bits(3),
-                max_users=data.read_bits(5),
-                max_observers=data.read_bits(5),
-                slots=[dict(
-                    control=data.read_uint8(),
-                    user_id=data.read_bits(4) if data.read_bool() else None,
-                    team_id=data.read_bits(4),
-                    colorPref=data.read_bits(5) if data.read_bool() else None,
-                    race_pref=data.read_uint8() if data.read_bool() else None,
-                    difficulty=data.read_bits(6),
-                    ai_build=None,
-                    handicap=data.read_bits(7),
-                    observe=data.read_bits(2),
-                    working_set_slot_id=None,
-                    rewards=[data.read_uint32() for i in range(data.read_bits(5))],
-                    toon_handle=None,
-                    licenses=[],
-                ) for i in range(data.read_bits(5))],
-                random_seed=data.read_uint32(),
-                host_user_id=data.read_bits(4) if data.read_bool() else None,
-                is_single_player=data.read_bool(),
-                game_duration=data.read_uint32(),
-                default_difficulty=data.read_bits(6),
-                default_ai_build=None,
-            ),
-        )
-
-
-class InitDataReader_16561(InitDataReader_Base):
-
-    def __call__(self, data, replay):
-        data = BitPackedDecoder(data)
-        return dict(
-            player_init_data=[dict(
+        result = dict(
+            user_initial_data=[dict(
                 name=data.read_aligned_string(data.read_uint8()),
-                clan_tag=None,
-                highest_league=None,
-                combined_race_levels=None,
+                clan_tag=data.read_aligned_string(data.read_uint8()) if replay.base_build >= 24764 and data.read_bool() else None,
+                highest_league=data.read_uint8() if replay.base_build >= 24764 and data.read_bool() else None,
+                combined_race_levels=data.read_uint32() if replay.base_build >= 24764 and data.read_bool() else None,
                 random_seed=data.read_uint32(),
                 race_preference=data.read_uint8() if data.read_bool() else None,
-                team_preference=data.read_uint8() if data.read_bool() else None,
+                team_preference=data.read_uint8() if replay.base_build >= 16561 and data.read_bool() else None,
                 test_map=data.read_bool(),
                 test_auto=data.read_bool(),
-                examine=None,
-                custom_interface=None,
+                examine=data.read_bool() if replay.base_build >= 21955 else None,
+                custom_interface=data.read_bool() if replay.base_build >= 24764 else None,
                 observe=data.read_bits(2),
             ) for i in range(data.read_bits(5))],
 
@@ -152,7 +46,7 @@ class InitDataReader_16561(InitDataReader_Base):
                     fog=data.read_bits(2),
                     observers=data.read_bits(2),
                     user_difficulty=data.read_bits(2),
-                    client_debug_flags=None,
+                    client_debug_flags=data.read_uint64() if replay.base_build >= 22612 else None,
                 ),
                 game_speed=data.read_bits(3),
                 game_type=data.read_bits(3),
@@ -160,9 +54,9 @@ class InitDataReader_16561(InitDataReader_Base):
                 max_observers=data.read_bits(5),
                 max_players=data.read_bits(5),
                 max_teams=data.read_bits(4)+1,
-                max_colors=data.read_bits(5)+1,
+                max_colors=data.read_bits(6) if replay.base_build >= 17266 else data.read_bits(5)+1,
                 max_races=data.read_uint8()+1,
-                max_controls=data.read_uint8()+1,
+                max_controls=data.read_uint8()+(0 if replay.base_build >= 26490 else 1),
                 map_size_x=data.read_uint8(),
                 map_size_y=data.read_uint8(),
                 map_file_sync_checksum=data.read_uint32(),
@@ -175,14 +69,14 @@ class InitDataReader_16561(InitDataReader_Base):
                     allowedDifficulty=data.read_bits(data.read_bits(6)),
                     allowedControls=data.read_bits(data.read_uint8()),
                     allowed_observe_types=data.read_bits(data.read_bits(2)),
-                    allowed_ai_builds=None,
+                    allowed_ai_builds=data.read_bits(data.read_bits(7)) if replay.base_build >= 23925 else None,
                 ) for i in range(data.read_bits(5))],
                 default_difficulty=data.read_bits(6),
-                default_AI_build=None,
-                cache_handles=[DepotFile(data.read_aligned_bytes(40)) for i in range(data.read_bits(4))],
+                default_ai_build=data.read_bits(7) if replay.base_build >= 23925 else None,
+                cache_handles=[DepotFile(data.read_aligned_bytes(40)) for i in range(data.read_bits(6 if replay.base_build >= 21955 else 4))],
                 is_blizzardMap=data.read_bool(),
                 is_premade_ffa=data.read_bool(),
-                is_coop_mode=None,
+                is_coop_mode=data.read_bool() if replay.base_build >= 23925 else None,
             ),
 
             lobby_state=dict(
@@ -196,552 +90,43 @@ class InitDataReader_16561(InitDataReader_Base):
                     colorPref=data.read_bits(5) if data.read_bool() else None,
                     race_pref=data.read_uint8() if data.read_bool() else None,
                     difficulty=data.read_bits(6),
-                    ai_build=None,
+                    ai_build=data.read_bits(7) if replay.base_build >= 23925 else None,
                     handicap=data.read_bits(7),
                     observe=data.read_bits(2),
-                    working_set_slot_id=None,
-                    rewards=[data.read_uint32() for i in range(data.read_bits(5))],
-                    toon_handle=None,
-                    licenses=[],
+                    working_set_slot_id=data.read_uint8() if replay.base_build >= 24764 and data.read_bool() else None,
+                    rewards=[data.read_uint32() for i in range(data.read_bits(6 if replay.base_build >= 24764 else 5))],
+                    toon_handle=data.read_aligned_string(data.read_bits(7)) if replay.base_build >= 17266 else None,
+                    licenses=[data.read_uint32() for i in range(data.read_bits(9))] if replay.base_build >= 19132 else [],
                 ) for i in range(data.read_bits(5))],
                 random_seed=data.read_uint32(),
                 host_user_id=data.read_bits(4) if data.read_bool() else None,
                 is_single_player=data.read_bool(),
                 game_duration=data.read_uint32(),
                 default_difficulty=data.read_bits(6),
-                default_ai_build=None,
+                default_ai_build=data.read_bits(7) if replay.base_build >= 23260 else None,
             ),
         )
+        if not data.done():
+            raise ValueError("{0} bytes left!".format(data.length-data.tell()))
+        return result
 
 
-class InitDataReader_17326(InitDataReader_16561):
-
+class AttributesEventsReader(object):
     def __call__(self, data, replay):
-        data = BitPackedDecoder(data)
-        return dict(
-            player_init_data=[dict(
-                name=data.read_aligned_string(data.read_uint8()),
-                clan_tag=None,
-                highest_league=None,
-                combined_race_levels=None,
-                random_seed=data.read_uint32(),
-                race_preference=data.read_uint8() if data.read_bool() else None,
-                team_preference=data.read_uint8() if data.read_bool() else None,
-                test_map=data.read_bool(),
-                test_auto=data.read_bool(),
-                examine=None,
-                custom_interface=None,
-                observe=data.read_bits(2),
-            ) for i in range(data.read_bits(5))],
-
-            game_description=dict(
-                random_value=data.read_uint32(),
-                game_cache_name=data.read_aligned_string(data.read_bits(10)),
-                game_options=dict(
-                    lock_teams=data.read_bool(),
-                    teams_together=data.read_bool(),
-                    advanced_shared_control=data.read_bool(),
-                    random_races=data.read_bool(),
-                    battle_net=data.read_bool(),
-                    amm=data.read_bool(),
-                    competitive=data.read_bool(),
-                    no_victory_or_defeat=data.read_bool(),
-                    fog=data.read_bits(2),
-                    observers=data.read_bits(2),
-                    user_difficulty=data.read_bits(2),
-                    client_debug_flags=None,
-                ),
-                game_speed=data.read_bits(3),
-                game_type=data.read_bits(3),
-                max_users=data.read_bits(5),
-                max_observers=data.read_bits(5),
-                max_players=data.read_bits(5),
-                max_teams=data.read_bits(4)+1,
-                max_colors=data.read_bits(6),
-                max_races=data.read_uint8()+1,
-                max_controls=data.read_uint8()+1,
-                map_size_x=data.read_uint8(),
-                map_size_y=data.read_uint8(),
-                map_file_sync_checksum=data.read_uint32(),
-                map_file_name=data.read_aligned_string(data.read_bits(11)),
-                map_author_name=data.read_aligned_string(data.read_uint8()),
-                mod_file_sync_checksum=data.read_uint32(),
-                slot_descriptions=[dict(
-                    allowed_colors=data.read_bits(data.read_bits(6)),
-                    allowed_races=data.read_bits(data.read_uint8()),
-                    allowedDifficulty=data.read_bits(data.read_bits(6)),
-                    allowedControls=data.read_bits(data.read_uint8()),
-                    allowed_observe_types=data.read_bits(data.read_bits(2)),
-                    allowed_ai_builds=None,
-                ) for i in range(data.read_bits(5))],
-                default_difficulty=data.read_bits(6),
-                default_AI_build=None,
-                cache_handles=[DepotFile(data.read_aligned_bytes(40)) for i in range(data.read_bits(4))],
-                is_blizzardMap=data.read_bool(),
-                is_premade_ffa=data.read_bool(),
-                is_coop_mode=None,
-            ),
-
-            lobby_state=dict(
-                phase=data.read_bits(3),
-                max_users=data.read_bits(5),
-                max_observers=data.read_bits(5),
-                slots=[dict(
-                    control=data.read_uint8(),
-                    user_id=data.read_bits(4) if data.read_bool() else None,
-                    team_id=data.read_bits(4),
-                    colorPref=data.read_bits(5) if data.read_bool() else None,
-                    race_pref=data.read_uint8() if data.read_bool() else None,
-                    difficulty=data.read_bits(6),
-                    ai_build=None,
-                    handicap=data.read_bits(7),
-                    observe=data.read_bits(2),
-                    working_set_slot_id=None,
-                    rewards=[data.read_uint32() for i in range(data.read_bits(5))],
-                    toon_handle=data.read_aligned_string(data.read_bits(7)),
-                    licenses=[],
-                ) for i in range(data.read_bits(5))],
-                random_seed=data.read_uint32(),
-                host_user_id=data.read_bits(4) if data.read_bool() else None,
-                is_single_player=data.read_bool(),
-                game_duration=data.read_uint32(),
-                default_difficulty=data.read_bits(6),
-                default_ai_build=None,
-            ),
-        )
-
-
-class InitDataReader_19132(InitDataReader_17326):
-
-    def __call__(self, data, replay):
-        data = BitPackedDecoder(data)
-        return dict(
-            player_init_data=[dict(
-                name=data.read_aligned_string(data.read_uint8()),
-                clan_tag=None,
-                highest_league=None,
-                combined_race_levels=None,
-                random_seed=data.read_uint32(),
-                race_preference=data.read_uint8() if data.read_bool() else None,
-                team_preference=data.read_uint8() if data.read_bool() else None,
-                test_map=data.read_bool(),
-                test_auto=data.read_bool(),
-                examine=None,
-                custom_interface=None,
-                observe=data.read_bits(2),
-            ) for i in range(data.read_bits(5))],
-
-            game_description=dict(
-                random_value=data.read_uint32(),
-                game_cache_name=data.read_aligned_string(data.read_bits(10)),
-                game_options=dict(
-                    lock_teams=data.read_bool(),
-                    teams_together=data.read_bool(),
-                    advanced_shared_control=data.read_bool(),
-                    random_races=data.read_bool(),
-                    battle_net=data.read_bool(),
-                    amm=data.read_bool(),
-                    competitive=data.read_bool(),
-                    no_victory_or_defeat=data.read_bool(),
-                    fog=data.read_bits(2),
-                    observers=data.read_bits(2),
-                    user_difficulty=data.read_bits(2),
-                    client_debug_flags=None,
-                ),
-                game_speed=data.read_bits(3),
-                game_type=data.read_bits(3),
-                max_users=data.read_bits(5),
-                max_observers=data.read_bits(5),
-                max_players=data.read_bits(5),
-                max_teams=data.read_bits(4)+1,
-                max_colors=data.read_bits(6),
-                max_races=data.read_uint8()+1,
-                max_controls=data.read_uint8()+1,
-                map_size_x=data.read_uint8(),
-                map_size_y=data.read_uint8(),
-                map_file_sync_checksum=data.read_uint32(),
-                map_file_name=data.read_aligned_string(data.read_bits(11)),
-                map_author_name=data.read_aligned_string(data.read_uint8()),
-                mod_file_sync_checksum=data.read_uint32(),
-                slot_descriptions=[dict(
-                    allowed_colors=data.read_bits(data.read_bits(6)),
-                    allowed_races=data.read_bits(data.read_uint8()),
-                    allowedDifficulty=data.read_bits(data.read_bits(6)),
-                    allowedControls=data.read_bits(data.read_uint8()),
-                    allowed_observe_types=data.read_bits(data.read_bits(2)),
-                    allowed_ai_builds=None,
-                ) for i in range(data.read_bits(5))],
-                default_difficulty=data.read_bits(6),
-                default_AI_build=None,
-                cache_handles=[DepotFile(data.read_aligned_bytes(40)) for i in range(data.read_bits(4))],
-                is_blizzardMap=data.read_bool(),
-                is_premade_ffa=data.read_bool(),
-                is_coop_mode=None,
-            ),
-
-            lobby_state=dict(
-                phase=data.read_bits(3),
-                max_users=data.read_bits(5),
-                max_observers=data.read_bits(5),
-                slots=[dict(
-                    control=data.read_uint8(),
-                    user_id=data.read_bits(4) if data.read_bool() else None,
-                    team_id=data.read_bits(4),
-                    colorPref=data.read_bits(5) if data.read_bool() else None,
-                    race_pref=data.read_uint8() if data.read_bool() else None,
-                    difficulty=data.read_bits(6),
-                    ai_build=None,
-                    handicap=data.read_bits(7),
-                    observe=data.read_bits(2),
-                    working_set_slot_id=None,
-                    rewards=[data.read_uint32() for i in range(data.read_bits(5))],
-                    toon_handle=data.read_aligned_string(data.read_bits(7)),
-                    licenses=[data.read_uint32() for i in range(data.read_bits(9))],
-                ) for i in range(data.read_bits(5))],
-                random_seed=data.read_uint32(),
-                host_user_id=data.read_bits(4) if data.read_bool() else None,
-                is_single_player=data.read_bool(),
-                game_duration=data.read_uint32(),
-                default_difficulty=data.read_bits(6),
-                default_ai_build=None,
-            ),
-        )
-
-
-class InitDataReader_22612(InitDataReader_19132):
-
-    def __call__(self, data, replay):
-        data = BitPackedDecoder(data)
-        return dict(
-            player_init_data=[dict(
-                name=data.read_aligned_string(data.read_uint8()),
-                clan_tag=None,
-                highest_league=None,
-                combined_race_levels=None,
-                random_seed=data.read_uint32(),
-                race_preference=data.read_uint8() if data.read_bool() else None,
-                team_preference=data.read_uint8() if data.read_bool() else None,
-                test_map=data.read_bool(),
-                test_auto=data.read_bool(),
-                examine=data.read_bool(),
-                custom_interface=None,
-                observe=data.read_bits(2),
-            ) for i in range(data.read_bits(5))],
-
-            game_description=dict(
-                random_value=data.read_uint32(),
-                game_cache_name=data.read_aligned_string(data.read_bits(10)),
-                game_options=dict(
-                    lock_teams=data.read_bool(),
-                    teams_together=data.read_bool(),
-                    advanced_shared_control=data.read_bool(),
-                    random_races=data.read_bool(),
-                    battle_net=data.read_bool(),
-                    amm=data.read_bool(),
-                    competitive=data.read_bool(),
-                    no_victory_or_defeat=data.read_bool(),
-                    fog=data.read_bits(2),
-                    observers=data.read_bits(2),
-                    user_difficulty=data.read_bits(2),
-                    client_debug_flags=data.read_uint64(),
-                ),
-                game_speed=data.read_bits(3),
-                game_type=data.read_bits(3),
-                max_users=data.read_bits(5),
-                max_observers=data.read_bits(5),
-                max_players=data.read_bits(5),
-                max_teams=data.read_bits(4)+1,
-                max_colors=data.read_bits(6),
-                max_races=data.read_uint8()+1,
-                max_controls=data.read_uint8()+1,
-                map_size_x=data.read_uint8(),
-                map_size_y=data.read_uint8(),
-                map_file_sync_checksum=data.read_uint32(),
-                map_file_name=data.read_aligned_string(data.read_bits(11)),
-                map_author_name=data.read_aligned_string(data.read_uint8()),
-                mod_file_sync_checksum=data.read_uint32(),
-                slot_descriptions=[dict(
-                    allowed_colors=data.read_bits(data.read_bits(6)),
-                    allowed_races=data.read_bits(data.read_uint8()),
-                    allowedDifficulty=data.read_bits(data.read_bits(6)),
-                    allowedControls=data.read_bits(data.read_uint8()),
-                    allowed_observe_types=data.read_bits(data.read_bits(2)),
-                    allowed_ai_builds=None,
-                ) for i in range(data.read_bits(5))],
-                default_difficulty=data.read_bits(6),
-                default_AI_build=None,
-                cache_handles=[DepotFile(data.read_aligned_bytes(40)) for i in range(data.read_bits(6))],
-                is_blizzardMap=data.read_bool(),
-                is_premade_ffa=data.read_bool(),
-                is_coop_mode=None,
-            ),
-
-            lobby_state=dict(
-                phase=data.read_bits(3),
-                max_users=data.read_bits(5),
-                max_observers=data.read_bits(5),
-                slots=[dict(
-                    control=data.read_uint8(),
-                    user_id=data.read_bits(4) if data.read_bool() else None,
-                    team_id=data.read_bits(4),
-                    colorPref=data.read_bits(5) if data.read_bool() else None,
-                    race_pref=data.read_uint8() if data.read_bool() else None,
-                    difficulty=data.read_bits(6),
-                    ai_build=None,
-                    handicap=data.read_bits(7),
-                    observe=data.read_bits(2),
-                    working_set_slot_id=None,
-                    rewards=[data.read_uint32() for i in range(data.read_bits(5))],
-                    toon_handle=data.read_aligned_string(data.read_bits(7)),
-                    licenses=[data.read_uint32() for i in range(data.read_bits(9))],
-                ) for i in range(data.read_bits(5))],
-                random_seed=data.read_uint32(),
-                host_user_id=data.read_bits(4) if data.read_bool() else None,
-                is_single_player=data.read_bool(),
-                game_duration=data.read_uint32(),
-                default_difficulty=data.read_bits(6),
-                default_ai_build=None,
-            ),
-        )
-
-
-class InitDataReader_23925(InitDataReader_22612):
-
-    def __call__(self, data, replay):
-        data = BitPackedDecoder(data)
-        return dict(
-            player_init_data=[dict(
-                name=data.read_aligned_string(data.read_uint8()),
-                clan_tag=None,
-                highest_league=None,
-                combined_race_levels=None,
-                random_seed=data.read_uint32(),
-                race_preference=data.read_uint8() if data.read_bool() else None,
-                team_preference=data.read_uint8() if data.read_bool() else None,
-                test_map=data.read_bool(),
-                test_auto=data.read_bool(),
-                examine=data.read_bool(),
-                custom_interface=None,
-                observe=data.read_bits(2),
-            ) for i in range(data.read_bits(5))],
-
-            game_description=dict(
-                random_value=data.read_uint32(),
-                game_cache_name=data.read_aligned_string(data.read_bits(10)),
-                game_options=dict(
-                    lock_teams=data.read_bool(),
-                    teams_together=data.read_bool(),
-                    advanced_shared_control=data.read_bool(),
-                    random_races=data.read_bool(),
-                    battle_net=data.read_bool(),
-                    amm=data.read_bool(),
-                    competitive=data.read_bool(),
-                    no_victory_or_defeat=data.read_bool(),
-                    fog=data.read_bits(2),
-                    observers=data.read_bits(2),
-                    user_difficulty=data.read_bits(2),
-                    client_debug_flags=data.read_uint64(),
-                ),
-                game_speed=data.read_bits(3),
-                game_type=data.read_bits(3),
-                max_users=data.read_bits(5),
-                max_observers=data.read_bits(5),
-                max_players=data.read_bits(5),
-                max_teams=data.read_bits(4)+1,
-                max_colors=data.read_bits(6),
-                max_races=data.read_uint8()+1,
-                max_controls=data.read_uint8()+1,
-                map_size_x=data.read_uint8(),
-                map_size_y=data.read_uint8(),
-                map_file_sync_checksum=data.read_uint32(),
-                map_file_name=data.read_aligned_string(data.read_bits(11)),
-                map_author_name=data.read_aligned_string(data.read_uint8()),
-                mod_file_sync_checksum=data.read_uint32(),
-                slot_descriptions=[dict(
-                    allowed_colors=data.read_bits(data.read_bits(6)),
-                    allowed_races=data.read_bits(data.read_uint8()),
-                    allowedDifficulty=data.read_bits(data.read_bits(6)),
-                    allowedControls=data.read_bits(data.read_uint8()),
-                    allowed_observe_types=data.read_bits(data.read_bits(2)),
-                    allowed_ai_builds=data.read_bits(data.read_bits(7)),
-                ) for i in range(data.read_bits(5))],
-                default_difficulty=data.read_bits(6),
-                default_AI_build=data.read_bits(7),
-                cache_handles=[DepotFile(data.read_aligned_bytes(40)) for i in range(data.read_bits(6))],
-                is_blizzardMap=data.read_bool(),
-                is_premade_ffa=data.read_bool(),
-                is_coop_mode=data.read_bool(),
-            ),
-
-            lobby_state=dict(
-                phase=data.read_bits(3),
-                max_users=data.read_bits(5),
-                max_observers=data.read_bits(5),
-                slots=[dict(
-                    control=data.read_uint8(),
-                    user_id=data.read_bits(4) if data.read_bool() else None,
-                    team_id=data.read_bits(4),
-                    colorPref=data.read_bits(5) if data.read_bool() else None,
-                    race_pref=data.read_uint8() if data.read_bool() else None,
-                    difficulty=data.read_bits(6),
-                    ai_build=data.read_bits(7),
-                    handicap=data.read_bits(7),
-                    observe=data.read_bits(2),
-                    working_set_slot_id=None,
-                    rewards=[data.read_uint32() for i in range(data.read_bits(5))],
-                    toon_handle=data.read_aligned_string(data.read_bits(7)),
-                    licenses=[data.read_uint32() for i in range(data.read_bits(9))],
-                ) for i in range(data.read_bits(5))],
-                random_seed=data.read_uint32(),
-                host_user_id=data.read_bits(4) if data.read_bool() else None,
-                is_single_player=data.read_bool(),
-                game_duration=data.read_uint32(),
-                default_difficulty=data.read_bits(6),
-                default_ai_build=data.read_bits(7),
-            ),
-        )
-
-
-class InitDataReader_24764(InitDataReader_22612):
-
-    def __call__(self, data, replay):
-        data = BitPackedDecoder(data)
-        return dict(
-            player_init_data=[dict(
-                name=data.read_aligned_string(data.read_uint8()),
-                clan_tag=data.read_aligned_string(data.read_uint8()) if data.read_bool() else None,
-                highest_league=data.read_uint8() if data.read_bool() else None,
-                combined_race_levels=data.read_uint32() if data.read_bool() else None,
-                random_seed=data.read_uint32(),
-                race_preference=data.read_uint8() if data.read_bool() else None,
-                team_preference=data.read_uint8() if data.read_bool() else None,
-                test_map=data.read_bool(),
-                test_auto=data.read_bool(),
-                examine=data.read_bool(),
-                custom_interface=data.read_bool(),
-                observe=data.read_bits(2),
-            ) for i in range(data.read_bits(5))],
-
-            game_description=dict(
-                random_value=data.read_uint32(),
-                game_cache_name=data.read_aligned_string(data.read_bits(10)),
-                game_options=dict(
-                    lock_teams=data.read_bool(),
-                    teams_together=data.read_bool(),
-                    advanced_shared_control=data.read_bool(),
-                    random_races=data.read_bool(),
-                    battle_net=data.read_bool(),
-                    amm=data.read_bool(),
-                    competitive=data.read_bool(),
-                    no_victory_or_defeat=data.read_bool(),
-                    fog=data.read_bits(2),
-                    observers=data.read_bits(2),
-                    user_difficulty=data.read_bits(2),
-                    client_debug_flags=data.read_uint64(),
-                ),
-                game_speed=data.read_bits(3),
-                game_type=data.read_bits(3),
-                max_users=data.read_bits(5),
-                max_observers=data.read_bits(5),
-                max_players=data.read_bits(5),
-                max_teams=data.read_bits(4)+1,
-                max_colors=data.read_bits(6),
-                max_races=data.read_uint8()+1,
-                max_controls=data.read_uint8()+1,
-                map_size_x=data.read_uint8(),
-                map_size_y=data.read_uint8(),
-                map_file_sync_checksum=data.read_uint32(),
-                map_file_name=data.read_aligned_string(data.read_bits(11)),
-                map_author_name=data.read_aligned_string(data.read_uint8()),
-                mod_file_sync_checksum=data.read_uint32(),
-                slot_descriptions=[dict(
-                    allowed_colors=data.read_bits(data.read_bits(6)),
-                    allowed_races=data.read_bits(data.read_uint8()),
-                    allowedDifficulty=data.read_bits(data.read_bits(6)),
-                    allowedControls=data.read_bits(data.read_uint8()),
-                    allowed_observe_types=data.read_bits(data.read_bits(2)),
-                    allowed_ai_builds=data.read_bits(data.read_bits(7)),
-                ) for i in range(data.read_bits(5))],
-                default_difficulty=data.read_bits(6),
-                default_AI_build=data.read_bits(7),
-                cache_handles=[DepotFile(data.read_aligned_bytes(40)) for i in range(data.read_bits(6))],
-                is_blizzardMap=data.read_bool(),
-                is_premade_ffa=data.read_bool(),
-                is_coop_mode=data.read_bool(),
-            ),
-
-            lobby_state=dict(
-                phase=data.read_bits(3),
-                max_users=data.read_bits(5),
-                max_observers=data.read_bits(5),
-                slots=[dict(
-                    control=data.read_uint8(),
-                    user_id=data.read_bits(4) if data.read_bool() else None,
-                    team_id=data.read_bits(4),
-                    colorPref=data.read_bits(5) if data.read_bool() else None,
-                    race_pref=data.read_uint8() if data.read_bool() else None,
-                    difficulty=data.read_bits(6),
-                    ai_build=data.read_bits(7),
-                    handicap=data.read_bits(7),
-                    observe=data.read_bits(2),
-                    working_set_slot_id=data.read_uint8() if data.read_bool() else None,
-                    rewards=[data.read_uint32() for i in range(data.read_bits(6))],
-                    toon_handle=data.read_aligned_string(data.read_bits(7)),
-                    licenses=[data.read_uint32() for i in range(data.read_bits(9))],
-                ) for i in range(data.read_bits(5))],
-                random_seed=data.read_uint32(),
-                host_user_id=data.read_bits(4) if data.read_bool() else None,
-                is_single_player=data.read_bool(),
-                game_duration=data.read_uint32(),
-                default_difficulty=data.read_bits(6),
-                default_ai_build=data.read_bits(7),
-            ),
-        )
-
-
-class InitDataReader_26490(InitDataReader_24764):
-
-    def __call__(self, data, replay):
-        data = super(InitDataReader_26490, self).__call__(data, replay)
-        data['game_description']['max_controls'] -= 1
-        return data
-
-
-class AttributesEventsReader_Base(Reader):
-    header_length = 4
-    offset = False
-
-    def __call__(self, data, replay):
-        # The replay.attribute.events file is comprised of a small header and
-        # single long list of attributes with the 0x00 00 03 E7 header on each
-        # element. Each element holds a four byte attribute id code, a one byte
-        # player id, and a four byte value code. Unlike the other files, this
-        # file is stored in little endian format.
-        #
-        # See: ``objects.Attribute`` for attribute id and value lookup logic
-        #
         data = ByteDecoder(data, endian='LITTLE')
-        attribute_events = list()
-        data.read_bytes(self.header_length)
-        for attribute in range(data.read_uint32()):
-            info = [
-                data.read_uint32(),
-                data.read_uint32(),
-                data.read_uint8(),
-                ''.join(reversed(data.read_string(4))),
-            ]
-            attribute_events.append(Attribute(*info))
-
-        return attribute_events
+        data.read_bytes(5 if replay.base_build >= 17326 else 4)
+        result = [Attribute(
+            data.read_uint32(),
+            data.read_uint32(),
+            data.read_uint8(),
+            ''.join(reversed(data.read_string(4))),
+        ) for i in range(data.read_uint32())]
+        if not data.done():
+            raise ValueError("Not all bytes used up!")
+        return result
 
 
-class AttributesEventsReader_17326(AttributesEventsReader_Base):
-    # The header length is increased from 4 to 5 bytes from patch 17326 and on.
-    header_length = 5
-
-
-class DetailsReader(Reader):
-
+class DetailsReader(object):
     def __call__(self, data, replay):
         details = BitPackedDecoder(data).read_struct()
         return dict(
@@ -787,13 +172,8 @@ class DetailsReader(Reader):
         )
 
 
-class MessageEventsReader_Base(Reader):
-    TARGET_BITS = 3
-
+class MessageEventsReader(object):
     def __call__(self, data, replay):
-        # The replay.message.events file is a single long list containing three
-        # different element types (minimap pings, player messages, and some sort
-        # of network packets); each differentiated by flags.
         data = BitPackedDecoder(data)
         pings = list()
         messages = list()
@@ -801,39 +181,33 @@ class MessageEventsReader_Base(Reader):
 
         frame = 0
         while not data.done():
-            # All the element types share the same time, pid, flags header.
             frame += data.read_frames()
             pid = data.read_bits(5)
-            t = data.read_bits(3)
-            flags = data.read_uint8()
+            flag = data.read_bits(4)
+            if flag == 0:  # Client chat message
+                recipient = data.read_bits(3 if replay.base_build >= 21955 else 2)
+                text = data.read_aligned_string(data.read_bits(11))
+                messages.append(ChatEvent(frame, pid, recipient, text))
 
-            if flags in (0x83, 0x89):
-                # We need some tests for this, probably not right
-                x = data.read_uint32()
-                y = data.read_uint32()
-                pings.append(PingEvent(frame, pid, flags, x, y))
+            elif flag == 1:  # Client ping message
+                recipient = data.read_bits(3 if replay.base_build >= 21955 else 2)
+                x = data.read_uint32()-2147483648
+                y = data.read_uint32()-2147483648
+                pings.append(PingEvent(frame, pid, recipient, x, y))
 
-            elif flags == 0x80:
-                info = data.read_bytes(4)
-                packets.append(PacketEvent(frame, pid, flags, info))
+            elif flag == 2:  # Loading progress message
+                progress = data.read_uint32()-2147483648
+                packets.append(PacketEvent(frame, pid, progress))
 
-            elif flags & 0x80 == 0:
-                lo_mask = 2**self.TARGET_BITS-1
-                hi_mask = 0xFF ^ lo_mask
-                target = flags & lo_mask
-                extension = (flags & hi_mask) << 3
-                length = data.read_uint8()
-                text = data.read_aligned_string(length + extension)
-                messages.append(ChatEvent(frame, pid, flags, target, text, (flags, lo_mask, hi_mask, length, extension)))
+            elif flag == 3:  # Server ping message
+                pass
+
+            data.byte_align()
 
         return AttributeDict(pings=pings, messages=messages, packets=packets)
 
 
-class MessageEventsReader_Beta_24247(MessageEventsReader_Base):
-    TARGET_BITS = 4
-
-
-class GameEventsReader_Base(Reader):
+class GameEventsReader_Base(object):
 
     def __init__(self):
         self.EVENT_DISPATCH = {
@@ -2056,7 +1430,7 @@ class GameEventsReader_26490(GameEventsReader_24247):
         )
 
 
-class TrackerEventsReader_Base(Reader):
+class TrackerEventsReader(object):
 
     def __init__(self):
         self.EVENT_DISPATCH = {
@@ -2077,9 +1451,9 @@ class TrackerEventsReader_Base(Reader):
         frames = 0
         events = list()
         while not decoder.done():
-            decoder._buffer.read(3) # 03 00 09
+            decoder._buffer.read(3)  # 03 00 09
             frames += decoder.read_vint()
-            decoder._buffer.read(1) # 09
+            decoder._buffer.read(1)  # 09
             etype = decoder.read_vint()
             event_data = decoder.read_struct()
             event = self.EVENT_DISPATCH[etype](frames, event_data, replay.build)

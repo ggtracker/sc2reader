@@ -10,11 +10,10 @@ from sc2reader.log_utils import loggable
 class MessageEvent(Event):
     name = 'MessageEvent'
 
-    def __init__(self, frame, pid, flags):
+    def __init__(self, frame, pid):
         self.pid = pid
         self.frame = frame
         self.second = frame >> 4
-        self.flags = flags
 
     def _str_prefix(self):
         player_name = self.player.name if getattr(self, 'pid', 16) != 16 else "Global"
@@ -28,10 +27,9 @@ class MessageEvent(Event):
 class ChatEvent(MessageEvent):
     name = 'ChatEvent'
 
-    def __init__(self, frame, pid, flags, target, text, extension):
-        super(ChatEvent, self).__init__(frame, pid, flags)
+    def __init__(self, frame, pid, target, text):
+        super(ChatEvent, self).__init__(frame, pid)
         self.target = target
-        self.extension = extension
         self.text = text
         self.to_all = (self.target == 0)
         self.to_allies = (self.target == 2)
@@ -42,8 +40,8 @@ class ChatEvent(MessageEvent):
 class PacketEvent(MessageEvent):
     name = 'PacketEvent'
 
-    def __init__(self, frame, pid, flags, info):
-        super(PacketEvent, self).__init__(frame, pid, flags)
+    def __init__(self, frame, pid, info):
+        super(PacketEvent, self).__init__(frame, pid)
         self.info = info
 
 
@@ -51,6 +49,7 @@ class PacketEvent(MessageEvent):
 class PingEvent(MessageEvent):
     name = 'PingEvent'
 
-    def __init__(self, frame, pid, flags, x, y):
-        super(PingEvent, self).__init__(frame, pid, flags)
+    def __init__(self, frame, pid, target, x, y):
+        super(PingEvent, self).__init__(frame, pid)
+        self.target = target
         self.x, self.y = x, y
