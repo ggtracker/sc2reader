@@ -184,6 +184,16 @@ class Replay(Resource):
     #: SC2 Expansion. One of 'WoL', 'HotS'
     expasion = str()
 
+    #: True of the game was resumed from a replay
+    resume_from_replay = False
+
+    #: A flag marking which method was used to resume from replay. Unknown interpretation.
+    resume_method = None
+
+    #: Lists info for each user that is resuming from replay.
+    resume_user_info = None
+
+
     def __init__(self, replay_file, filename=None, load_level=4, engine=sc2reader.engine, **options):
         super(Replay, self).__init__(replay_file, filename, **options)
         self.datapack = None

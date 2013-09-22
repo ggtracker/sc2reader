@@ -99,6 +99,11 @@ class ContextLoader(object):
         event.sender = event.player
         event.recipient = replay.players[event.recipient_id]
 
+    def handleHijackReplayGameEvent(self, event, replay):
+        replay.resume_from_replay = True
+        replay.resume_method = event.method
+        replay.resume_user_info = event.user_infos
+
     def handlePlayerStatsEvent(self, event, replay):
         self.load_tracker_player(event, replay)
 

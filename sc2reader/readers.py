@@ -1326,7 +1326,7 @@ class GameEventsReader_24247(GameEventsReader_HotSBeta):
             21: (None, self.save_game_event),                     # New
             22: (None, self.save_game_done_event),                # Override
             23: (None, self.load_game_done_event),                # Override
-            43: (None, self.hijack_replay_game_event),            # New
+            43: (HijackReplayGameEvent, self.hijack_replay_game_event),  # New
             62: (None, self.trigger_target_mode_update_event),    # New
             101: (PlayerLeaveEvent, self.game_user_leave_event),  # New
             102: (None, self.game_user_join_event),               # New
@@ -1356,7 +1356,7 @@ class GameEventsReader_24247(GameEventsReader_HotSBeta):
     def hijack_replay_game_event(self, data):
         return dict(
             user_infos=[dict(
-                game_unit_id=data.read_bits(4),
+                game_user_id=data.read_bits(4),
                 observe=data.read_bits(2),
                 name=data.read_aligned_string(data.read_uint8()),
                 toon_handle=data.read_aligned_string(data.read_bits(7)) if data.read_bool() else None,

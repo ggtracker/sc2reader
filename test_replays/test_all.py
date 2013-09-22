@@ -227,6 +227,8 @@ class TestReplays(unittest.TestCase):
 
     def test_resume_from_replay(self):
         replay = sc2reader.load_replay("test_replays/2.0.3.24764/resume_from_replay.SC2Replay")
+        self.assertTrue(replay.resume_from_replay)
+        self.assertEqual(replay.resume_method, 0)
 
     def test_clan_players(self):
         replay = sc2reader.load_replay("test_replays/2.0.4.24944/Lunar Colony V.SC2Replay")

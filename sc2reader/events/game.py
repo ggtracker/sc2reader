@@ -581,3 +581,17 @@ class ResourceRequestCancelEvent(GameEvent):
 
         #: The id of the request being cancelled
         self.request_id = data['request_id']
+
+
+class HijackReplayGameEvent(GameEvent):
+    """
+    Generated when players take over from a replay.
+    """
+    def __init__(self, frame, pid, data):
+        super(HijackReplayGameEvent, self).__init__(frame, pid)
+
+        #: The method used. Not sure what 0/1 represent
+        self.method = data['method']
+
+        #: Information on the users hijacking the game
+        self.user_infos = data['user_infos']

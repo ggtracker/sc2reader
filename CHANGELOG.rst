@@ -4,6 +4,7 @@ CHANGELOG
 0.7.0 -
 ---------------------------
 
+* Added replay.resume_from_replay flag. See replay.resume_user_info for additional info.
 * PacketEvent is now ProgressEvent.
 * SetToHotkeyEvent is now SetControlGroupEvent.
 * AddToHotkeyEvent is now AddToControlGroupEvent.
