@@ -7,7 +7,7 @@ from collections import defaultdict
 class APMTracker(object):
     """
     Builds ``player.aps`` and ``player.apm`` dictionaries where an action is
-    any Selection, Hotkey, or Ability event.
+    any Selection, ControlGroup, or Ability event.
 
     Also provides ``player.avg_apm`` which is defined as the sum of all the
     above actions divided by the number of seconds played by the player (not
@@ -23,7 +23,15 @@ class APMTracker(object):
             human.aps = defaultdict(int)
             human.seconds_played = replay.length.seconds
 
-    def handlePlayerActionEvent(self, event, replay):
+    def handleControlGroupEvent(self, event, replay):
+        event.player.aps[event.second] += 1
+        event.player.apm[int(event.second/60)] += 1
+
+    def handleSelectionEvent(self, event, replay):
+        event.player.aps[event.second] += 1
+        event.player.apm[int(event.second/60)] += 1
+
+    def handleAbilityEvent(self, event, replay):
         event.player.aps[event.second] += 1
         event.player.apm[int(event.second/60)] += 1
 

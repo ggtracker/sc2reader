@@ -197,7 +197,7 @@ class MessageEventsReader(object):
 
             elif flag == 2:  # Loading progress message
                 progress = data.read_uint32()-2147483648
-                packets.append(PacketEvent(frame, pid, progress))
+                packets.append(ProgressEvent(frame, pid, progress))
 
             elif flag == 3:  # Server ping message
                 pass

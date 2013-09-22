@@ -106,7 +106,7 @@ def APMTracker(replay):
         player.seconds_played = replay.length.seconds
 
         for event in player.events:
-            if event.name == 'SelectionEvent' or 'AbilityEvent' in event.name or 'Hotkey' in event.name:
+            if event.name == 'SelectionEvent' or 'AbilityEvent' in event.name or 'ControlGroup' in event.name:
                 player.aps[event.second] += 1
                 player.apm[int(event.second/60)] += 1
 

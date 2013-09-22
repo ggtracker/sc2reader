@@ -8,12 +8,16 @@ from sc2reader.log_utils import loggable
 
 @loggable
 class MessageEvent(Event):
-    name = 'MessageEvent'
-
+    """
+        Parent class for all message events.
+    """
     def __init__(self, frame, pid):
         self.pid = pid
         self.frame = frame
         self.second = frame >> 4
+
+        #: Short cut string for event class name
+        self.name = self.__class__.__name__
 
     def _str_prefix(self):
         player_name = self.player.name if getattr(self, 'pid', 16) != 16 else "Global"
@@ -25,8 +29,9 @@ class MessageEvent(Event):
 
 @loggable
 class ChatEvent(MessageEvent):
-    name = 'ChatEvent'
-
+    """
+        Records in-game chat events.
+    """
     def __init__(self, frame, pid, target, text):
         super(ChatEvent, self).__init__(frame, pid)
         self.target = target
@@ -37,18 +42,22 @@ class ChatEvent(MessageEvent):
 
 
 @loggable
-class PacketEvent(MessageEvent):
-    name = 'PacketEvent'
+class ProgressEvent(MessageEvent):
+    """
+        Sent during the load screen to update load process for other clients.
+    """
+    def __init__(self, frame, pid, progress):
+        super(ProgressEvent, self).__init__(frame, pid)
 
-    def __init__(self, frame, pid, info):
-        super(PacketEvent, self).__init__(frame, pid)
-        self.info = info
+        #: Marks the load progress for the player. Scaled 0-100.
+        self.progress = progress
 
 
 @loggable
 class PingEvent(MessageEvent):
-    name = 'PingEvent'
-
+    """
+        Records pings made by players in game.
+    """
     def __init__(self, frame, pid, target, x, y):
         super(PingEvent, self).__init__(frame, pid)
         self.target = target

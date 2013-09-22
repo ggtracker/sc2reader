@@ -15,6 +15,9 @@ class TrackerEvent(Event):
         self.frame = frames
         self.second = frames >> 4
 
+        #: Short cut string for event class name
+        self.name = self.__class__.__name__
+
     def load_context(self, replay):
         pass
 
@@ -39,9 +42,6 @@ class PlayerStatsEvent(TrackerEvent):
         events generated at the end of the game. One for leaving and one for
         the  end of the game.
     """
-
-    name = 'PlayerStatsEvent'
-
     def __init__(self, frames, data, build):
         super(PlayerStatsEvent, self).__init__(frames)
 
@@ -223,9 +223,6 @@ class UnitBornEvent(TrackerEvent):
     it are the :class:`~sc2reader.event.game.AbilityEvent` game events where the ability
     is a train unit command.
     """
-
-    name = 'UnitBornEvent'
-
     def __init__(self, frames, data, build):
         super(UnitBornEvent, self).__init__(frames)
 
@@ -274,9 +271,6 @@ class UnitDiedEvent(TrackerEvent):
     Generated when a unit dies or is removed from the game for any reason. Reasons include
     morphing, merging, and getting killed.
     """
-
-    name = 'UnitDiedEvent'
-
     def __init__(self, frames, data, build):
         super(UnitDiedEvent, self).__init__(frames)
 
@@ -312,8 +306,10 @@ class UnitDiedEvent(TrackerEvent):
 
 
 class UnitOwnerChangeEvent(TrackerEvent):
-    name = 'UnitOwnerChangeEvent'
-
+    """
+    Generated when either ownership or control of a unit is changed. Neural Parasite is an example
+    of an action that would generate this event.
+    """
     def __init__(self, frames, data, build):
         super(UnitOwnerChangeEvent, self).__init__(frames)
 
@@ -346,8 +342,11 @@ class UnitOwnerChangeEvent(TrackerEvent):
 
 
 class UnitTypeChangeEvent(TrackerEvent):
-    name = 'UnitTypeChangeEvent'
-
+    """
+    Generated when the unit's type changes. This generally tracks upgrades to buildings (Hatch,
+    Lair, Hive) and mode switches (Sieging Tanks, Phasing prisms, Burrowing roaches). There may
+    be some other situations where a unit transformation is a type change and not a new unit.
+    """
     def __init__(self, frames, data, build):
         super(UnitTypeChangeEvent, self).__init__(frames)
 
@@ -371,8 +370,9 @@ class UnitTypeChangeEvent(TrackerEvent):
 
 
 class UpgradeCompleteEvent(TrackerEvent):
-    name = 'UpgradeCompleteEvent'
-
+    """
+    Generated when a player completes an upgrade.
+    """
     def __init__(self, frames, data, build):
         super(UpgradeCompleteEvent, self).__init__(frames)
 
@@ -399,9 +399,6 @@ class UnitInitEvent(TrackerEvent):
     in game before they are finished. Primary examples being buildings and
     warp-in units.
     """
-
-    name = 'UnitInitEvent'
-
     def __init__(self, frames, data, build):
         super(UnitInitEvent, self).__init__(frames)
 
@@ -451,9 +448,6 @@ class UnitDoneEvent(TrackerEvent):
     when an initiated unit is completed. E.g. warp-in finished, building finished,
     morph complete.
     """
-
-    name = 'UnitDoneEvent'
-
     def __init__(self, frames, data, build):
         super(UnitDoneEvent, self).__init__(frames)
 
@@ -474,8 +468,11 @@ class UnitDoneEvent(TrackerEvent):
 
 
 class UnitPositionsEvent(TrackerEvent):
-    name = 'UnitPositionsEvent'
-
+    """
+    Generated every 15 seconds. Marks the positions of the first 255 units that were damaged in
+    the last interval. If more than 255 units were damaged, then the first 255 are reported and
+    the remaining units are carried into the next interval.
+    """
     def __init__(self, frames, data, build):
         super(UnitPositionsEvent, self).__init__(frames)
 

@@ -1,11 +1,23 @@
 CHANGELOG
 ============
 
+0.7.0 -
+---------------------------
+
+* PacketEvent is now ProgressEvent.
+* SetToHotkeyEvent is now SetControlGroupEvent.
+* AddToHotkeyEvent is now AddToControlGroupEvent.
+* GetFromHotkeyEvent is now GetControlGroupEvent.
+* PlayerAbilityEvent is no longer part of the event hierarchy.
+* event.name is no longer a class property; it can only be accessed from an event instance.
+
+
+
 0.6.4 - September 22nd 2013
 ---------------------------
 
 * Fix bug in code for logging errors.
-* Fix siege tank supply count
+* Fix siege tank supply count.
 * Small improvements to message.events parsing.
 
 0.6.3 - September 15th 2013
