@@ -11,8 +11,13 @@ class MessageEvent(Event):
     name = 'MessageEvent'
 
     def __init__(self, frame, pid):
+        #: The user id (or player id for older replays) of the person that generated the event.
         self.pid = pid
+
+        #: The frame of the game this event was applied
         self.frame = frame
+
+        #: The second of the game (game time not real time) this event was applied
         self.second = frame >> 4
 
     def _str_prefix(self):
@@ -29,10 +34,19 @@ class ChatEvent(MessageEvent):
 
     def __init__(self, frame, pid, target, text):
         super(ChatEvent, self).__init__(frame, pid)
+        #: The numerical target type. 0 = to all; 2 = to allies; 4 = to observers.
         self.target = target
+
+        #: The text of the message.
         self.text = text
+
+        #: Flag marked true of message was to all.
         self.to_all = (self.target == 0)
+
+        #: Flag marked true of message was to allies.
         self.to_allies = (self.target == 2)
+
+        #: Flag marked true of message was to observers.
         self.to_observers = (self.target == 4)
 
 
