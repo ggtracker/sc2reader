@@ -1,6 +1,13 @@
 CHANGELOG
 ============
 
+0.6.4 - September 22nd 2013
+---------------------------
+
+* Fix bug in code for logging errors.
+* Fix siege tank supply count
+* Small improvements to message.events parsing.
+
 0.6.3 - September 15th 2013
 ---------------------------
 
