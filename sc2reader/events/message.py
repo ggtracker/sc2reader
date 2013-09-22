@@ -51,5 +51,24 @@ class PingEvent(MessageEvent):
 
     def __init__(self, frame, pid, target, x, y):
         super(PingEvent, self).__init__(frame, pid)
+
+        #: The numerical target type. 0 = to all; 2 = to allies; 4 = to observers.
         self.target = target
-        self.x, self.y = x, y
+
+        #: Flag marked true of message was to all.
+        self.to_all = (self.target == 0)
+
+        #: Flag marked true of message was to allies.
+        self.to_allies = (self.target == 2)
+
+        #: Flag marked true of message was to observers.
+        self.to_observers = (self.target == 4)
+
+        #: The x coordinate of the target location
+        self.x = x
+
+        #: The y coordinate of the target location
+        self.y = y
+
+        #: The (x,y) coordinate of the target location
+        self.location = (self.x, self.y)
