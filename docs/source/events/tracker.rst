@@ -9,4 +9,3 @@ are also periodically recorded to snapshot aspects of the current game state.
 
 .. automodule:: sc2reader.events.tracker
 	:members:
-	:undoc-members:

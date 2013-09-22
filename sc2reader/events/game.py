@@ -16,11 +16,12 @@ class GameEvent(Event):
     def __init__(self, frame, pid):
         #: The id of the player generating the event. This is 16 for global non-player events.
         #: Prior to Heart of the Swarm this was the player id. Since HotS it is
-        #: now the user id (uid), we still call it pid for backwards compatibility.
+        #: now the user id (uid), we still call it pid for backwards compatibility. You shouldn't
+        #: ever need to use this; use :attr:`player` instead.
         self.pid = pid
 
         #: A reference to the :class:`~sc2reader.objects.Player` object representing
-        #: this player in the replay. Not available for global events (:attr:`pid` = 16)
+        #: this player in the replay. Not available for global events (:attr:`is_local` = False)
         self.player = None
 
         #: The frame of the game that this event was recorded at. 16 frames per game second.
@@ -51,6 +52,9 @@ class GameStartEvent(GameEvent):
     def __init__(self, frame, pid, data):
         super(GameStartEvent, self).__init__(frame, pid)
 
+        #: ???
+        self.data = data
+
 
 class PlayerLeaveEvent(GameEvent):
     """
@@ -58,6 +62,9 @@ class PlayerLeaveEvent(GameEvent):
     """
     def __init__(self, frame, pid, data):
         super(PlayerLeaveEvent, self).__init__(frame, pid)
+
+        #: ???
+        self.data = data
 
 
 class UserOptionsEvent(GameEvent):
@@ -80,7 +87,7 @@ class UserOptionsEvent(GameEvent):
         self.sync_checksumming_enabled = data['sync_checksumming_enabled']
 
         #:
-        is_map_to_map_transition = data['is_map_to_map_transition']
+        self.is_map_to_map_transition = data['is_map_to_map_transition']
 
         #:
         self.use_ai_beacons = data['use_ai_beacons']
@@ -127,11 +134,31 @@ class AbilityEvent(GameEvent):
         #: Flags on the command???
         self.flags = data['flags']
 
-        #: A dictionary of possible ability flags. Flag names are: alternate,
-        #: queued, preempt, smart_click, smart_rally, subgroup, set_autocast,
-        #: set_autocast_on, user, data_a, data_b, data_passenger, data_abil_queue_order_id,
-        #: ai, ai_ignore_on_finish, is_order, script, homogenous_interruption,
-        #: minimap, repeat, dispatch_to_other_unit, and target_self
+        #: A dictionary of possible ability flags. Flags are:
+        #:
+        #: * alternate
+        #: * queued
+        #: * preempt
+        #: * smart_click
+        #: * smart_rally
+        #: * subgroup
+        #: * set_autocast,
+        #: * set_autocast_on
+        #: * user
+        #: * data_a
+        #: * data_b
+        #: * data_passenger
+        #: * data_abil_queue_order_id,
+        #: * ai
+        #: * ai_ignore_on_finish
+        #: * is_order
+        #: * script
+        #: * homogenous_interruption,
+        #: * minimap
+        #: * repeat
+        #: * dispatch_to_other_unit
+        #: * target_self
+        #:
         self.flag = dict(
             alternate=0x1 & self.flags != 0,
             queued=0x2 & self.flags != 0,
@@ -446,13 +473,13 @@ class CameraEvent(GameEvent):
     def __init__(self, frame, pid, data):
         super(CameraEvent, self).__init__(frame, pid)
 
-        #: The x coordinate of the center? of the camera
+        #: The x coordinate of the center of the camera
         self.x = (data['target']['x'] if data['target'] is not None else 0)/256.0
 
-        #: The y coordinate of the center? of the camera
+        #: The y coordinate of the center of the camera
         self.y = (data['target']['y'] if data['target'] is not None else 0)/256.0
 
-        #: The location of the center? of the camera
+        #: The location of the center of the camera
         self.location = (self.x, self.y)
 
         #: The distance to the camera target ??
