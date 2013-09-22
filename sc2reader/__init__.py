@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals, division
 
-__version__ = "0.6.3"
+__version__ = "0.6.4"
 
 import os
 import sys
