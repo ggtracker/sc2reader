@@ -10,7 +10,11 @@ CHANGELOG
 * GetFromHotkeyEvent is now GetControlGroupEvent.
 * PlayerAbilityEvent is no longer part of the event hierarchy.
 * event.name is no longer a class property; it can only be accessed from an event instance.
-
+* PingEvents now have new attributes:
+   * event.to_all - true if ping seen by all
+   * event.to_allies - true if ping seen by allies
+   * event.to_observers - true if ping seen by observers
+   * event.location - tuple of (event.x, event.y)
 
 
 0.6.4 - September 22nd 2013
