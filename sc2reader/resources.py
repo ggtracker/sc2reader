@@ -193,7 +193,6 @@ class Replay(Resource):
         self.load_level = None
 
         #default values, filled in during file read
-        self.player_names = list()
         self.other_people = set()
         self.speed = ""
         self.type = ""
