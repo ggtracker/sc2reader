@@ -10,6 +10,10 @@ class SC2ReaderLocalizationError(SC2ReaderError):
     pass
 
 
+class CorruptTrackerFileError(SC2ReaderError):
+    pass
+
+
 class MPQError(SC2ReaderError):
     pass
 
