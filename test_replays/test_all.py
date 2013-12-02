@@ -197,20 +197,20 @@ class TestReplays(unittest.TestCase):
             replay = sc2reader.load_replay(replayfilename)
             self.assertEqual(replay.expansion, "HotS")
             player_pids = set([player.pid for player in replay.players if player.is_human])
-            ability_pids = set([event.player.pid for event in replay.events if "AbilityEvent" in event.name])
+            ability_pids = set([event.player.pid for event in replay.events if "CommandEvent" in event.name])
             self.assertEqual(ability_pids, player_pids)
 
     def test_wol_pids(self):
         replay = sc2reader.load_replay("test_replays/1.5.4.24540/ggtracker_1471849.SC2Replay")
         self.assertEqual(replay.expansion, "WoL")
-        ability_pids = set([event.player.pid for event in replay.events if "AbilityEvent" in event.name])
+        ability_pids = set([event.player.pid for event in replay.events if "CommandEvent" in event.name])
         player_pids = set([player.pid for player in replay.players])
         self.assertEqual(ability_pids, player_pids)
 
     def test_hots_hatchfun(self):
         replay = sc2reader.load_replay("test_replays/2.0.0.24247/molten.SC2Replay")
         player_pids = set([ player.pid for player in replay.players])
-        spawner_pids = set([ event.player.pid for event in replay.events if "TargetAbilityEvent" in event.name and event.ability.name == "SpawnLarva"])
+        spawner_pids = set([ event.player.pid for event in replay.events if "TargetUnitCommandEvent" in event.name and event.ability.name == "SpawnLarva"])
         self.assertTrue(spawner_pids.issubset(player_pids))
 
     def test_hots_vs_ai(self):
@@ -331,7 +331,7 @@ class TestReplays(unittest.TestCase):
         # Not a GameHeart game!
         replay = sc2reader.load_replay("test_replays/2.0.0.24247/molten.SC2Replay")
         player_pids = set([ player.pid for player in replay.players])
-        spawner_pids = set([ event.player.pid for event in replay.events if "TargetAbilityEvent" in event.name and event.ability.name == "SpawnLarva"])
+        spawner_pids = set([ event.player.pid for event in replay.events if "TargetUnitCommandEvent" in event.name and event.ability.name == "SpawnLarva"])
         self.assertTrue(spawner_pids.issubset(player_pids))
 
         replay = sc2reader.load_replay("test_replays/gameheart/gameheart.SC2Replay")

@@ -245,7 +245,7 @@ class BasicCommandEvent(CommandEvent):
     of whether or not the command was successful.
     """
     def __init__(self, frame, pid, data):
-        super(TargetPointCommandEvent, self).__init__(frame, pid, data)
+        super(BasicCommandEvent, self).__init__(frame, pid, data)
 
 
 class TargetPointCommandEvent(CommandEvent):
