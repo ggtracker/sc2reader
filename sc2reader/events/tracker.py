@@ -222,7 +222,7 @@ class UnitBornEvent(TrackerEvent):
 
     Unfortunately, units that are born do not have events marking their beginnings like
     :class:`UnitInitEvent` and :class:`UnitDoneEvent` do. The closest thing to it are the
-    :class:`~sc2reader.event.game.AbilityEvent` game events where the ability is a train unit
+    :class:`~sc2reader.event.game.CommandEvent` game events where the command is a train unit
     command.
     """
     def __init__(self, frames, data, build):

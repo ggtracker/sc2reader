@@ -18,14 +18,14 @@ class GameEngine(object):
         Example Usage::
 
             class Plugin1():
-                def handleAbilityEvent(self, event, replay):
+                def handleCommandEvent(self, event, replay):
                     pass
 
             class Plugin2():
                 def handleEvent(self, event, replay):
                     pass
 
-                def handleTargetAbilityEvent(self, event, replay):
+                def handleTargetUnitCommandEvent(self, event, replay):
                     pass
 
             ...
@@ -35,11 +35,11 @@ class GameEngine(object):
             engine.reigster_plugin(Plugin(5))
             engine.run(replay)
 
-        Calls functions in the following order for a ``TargetAbilityEvent``::
+        Calls functions in the following order for a ``TargetUnitCommandEvent``::
 
-            Plugin1.handleAbilityEvent(event, replay)
+            Plugin1.handleCommandEvent(event, replay)
             Plugin2.handleEvent(event, replay)
-            Plugin2.handleTargetAbilityEvent(event, replay)
+            Plugin2.handleTargetUnitCommandEvent(event, replay)
 
 
         Plugin Specification
@@ -57,7 +57,7 @@ class GameEngine(object):
             * handleMessageEvent - called for events in replay.message.events
             * handleGameEvent - called for events in replay.game.events
             * handleTrackerEvent - called for events in replay.tracker.events
-            * handleAbilityEvent - called for all types of ability events
+            * handleCommandEvent - called for all types of command events
             * handleControlGroupEvent - called for all player control group events
 
         Plugins may also handle optional ``InitGame`` and ``EndGame`` events generated
@@ -90,7 +90,7 @@ class GameEngine(object):
                     return
                 ...
 
-            def handleAbilityEvent(self, event, replay):
+            def handleCommandEvent(self, event, replay):
                 try:
                     possibly_throwing_error()
                 catch Error as e:
@@ -204,8 +204,8 @@ class GameEngine(object):
             handlers.append(getattr(plugin, 'handleGameEvent', None))
         if isinstance(event, TrackerEvent) and hasattr(plugin, 'handleTrackerEvent'):
             handlers.append(getattr(plugin, 'handleTrackerEvent', None))
-        if isinstance(event, AbilityEvent) and hasattr(plugin, 'handleAbilityEvent'):
-            handlers.append(getattr(plugin, 'handleAbilityEvent', None))
+        if isinstance(event, CommandEvent) and hasattr(plugin, 'handleCommandEvent'):
+            handlers.append(getattr(plugin, 'handleCommandEvent', None))
         if isinstance(event, ControlGroupEvent) and hasattr(plugin, 'handleControlGroupEvent'):
             handlers.append(getattr(plugin, 'handleControlGroupEvent', None))
         if hasattr(plugin, 'handle'+event.name):

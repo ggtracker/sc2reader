@@ -105,31 +105,31 @@ class UserOptionsEvent(GameEvent):
 def create_command_event(frame, pid, data):
     ability_type = data['data'][0]
     if ability_type == 'None':
-        return AbilityEvent(frame, pid, data)
+        return BasicCommandEvent(frame, pid, data)
 
     elif ability_type == 'TargetUnit':
-        return TargetAbilityEvent(frame, pid, data)
+        return TargetUnitCommandEvent(frame, pid, data)
 
     elif ability_type == 'TargetPoint':
-        return LocationAbilityEvent(frame, pid, data)
+        return TargetPointCommandEvent(frame, pid, data)
 
     elif ability_type == 'Data':
-        return SelfAbilityEvent(frame, pid, data)
+        return DataCommandEvent(frame, pid, data)
 
 
 @loggable
-class AbilityEvent(GameEvent):
+class CommandEvent(GameEvent):
     """
     Ability events are generated when ever a player in the game issues a command
     to a unit or group of units. They are split into three subclasses of ability,
     each with their own set of associated data. The attributes listed below are
     shared across all ability event types.
 
-    See :class:`LocationAbilityEvent`, :class:`TargetAbilityEvent`, and :class:`SelfAbilityEvent`
-    for individual details.
+    See :class:`TargetPointCommandEvent`, :class:`TargetUnitCommandEvent`, and
+    :class:`DataCommandEvent` for individual details.
     """
     def __init__(self, frame, pid, data):
-        super(AbilityEvent, self).__init__(frame, pid)
+        super(CommandEvent, self).__init__(frame, pid)
 
         #: Flags on the command???
         self.flags = data['flags']
@@ -235,25 +235,38 @@ class AbilityEvent(GameEvent):
         return string
 
 
-class LocationAbilityEvent(AbilityEvent):
+class BasicCommandEvent(CommandEvent):
     """
-    Extends :class:`AbilityEvent`
+    Extends :class:`CommandEvent`
+
+    This event is recorded for events that have no extra information recorded.
+
+    Note that like all CommandEvents, the event will be recorded regardless
+    of whether or not the command was successful.
+    """
+    def __init__(self, frame, pid, data):
+        super(TargetPointCommandEvent, self).__init__(frame, pid, data)
+
+
+class TargetPointCommandEvent(CommandEvent):
+    """
+    Extends :class:`CommandEvent`
 
     This event is recorded when ever a player issues a command that targets a location
     and NOT a unit. Commands like Psistorm, Attack Move, Fungal Growth, and EMP fall
     under this category.
 
-    Note that like all AbilityEvents, the event will be recorded regardless
+    Note that like all CommandEvents, the event will be recorded regardless
     of whether or not the command was successful.
     """
     def __init__(self, frame, pid, data):
-        super(LocationAbilityEvent, self).__init__(frame, pid, data)
+        super(TargetPointCommandEvent, self).__init__(frame, pid, data)
 
         #: The x coordinate of the target. Available for TargetPoint and TargetUnit type events.
-        self.x = self.ability_type_data['point'].get('x', 0)/4096.0
+        self.x = self.ability_type_data['point'].get('x', 0) / 4096.0
 
         #: The y coordinate of the target. Available for TargetPoint and TargetUnit type events.
-        self.y = self.ability_type_data['point'].get('y', 0)/4096.0
+        self.y = self.ability_type_data['point'].get('y', 0) / 4096.0
 
         #: The z coordinate of the target. Available for TargetPoint and TargetUnit type events.
         self.z = self.ability_type_data['point'].get('z', 0)
@@ -262,18 +275,19 @@ class LocationAbilityEvent(AbilityEvent):
         self.location = (self.x, self.y, self.z)
 
 
-class TargetAbilityEvent(AbilityEvent):
+class TargetUnitCommandEvent(CommandEvent):
     """
-    Extends :class:`AbilityEvent`
+    Extends :class:`CommandEvent`
 
-    TargetAbilityEvents are recorded when ever a player issues a command that targets a unit.
+    This event is recorded when ever a player issues a command that targets a unit.
     The location of the target unit at the time of the command is also recorded. Commands like
     Chronoboost, Transfuse, and Snipe fall under this category.
 
-    Note that all AbilityEvents are recorded regardless of whether or not the command was successful.
+    Note that like all CommandEvents, the event will be recorded regardless
+    of whether or not the command was successful.
     """
     def __init__(self, frame, pid, data):
-        super(TargetAbilityEvent, self).__init__(frame, pid, data)
+        super(TargetUnitCommandEvent, self).__init__(frame, pid, data)
 
         #: Flags set on the target unit. Available for TargetUnit type events
         self.target_flags = self.ability_type_data.get('flags', None)
@@ -301,10 +315,10 @@ class TargetAbilityEvent(AbilityEvent):
         self.upkeep_player_id = self.ability_type_data.get('upkeep_player_id', None)
 
         #: The x coordinate of the target. Available for TargetPoint and TargetUnit type events.
-        self.x = self.ability_type_data['point'].get('x', 0)/4096.0
+        self.x = self.ability_type_data['point'].get('x', 0) / 4096.0
 
         #: The y coordinate of the target. Available for TargetPoint and TargetUnit type events.
-        self.y = self.ability_type_data['point'].get('y', 0)/4096.0
+        self.y = self.ability_type_data['point'].get('y', 0) / 4096.0
 
         #: The z coordinate of the target. Available for TargetPoint and TargetUnit type events.
         self.z = self.ability_type_data['point'].get('z', 0)
@@ -313,17 +327,18 @@ class TargetAbilityEvent(AbilityEvent):
         self.location = (self.x, self.y, self.z)
 
 
-class SelfAbilityEvent(AbilityEvent):
+class DataCommandEvent(CommandEvent):
     """
-    Extends :class:`AbilityEvent`
+    Extends :class:`CommandEvent`
 
-    SelfAbilityEvents are recorded when ever a player issues a command that has no target. Commands
+    DataCommandEvent are recorded when ever a player issues a command that has no target. Commands
     like Burrow, SeigeMode, Train XYZ, and Stop fall under this category.
 
-    Note that all AbilityEvents are recorded regardless of whether or not the command was successful.
+    Note that like all CommandEvents, the event will be recorded regardless
+    of whether or not the command was successful.
     """
     def __init__(self, frame, pid, data):
-        super(SelfAbilityEvent, self).__init__(frame, pid, data)
+        super(DataCommandEvent, self).__init__(frame, pid, data)
 
         #: Other target data. Available for Data type events.
         self.target_data = self.ability_type_data.get('data', None)

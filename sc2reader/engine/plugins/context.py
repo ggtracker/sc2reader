@@ -20,7 +20,7 @@ class ContextLoader(object):
     def handleMessageEvent(self, event, replay):
         self.load_message_game_player(event, replay)
 
-    def handleAbilityEvent(self, event, replay):
+    def handleCommandEvent(self, event, replay):
         if not replay.datapack:
             return
 
@@ -43,7 +43,7 @@ class ContextLoader(object):
         elif event.other_unit_id is not None:
             self.logger.error("Other unit {0} not found".format(event.other_unit_id))
 
-    def handleTargetAbilityEvent(self, event, replay):
+    def handleTargetUnitCommandEvent(self, event, replay):
         if not replay.datapack:
             return
 

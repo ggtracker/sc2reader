@@ -45,7 +45,7 @@ from sc2reader.events import *
 def main():
     parser = argparse.ArgumentParser(
         description="""Step by step replay of game events; shows only the
-        Initialization, Ability, and Selection events by default. Press any
+        Initialization, Command, and Selection events by default. Press any
         key to advance through the events in sequential order."""
     )
 
@@ -77,7 +77,7 @@ def main():
         # Loop through the events
         for event in events:
 
-            if isinstance(event, AbilityEvent) or \
+            if isinstance(event, CommandEvent) or \
                     isinstance(event, SelectionEvent) or \
                     isinstance(event, PlayerLeaveEvent) or \
                     isinstance(event, GameStartEvent) or \

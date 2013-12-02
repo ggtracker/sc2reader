@@ -48,7 +48,7 @@ def main():
                         human.pids = set([human.pid for human in replay.humans])
                         event_pids = set([event.player.pid for event in replay.events if getattr(event, 'player', None)])
                         player_pids = set([player.pid for player in replay.players if player.is_human])
-                        ability_pids = set([event.player.pid for event in replay.events if 'AbilityEvent' in event.name])
+                        ability_pids = set([event.player.pid for event in replay.events if 'CommandEvent' in event.name])
                         if human.pids != event_pids:
                             print('Event Pid problem!  pids={pids} but event pids={event_pids}'.format(pids=human.pids, event_pids=event_pids))
                             print(' with {path}: {build} - {real_type} on {map_name} - Played {start_time}'.format(path=path, **replay.__dict__))
