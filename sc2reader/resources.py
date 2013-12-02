@@ -16,7 +16,7 @@ from sc2reader import log_utils
 from sc2reader import readers
 from sc2reader import exceptions
 from sc2reader.data import builds as datapacks
-from sc2reader.exceptions import SC2ReaderLocalizationError
+from sc2reader.exceptions import SC2ReaderLocalizationError, CorruptTrackerFileError
 from sc2reader.objects import Participant, Observer, Computer, Team, PlayerSummary, Graph, BuildEntry, MapInfo
 from sc2reader.constants import REGIONS, GAME_SPEED_FACTOR, LOBBY_PROPERTIES
 
@@ -184,7 +184,7 @@ class Replay(Resource):
     #: SC2 Expansion. One of 'WoL', 'HotS'
     expasion = str()
 
-    def __init__(self, replay_file, filename=None, load_level=4, engine=sc2reader.engine, **options):
+    def __init__(self, replay_file, filename=None, load_level=4, engine=sc2reader.engine, do_tracker_events=True, **options):
         super(Replay, self).__init__(replay_file, filename, **options)
         self.datapack = None
         self.raw_data = dict()
@@ -279,12 +279,11 @@ class Replay(Resource):
             self.load_players()
 
         # Load tracker events if requested
-        if load_level >= 3:
+        if load_level >= 3 and do_tracker_events:
             self.load_level = 3
             for data_file in ['replay.tracker.events']:
                 self._read_data(data_file, self._get_reader(data_file))
             self.load_tracker_events()
-
 
         # Load events if requested
         if load_level >= 4:
@@ -295,6 +294,12 @@ class Replay(Resource):
 
         # Run this replay through the engine as indicated
         if engine:
+            resume_events = [ev for ev in self.game_events if ev.name == 'HijackReplayGameEvent']
+            if self.base_build <= 26490 and self.tracker_events and len(resume_events) > 0:
+                raise CorruptTrackerFileError(
+                    "Cannot run engine on resumed games with tracker events. Run again with the " +
+                    "do_tracker_events=False option to generate context without tracker events.")
+
             engine.run(self)
 
     def load_details(self):
