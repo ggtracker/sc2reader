@@ -374,6 +374,6 @@ class BitPackedDecoder(object):
             data = self.read_vint()
 
         else:
-            raise TypeError("Unknown Data Structure: '%s'" % datatype)
+            raise TypeError("Unknown Data Structure: '{0}'".format(datatype))
 
         return data
