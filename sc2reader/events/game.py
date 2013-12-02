@@ -37,7 +37,7 @@ class GameEvent(Event):
 
     def _str_prefix(self):
         player_name = self.player.name if getattr(self, 'pid', 16) != 16 else "Global"
-        return "%s\t%-15s " % (Length(seconds=int(self.frame/16)), player_name)
+        return "{0}\t{1:<15} ".format(Length(seconds=int(self.frame / 16)), player_name)
 
     def __str__(self):
         return self._str_prefix() + self.name
@@ -575,7 +575,7 @@ class ResourceTradeEvent(GameEvent):
         self.custom_resource = self.resources[3] if len(self.resources) >= 4 else None
 
     def __str__(self):
-        return self._str_prefix() + " transfer {0} minerals, {1} gas, {2} terrazine, and {3} custom to {4}" % (self.minerals, self.vespene, self.terrazine, self.custom, self.reciever)
+        return self._str_prefix() + " transfer {0} minerals, {1} gas, {2} terrazine, and {3} custom to {4}".format(self.minerals, self.vespene, self.terrazine, self.custom, self.recipient)
 
 
 class ResourceRequestEvent(GameEvent):
@@ -600,7 +600,7 @@ class ResourceRequestEvent(GameEvent):
         self.custom_resource = self.resources[3] if len(self.resources) >= 4 else None
 
     def __str__(self):
-        return self._str_prefix() + " requests {0} minerals, {1} gas, {2} terrazine, and {3} custom" % (self.minerals, self.vespene, self.terrazine, self.custom)
+        return self._str_prefix() + " requests {0} minerals, {1} gas, {2} terrazine, and {3} custom".format(self.minerals, self.vespene, self.terrazine, self.custom)
 
 
 class ResourceRequestFulfillEvent(GameEvent):
