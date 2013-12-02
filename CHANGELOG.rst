@@ -4,12 +4,19 @@ CHANGELOG
 0.7.0 -
 ---------------------------
 
+* Now a CorruptTrackerFileError is raised when the tracker file is corrupted (generally only older resume_from_replay replays)
 * Added replay.resume_from_replay flag. See replay.resume_user_info for additional info.
 * PacketEvent is now ProgressEvent.
 * SetToHotkeyEvent is now SetControlGroupEvent.
 * AddToHotkeyEvent is now AddToControlGroupEvent.
 * GetFromHotkeyEvent is now GetControlGroupEvent.
 * PlayerAbilityEvent is no longer part of the event hierarchy.
+* AbilityEvent doubled as both an abstract and concrete class (very bad, see #160). Now split into:
+   * AbilityEvent is now CommandEvent
+   * AbilityEvent is now BasicCommandEvent
+* TargetAbilityEvent is now TargetUnitCommandEvent
+* LocationAbilityEvent is now TargetPointCommandEvent
+* Removed the defunct replay.player_names attribute.
 * event.name is no longer a class property; it can only be accessed from an event instance.
 * PingEvents now have new attributes:
    * event.to_all - true if ping seen by all
