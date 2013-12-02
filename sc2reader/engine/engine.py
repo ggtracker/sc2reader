@@ -181,11 +181,11 @@ class GameEngine(object):
                         else:
                             new_events.appendleft(new_event)
                 except Exception as e:
-                    if event_handler.im_self.name in ['ContextLoader']:
+                    if event_handler.__self__.name in ['ContextLoader']:
                         # Certain built in plugins should probably still cause total failure
                         raise  # Maybe??
                     else:
-                        new_event = PluginExit(event_handler.im_self, code=1, details=dict(error=e))
+                        new_event = PluginExit(event_handler.__self__, code=1, details=dict(error=e))
                         new_events.append(new_event)
             event_queue.extendleft(new_events)
 
