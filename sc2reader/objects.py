@@ -62,6 +62,7 @@ class Team(object):
         return str(self)
 
 
+@log_utils.loggable
 class Attribute(object):
 
     def __init__(self, header, attr_id, player, value):
@@ -70,7 +71,9 @@ class Attribute(object):
         self.player = player
 
         if self.id not in LOBBY_PROPERTIES:
-            raise ValueError("Unknown attribute id: "+self.id)
+            self.logger.info("Unknown attribute id: {0}".format(self.id))
+            self.name = "Unknown"
+            self.value = None
         else:
             self.name, lookup = LOBBY_PROPERTIES[self.id]
             self.value = lookup[value.strip("\x00 ")[::-1]]

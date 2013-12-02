@@ -1,35 +1,5 @@
 {
   "attributes": {
-    "0001": [
-      "Korhal (Urban)",
-      {
-        "0001": "Unclassified game type.",
-        "0002": "4v4 Team Monobattles",
-        "0003": "Work with your team to select a strong composition of units",
-        "0004": "Each player must select a single combat unit at the start of the game."
-      }
-    ],
-    "0002": [
-      "Rated",
-      {
-        "0001": "Yes",
-        "0002": "No"
-      }
-    ],
-    "0003": [
-      "Balance Teams",
-      {
-        "0001": "Yes",
-        "0002": "No"
-      }
-    ],
-    "0004": [
-      "Ship Limit",
-      {
-        "0001": "No",
-        "0002": "Yes"
-      }
-    ],
     "0500": [
       "Controller",
       {
