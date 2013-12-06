@@ -16,6 +16,7 @@ CHANGELOG
    * AbilityEvent is now BasicCommandEvent
 * TargetAbilityEvent is now TargetUnitCommandEvent
 * LocationAbilityEvent is now TargetPointCommandEvent
+* SelfAbilityEvent is now DataCommandEvent
 * Removed the defunct replay.player_names attribute.
 * event.name is no longer a class property; it can only be accessed from an event instance.
 * PingEvents now have new attributes:
