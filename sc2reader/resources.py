@@ -603,6 +603,12 @@ class Replay(Resource):
         elif self.opt.debug and data_file not in ['replay.message.events', 'replay.tracker.events']:
             raise ValueError("{0} not found in archive".format(data_file))
 
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state['registered_readers']
+        del state['registered_datapacks']
+        return state
+
 
 class Map(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
