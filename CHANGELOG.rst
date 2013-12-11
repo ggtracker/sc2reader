@@ -4,6 +4,7 @@ CHANGELOG
 0.7.0 -
 ---------------------------
 
+* Use generic UnitType and Ability classes for data. This means no more unit._type_class.__class__.__name__. But hopefully people were not doing that anyway.
 * Now a CorruptTrackerFileError is raised when the tracker file is corrupted (generally only older resume_from_replay replays)
 * Added replay.resume_from_replay flag. See replay.resume_user_info for additional info.
 * PacketEvent is now ProgressEvent.
