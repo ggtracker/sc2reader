@@ -5,6 +5,9 @@ CHANGELOG
 0.6.5 - December ?? 2013
 ---------------------------
 
+* Removed the defunct replay.player_names attribute.
+* Removed the defunct replay.events_by_type attribute.
+* Removed the defunct replay.other_people attribute.
 * PingEvents now have new attributes:
    * event.to_all - true if ping seen by all
    * event.to_allies - true if ping seen by allies

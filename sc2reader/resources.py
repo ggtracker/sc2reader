@@ -193,7 +193,6 @@ class Replay(Resource):
         self.load_level = None
 
         #default values, filled in during file read
-        self.other_people = set()
         self.speed = ""
         self.type = ""
         self.game_type = ""
@@ -205,7 +204,6 @@ class Replay(Resource):
         self.map_hash = ""
         self.gateway = ""
         self.events = list()
-        self.events_by_type = defaultdict(list)
         self.teams, self.team = list(), dict()
 
         self.player = utils.PersonDict()
