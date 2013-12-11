@@ -1010,7 +1010,6 @@ class GameSummary(Resource):
             if not player.is_ai:
                 player.region = self.region
                 player.subregion = struct[0][1][0][2]
-                player.region = REGIONS[player.region].get(player.subregion, 'Unknown')
                 player.bnetid = struct[0][1][0][3]
                 player.unknown1 = struct[0][1][0]
                 player.unknown2 = struct[0][1][1]
