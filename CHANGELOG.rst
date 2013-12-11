@@ -5,6 +5,7 @@ CHANGELOG
 0.6.5 - December ?? 2013
 ---------------------------
 
+* Use generic UnitType and Ability classes for data. This means no more unit._type_class.__class__.__name__. But hopefully people were not doing that anyway.
 * Removed the defunct replay.player_names attribute.
 * Removed the defunct replay.events_by_type attribute.
 * Removed the defunct replay.other_people attribute.
