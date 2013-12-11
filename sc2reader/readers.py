@@ -19,6 +19,7 @@ class InitDataReader(object):
             user_initial_data=[dict(
                 name=data.read_aligned_string(data.read_uint8()),
                 clan_tag=data.read_aligned_string(data.read_uint8()) if replay.base_build >= 24764 and data.read_bool() else None,
+                clan_logo=data.read_aligned_string(40) if replay.base_build >= 27950 and data.read_bool() else None,
                 highest_league=data.read_uint8() if replay.base_build >= 24764 and data.read_bool() else None,
                 combined_race_levels=data.read_uint32() if replay.base_build >= 24764 and data.read_bool() else None,
                 random_seed=data.read_uint32(),
@@ -74,6 +75,7 @@ class InitDataReader(object):
                 default_difficulty=data.read_bits(6),
                 default_ai_build=data.read_bits(7) if replay.base_build >= 23925 else None,
                 cache_handles=[DepotFile(data.read_aligned_bytes(40)) for i in range(data.read_bits(6 if replay.base_build >= 21955 else 4))],
+                has_extension_mod=data.read_bool() if replay.base_build >= 27950 else None,
                 is_blizzardMap=data.read_bool(),
                 is_premade_ffa=data.read_bool(),
                 is_coop_mode=data.read_bool() if replay.base_build >= 23925 else None,
@@ -610,6 +612,7 @@ class GameEventsReader_15405(GameEventsReader_Base):
             distance=data.read_uint16() if data.read_bool() else None,
             pitch=data.read_uint16() if data.read_bool() else None,
             yaw=data.read_uint16() if data.read_bool() else None,
+            reason=None,
         )
 
     def trigger_abort_mission_event(self, data):
@@ -1361,6 +1364,7 @@ class GameEventsReader_24247(GameEventsReader_HotSBeta):
                 name=data.read_aligned_string(data.read_uint8()),
                 toon_handle=data.read_aligned_string(data.read_bits(7)) if data.read_bool() else None,
                 clan_tag=data.read_aligned_string(data.read_uint8()) if data.read_bool() else None,
+                clan_logo=None,
             ) for i in range(data.read_bits(5))],
             method=data.read_bits(1),
         )
@@ -1381,6 +1385,7 @@ class GameEventsReader_24247(GameEventsReader_HotSBeta):
             name=data.read_aligned_string(data.read_bits(8)),
             toon_handle=data.read_aligned_string(data.read_bits(7)) if data.read_bool() else None,
             clan_tag=data.read_aligned_string(data.read_uint8()) if data.read_bool() else None,
+            clan_log=None,
         )
 
 
@@ -1430,6 +1435,43 @@ class GameEventsReader_26490(GameEventsReader_24247):
         )
 
 
+class GameEventsReader_27950(GameEventsReader_26490):
+
+    def hijack_replay_game_event(self, data):
+        return dict(
+            user_infos=[dict(
+                game_user_id=data.read_bits(4),
+                observe=data.read_bits(2),
+                name=data.read_aligned_string(data.read_uint8()),
+                toon_handle=data.read_aligned_string(data.read_bits(7)) if data.read_bool() else None,
+                clan_tag=data.read_aligned_string(data.read_uint8()) if data.read_bool() else None,
+                clan_logo=data.read_aligned_string(40) if data.read_bool() else None,
+            ) for i in range(data.read_bits(5))],
+            method=data.read_bits(1),
+        )
+
+    def camera_update_event(self, data):
+        return dict(
+            target=dict(
+                x=data.read_uint16(),
+                y=data.read_uint16(),
+            ),
+            distance=data.read_uint16() if data.read_bool() else None,
+            pitch=data.read_uint16() if data.read_bool() else None,
+            yaw=data.read_uint16() if data.read_bool() else None,
+            reason=data.read_uint8() - 128 if data.read_bool() else None,
+        )
+
+    def game_user_join_event(self, data):
+        return dict(
+            observe=data.read_bits(2),
+            name=data.read_aligned_string(data.read_bits(8)),
+            toon_handle=data.read_aligned_string(data.read_bits(7)) if data.read_bool() else None,
+            clan_tag=data.read_aligned_string(data.read_uint8()) if data.read_bool() else None,
+            clan_logo=data.read_aligned_string(40) if data.read_bool() else None,
+        )
+
+
 class TrackerEventsReader(object):
 
     def __init__(self):
@@ -1443,6 +1485,7 @@ class TrackerEventsReader(object):
             6: UnitInitEvent,
             7: UnitDoneEvent,
             8: UnitPositionsEvent,
+            9: PlayerSetupEvent,
         }
 
     def __call__(self, data, replay):
