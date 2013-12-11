@@ -8,7 +8,7 @@ from sc2reader.objects import *
 from sc2reader.events.game import *
 from sc2reader.events.message import *
 from sc2reader.events.tracker import *
-from sc2reader.utils import AttributeDict, DepotFile
+from sc2reader.utils import DepotFile
 from sc2reader.decoders import BitPackedDecoder, ByteDecoder
 
 
@@ -204,7 +204,7 @@ class MessageEventsReader(object):
 
             data.byte_align()
 
-        return AttributeDict(pings=pings, messages=messages, packets=packets)
+        return dict(pings=pings, messages=messages, packets=packets)
 
 
 class GameEventsReader_Base(object):

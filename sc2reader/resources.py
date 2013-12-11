@@ -480,9 +480,9 @@ class Replay(Resource):
         if 'replay.message.events' not in self.raw_data:
             return
 
-        self.messages = self.raw_data['replay.message.events'].messages
-        self.pings = self.raw_data['replay.message.events'].pings
-        self.packets = self.raw_data['replay.message.events'].packets
+        self.messages = self.raw_data['replay.message.events']['messages']
+        self.pings = self.raw_data['replay.message.events']['pings']
+        self.packets = self.raw_data['replay.message.events']['packets']
 
         self.message_events = self.messages+self.pings+self.packets
         self.events = sorted(self.events + self.message_events, key=lambda e: e.frame)
