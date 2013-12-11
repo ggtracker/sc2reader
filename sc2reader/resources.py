@@ -4,7 +4,6 @@ from __future__ import absolute_import, print_function, unicode_literals, divisi
 from collections import defaultdict, namedtuple
 from datetime import datetime
 import hashlib
-import sys
 from xml.etree import ElementTree
 import zlib
 
@@ -15,7 +14,7 @@ from sc2reader.decoders import BitPackedDecoder
 from sc2reader import log_utils
 from sc2reader import readers
 from sc2reader import exceptions
-from sc2reader.data import builds as datapacks
+from sc2reader.data import datapacks
 from sc2reader.exceptions import SC2ReaderLocalizationError, CorruptTrackerFileError
 from sc2reader.objects import Participant, Observer, Computer, Team, PlayerSummary, Graph, BuildEntry, MapInfo
 from sc2reader.constants import REGIONS, GAME_SPEED_FACTOR, LOBBY_PROPERTIES
