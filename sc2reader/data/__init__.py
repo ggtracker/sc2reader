@@ -388,4 +388,4 @@ hots_builds = dict()
 for version in ('base', '23925', '24247', '24764'):
     hots_builds[version] = load_build('HotS', version)
 
-builds = {'WoL': wol_builds, 'HotS': hots_builds}
+datapacks = builds = {'WoL': wol_builds, 'HotS': hots_builds}
