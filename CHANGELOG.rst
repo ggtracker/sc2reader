@@ -18,6 +18,9 @@ CHANGELOG
 * LocationAbilityEvent is now TargetPointCommandEvent
 * SelfAbilityEvent is now DataCommandEvent
 * Removed the defunct replay.player_names attribute.
+* Removed the defunct replay.events_by_type attribute.
+* Removed the defunct replay.other_people attribute.
+
 * event.name is no longer a class property; it can only be accessed from an event instance.
 * PingEvents now have new attributes:
    * event.to_all - true if ping seen by all
