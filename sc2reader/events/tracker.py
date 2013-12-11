@@ -27,10 +27,28 @@ class TrackerEvent(Event):
         pass
 
     def _str_prefix(self):
-        return "{0}\t ".format(Length(seconds=int(self.frame/16)))
+        return "{0}\t ".format(Length(seconds=int(self.frame / 16)))
 
     def __str__(self):
         return self._str_prefix() + self.name
+
+
+class PlayerSetupEvent(TrackerEvent):
+    """ Sent during game setup to help us organize players better """
+    def __init__(self, frames, data, build):
+        super(PlayerSetupEvent, self).__init__(frames)
+
+        #: The player id of the player we are setting up
+        self.pid = data[0]
+
+        #: The type of this player. One of 1=human, 2=cpu, 3=neutral, 4=hostile
+        self.type = data[1]
+
+        #: The user id of the player we are setting up. None of not human
+        self.uid = data[2]
+
+        #: The slot id of the player we are setting up. None if not playing
+        self.sid = data[3]
 
 
 class PlayerStatsEvent(TrackerEvent):
@@ -181,10 +199,10 @@ class PlayerStatsEvent(TrackerEvent):
         self.resources_killed = self.minerals_killed + self.vespene_killed
 
         #: The food supply currently used
-        self.food_used = clamp(self.stats[29])/4096.0
+        self.food_used = clamp(self.stats[29]) / 4096.0
 
         #: The food supply currently available
-        self.food_made = clamp(self.stats[30])/4096.0
+        self.food_made = clamp(self.stats[30]) / 4096.0
 
         #: The total mineral value of all active forces
         self.minerals_used_active_forces = clamp(self.stats[31])
@@ -211,7 +229,7 @@ class PlayerStatsEvent(TrackerEvent):
         self.ff_vespene_lost_technology = clamp(self.stats[38]) if build >= 26490 else None
 
     def __str__(self):
-        return self._str_prefix()+"{0: >15} - Stats Update".format(self.player)
+        return self._str_prefix() + "{0: >15} - Stats Update".format(self.player)
 
 
 class UnitBornEvent(TrackerEvent):
@@ -255,19 +273,24 @@ class UnitBornEvent(TrackerEvent):
         #: The player object that controls this unit. 0 means neutral unit
         self.unit_controller = None
 
-        #: The x coordinate of the location with 4 point resolution. E.g. 13.75 recorded as 12.
-        #: Location prior to rounding marks the center of the unit footprint.
-        self.x = data[5] * 4
+        #: The x coordinate of the center of the born unit's footprint. Only 4 point resolution
+        #: prior to Starcraft Patch 2.1.
+        self.x = data[5]
 
-        #: The y coordinate of the location with 4 point resolution. E.g. 13.75 recorded as 12.
-        #: Location prior to rounding marks the center of the unit footprint.
-        self.y = data[6] * 4
+        #: The y coordinate of the center of the born unit's footprint. Only 4 point resolution
+        #: prior to Starcraft Patch 2.1.
+        self.y = data[6]
 
         #: The map location of the unit birth
         self.location = (self.x, self.y)
 
+        if build < 27950:
+            self.x = self.x * 4
+            self.y = self.y * 4
+            self.location = (self.x, self.y)
+
     def __str__(self):
-        return self._str_prefix()+"{0: >15} - Unit born {1}".format(self.unit_upkeeper, self.unit)
+        return self._str_prefix() + "{0: >15} - Unit born {1}".format(self.unit_upkeeper, self.unit)
 
 
 class UnitDiedEvent(TrackerEvent):
@@ -296,19 +319,39 @@ class UnitDiedEvent(TrackerEvent):
         #: The player object of the that killed the unit. Not always available.
         self.killer = None
 
-        #: The x coordinate of the location with 4 point resolution. E.g. 13.75 recorded as 12.
-        #: Location prior to rounding marks the center of the unit footprint.
-        self.x = data[3] * 4
+        #: The x coordinate of the center of the dying unit's footprint. Only 4 point resolution
+        #: prior to Starcraft Patch 2.1.
+        self.x = data[3]
 
-        #: The y coordinate of the location with 4 point resolution. E.g. 13.75 recorded as 12.
-        #: Location prior to rounding marks the center of the unit footprint.
-        self.y = data[4] * 4
+        #: The y coordinate of the center of the dying unit's footprint. Only 4 point resolution
+        #: prior to Starcraft Patch 2.1.
+        self.y = data[4]
 
         #: The map location the unit was killed at.
         self.location = (self.x, self.y)
 
+        #: The index portion of the killing unit's id. Available for build 27950+
+        self.killer_unit_index = None
+
+        #: The recycle portion of the killing unit's id. Available for build 27950+
+        self.killer_unit_recycle = None
+
+        #: The unique id of the unit doing the killing. Available for build 27950+
+        self.killer_unit_id = None
+
+        if build < 27950:
+            self.x = self.x * 4
+            self.y = self.y * 4
+            self.location = (self.x, self.y)
+        else:
+            # Starcraft patch 2.1 introduced killer unit indexes
+            self.killer_unit_index = data[5]
+            self.killer_unit_recycle = data[6]
+            if self.killer_unit_index:
+                self.killer_unit_id = self.killer_unit_index << 18 | self.killer_unit_recycle
+
     def __str__(self):
-        return self._str_prefix()+"{0: >15} - Unit died {1}.".format(self.unit.owner, self.unit)
+        return self._str_prefix() + "{0: >15} - Unit died {1}.".format(self.unit.owner, self.unit)
 
 
 class UnitOwnerChangeEvent(TrackerEvent):
@@ -344,7 +387,7 @@ class UnitOwnerChangeEvent(TrackerEvent):
         self.unit_controller = None
 
     def __str__(self):
-        return self._str_prefix()+"{0: >15} took {1}".format(self.unit_upkeeper, self.unit)
+        return self._str_prefix() + "{0: >15} took {1}".format(self.unit_upkeeper, self.unit)
 
 
 class UnitTypeChangeEvent(TrackerEvent):
@@ -372,7 +415,7 @@ class UnitTypeChangeEvent(TrackerEvent):
         self.unit_type_name = data[2].decode('utf8')
 
     def __str__(self):
-        return self._str_prefix()+"{0: >15} - Unit {0} type changed to {1}".format(self.unit.owner, self.unit, self.unit_type_name)
+        return self._str_prefix() + "{0: >15} - Unit {0} type changed to {1}".format(self.unit.owner, self.unit, self.unit_type_name)
 
 
 class UpgradeCompleteEvent(TrackerEvent):
@@ -395,7 +438,7 @@ class UpgradeCompleteEvent(TrackerEvent):
         self.count = data[2]
 
     def __str__(self):
-        return self._str_prefix()+"{0: >15} - {1}upgrade completed".format(self.player, self.upgrade_type_name)
+        return self._str_prefix() + "{0: >15} - {1}upgrade completed".format(self.player, self.upgrade_type_name)
 
 
 class UnitInitEvent(TrackerEvent):
@@ -434,19 +477,24 @@ class UnitInitEvent(TrackerEvent):
         #: The player object that controls this unit. 0 means neutral unit
         self.unit_controller = None
 
-        #: The x coordinate of the location with 4 point resolution. E.g. 13.75 recorded as 12.
-        #: Location prior to rounding marks the center of the unit footprint.
-        self.x = data[5] * 4
+        #: The x coordinate of the center of the init unit's footprint. Only 4 point resolution
+        #: prior to Starcraft Patch 2.1.
+        self.x = data[5]
 
-        #: The y coordinate of the location with 4 point resolution. E.g. 13.75 recorded as 12.
-        #: Location prior to rounding marks the center of the unit footprint.
-        self.y = data[6] * 4
+        #: The y coordinate of the center of the init unit's footprint. Only 4 point resolution
+        #: prior to Starcraft Patch 2.1.
+        self.y = data[6]
 
         #: The map location the unit was started at
         self.location = (self.x, self.y)
 
+        if build < 27950:
+            self.x = self.x * 4
+            self.y = self.y * 4
+            self.location = (self.x, self.y)
+
     def __str__(self):
-        return self._str_prefix()+"{0: >15} - Unit initiated {1}".format(self.unit_upkeeper, self.unit)
+        return self._str_prefix() + "{0: >15} - Unit initiated {1}".format(self.unit_upkeeper, self.unit)
 
 
 class UnitDoneEvent(TrackerEvent):
@@ -470,7 +518,7 @@ class UnitDoneEvent(TrackerEvent):
         self.unit = None
 
     def __str__(self):
-        return self._str_prefix()+"{0: >15} - Unit {1} done".format(self.unit.owner, self.unit)
+        return self._str_prefix() + "{0: >15} - Unit {1} done".format(self.unit.owner, self.unit)
 
 
 class UnitPositionsEvent(TrackerEvent):
@@ -491,17 +539,20 @@ class UnitPositionsEvent(TrackerEvent):
         #: A dict mapping of units that had their position updated to their positions
         self.units = dict()
 
-        #: A list of (unit_index, (x,y)) derived from the first_unit_index and items. Like the other
-        #: tracker events, these coordinates have 4 point resolution. (15,25) recorded as (12,24).
-        #: Location prior to rounding marks the center of the unit footprint.
+        #: A list of (unit_index, (x,y)) derived from the first_unit_index and items. Prior to
+        #: Starcraft Patch 2.1 the coordinates have 4 point resolution. (15,25) recorded as (12,24).
+        #: Location prior to any rounding marks the center of the unit footprint.
         self.positions = list()
 
         unit_index = self.first_unit_index
         for i in range(0, len(self.items), 3):
             unit_index += self.items[i]
-            x = self.items[i+1]*4
-            y = self.items[i+2]*4
+            x = self.items[i + 1]
+            y = self.items[i + 2]
+            if build < 27950:
+                x = x * 4
+                y = y * 4
             self.positions.append((unit_index, (x, y)))
 
     def __str__(self):
-        return self._str_prefix()+"Unit positions update"
+        return self._str_prefix() + "Unit positions update"
