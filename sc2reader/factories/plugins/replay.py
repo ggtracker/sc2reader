@@ -62,7 +62,7 @@ def toDict(replay):
 
     # Consolidate replay metadata into dictionary
     return {
-        'gateway': getattr(replay, 'gateway', None),
+        'region': getattr(replay, 'region', None),
         'map_name': getattr(replay, 'map_name', None),
         'file_time': getattr(replay, 'file_time', None),
         'filehash': getattr(replay, 'filehash', None),

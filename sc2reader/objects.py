@@ -124,9 +124,6 @@ class Entity(object):
         #: The Battle.net region the entity is registered to
         self.region = GATEWAY_LOOKUP[int(parts[0])]
 
-        #: Deprecated, see Entity.region
-        self.gateway = self.region
-
         #: The Battle.net subregion the entity is registered to
         self.subregion = int(parts[2])
 
@@ -197,9 +194,6 @@ class Player(object):
 
         #: The Battle.net region the entity is registered to
         self.region = GATEWAY_LOOKUP[detail_data['bnet']['region']]
-
-        #: Deprecated, see `Player.region`
-        self.gateway = self.region
 
         #: The Battle.net subregion the entity is registered to
         self.subregion = detail_data['bnet']['subregion']
@@ -346,12 +340,7 @@ class PlayerSummary():
     #: Subregion id of player
     subregion = int()
 
-    #: The player's gateway, such as us, eu
-    gateway = str()
-
-    #: The player's region, such as na, la, eu or ru.  This is
-    # provided for convenience, but as of 20121018 is strictly a
-    # function of gateway and subregion.
+    #: The player's region, such as us, eu, sea
     region = str()
 
     #: unknown1

@@ -108,7 +108,7 @@ COLOR_CODES = {
 
 COLOR_CODES_INV = dict(zip(COLOR_CODES.values(), COLOR_CODES.keys()))
 
-REGIONS = {
+SUBREGIONS = {
     # United States
     'us': {
         1: 'us',

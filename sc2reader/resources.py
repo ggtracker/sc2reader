@@ -17,7 +17,7 @@ from sc2reader import exceptions
 from sc2reader.data import datapacks
 from sc2reader.exceptions import SC2ReaderLocalizationError, CorruptTrackerFileError
 from sc2reader.objects import Participant, Observer, Computer, Team, PlayerSummary, Graph, BuildEntry, MapInfo
-from sc2reader.constants import REGIONS, GAME_SPEED_FACTOR, LOBBY_PROPERTIES
+from sc2reader.constants import GAME_SPEED_FACTOR, LOBBY_PROPERTIES
 
 
 class Resource(object):
@@ -120,8 +120,8 @@ class Replay(Resource):
     #: The :class:`Length` of the replay in real time adjusted for the game speed
     real_length = None
 
-    #: The gateway the game was played on: us, eu, sea, etc
-    gateway = str()
+    #: The region the game was played on: us, eu, sea, etc
+    region = str()
 
     #: An integrated list of all the game events
     events = list()
@@ -211,7 +211,7 @@ class Replay(Resource):
         self.is_private = False
         self.map = None
         self.map_hash = ""
-        self.gateway = ""
+        self.region = ""
         self.events = list()
         self.teams, self.team = list(), dict()
 
@@ -329,13 +329,13 @@ class Replay(Resource):
 
             self.map_name = details['map_name']
 
-            self.gateway = details['cache_handles'][0].server.lower()
+            self.region = details['cache_handles'][0].server.lower()
             self.map_hash = details['cache_handles'][-1].hash
             self.map_file = details['cache_handles'][-1]
 
             #Expand this special case mapping
-            if self.gateway == 'sg':
-                self.gateway = 'sea'
+            if self.region == 'sg':
+                self.region = 'sea'
 
             dependency_hashes = [d.hash for d in details['cache_handles']]
             if hashlib.sha256('Standard Data: Swarm.SC2Mod'.encode('utf8')).hexdigest() in dependency_hashes:
@@ -467,7 +467,7 @@ class Replay(Resource):
         self.recorder = None
 
         entity_names = sorted(map(lambda p: p.name, self.entities))
-        hash_input = self.gateway+":"+','.join(entity_names)
+        hash_input = self.region+":"+','.join(entity_names)
         self.people_hash = hashlib.sha256(hash_input.encode('utf8')).hexdigest()
 
         # The presence of observers and/or computer players makes this not actually ladder
@@ -616,17 +616,17 @@ class Map(Resource):
     #: The map description as written by author
     description = str()
 
-    def __init__(self, map_file, filename=None, gateway=None, map_hash=None, **options):
+    def __init__(self, map_file, filename=None, region=None, map_hash=None, **options):
         super(Map, self).__init__(map_file, filename, **options)
 
         #: The unique hash used to identify this map on bnet's depots.
         self.hash = map_hash
 
-        #: The gateway this map was posted to. Maps must be posted individually to each gateway.
-        self.gateway = gateway
+        #: The region this map was posted to. Maps must be posted individually to each region.
+        self.region = region
 
         #: A URL reference to the location of this map on bnet's depots.
-        self.url = Map.get_url(gateway, map_hash)
+        self.url = Map.get_url(self.region, map_hash)
 
         #: The opened MPQArchive for this map
         self.archive = mpyq.MPQArchive(map_file)
@@ -672,12 +672,12 @@ class Map(Resource):
             self.dependencies.append(dependency_node.text)
 
     @classmethod
-    def get_url(cls, gateway, map_hash):
+    def get_url(cls, region, map_hash):
         """Builds a download URL for the map from its components."""
-        if gateway and map_hash:
+        if region and map_hash:
             # it seems like sea maps are stored on us depots.
-            gateway = 'us' if gateway == 'sea' else gateway
-            return cls.url_template.format(gateway, map_hash)
+            region = 'us' if region == 'sea' else region
+            return cls.url_template.format(region, map_hash)
         else:
             return None
 
@@ -837,8 +837,8 @@ class GameSummary(Resource):
                     files.append(utils.DepotFile(file_hash))
             self.localization_urls[language] = files
 
-        # Grab the gateway from the one of the files
-        self.gateway = list(self.localization_urls.values())[0][0].server.lower()
+        # Grab the region from the one of the files
+        self.region = list(self.localization_urls.values())[0][0].server.lower()
 
         # Each of the localization urls points to an XML file with a set of
         # localization strings and their unique ids. After reading these mappings
@@ -1008,9 +1008,9 @@ class GameSummary(Resource):
             settings = self.player_settings[index]
             player.is_ai = not isinstance(struct[0][1], dict)
             if not player.is_ai:
-                player.gateway = self.gateway
+                player.region = self.region
                 player.subregion = struct[0][1][0][2]
-                player.region = REGIONS[player.gateway].get(player.subregion, 'Unknown')
+                player.region = REGIONS[player.region].get(player.subregion, 'Unknown')
                 player.bnetid = struct[0][1][0][3]
                 player.unknown1 = struct[0][1][0]
                 player.unknown2 = struct[0][1][1]
