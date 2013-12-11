@@ -245,7 +245,7 @@ class TestReplays(unittest.TestCase):
 
     def test_cn_replays(self):
         replay = sc2reader.load_replay("test_replays/2.0.5.25092/cn1.SC2Replay")
-        self.assertEqual(replay.gateway, "cn")
+        self.assertEqual(replay.region, "cn")
         self.assertEqual(replay.expansion, "WoL")
 
     def test_unit_types(self):
@@ -320,7 +320,7 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(result["release"], "2.0.5.25092")
         self.assertEqual(result["game_length"], 986)
         self.assertEqual(result["real_length"], 704)
-        self.assertEqual(result["gateway"], "cn")
+        self.assertEqual(result["region"], "cn")
         self.assertEqual(result["game_fps"], 16.0)
         self.assertTrue(result["is_ladder"])
 
