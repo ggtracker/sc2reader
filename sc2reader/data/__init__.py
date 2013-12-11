@@ -323,7 +323,7 @@ class Build(object):
             is_building=is_building,
             is_worker=is_worker,
             is_army=is_army,
-        ))
+        )
         setattr(self, name, unit)
         self.units[type_id] = unit
         self.units[str_id] = unit
