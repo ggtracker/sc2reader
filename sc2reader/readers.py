@@ -1369,6 +1369,18 @@ class GameEventsReader_24247(GameEventsReader_HotSBeta):
             method=data.read_bits(1),
         )
 
+    def camera_update_event(self, data):
+        return dict(
+            target=dict(
+                x=data.read_uint16(),
+                y=data.read_uint16(),
+            ) if data.read_bool() else None,
+            distance=data.read_uint16() if data.read_bool() else None,
+            pitch=data.read_uint16() if data.read_bool() else None,
+            yaw=data.read_uint16() if data.read_bool() else None,
+            reason=None,
+        )
+
     def trigger_target_mode_update_event(self, data):
         return dict(
             ability_link=data.read_uint16(),
@@ -1399,7 +1411,7 @@ class GameEventsReader_26490(GameEventsReader_24247):
             sync_checksumming_enabled=data.read_bool(),
             is_map_to_map_transition=data.read_bool(),
             starting_rally=data.read_bool(),
-            debug_pause_enabled=None,
+            debug_pause_enabled=data.read_bool(),
             base_build_num=data.read_uint32(),
             use_ai_beacons=None,
         )
@@ -1455,7 +1467,7 @@ class GameEventsReader_27950(GameEventsReader_26490):
             target=dict(
                 x=data.read_uint16(),
                 y=data.read_uint16(),
-            ),
+            ) if data.read_bool() else None,
             distance=data.read_uint16() if data.read_bool() else None,
             pitch=data.read_uint16() if data.read_bool() else None,
             yaw=data.read_uint16() if data.read_bool() else None,
