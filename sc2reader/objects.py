@@ -228,7 +228,8 @@ class User(object):
         #: The user's combined Battle.net race levels
         self.combined_race_levels = init_data['combined_race_levels']
 
-        #: The user's highest leauge in the current season
+        #: The highest 1v1 league achieved by the user in the current season with 1 as Bronze and
+        #: 7 as Grandmaster. 8 seems to indicate that there is no current season 1v1 ranking.
         self.highest_league = init_data['highest_league']
 
         #: A flag indicating if this person was the one who recorded the game.
