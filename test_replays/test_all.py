@@ -319,10 +319,10 @@ class TestReplays(unittest.TestCase):
         self.assertTrue(result["is_ladder"])
 
 
-def test_creepTracker():
-    from sc2reader.engine.plugins import CreepTracker
+    def test_creepTracker(self):
+      from sc2reader.engine.plugins import CreepTracker
 
-    for replayfilename in [
+      for replayfilename in [
         "test_replays/2.0.8.25605/ggtracker_3621322.SC2Replay",
         "test_replays/2.0.8.25605/ggtracker_3621402.SC2Replay",
         "test_replays/2.0.8.25605/ggtracker_3663861.SC2Replay",
@@ -340,10 +340,10 @@ def test_creepTracker():
                 assert replay.player[player_id].creep_spread_by_minute
 
 
-    replay =factory.load_replay("test_replays/2.0.8.25605/ggtracker_3621402.SC2Replay",load_map= True,engine=pluginEngine,load_level=4)
-    assert replay.player[2].max_creep_spread == (14,22.95)
-    assert  replay.player[2].creep_spread_by_minute[7] == 8.21
-    assert replay.player[2].creep_spread_by_minute[13] == 22.42
+      replay =factory.load_replay("test_replays/2.0.8.25605/ggtracker_3621402.SC2Replay",load_map= True,engine=pluginEngine,load_level=4)
+      assert replay.player[2].max_creep_spread == (840,24.83)
+      assert  replay.player[2].creep_spread_by_minute[420] == 9.4
+      assert replay.player[2].creep_spread_by_minute[780] == 22.42
 
 if __name__ == '__main__':
     unittest.main()
