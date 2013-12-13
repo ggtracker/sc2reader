@@ -19,7 +19,7 @@ class InitDataReader(object):
             user_initial_data=[dict(
                 name=data.read_aligned_string(data.read_uint8()),
                 clan_tag=data.read_aligned_string(data.read_uint8()) if replay.base_build >= 24764 and data.read_bool() else None,
-                clan_logo=data.read_aligned_string(40) if replay.base_build >= 27950 and data.read_bool() else None,
+                clan_logo=DepotFile(data.read_aligned_bytes(40)) if replay.base_build >= 27950 and data.read_bool() else None,
                 highest_league=data.read_uint8() if replay.base_build >= 24764 and data.read_bool() else None,
                 combined_race_levels=data.read_uint32() if replay.base_build >= 24764 and data.read_bool() else None,
                 random_seed=data.read_uint32(),
@@ -1457,7 +1457,7 @@ class GameEventsReader_27950(GameEventsReader_26490):
                 name=data.read_aligned_string(data.read_uint8()),
                 toon_handle=data.read_aligned_string(data.read_bits(7)) if data.read_bool() else None,
                 clan_tag=data.read_aligned_string(data.read_uint8()) if data.read_bool() else None,
-                clan_logo=data.read_aligned_string(40) if data.read_bool() else None,
+                clan_logo=DepotFile(data.read_aligned_bytes(40)) if data.read_bool() else None,
             ) for i in range(data.read_bits(5))],
             method=data.read_bits(1),
         )
@@ -1480,7 +1480,7 @@ class GameEventsReader_27950(GameEventsReader_26490):
             name=data.read_aligned_string(data.read_bits(8)),
             toon_handle=data.read_aligned_string(data.read_bits(7)) if data.read_bool() else None,
             clan_tag=data.read_aligned_string(data.read_uint8()) if data.read_bool() else None,
-            clan_logo=data.read_aligned_string(40) if data.read_bool() else None,
+            clan_logo=DepotFile(data.read_aligned_bytes(40)) if data.read_bool() else None,
         )
 
 
