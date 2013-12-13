@@ -105,7 +105,7 @@ class InitDataReader(object):
                 is_single_player=data.read_bool(),
                 game_duration=data.read_uint32(),
                 default_difficulty=data.read_bits(6),
-                default_ai_build=data.read_bits(7) if replay.base_build >= 23260 else None,
+                default_ai_build=data.read_bits(7) if replay.base_build >= 24764 else None,
             ),
         )
         if not data.done():
