@@ -936,7 +936,7 @@ class GameEventsReader_17326(GameEventsReader_16939):
             position_world=dict(
                 x=data.read_bits(20),
                 y=data.read_bits(20),
-                z=data.read_uint32()-2147483648,
+                z=data.read_uint32() - 2147483648,
             ),
         )
 
@@ -1421,15 +1421,15 @@ class GameEventsReader_26490(GameEventsReader_24247):
             button=data.read_uint32(),
             down=data.read_bool(),
             position_ui=dict(
-                x=data.read_uint32(),
-                y=data.read_uint32(),
+                x=data.read_bits(11),
+                y=data.read_bits(11),
             ),
             position_world=dict(
-                x=data.read_uint32()-2147483648,
-                y=data.read_uint32()-2147483648,
-                z=data.read_uint32()-2147483648,
+                x=data.read_bits(20) - 2147483648,
+                y=data.read_bits(20) - 2147483648,
+                z=data.read_uint32() - 2147483648,
             ),
-            flags=data.read_uint8()-128,
+            flags=data.read_uint8() - 128,
         )
 
     def trigger_mouse_moved_event(self, data):
@@ -1441,9 +1441,9 @@ class GameEventsReader_26490(GameEventsReader_24247):
             position_world=dict(
                 x=data.read_bits(20),
                 y=data.read_bits(20),
-                z=data.read_uint32()-2147483648,
+                z=data.read_uint32() - 2147483648,
             ),
-            flags=data.read_uint8()-128,
+            flags=data.read_uint8() - 128,
         )
 
 
