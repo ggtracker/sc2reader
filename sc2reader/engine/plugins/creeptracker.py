@@ -15,6 +15,8 @@ class CreepTracker(object):
     player.creep_spread by minute
     This uses the creep_tracker class to calculate the features
     '''
+    name = 'CreepTracker'
+
     def handleInitGame(self, event, replay):
       try:
         if len( replay.tracker_events) ==0 :
