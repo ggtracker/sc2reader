@@ -5,6 +5,13 @@ CHANGELOG
 0.6.5 - December ?? 2013
 ---------------------------
 
+* Deprecated unit.killed_by in favor of unit.killing_player
+* Added unit.killed_units
+* Added unit.killing_unit
+* Added UnitDiedEvent.killing_player
+* Added UnitDiedEvent.killing_unit
+* Deprecated UnitDiedEvent.killer_pid in favor of UnitDiedEvent.killing_player_id
+* Deprecated UnitDiedEvent.killer in favor of UnitDiedEvent.killing_player
 * Use generic UnitType and Ability classes for data. This means no more unit._type_class.__class__.__name__. But hopefully people were not doing that anyway.
 * Now a CorruptTrackerFileError is raised when the tracker file is corrupted (generally only older resume_from_replay replays)
 * Removed the defunct replay.player_names attribute.
