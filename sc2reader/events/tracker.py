@@ -313,11 +313,17 @@ class UnitDiedEvent(TrackerEvent):
         #: The unit object that died
         self.unit = None
 
-        #: The id of the player that killed this unit. None when not available.
+        #: Deprecated, see :attr:`killing_player_id`
         self.killer_pid = data[2]
 
-        #: The player object of the that killed the unit. Not always available.
+        #: Deprecated, see :attr:`killing_player`
         self.killer = None
+
+        #: The id of the player that killed this unit. None when not available.
+        self.killing_player_id = data[2]
+
+        #: The player object of the that killed the unit. Not always available.
+        self.killing_player = None
 
         #: The x coordinate of the center of the dying unit's footprint. Only 4 point resolution
         #: prior to Starcraft Patch 2.1.
@@ -331,13 +337,16 @@ class UnitDiedEvent(TrackerEvent):
         self.location = (self.x, self.y)
 
         #: The index portion of the killing unit's id. Available for build 27950+
-        self.killer_unit_index = None
+        self.killing_unit_index = None
 
         #: The recycle portion of the killing unit's id. Available for build 27950+
-        self.killer_unit_recycle = None
+        self.killing_unit_recycle = None
 
         #: The unique id of the unit doing the killing. Available for build 27950+
-        self.killer_unit_id = None
+        self.killing_unit_id = None
+
+        #: A reference to the :class:`Unit` that killed this :class:`Unit`
+        self.killing_unit = None
 
         if build < 27950:
             self.x = self.x * 4
@@ -345,10 +354,10 @@ class UnitDiedEvent(TrackerEvent):
             self.location = (self.x, self.y)
         else:
             # Starcraft patch 2.1 introduced killer unit indexes
-            self.killer_unit_index = data[5]
-            self.killer_unit_recycle = data[6]
-            if self.killer_unit_index:
-                self.killer_unit_id = self.killer_unit_index << 18 | self.killer_unit_recycle
+            self.killing_unit_index = data[5]
+            self.killing_unit_recycle = data[6]
+            if self.killing_unit_index:
+                self.killing_unit_id = self.killing_unit_index << 18 | self.killing_unit_recycle
 
     def __str__(self):
         return self._str_prefix() + "{0: >15} - Unit died {1}.".format(self.unit.owner, self.unit)

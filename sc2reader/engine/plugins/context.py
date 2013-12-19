@@ -146,13 +146,21 @@ class ContextLoader(object):
         else:
             self.logger.error("Unit {0} died at {1} [{2}] before it was born!".format(event.unit_id, Length(seconds=event.second), event.frame))
 
-        if event.killer_pid in replay.player:
-            event.killer = replay.player[event.killer_pid]
+        if event.killing_player_id in replay.player:
+            event.killing_player = event.killer = replay.player[event.killing_player_id]
             if event.unit:
-                event.unit.killed_by = event.killer
-                event.killer.killed_units.append(event.unit)
-        elif event.killer_pid:
-            self.logger.error("Unknown killer pid {0} at {1} [{2}]".format(event.killer_pid, Length(seconds=event.second), event.frame))
+                event.unit.killing_player = event.unit.killed_by = event.killing_player
+                event.killing_player.killed_units.append(event.unit)
+        elif event.killing_player_id:
+            self.logger.error("Unknown killing player id {0} at {1} [{2}]".format(event.killing_player_id, Length(seconds=event.second), event.frame))
+
+        if event.killing_unit_id in replay.objects:
+            event.killing_unit = replay.objects[event.killing_unit_id]
+            if event.unit:
+                event.unit.killing_unit = event.killing_unit
+                event.killing_unit.killed_units.append(event.unit)
+        elif event.killing_unit_id:
+            self.logger.error("Unknown killing unit id {0} at {1} [{2}]".format(event.killing_unit_id, Length(seconds=event.second), event.frame))
 
     def handleUnitOwnerChangeEvent(self, event, replay):
         self.load_tracker_controller(event, replay)
