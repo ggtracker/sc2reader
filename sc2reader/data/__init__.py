@@ -53,10 +53,24 @@ class Unit(object):
         #: Specifically, it is the frame that the :class:`~sc2reader.events.tracker.UnitDiedEvent` is received.
         self.died_at = None
 
+        #: Deprecated, see :attr:`self.killing_player`
+        self.killed_by = None
+
         #: A reference to the player that killed this unit. Only available for 2.0.8+ replays.
         #: This value is not set if the killer is unknown or not relevant (morphed into a
         #: different unit or used to create a building, etc)
-        self.killed_by = None
+        self.killing_player = None
+
+        #: A reference to the unit that killed this unit. Only available for 2.1+ replays.
+        #: This value is not set if the killer is unknown or not relevant (morphed into a
+        #: different unit or used to create a building, etc). If the killing unit dies before
+        #: the killed unit dies, a bug may cause the killing unit to be None. This can occur
+        #: due because of projectile speeds.
+        self.killing_unit = None
+
+        #: A list of units that this unit has killed. Only available for 2.1+ replays.
+        #: The unit only gets credit for the kills that it gets the final blow on.
+        self.killed_units = list()
 
         #: The unique in-game id for this unit. The id can sometimes be zero because
         #: TargetAbilityEvents will create a new unit with id zero when a unit
