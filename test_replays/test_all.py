@@ -443,5 +443,6 @@ class TestGameEngine(unittest.TestCase):
         self.assertEqual(replay.plugin_result['TestPlugin2'], (0, dict()))
 
 
+
 if __name__ == '__main__':
     unittest.main()
