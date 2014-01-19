@@ -85,8 +85,14 @@ class ContextLoader(object):
 
             # If we have tracker events, the unit must already exist and must already
             # have the correct unit type.
+            elif unit_id in replay.objects:
+              unit = replay.objects[unit_id]
+
+            # Except when it doesn't.
             else:
-                unit = replay.objects[unit_id]
+              unit = replay.datapack.create_unit(unit_id, unit_type, event.frame)
+              replay.objects[unit_id] = unit
+
 
             # Selection events hold flags on units (like hallucination)
             unit.apply_flags(intra_subgroup_flags)
