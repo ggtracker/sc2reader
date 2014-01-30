@@ -354,7 +354,7 @@ class SelectionEvent(GameEvent):
     Starting in Starcraft 2.0.0, selection events targetting control group
     buffers are also generated when control group selections are modified
     by non-player actions. When a player action updates a control group
-    a :class:`HotkeyEvent` is generated.
+    a :class:`ControlGroupEvent` is generated.
     """
     def __init__(self, frame, pid, data):
         super(SelectionEvent, self).__init__(frame, pid)
