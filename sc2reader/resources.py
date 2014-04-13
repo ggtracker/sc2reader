@@ -1,4 +1,4 @@
-    # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals, division
 
 from collections import defaultdict, namedtuple
@@ -192,7 +192,6 @@ class Replay(Resource):
     #: Lists info for each user that is resuming from replay.
     resume_user_info = None
 
-
     def __init__(self, replay_file, filename=None, load_level=4, engine=sc2reader.engine, do_tracker_events=True, **options):
         super(Replay, self).__init__(replay_file, filename, **options)
         self.datapack = None
@@ -201,7 +200,7 @@ class Replay(Resource):
         # The current load level of the replay
         self.load_level = None
 
-        #default values, filled in during file read
+        # default values, filled in during file read
         self.speed = ""
         self.type = ""
         self.game_type = ""
@@ -333,7 +332,7 @@ class Replay(Resource):
             self.map_hash = details['cache_handles'][-1].hash
             self.map_file = details['cache_handles'][-1]
 
-            #Expand this special case mapping
+            # Expand this special case mapping
             if self.region == 'sg':
                 self.region = 'sea'
 
@@ -367,7 +366,7 @@ class Replay(Resource):
         self.map = self.factory.load_map(self.map_file, **self.opt)
 
     def load_players(self):
-        #If we don't at least have details and attributes_events we can go no further
+        # If we don't at least have details and attributes_events we can go no further
         if 'replay.details' not in self.raw_data:
             return
         if 'replay.attributes.events' not in self.raw_data:

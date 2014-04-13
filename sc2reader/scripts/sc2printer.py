@@ -84,31 +84,31 @@ def main():
         description="""Prints basic information from Starcraft II replay and
         game summary files or directories.""")
     parser.add_argument('--recursive', action="store_true", default=True,
-        help="Recursively read through directories of Starcraft II files [default on]")
+                        help="Recursively read through directories of Starcraft II files [default on]")
 
     required = parser.add_argument_group('Required Arguments')
     required.add_argument('paths', metavar='filename', type=str, nargs='+',
-        help="Paths to one or more Starcraft II files or directories")
+                          help="Paths to one or more Starcraft II files or directories")
 
     shared_args = parser.add_argument_group('Shared Arguments')
     shared_args.add_argument('--date', action="store_true", default=True,
-        help="print(game date [default on]")
+                             help="print(game date [default on]")
     shared_args.add_argument('--length', action="store_true", default=False,
-        help="print(game duration mm:ss in game time (not real time) [default off]")
+                             help="print(game duration mm:ss in game time (not real time) [default off]")
     shared_args.add_argument('--map', action="store_true", default=True,
-        help="print(map name [default on]")
+                             help="print(map name [default on]")
     shared_args.add_argument('--teams', action="store_true", default=True,
-        help="print(teams, their players, and the race matchup [default on]")
+                             help="print(teams, their players, and the race matchup [default on]")
 
     replay_args = parser.add_argument_group('Replay Options')
     replay_args.add_argument('--messages', action="store_true", default=False,
-        help="print(in-game player chat messages [default off]")
+                             help="print(in-game player chat messages [default off]")
     replay_args.add_argument('--version', action="store_true", default=True,
-        help="print(the release string as seen in game [default on]")
+                             help="print(the release string as seen in game [default on]")
 
     s2gs_args = parser.add_argument_group('Game Summary Options')
     s2gs_args.add_argument('--builds', action="store_true", default=False,
-        help="print(player build orders (first 64 items) [default off]")
+                           help="print(player build orders (first 64 items) [default off]")
 
     arguments = parser.parse_args()
     for path in arguments.paths:
