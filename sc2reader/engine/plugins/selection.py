@@ -40,17 +40,17 @@ class SelectionTracker(object):
         if error:
             event.player.selection_errors += 1
 
-    def handleGetFromHotkeyEvent(self, event, replay):
+    def handleGetControlGroupEvent(self, event, replay):
         selection = event.player.selection[event.control_group]
         new_selection, error = self._deselect(selection, event.mask_type, event.mask_data)
         event.player.selection[10] = new_selection
         if error:
             event.player.selection_errors += 1
 
-    def handleSetToHotkeyEvent(self, event, replay):
+    def handleSetControlGroupEvent(self, event, replay):
         event.player.selection[event.control_group] = event.player.selection[10]
 
-    def handleAddToHotkeyEvent(self, event, replay):
+    def handleAddToControlGroupEvent(self, event, replay):
         selection = event.player.selection[event.control_group]
         new_selection, error = self._deselect(selection, event.mask_type, event.mask_data)
         new_selection = self._select(new_selection, event.player.selection[10])
