@@ -487,7 +487,7 @@ class Replay(Resource):
         self.events = sorted(self.events+self.game_events, key=lambda e: e.frame)
 
         # hideous hack for HotS 2.0.0.23925, see https://github.com/GraylinKim/sc2reader/issues/87
-        if self.events and self.events[-1].frame > self.frames:
+        if self.base_build == 23925 and self.events and self.events[-1].frame > self.frames:
             self.frames = self.events[-1].frame
             self.length = utils.Length(seconds=int(self.frames/self.game_fps))
 
