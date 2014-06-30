@@ -366,6 +366,10 @@ class TestReplays(unittest.TestCase):
     def test_daedalus_point(self):
         replay = sc2reader.load_replay("test_replays/2.0.11.26825/DaedalusPoint.SC2Replay")
 
+    def test_reloaded(self):
+        replay = sc2reader.load_replay("test_replays/2.1.3.28667/Habitation Station LE (54).SC2Replay")
+
+    
 
 class TestGameEngine(unittest.TestCase):
     class TestEvent(object):
