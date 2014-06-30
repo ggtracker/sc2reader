@@ -15,10 +15,11 @@ class TrackerEvent(Event):
     """
     def __init__(self, frames):
         #: The frame of the game this event was applied
-        self.frame = frames
+        #: Ignore all but the lowest 32 bits of the frame
+        self.frame = frames % 2**32
 
         #: The second of the game (game time not real time) this event was applied
-        self.second = frames >> 4
+        self.second = self.frame >> 4
 
         #: Short cut string for event class name
         self.name = self.__class__.__name__
