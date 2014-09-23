@@ -95,6 +95,7 @@ class InitDataReader(object):
                     ai_build=data.read_bits(7) if replay.base_build >= 23925 else None,
                     handicap=data.read_bits(7),
                     observe=data.read_bits(2),
+                    logo_index=data.read_uint32() if replay.base_build >= 32283 else None,
                     working_set_slot_id=data.read_uint8() if replay.base_build >= 24764 and data.read_bool() else None,
                     rewards=[data.read_uint32() for i in range(data.read_bits(6 if replay.base_build >= 24764 else 5))],
                     toon_handle=data.read_aligned_string(data.read_bits(7)) if replay.base_build >= 17266 else None,

@@ -391,6 +391,9 @@ class TestReplays(unittest.TestCase):
       replay = sc2reader.load_replay("test_replays/2.0.11.26825/bad_unit_ids_1.SC2Replay", load_level=4)
       replay = sc2reader.load_replay("test_replays/2.0.9.26147/bad_unit_ids_2.SC2Replay", load_level=4)
 
+    def test_214(self):
+      replay = sc2reader.load_replay("test_replays/2.1.4/Catallena LE.SC2Replay", load_level=4)
+
 
 
 class TestGameEngine(unittest.TestCase):
