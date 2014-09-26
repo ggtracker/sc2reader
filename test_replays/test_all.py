@@ -15,6 +15,7 @@ import sc2reader
 
 sc2reader.log_utils.log_to_console("INFO")
 
+print("YO YO YO THIS IS FOR REAL")
 
 class TestReplays(unittest.TestCase):
 
@@ -369,6 +370,8 @@ class TestReplays(unittest.TestCase):
     def test_reloaded(self):
         replay = sc2reader.load_replay("test_replays/2.1.3.28667/Habitation Station LE (54).SC2Replay")
 
+    def test_214(self):
+      replay = sc2reader.load_replay("test_replays/2.1.4/Catallena LE.SC2Replay", load_level=4)
     
 
 class TestGameEngine(unittest.TestCase):
