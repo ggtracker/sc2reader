@@ -23,7 +23,7 @@ LOCALIZED_RACES = {
     '프로토스': 'Protoss',
     '저그': 'Zerg',
 
-    # ??eu
+    # plPL
     'Terranie': 'Terran',
     'Protosi': 'Protoss',
     'Zergi': 'Zerg',
@@ -126,6 +126,7 @@ SUBREGIONS = {
         1: 'kr',
         2: 'tw',
     },
+
     # Taiwan - appear to both map to same place
     'tw': {
         1: 'kr',
