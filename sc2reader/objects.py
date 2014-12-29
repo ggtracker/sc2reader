@@ -101,7 +101,9 @@ class Entity(object):
         self.handicap = slot_data['handicap']
 
         #: The entity's team number. None for observers
-        self.team_id = slot_data['team_id']+1
+        self.team_id = None
+        if slot_data['team_id'] is not None:
+            self.team_id = slot_data['team_id'] + 1
 
         #: A flag indicating if the person is a human or computer
         #: Really just a shortcut for isinstance(entity, User)
