@@ -28,7 +28,7 @@ class ContextLoader(object):
             if not getattr(replay, 'marked_error', None):
                 replay.marked_error = True
                 event.logger.error(replay.filename)
-                event.logger.error("Release String: "+replay.release_string)
+                event.logger.error("Release String: " + replay.release_string)
                 for player in replay.players:
                     event.logger.error("\t{0}".format(player))
 
@@ -254,7 +254,7 @@ class ContextLoader(object):
                 event.player = replay.human[event.pid]
                 event.player.events.append(event)
             elif event.pid != 16:
-                self.logger.error("Bad pid ({0}) for event {1} at {2} [{3}].".format(event.pid, event.__class__, Length(seconds=event.second), event.frames))
+                self.logger.error("Bad pid ({0}) for event {1} at {2} [{3}].".format(event.pid, event.__class__, Length(seconds=event.second), event.frame))
             else:
                 pass  # This is a global event
 
