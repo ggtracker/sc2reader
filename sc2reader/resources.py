@@ -612,17 +612,20 @@ class Replay(Resource):
 class Map(Resource):
     url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
 
-    #: The localized (only enUS supported right now) map name
-    name = str()
-
-    #: The map's author
-    author = str()
-
-    #: The map description as written by author
-    description = str()
-
     def __init__(self, map_file, filename=None, region=None, map_hash=None, **options):
         super(Map, self).__init__(map_file, filename, **options)
+
+        #: The localized (only enUS supported right now) map name.
+        self.name = str()
+
+        #: The localized (only enUS supported right now) map author.
+        self.author = str()
+
+        #: The localized (only enUS supported right now) map description.
+        self.description = str()
+
+        #: The localized (only enUS supported right now) map website.
+        self.website = str()
 
         #: The unique hash used to identify this map on bnet's depots.
         self.hash = map_hash
@@ -643,9 +646,9 @@ class Map(Resource):
         # Clearly this isn't a great solution but we can't be throwing exceptions
         # just because US English wasn't a concern of the map author.
         # TODO: Make this work regardless of the localizations available.
-        game_strings = self.archive.read_file('enUS.SC2Data\LocalizedData\GameStrings.txt').decode('utf8')
-        if game_strings:
-            for line in game_strings.split('\r\n'):
+        game_strings_file = self.archive.read_file('enUS.SC2Data\LocalizedData\GameStrings.txt')
+        if game_strings_file:
+            for line in game_strings_file.decode('utf8').split('\r\n'):
                 if len(line) == 0:
                     continue
 
@@ -660,21 +663,26 @@ class Map(Resource):
                     self.website = value
 
         #: A reference to the map's :class:`~sc2reader.objects.MapInfo` object
-        self.map_info = MapInfo(self.archive.read_file('MapInfo'))
+        self.map_info = None
+        map_info_file = self.archive.read_file('MapInfo')
+        if map_info_file:
+            self.map_info = MapInfo(map_info_file)
 
-        doc_info = ElementTree.fromstring(self.archive.read_file('DocumentInfo').decode('utf8'))
+        doc_info_file = self.archive.read_file('DocumentInfo')
+        if doc_info_file:
+            doc_info = ElementTree.fromstring(doc_info_file.decode('utf8'))
 
-        icon_path_node = doc_info.find('Icon/Value')
-        #: (Optional) The path to the icon for the map, relative to the archive root
-        self.icon_path = icon_path_node.text if icon_path_node is not None else None
+            icon_path_node = doc_info.find('Icon/Value')
+            #: (Optional) The path to the icon for the map, relative to the archive root
+            self.icon_path = icon_path_node.text if icon_path_node is not None else None
 
-        #: (Optional) The icon image for the map in tga format
-        self.icon = self.archive.read_file(self.icon_path) if self.icon_path is not None else None
+            #: (Optional) The icon image for the map in tga format
+            self.icon = self.archive.read_file(self.icon_path) if self.icon_path is not None else None
 
-        #: A list of module names this map depends on
-        self.dependencies = list()
-        for dependency_node in doc_info.findall('Dependencies/Value'):
-            self.dependencies.append(dependency_node.text)
+            #: A list of module names this map depends on
+            self.dependencies = list()
+            for dependency_node in doc_info.findall('Dependencies/Value'):
+                self.dependencies.append(dependency_node.text)
 
     @classmethod
     def get_url(cls, region, map_hash):
