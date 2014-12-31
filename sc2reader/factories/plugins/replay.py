@@ -123,7 +123,7 @@ def APMTracker(replay):
 
 @plugin
 def SelectionTracker(replay):
-    debug = replay.opt.debug
+    debug = replay.opt['debug']
     logger = log_utils.get_logger(SelectionTracker)
 
     for person in replay.entities:

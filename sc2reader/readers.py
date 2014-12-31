@@ -297,7 +297,7 @@ class GameEventsReader_Base(object):
 
         # method short cuts, avoid dict lookups
         EVENT_DISPATCH = self.EVENT_DISPATCH
-        debug = replay.opt.debug
+        debug = replay.opt['debug']
         tell = data.tell
         read_frames = data.read_frames
         read_bits = data.read_bits

@@ -23,7 +23,7 @@ from sc2reader.constants import GAME_SPEED_FACTOR, LOBBY_PROPERTIES
 class Resource(object):
     def __init__(self, file_object, filename=None, factory=None, **options):
         self.factory = factory
-        self.opt = utils.AttributeDict(options)
+        self.opt = options
         self.logger = log_utils.get_logger(self.__class__)
         self.filename = filename or getattr(file_object, 'name', 'Unavailable')
 
@@ -137,7 +137,7 @@ class Replay(Resource):
 
     #: A dual key dict mapping player names and numbers to
     #: :class:`Player` objects
-    player = utils.PersonDict()
+    player = dict()
 
     #: A list of :class:`Observer` objects from the game
     observers = list()
@@ -148,7 +148,7 @@ class Replay(Resource):
 
     #: A dual key dict mapping :class:`Person` object to their
     #: person id's and names
-    person = utils.PersonDict()
+    person = dict()
 
     #: A list of :class:`Person` objects from the game representing
     #: only the human players from the :attr:`people` list
@@ -214,11 +214,11 @@ class Replay(Resource):
         self.events = list()
         self.teams, self.team = list(), dict()
 
-        self.player = utils.PersonDict()
-        self.observer = utils.PersonDict()
-        self.human = utils.PersonDict()
-        self.computer = utils.PersonDict()
-        self.entity = utils.PersonDict()
+        self.player = dict()
+        self.observer = dict()
+        self.human = dict()
+        self.computer = dict()
+        self.entity = dict()
 
         self.players = list()
         self.observers = list()  # Unordered list of Observer
@@ -599,7 +599,7 @@ class Replay(Resource):
         data = utils.extract_data_file(data_file, self.archive)
         if data:
             self.raw_data[data_file] = reader(data, self)
-        elif self.opt.debug and data_file not in ['replay.message.events', 'replay.tracker.events']:
+        elif self.opt['debug'] and data_file not in ['replay.message.events', 'replay.tracker.events']:
             raise ValueError("{0} not found in archive".format(data_file))
 
     def __getstate__(self):
@@ -862,7 +862,7 @@ class GameSummary(Resource):
         self.lang_sheets = dict()
         self.translations = dict()
         for lang, files in self.localization_urls.items():
-            if lang != self.opt.lang:
+            if lang != self.opt['lang']:
                 continue
 
             sheets = list()
@@ -873,9 +873,9 @@ class GameSummary(Resource):
             for uid, (sheet, item) in self.id_map.items():
                 if sheet < len(sheets) and item in sheets[sheet]:
                     translation[uid] = sheets[sheet][item]
-                elif self.opt.debug:
+                elif self.opt['debug']:
                     msg = "No {0} translation for sheet {1}, item {2}"
-                    raise SC2ReaderLocalizationError(msg.format(self.opt.lang, sheet, item))
+                    raise SC2ReaderLocalizationError(msg.format(self.opt['lang'], sheet, item))
                 else:
                     translation[uid] = "Unknown"
 
@@ -883,7 +883,7 @@ class GameSummary(Resource):
             self.translations[lang] = translation
 
     def load_map_info(self):
-        map_strings = self.lang_sheets[self.opt.lang][-1]
+        map_strings = self.lang_sheets[self.opt['lang']][-1]
         self.map_name = map_strings[1]
         self.map_description = map_strings[2]
         self.map_tileset = map_strings[3]
@@ -942,7 +942,7 @@ class GameSummary(Resource):
             activated[(prop.id, player)] = use
             return use
 
-        translation = self.translations[self.opt.lang]
+        translation = self.translations[self.opt['lang']]
         for uid, prop in properties.items():
             name = translation.get(uid, "Unknown")
             if prop.is_lobby:
@@ -956,7 +956,7 @@ class GameSummary(Resource):
                         self.player_settings[index][name] = translation[(uid, value)]
 
     def load_player_stats(self):
-        translation = self.translations[self.opt.lang]
+        translation = self.translations[self.opt['lang']]
 
         stat_items = sum([p[0] for p in self.parts[3:]], [])
 
