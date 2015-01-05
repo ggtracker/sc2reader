@@ -151,12 +151,6 @@ def extract_data_file(data_file, archive):
         raise MPQError("Unable to extract file: {0}".format(data_file), e)
 
 
-def merged_dict(a, b):
-    c = a.copy()
-    c.update(b)
-    return c
-
-
 def get_files(path, exclude=list(), depth=-1, followlinks=False, extension=None, **extras):
     """
     Retrieves files from the given path with configurable behavior.
