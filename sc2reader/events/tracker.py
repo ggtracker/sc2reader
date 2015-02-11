@@ -442,7 +442,7 @@ class UpgradeCompleteEvent(TrackerEvent):
         self.player = None
 
         #: The name of the upgrade
-        self.upgrade_type_name = data[1]
+        self.upgrade_type_name = data[1].decode('utf8')
 
         #: The number of times this upgrade as been researched
         self.count = data[2]
