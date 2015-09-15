@@ -300,6 +300,17 @@ class Replay(Resource):
             engine.run(self)
 
     def load_details(self):
+        if 'replay.initData' in self.raw_data:
+            initData = self.raw_data['replay.initData']
+            options = initData['game_description']['game_options']
+            self.amm = options['amm']
+            self.ranked = options['ranked']
+            self.competitive = options['competitive']
+            self.practice = options['practice']
+            self.cooperative = options['cooperative']
+            self.battle_net = options['battle_net']
+            self.hero_duplicates_allowed = options['hero_duplicates_allowed']
+        
         if 'replay.attributes.events' in self.raw_data:
             # Organize the attribute data to be useful
             self.attributes = defaultdict(dict)
@@ -328,7 +339,9 @@ class Replay(Resource):
                 self.gateway = 'sea'
 
             dependency_hashes = [d.hash for d in details['cache_handles']]
-            if hashlib.sha256('Standard Data: Swarm.SC2Mod'.encode('utf8')).hexdigest() in dependency_hashes:
+            if hashlib.sha256('Standard Data: Void.SC2Mod'.encode('utf8')).hexdigest() in dependency_hashes:
+                self.expansion = 'LotV'            
+            elif hashlib.sha256('Standard Data: Swarm.SC2Mod'.encode('utf8')).hexdigest() in dependency_hashes:
                 self.expansion = 'HotS'
             elif hashlib.sha256('Standard Data: Liberty.SC2Mod'.encode('utf8')).hexdigest() in dependency_hashes:
                 self.expansion = 'WoL'
@@ -555,7 +568,9 @@ class Replay(Resource):
         self.register_reader('replay.game.events', readers.GameEventsReader_23260(), lambda r: 23260 <= r.base_build < 24247)
         self.register_reader('replay.game.events', readers.GameEventsReader_24247(), lambda r: 24247 <= r.base_build < 26490)
         self.register_reader('replay.game.events', readers.GameEventsReader_26490(), lambda r: 26490 <= r.base_build < 27950)
-        self.register_reader('replay.game.events', readers.GameEventsReader_27950(), lambda r: 27950 <= r.base_build)
+        self.register_reader('replay.game.events', readers.GameEventsReader_27950(), lambda r: 27950 <= r.base_build < 34784)
+        self.register_reader('replay.game.events', readers.GameEventsReader_34784(), lambda r: 34784 <= r.base_build < 36442)
+        self.register_reader('replay.game.events', readers.GameEventsReader_36442(), lambda r: 36442 <= r.base_build)
         self.register_reader('replay.game.events', readers.GameEventsReader_HotSBeta(), lambda r: r.versions[1] == 2 and r.build < 24247)
 
     def register_default_datapacks(self):
@@ -570,6 +585,7 @@ class Replay(Resource):
         self.register_datapack(datapacks['HotS']['23925'], lambda r: r.expansion == 'HotS' and 23925 <= r.build < 24247)
         self.register_datapack(datapacks['HotS']['24247'], lambda r: r.expansion == 'HotS' and 24247 <= r.build <= 24764)
         self.register_datapack(datapacks['HotS']['24764'], lambda r: r.expansion == 'HotS' and 24764 <= r.build)
+        self.register_datapack(datapacks['LotV']['base'], lambda r: r.expansion == 'LotV' and 34784 <= r.build)
 
     # Internal Methods
     def _get_reader(self, data_file):

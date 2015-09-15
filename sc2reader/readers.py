@@ -29,7 +29,12 @@ class InitDataReader(object):
                 test_auto=data.read_bool(),
                 examine=data.read_bool() if replay.base_build >= 21955 else None,
                 custom_interface=data.read_bool() if replay.base_build >= 24764 else None,
+                test_type=data.read_uint32() if replay.base_build >= 34784 else None,
                 observe=data.read_bits(2),
+                hero=data.read_aligned_string(data.read_bits(9)) if replay.base_build >= 34784 else None,
+                skin=data.read_aligned_string(data.read_bits(9)) if replay.base_build >= 34784 else None,
+                mount=data.read_aligned_string(data.read_bits(9)) if replay.base_build >= 34784 else None,
+                toon_handle=data.read_aligned_string(data.read_bits(7)) if replay.base_build >= 34784 else None,                
             ) for i in range(data.read_bits(5))],
 
             game_description=dict(
@@ -42,8 +47,12 @@ class InitDataReader(object):
                     random_races=data.read_bool(),
                     battle_net=data.read_bool(),
                     amm=data.read_bool(),
+                    ranked=data.read_bool() if replay.base_build >= 34784 else None,
                     competitive=data.read_bool(),
+                    practice=data.read_bool() if replay.base_build >= 34784 else None,
+                    cooperative=data.read_bool() if replay.base_build >= 34784 else None,
                     no_victory_or_defeat=data.read_bool(),
+                    hero_duplicates_allowed=data.read_bool() if replay.base_build >= 34784 else None,
                     fog=data.read_bits(2),
                     observers=data.read_bits(2),
                     user_difficulty=data.read_bits(2),
@@ -96,14 +105,24 @@ class InitDataReader(object):
                     handicap=data.read_bits(7),
                     observe=data.read_bits(2),
                     logo_index=data.read_uint32() if replay.base_build >= 32283 else None,
+                    hero=data.read_aligned_string(data.read_bits(9)) if replay.base_build >= 34784 else None,
+                    skin=data.read_aligned_string(data.read_bits(9)) if replay.base_build >= 34784 else None,
+                    mount=data.read_aligned_string(data.read_bits(9)) if replay.base_build >= 34784 else None,
+                    artifacts=[dict(
+                        type_struct=data.read_aligned_string(data.read_bits(9)),
+                    ) for i in range(data.read_bits(4))] if replay.base_build >= 34784 else None,
                     working_set_slot_id=data.read_uint8() if replay.base_build >= 24764 and data.read_bool() else None,
-                    rewards=[data.read_uint32() for i in range(data.read_bits(6 if replay.base_build >= 24764 else 5))],
+                    rewards=[data.read_uint32() for i in range(data.read_bits(17 if replay.base_build >= 34784 else 6 if replay.base_build >= 24764 else 5))],
                     toon_handle=data.read_aligned_string(data.read_bits(7)) if replay.base_build >= 17266 else None,
                     licenses=[data.read_uint32() for i in range(data.read_bits(9))] if replay.base_build >= 19132 else [],
+                    tandem_leader_user_id=data.read_bits(4) if replay.base_build >= 34784 and data.read_bool() else None,
+                    commander=data.read_aligned_bytes(data.read_bits(9)) if replay.base_build >= 34784 else None,
+                    commander_level=data.read_uint32() if replay.base_build >= 36442 else None,
                 ) for i in range(data.read_bits(5))],
                 random_seed=data.read_uint32(),
                 host_user_id=data.read_bits(4) if data.read_bool() else None,
                 is_single_player=data.read_bool(),
+                picked_map_tag=data.read_uint8() if replay.base_build >= 36442 else None,
                 game_duration=data.read_uint32(),
                 default_difficulty=data.read_bits(6),
                 default_ai_build=data.read_bits(7) if replay.base_build >= 24764 else None,
@@ -155,6 +174,7 @@ class DetailsReader(object):
                 observe=p[7],
                 result=p[8],
                 working_set_slot=p[9] if replay.build >= 24764 else None,
+                hero=p[10] if replay.build >= 34784 and 10 in p else None,  # hero appears to be present in Heroes replays but not StarCraft 2 replays
             ) for p in details[0]],
             map_name=details[1].decode('utf8'),
             difficulty=details[2],
@@ -204,6 +224,10 @@ class MessageEventsReader(object):
 
             elif flag == 3:  # Server ping message
                 pass
+
+            elif flag == 4:  # Reconnect notify message
+                status = data.read_bits(2)
+                pass  # TODO: Store this somewhere
 
             data.byte_align()
 
@@ -1484,6 +1508,220 @@ class GameEventsReader_27950(GameEventsReader_26490):
             clan_logo=DepotFile(data.read_aligned_bytes(40)) if data.read_bool() else None,
         )
 
+class GameEventsReader_34784(GameEventsReader_27950):
+
+    def __init__(self):
+        super(GameEventsReader_34784, self).__init__()
+
+        self.EVENT_DISPATCH.update({
+            25: (None, self.command_manager_reset_event),         # Re-using this old number
+            61: (None, self.trigger_hotkey_pressed_event),
+            103: (None, self.command_manager_state_event),
+            104: (None, self.command_update_target_point_event),
+            105: (None, self.command_update_target_unit_event),
+            106: (None, self.trigger_anim_length_query_by_name_event),
+            107: (None, self.trigger_anim_length_query_by_props_event),
+            108: (None, self.trigger_anim_offset_event),
+            109: (None, self.catalog_modify_event),
+            110: (None, self.hero_talent_tree_selected_event),
+            111: (None, self.trigger_profiler_logging_finished_event),
+            112: (None, self.hero_talent_tree_selection_panel_toggled_event),
+        })
+
+    def hero_talent_tree_selection_panel_toggled_event(self, data):
+        return dict(
+            shown=data.read_bool(),
+        )
+
+    def trigger_profiler_logging_finished_event(self, data):
+        return dict()
+
+    def hero_talent_tree_selected_event(self, data):
+        return dict(
+            index=data.read_uint32()
+        )
+
+    def catalog_modify_event(self, data):
+        return dict(
+            catalog=data.read_uint8(),
+            entry=data.read_uint16(),
+            field=data.read_aligned_string(data.read_uint8()),
+            value=data.read_aligned_string(data.read_uint8()),
+        )
+
+    def trigger_anim_offset_event(self, data):
+        return dict(
+            anim_wait_query_id=data.read_uint16(),
+        )
+
+    def trigger_anim_length_query_by_props_event(self, data):
+        return dict(
+            query_id=data.read_uint16(),
+            length_ms=data.read_uint32(),
+        )
+
+    def trigger_anim_length_query_by_name_event(self, data):
+        return dict(
+            query_id=data.read_uint16(),
+            length_ms=data.read_uint32(),
+            finish_game_loop=data.read_uint32(),
+        )
+
+    def command_manager_reset_event(self, data):
+        return dict(
+            sequence=data.read_uint32(),
+        )
+
+    def command_manager_state_event(self, data):
+        return dict(
+            state=data.read_bits(2),
+            sequence=data.read_uint32() + 1 if data.read_bool() else None,
+        )
+
+    def command_update_target_point_event(self, data):
+        return dict(
+            target=dict(
+                x=data.read_bits(20),
+                y=data.read_bits(20),
+                z=data.read_uint32() - 2147483648,
+            )
+        )
+
+    def command_update_target_unit_event(self, data):
+        return dict(
+            target=dict(
+                target_unit_flags=data.read_uint16(),
+                timer=data.read_uint8(),
+                tag=data.read_uint32(),
+                snapshot_unit_link=data.read_uint16(),
+                snapshot_control_player_id=data.read_bits(4) if data.read_bool() else None,
+                snapshot_upkeep_player_id=data.read_bits(4) if data.read_bool() else None,
+                snapshot_point=dict(
+                    x=data.read_bits(20),
+                    y=data.read_bits(20),
+                    z=data.read_bits(32) - 2147483648,
+                )
+            )
+        )
+
+    def command_event(self, data):
+        return dict(
+            flags=data.read_bits(23),
+            ability=dict(
+                ability_link=data.read_uint16(),
+                ability_command_index=data.read_bits(5),
+                ability_command_data=data.read_uint8() if data.read_bool() else None,
+            ) if data.read_bool() else None,
+            data={  # Choice
+                0: lambda: ('None', None),
+                1: lambda: ('TargetPoint', dict(
+                    point=dict(
+                        x=data.read_bits(20),
+                        y=data.read_bits(20),
+                        z=data.read_uint32() - 2147483648,
+                    )
+                )),
+                2: lambda: ('TargetUnit', dict(
+                    flags=data.read_uint16(),
+                    timer=data.read_uint8(),
+                    unit_tag=data.read_uint32(),
+                    unit_link=data.read_uint16(),
+                    control_player_id=data.read_bits(4) if data.read_bool() else None,
+                    upkeep_player_id=data.read_bits(4) if data.read_bool() else None,
+                    point=dict(
+                        x=data.read_bits(20),
+                        y=data.read_bits(20),
+                        z=data.read_uint32() - 2147483648,
+                    ),
+                )),
+                3: lambda: ('Data', dict(
+                    data=data.read_uint32()
+                )),
+            }[data.read_bits(2)](),
+            sequence=data.read_uint32() + 1,
+            other_unit_tag=data.read_uint32() if data.read_bool() else None,
+            unit_group=data.read_uint32() if data.read_bool() else None,
+        )
+
+    def user_options_event(self, data):
+        return dict(
+            game_fully_downloaded=data.read_bool(),
+            development_cheats_enabled=data.read_bool(),
+            test_cheats_enabled=data.read_bool(),
+            multiplayer_cheats_enabled=data.read_bool(),
+            sync_checksumming_enabled=data.read_bool(),
+            is_map_to_map_transition=data.read_bool(),
+            starting_rally=data.read_bool(),
+            debug_pause_enabled=data.read_bool(),
+            use_galaxy_asserts=data.read_bool(),
+            platform_mac=data.read_bool(),
+            camera_follow=data.read_bool(),
+            base_build_num=data.read_uint32(),
+            build_num=data.read_uint32(),
+            version_flags=data.read_uint32(),
+            hotkey_profile=data.read_aligned_string(data.read_bits(9)),
+            use_ai_beacons=None,
+        )
+
+    def trigger_ping_event(self, data):
+        return dict(
+            point=dict(
+                x=data.read_uint32() - 2147483648,
+                y=data.read_uint32() - 2147483648,
+            ),
+            unit_tag=data.read_uint32(),
+            pinged_minimap=data.read_bool(),
+            option=data.read_uint32() - 2147483648,
+        )
+
+    def camera_update_event(self, data):
+        return dict(
+            target=dict(
+                x=data.read_uint16(),
+                y=data.read_uint16(),
+            ) if data.read_bool() else None,
+            distance=data.read_uint16() if data.read_bool() else None,
+            pitch=data.read_uint16() if data.read_bool() else None,
+            yaw=data.read_uint16() if data.read_bool() else None,
+            reason=data.read_uint8() - 128 if data.read_bool() else None,
+            follow=data.read_bool(),
+        )
+
+    def trigger_hotkey_pressed_event(self, data):
+        return dict(
+            hotkey=data.read_uint32(),
+            down=data.read_bool(),
+        )
+
+    def game_user_join_event(self, data):
+        return dict(
+            observe=data.read_bits(2),
+            name=data.read_aligned_string(data.read_bits(8)),
+            toon_handle=data.read_aligned_string(data.read_bits(7)) if data.read_bool() else None,
+            clan_tag=data.read_aligned_string(data.read_uint8()) if data.read_bool() else None,
+            clan_logo=DepotFile(data.read_aligned_bytes(40)) if data.read_bool() else None,
+            hijack=data.read_bool(),
+            hijack_clone_game_user_id=data.read_bits(4) if data.read_bool() else None,
+        )
+
+    def game_user_leave_event(self, data):
+        return dict(
+            leave_reason=data.read_bits(4)
+        )
+
+class GameEventsReader_36442(GameEventsReader_34784):
+
+    def control_group_update_event(self, data):
+        return dict(
+            control_group_index=data.read_bits(4),
+            control_group_update=data.read_bits(3),
+            remove_mask={  # Choice
+                0: lambda: ('None', None),
+                1: lambda: ('Mask', self.read_selection_bitmask(data, data.read_bits(9))),
+                2: lambda: ('OneIndices', [data.read_bits(9) for i in range(data.read_bits(9))]),
+                3: lambda: ('ZeroIndices', [data.read_bits(9) for i in range(data.read_bits(9))]),
+            }[data.read_bits(2)](),
+        )
 
 class TrackerEventsReader(object):
 

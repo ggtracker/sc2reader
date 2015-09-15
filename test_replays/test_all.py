@@ -394,6 +394,11 @@ class TestReplays(unittest.TestCase):
     def test_214(self):
       replay = sc2reader.load_replay("test_replays/2.1.4/Catallena LE.SC2Replay", load_level=4)
 
+    def test_lotv1(self):
+      replay = sc2reader.load_replay("test_replays/lotv/lotv1.SC2Replay")
+      self.assertEqual(replay.expansion, "LotV")
+      replay = sc2reader.load_replay("test_replays/lotv/lotv2.SC2Replay")
+      self.assertEqual(replay.expansion, "LotV")
 
 
 class TestGameEngine(unittest.TestCase):
@@ -449,7 +454,6 @@ class TestGameEngine(unittest.TestCase):
         self.assertEqual(replay.plugin_failures, ['TestPlugin1'])
         self.assertEqual(replay.plugin_result['TestPlugin1'], (1, dict(msg="Fail!")))
         self.assertEqual(replay.plugin_result['TestPlugin2'], (0, dict()))
-
 
 
 if __name__ == '__main__':

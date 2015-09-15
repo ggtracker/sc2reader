@@ -402,4 +402,9 @@ hots_builds = dict()
 for version in ('base', '23925', '24247', '24764'):
     hots_builds[version] = load_build('HotS', version)
 
-datapacks = builds = {'WoL': wol_builds, 'HotS': hots_builds}
+# Load LotV Data
+lotv_builds = dict()
+for version in ('base', ):
+    lotv_builds[version] = load_build('LotV', version)
+
+datapacks = builds = {'WoL': wol_builds, 'HotS': hots_builds, 'LotV': lotv_builds}

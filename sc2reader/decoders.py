@@ -368,7 +368,7 @@ class BitPackedDecoder(object):
             data = self._buffer.read_bytes(4)  # self.read_uint32()
 
         elif datatype == 0x08:  # u64
-            data = self._buffer.read_unit64()
+            data = self._buffer.read_uint64()
 
         elif datatype == 0x09:  # vint
             data = self.read_vint()
