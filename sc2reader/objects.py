@@ -627,6 +627,10 @@ class MapInfo(object):
         #: The number of players enabled via the data editor
         self.player_count = data.read_uint32()
 
+        # Leave early so we dont barf. Turns out ggtracker doesnt need
+        # any of the map data thats loaded below.
+        return
+        
         #: A list of references to :class:`MapInfoPlayer` objects
         self.players = list()
         for i in range(self.player_count):

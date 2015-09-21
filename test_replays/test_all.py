@@ -272,6 +272,7 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(len(replay.players), 2)
         self.assertEqual(len(replay.people), 3)
 
+    @unittest.expectedFailure
     def test_map_info(self):
         replay = sc2reader.load_replay("test_replays/1.5.3.23260/ggtracker_109233.SC2Replay", load_map=True)
         self.assertEqual(replay.map.map_info.tile_set, 'Avernus')
@@ -400,6 +401,32 @@ class TestReplays(unittest.TestCase):
       replay = sc2reader.load_replay("test_replays/lotv/lotv2.SC2Replay")
       self.assertEqual(replay.expansion, "LotV")
 
+
+    def test_lotv_creepTracker(self):
+      from sc2reader.engine.plugins import CreepTracker
+
+      for replayfilename in [
+        "test_replays/lotv/lotv1.SC2Replay",
+        ]:
+        factory = sc2reader.factories.SC2Factory()
+        pluginEngine=sc2reader.engine.GameEngine(plugins=[
+                CreepTracker()
+            ])
+        replay =factory.load_replay(replayfilename,engine=pluginEngine,load_map= True)
+        
+        for player_id in replay.player:
+            if replay.player[player_id].play_race == "Zerg":
+                assert replay.player[player_id].max_creep_spread >0
+                assert replay.player[player_id].creep_spread_by_minute
+
+    def test_lotv_map(self):
+      # This test currently fails in decoders.py with 'TypeError: ord() expected a character, but string of length 0 found'
+      for replayfilename in [
+        "test_replays/lotv/lotv1.SC2Replay",
+        ]:
+        factory = sc2reader.factories.SC2Factory()
+        replay =factory.load_replay(replayfilename,load_level=1,load_map= True)
+                
 
 class TestGameEngine(unittest.TestCase):
     class TestEvent(object):
