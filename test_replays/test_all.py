@@ -15,8 +15,6 @@ import sc2reader
 
 sc2reader.log_utils.log_to_console("INFO")
 
-print("YO YO YO THIS IS FOR REAL")
-
 class TestReplays(unittest.TestCase):
 
     def test_teams(self):
