@@ -370,7 +370,10 @@ class TestReplays(unittest.TestCase):
 
     def test_214(self):
       replay = sc2reader.load_replay("test_replays/2.1.4/Catallena LE.SC2Replay", load_level=4)
-    
+
+    def test_30(self):
+      replay = sc2reader.load_replay("test_replays/3.0.0.38215/first.SC2Replay", load_level=1)
+
 
 class TestGameEngine(unittest.TestCase):
     class TestEvent(object):
