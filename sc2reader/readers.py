@@ -118,6 +118,7 @@ class InitDataReader(object):
                     tandem_leader_user_id=data.read_bits(4) if replay.base_build >= 34784 and data.read_bool() else None,
                     commander=data.read_aligned_bytes(data.read_bits(9)) if replay.base_build >= 34784 else None,
                     commander_level=data.read_uint32() if replay.base_build >= 36442 else None,
+                    has_silence_penalty=data.read_bool() if replay.base_build >= 38215 else None,
                 ) for i in range(data.read_bits(5))],
                 random_seed=data.read_uint32(),
                 host_user_id=data.read_bits(4) if data.read_bool() else None,
@@ -1722,6 +1723,50 @@ class GameEventsReader_36442(GameEventsReader_34784):
                 3: lambda: ('ZeroIndices', [data.read_bits(9) for i in range(data.read_bits(9))]),
             }[data.read_bits(2)](),
         )
+
+class GameEventsReader_38215(GameEventsReader_36442):
+
+    def command_event(self, data):
+        # this function is exactly the same as command_event() from GameEventsReader_36442
+        # with the only change being that flags now has 25 bits instead of 23.
+        return dict(
+            flags=data.read_bits(25),
+            ability=dict(
+                ability_link=data.read_uint16(),
+                ability_command_index=data.read_bits(5),
+                ability_command_data=data.read_uint8() if data.read_bool() else None,
+            ) if data.read_bool() else None,
+            data={  # Choice
+                0: lambda: ('None', None),
+                1: lambda: ('TargetPoint', dict(
+                    point=dict(
+                        x=data.read_bits(20),
+                        y=data.read_bits(20),
+                        z=data.read_uint32() - 2147483648,
+                    )
+                )),
+                2: lambda: ('TargetUnit', dict(
+                    flags=data.read_uint16(),
+                    timer=data.read_uint8(),
+                    unit_tag=data.read_uint32(),
+                    unit_link=data.read_uint16(),
+                    control_player_id=data.read_bits(4) if data.read_bool() else None,
+                    upkeep_player_id=data.read_bits(4) if data.read_bool() else None,
+                    point=dict(
+                        x=data.read_bits(20),
+                        y=data.read_bits(20),
+                        z=data.read_uint32() - 2147483648,
+                    ),
+                )),
+                3: lambda: ('Data', dict(
+                    data=data.read_uint32()
+                )),
+            }[data.read_bits(2)](),
+            sequence=data.read_uint32() + 1,
+            other_unit_tag=data.read_uint32() if data.read_bool() else None,
+            unit_group=data.read_uint32() if data.read_bool() else None,
+        )
+    
 
 class TrackerEventsReader(object):
 
