@@ -564,6 +564,10 @@ class MapInfo(object):
         #: The map base height (what is that?). This value is 4096*Base Height in the editor (giving a decimal value).
         self.base_height = data.read_uint32()/4096
 
+        # Leave early so we dont barf. Turns out ggtracker doesnt need
+        # any of the map data thats loaded below.
+        return
+        
         #: Load screen type: 0 = default, 1 = custom
         self.load_screen_type = data.read_uint32()
 
@@ -627,10 +631,6 @@ class MapInfo(object):
         #: The number of players enabled via the data editor
         self.player_count = data.read_uint32()
 
-        # Leave early so we dont barf. Turns out ggtracker doesnt need
-        # any of the map data thats loaded below.
-        return
-        
         #: A list of references to :class:`MapInfoPlayer` objects
         self.players = list()
         for i in range(self.player_count):
