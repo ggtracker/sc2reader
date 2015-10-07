@@ -101,7 +101,7 @@ class UserOptionsEvent(GameEvent):
         self.use_ai_beacons = data['use_ai_beacons']
 
         #: Are workers sent to auto-mine on game start
-        self.starting_rally = data['starting_rally']
+        self.starting_rally = data['starting_rally'] if 'starting_rally' in data else None
 
         #:
         self.debug_pause_enabled = data['debug_pause_enabled']
@@ -427,7 +427,10 @@ def create_control_group_event(frame, pid, data):
     elif update_type == 3:
         # TODO: What could this be?!?
         return HotkeyEvent(frame, pid, data)
-
+    elif update_type == 4:
+        # No idea what this is but we're seeing it now in 3.0
+        return HotkeyEvent(frame, pid, data)
+        
 
 @loggable
 class HotkeyEvent(PlayerActionEvent):

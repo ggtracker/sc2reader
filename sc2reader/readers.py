@@ -47,7 +47,7 @@ class InitDataReader(object):
                     random_races=data.read_bool(),
                     battle_net=data.read_bool(),
                     amm=data.read_bool(),
-                    ranked=data.read_bool() if replay.base_build >= 34784 else None,
+                    ranked=data.read_bool() if replay.base_build >= 34784 and replay.base_build < 38215 else None,
                     competitive=data.read_bool(),
                     practice=data.read_bool() if replay.base_build >= 34784 else None,
                     cooperative=data.read_bool() if replay.base_build >= 34784 else None,
@@ -1726,6 +1726,31 @@ class GameEventsReader_36442(GameEventsReader_34784):
 
 class GameEventsReader_38215(GameEventsReader_36442):
 
+    def __init__(self):
+        super(GameEventsReader_38215, self).__init__()
+
+        self.EVENT_DISPATCH.update({
+            76: (None, self.trigger_command_error_event),
+            92: (None, self.trigger_mousewheel_event),   # 172 in protocol38125.py
+        })
+
+    def trigger_command_error_event(self, data):
+        return dict(
+            error=data.read_uint32() - 2147483648,
+            ability=dict(
+                ability_link=data.read_uint16(),
+                ability_command_index=data.read_bits(5),
+                ability_command_data=data.read_uint8() if data.read_bool() else None,
+            ) if data.read_bool() else None,
+        )
+
+    def trigger_mousewheel_event(self, data):
+        # 172 in protocol38125.py
+        return dict(
+            wheelspin=data.read_uint16()-32768,   # 171 in protocol38125.py
+            flags=data.read_uint8() - 128,        # 112 in protocol38125.py
+        )
+
     def command_event(self, data):
         # this function is exactly the same as command_event() from GameEventsReader_36442
         # with the only change being that flags now has 25 bits instead of 23.
@@ -1766,7 +1791,27 @@ class GameEventsReader_38215(GameEventsReader_36442):
             other_unit_tag=data.read_uint32() if data.read_bool() else None,
             unit_group=data.read_uint32() if data.read_bool() else None,
         )
-    
+
+    def user_options_event(self, data):
+        # only change: removes starting_rally
+        return dict(
+            game_fully_downloaded=data.read_bool(),
+            development_cheats_enabled=data.read_bool(),
+            test_cheats_enabled=data.read_bool(),
+            multiplayer_cheats_enabled=data.read_bool(),
+            sync_checksumming_enabled=data.read_bool(),
+            is_map_to_map_transition=data.read_bool(),
+            debug_pause_enabled=data.read_bool(),
+            use_galaxy_asserts=data.read_bool(),
+            platform_mac=data.read_bool(),
+            camera_follow=data.read_bool(),
+            base_build_num=data.read_uint32(),
+            build_num=data.read_uint32(),
+            version_flags=data.read_uint32(),
+            hotkey_profile=data.read_aligned_string(data.read_bits(9)),
+            use_ai_beacons=None,
+        )
+
 
 class TrackerEventsReader(object):
 
