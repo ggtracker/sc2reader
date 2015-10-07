@@ -430,8 +430,9 @@ class TestReplays(unittest.TestCase):
     def test_30(self):
       replay = sc2reader.load_replay("test_replays/3.0.0.38215/first.SC2Replay")
       replay = sc2reader.load_replay("test_replays/3.0.0.38215/second.SC2Replay")
+      replay = sc2reader.load_replay("test_replays/3.0.0.38215/third.SC2Replay")
 
-
+      
 class TestGameEngine(unittest.TestCase):
     class TestEvent(object):
         name='TestEvent'
