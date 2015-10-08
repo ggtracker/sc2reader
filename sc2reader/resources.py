@@ -585,7 +585,8 @@ class Replay(Resource):
         self.register_datapack(datapacks['HotS']['base'], lambda r: r.expansion == 'HotS' and r.build < 23925)
         self.register_datapack(datapacks['HotS']['23925'], lambda r: r.expansion == 'HotS' and 23925 <= r.build < 24247)
         self.register_datapack(datapacks['HotS']['24247'], lambda r: r.expansion == 'HotS' and 24247 <= r.build <= 24764)
-        self.register_datapack(datapacks['HotS']['24764'], lambda r: r.expansion == 'HotS' and 24764 <= r.build)
+        self.register_datapack(datapacks['HotS']['24764'], lambda r: r.expansion == 'HotS' and 24764 <= r.build < 38215)
+        self.register_datapack(datapacks['HotS']['38215'], lambda r: r.expansion == 'HotS' and 38215 <= r.build)
         self.register_datapack(datapacks['LotV']['base'], lambda r: r.expansion == 'LotV' and 34784 <= r.build)
 
     # Internal Methods

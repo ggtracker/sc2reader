@@ -439,7 +439,18 @@ class TestReplays(unittest.TestCase):
         factory = sc2reader.factories.SC2Factory()
         replay =factory.load_replay(replayfilename,load_level=1,load_map= True)
       
-      
+    def test_30_apms(self):
+        from sc2reader.factories.plugins.replay import APMTracker, SelectionTracker, toJSON
+
+        factory = sc2reader.factories.SC2Factory()
+        factory.register_plugin("Replay", APMTracker())
+        replay = factory.load_replay("test_replays/3.0.0.38215/fourth.SC2Replay")
+        for player in replay.players:
+            if player.name == 'Owl':
+                print player.name, player.avg_apm
+                self.assertTrue(player.avg_apm > 110)
+
+          
 class TestGameEngine(unittest.TestCase):
     class TestEvent(object):
         name='TestEvent'

@@ -24,8 +24,8 @@ class APMTracker(object):
             human.seconds_played = replay.length.seconds
 
     def handlePlayerActionEvent(self, event, replay):
-        event.player.aps[event.second] += 1
-        event.player.apm[int(event.second/60)] += 1
+        event.player.aps[event.second] += 1.4
+        event.player.apm[int(event.second/60)] += 1.4
 
     def handlePlayerLeaveEvent(self, event, replay):
         event.player.seconds_played = event.second

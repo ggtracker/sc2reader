@@ -401,6 +401,8 @@ for version in ('16117', '17326', '18092', '19458', '22612', '24944'):
 hots_builds = dict()
 for version in ('base', '23925', '24247', '24764'):
     hots_builds[version] = load_build('HotS', version)
+hots_builds['38215'] = load_build('LotV', 'base')
+hots_builds['38215'].id = '38215'
 
 # Load LotV Data
 lotv_builds = dict()
