@@ -450,6 +450,10 @@ class TestReplays(unittest.TestCase):
                 print player.name, player.avg_apm
                 self.assertTrue(player.avg_apm > 110)
 
+    def test_38749(self):
+        replay = sc2reader.load_replay("test_replays/3.0.0.38749/1.SC2Replay")
+        self.assertEqual(replay.expansion, 'HotS')
+        
           
 class TestGameEngine(unittest.TestCase):
     class TestEvent(object):
