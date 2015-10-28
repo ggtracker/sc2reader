@@ -79,10 +79,10 @@ class InitDataReader(object):
                     allowedDifficulty=data.read_bits(data.read_bits(6)),
                     allowedControls=data.read_bits(data.read_uint8()),
                     allowed_observe_types=data.read_bits(data.read_bits(2)),
-                    allowed_ai_builds=data.read_bits(data.read_bits(7)) if replay.base_build >= 23925 else None,
+                    allowed_ai_builds=data.read_bits(data.read_bits(8 if replay.base_build >= 38749 else 7)) if replay.base_build >= 23925 else None,
                 ) for i in range(data.read_bits(5))],
                 default_difficulty=data.read_bits(6),
-                default_ai_build=data.read_bits(7) if replay.base_build >= 23925 else None,
+                default_ai_build=data.read_bits(8 if replay.base_build >= 38749 else 7) if replay.base_build >= 23925 else None,
                 cache_handles=[DepotFile(data.read_aligned_bytes(40)) for i in range(data.read_bits(6 if replay.base_build >= 21955 else 4))],
                 has_extension_mod=data.read_bool() if replay.base_build >= 27950 else None,
                 is_blizzardMap=data.read_bool(),
@@ -101,7 +101,7 @@ class InitDataReader(object):
                     colorPref=data.read_bits(5) if data.read_bool() else None,
                     race_pref=data.read_uint8() if data.read_bool() else None,
                     difficulty=data.read_bits(6),
-                    ai_build=data.read_bits(7) if replay.base_build >= 23925 else None,
+                    ai_build=data.read_bits(8 if replay.base_build >= 38749 else 7) if replay.base_build >= 23925 else None,
                     handicap=data.read_bits(7),
                     observe=data.read_bits(2),
                     logo_index=data.read_uint32() if replay.base_build >= 32283 else None,
@@ -126,7 +126,7 @@ class InitDataReader(object):
                 picked_map_tag=data.read_uint8() if replay.base_build >= 36442 else None,
                 game_duration=data.read_uint32(),
                 default_difficulty=data.read_bits(6),
-                default_ai_build=data.read_bits(7) if replay.base_build >= 24764 else None,
+                default_ai_build=data.read_bits(8 if replay.base_build >= 38749 else 7) if replay.base_build >= 24764 else None,
             ),
         )
         if not data.done():
@@ -1215,6 +1215,14 @@ class GameEventsReader_22612(GameEventsReader_21029):
                 y=data.read_uint32()-2147483648,
             ),
             unit_tag=data.read_uint32(),
+            unit_link=data.read_uint16() if replay.build >= 38749 else None,
+            unit_control_player_id=(data.read_bits(4) if data.read_bool() else None) if replay.build >= 38749 else None,
+            unit_upkeep_player_id=(data.read_bits(4) if data.read_bool() else None) if replay.build >= 38749 else None,
+            unit_position=dict(
+                    x=data.read_bits(20),
+                    y=data.read_bits(20),
+                    z=data.read_bits(32) - 2147483648,
+                ) if replay.build >= 38749 else None,
             pinged_minimap=data.read_bool(),
         )
 
