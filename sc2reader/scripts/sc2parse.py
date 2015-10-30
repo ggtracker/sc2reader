@@ -68,7 +68,7 @@ def main():
                 print('{build} - {real_type} on {map_name} - Played {start_time}'.format(**e.replay.__dict__))
                 print('[ERROR]', e.message)
                 for event in e.game_events[-5:]:
-                    print('{0} - {1}'.format(hex(event.type), event.bytes.encode('hex')))
+                    print('{0}'.format(event))
                 print(e.buffer.read_range(e.location, e.location+50).encode('hex'))
                 print
             except Exception as e:
