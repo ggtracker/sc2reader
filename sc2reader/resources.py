@@ -1,4 +1,4 @@
-    # -*- coding: utf-8 -*-
+   # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals, division
 
 from collections import defaultdict, namedtuple
@@ -571,7 +571,8 @@ class Replay(Resource):
         self.register_reader('replay.game.events', readers.GameEventsReader_27950(), lambda r: 27950 <= r.base_build < 34784)
         self.register_reader('replay.game.events', readers.GameEventsReader_34784(), lambda r: 34784 <= r.base_build < 36442)
         self.register_reader('replay.game.events', readers.GameEventsReader_36442(), lambda r: 36442 <= r.base_build < 38215)
-        self.register_reader('replay.game.events', readers.GameEventsReader_38215(), lambda r: 38215 <= r.base_build)
+        self.register_reader('replay.game.events', readers.GameEventsReader_38215(), lambda r: 38215 <= r.base_build < 38749)
+        self.register_reader('replay.game.events', readers.GameEventsReader_38749(), lambda r: 38749 <= r.base_build)
         self.register_reader('replay.game.events', readers.GameEventsReader_HotSBeta(), lambda r: r.versions[1] == 2 and r.build < 24247)
 
     def register_default_datapacks(self):
