@@ -36,7 +36,10 @@ class GameEvent(Event):
         self.is_local = (pid != 16)
 
     def _str_prefix(self):
-        player_name = self.player.name if getattr(self, 'pid', 16) != 16 else "Global"
+        if self.player:
+            player_name = self.player.name if getattr(self, 'pid', 16) != 16 else "Global"
+        else:
+            player_name = "no name"
         return "{0}\t{1:<15} ".format(Length(seconds=int(self.frame / 16)), player_name)
 
     def __str__(self):
