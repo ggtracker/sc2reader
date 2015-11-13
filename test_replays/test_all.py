@@ -455,6 +455,12 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(replay.expansion, 'HotS')
         replay = sc2reader.load_replay("test_replays/3.0.0.38749/2.SC2Replay")
         self.assertEqual(replay.expansion, 'HotS')
+
+    def test_38996(self):
+        replay = sc2reader.load_replay("test_replays/3.0.0.38996/1.SC2Replay")
+        self.assertEqual(replay.expansion, 'LotV')
+        replay = sc2reader.load_replay("test_replays/3.0.0.38996/2.SC2Replay")
+        self.assertEqual(replay.expansion, 'LotV')
         
           
 class TestGameEngine(unittest.TestCase):
