@@ -432,6 +432,11 @@ class TestReplays(unittest.TestCase):
       replay = sc2reader.load_replay("test_replays/3.0.0.38215/second.SC2Replay")
       replay = sc2reader.load_replay("test_replays/3.0.0.38215/third.SC2Replay")
 
+    def test_31(self):
+      for i in range(1,5):
+          print "DOING {}".format(i)
+          replay = sc2reader.load_replay("test_replays/3.1.0/{}.SC2Replay".format(i))
+      
     def test_30_map(self):
       for replayfilename in [
               "test_replays/3.0.0.38215/third.SC2Replay",

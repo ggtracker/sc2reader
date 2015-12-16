@@ -119,6 +119,7 @@ class InitDataReader(object):
                     commander=data.read_aligned_bytes(data.read_bits(9)) if replay.base_build >= 34784 else None,
                     commander_level=data.read_uint32() if replay.base_build >= 36442 else None,
                     has_silence_penalty=data.read_bool() if replay.base_build >= 38215 else None,
+                    tandem_id=data.read_bits(4) if replay.base_build >= 39576 and data.read_bool() else None,
                 ) for i in range(data.read_bits(5))],
                 random_seed=data.read_uint32(),
                 host_user_id=data.read_bits(4) if data.read_bool() else None,
