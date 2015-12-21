@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import datetime
 import json
+from xml.dom import minidom
 
 # Newer unittest features aren't built in for python 2.6
 import sys
@@ -466,6 +467,16 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(replay.expansion, 'LotV')
         replay = sc2reader.load_replay("test_replays/3.0.0.38996/2.SC2Replay")
         self.assertEqual(replay.expansion, 'LotV')
+
+    def test_funny_minerals(self):
+        replay = sc2reader.load_replay("test_replays/3.1.0/centralprotocol.SC2Replay")
+        replay.load_map()
+        xmldoc = minidom.parseString(replay.map.archive.read_file('Objects'))
+        itemlist = xmldoc.getElementsByTagName('ObjectUnit')
+        mineralPosStrs = [ou.attributes['Position'].value for ou in itemlist if 'MineralField' in ou.attributes['UnitType'].value]
+        mineralFieldNames = list(set([ou.attributes['UnitType'].value for ou in itemlist if 'MineralField' in ou.attributes['UnitType'].value]))
+        #print mineralFieldNames
+        self.assertTrue(len(mineralPosStrs) > 0)
         
           
 class TestGameEngine(unittest.TestCase):
