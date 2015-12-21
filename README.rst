@@ -272,6 +272,11 @@ When repeatedly running tests it can be very helpful to make sure you've set a l
     # or
     SC2READER_CACHE_DIR=local_cache python test_replays/test_all.py
 
+To run just one test:
+
+    SC2READER_CACHE_DIR=local_cache PYTHONPATH=. python -m unittest test_replays.test_all.TestReplays.test_38749
+    
+    
 Good luck, have fun!
 
 
