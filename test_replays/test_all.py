@@ -477,6 +477,10 @@ class TestReplays(unittest.TestCase):
         mineralFieldNames = list(set([ou.attributes['UnitType'].value for ou in itemlist if 'MineralField' in ou.attributes['UnitType'].value]))
         #print mineralFieldNames
         self.assertTrue(len(mineralPosStrs) > 0)
+
+    def test_dusk(self):
+        replay = sc2reader.load_replay("test_replays/3.1.0/dusktowers.SC2Replay")
+        self.assertEqual(replay.expansion, 'LotV')
         
           
 class TestGameEngine(unittest.TestCase):
