@@ -371,6 +371,7 @@ class TestReplays(unittest.TestCase):
         "test_replays/2.0.8.25605/ggtracker_3621402.SC2Replay",
         "test_replays/2.0.8.25605/ggtracker_3663861.SC2Replay",
         "test_replays/2.0.8.25605/ggtracker_3695400.SC2Replay",
+        "test_replays/3.1.2/6494799.SC2Replay",
         ]:
         factory = sc2reader.factories.SC2Factory()
         pluginEngine=sc2reader.engine.GameEngine(plugins=[
@@ -380,8 +381,10 @@ class TestReplays(unittest.TestCase):
         
         for player_id in replay.player:
             if replay.player[player_id].play_race == "Zerg":
-                assert replay.player[player_id].max_creep_spread >0
-                assert replay.player[player_id].creep_spread_by_minute
+                assert replay.player[player_id].max_creep_spread[1] >0
+                assert replay.player[player_id].creep_spread_by_minute[0] >0
+#                print "MCS", replay.player[player_id].max_creep_spread
+#                print "CSBM", replay.player[player_id].creep_spread_by_minute
 
 
       replay =factory.load_replay("test_replays/2.0.8.25605/ggtracker_3621402.SC2Replay",load_map= True,engine=pluginEngine,load_level=4)
