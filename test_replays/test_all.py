@@ -484,7 +484,11 @@ class TestReplays(unittest.TestCase):
     def test_dusk(self):
         replay = sc2reader.load_replay("test_replays/3.1.0/dusktowers.SC2Replay")
         self.assertEqual(replay.expansion, 'LotV')
-        
+
+    def test_32(self):
+        replay = sc2reader.load_replay("test_replays/3.2.0/1.SC2Replay")
+        self.assertTrue(replay is not None)
+
           
 class TestGameEngine(unittest.TestCase):
     class TestEvent(object):
