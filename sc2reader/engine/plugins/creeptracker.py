@@ -2,8 +2,8 @@
 from __future__ import absolute_import, print_function, unicode_literals, division
 
 from sets import Set
-from Image import open as PIL_open
-from Image import ANTIALIAS 
+from PIL.Image import open as PIL_open
+from PIL.Image import ANTIALIAS 
 from StringIO import StringIO
 from collections import defaultdict
 from itertools import tee
