@@ -60,11 +60,27 @@ MESSAGE_CODES = {
 
 
 GAME_SPEED_FACTOR = {
-    'Slower':   0.6,
-    'Slow':     0.8,
-    'Normal':   1.0,
-    'Fast':     1.2,
-    'Faster':   1.4
+    'WoL': {
+        'Slower':   0.6,
+        'Slow':     0.8,
+        'Normal':   1.0,
+        'Fast':     1.2,
+        'Faster':   1.4
+    },
+    'HotS': {
+        'Slower':   0.6,
+        'Slow':     0.8,
+        'Normal':   1.0,
+        'Fast':     1.2,
+        'Faster':   1.4
+    },
+    'LotV': {
+        'Slower':   0.2,
+        'Slow':     0.4,
+        'Normal':   0.6,
+        'Fast':     0.8,
+        'Faster':   1.0
+    },
 }
 
 GATEWAY_CODES = {
