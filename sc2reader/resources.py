@@ -252,8 +252,11 @@ class Replay(Resource):
             self.build = self.versions[4]
             self.base_build = self.versions[5]
             self.release_string = "{0}.{1}.{2}.{3}".format(*self.versions[1:5])
-            self.game_length = utils.Length(seconds=self.frames/16)
-            self.length = self.real_length = utils.Length(seconds=int(self.frames/self.game_fps))
+            fps = self.game_fps
+            if (34784 <= self.build): # lotv replay, adjust time
+                fps = self.game_fps * 1.4
+
+            self.length = self.game_length = self.real_length = utils.Length(seconds=int(self.frames/fps))
 
         # Load basic details if requested
         if load_level >= 1:
@@ -362,7 +365,7 @@ class Replay(Resource):
                 self.time_zone = (details['utc_adjustment']-details['file_time'])/(10**7*60*60)
 
             self.game_length = self.length
-            self.real_length = utils.Length(seconds=int(self.length.seconds/GAME_SPEED_FACTOR[self.speed]))
+            self.real_length = utils.Length(seconds=int(self.length.seconds/GAME_SPEED_FACTOR[self.expansion][self.speed]))
             self.start_time = datetime.utcfromtimestamp(self.unix_timestamp-self.real_length.seconds)
             self.date = self.end_time  # backwards compatibility
 
@@ -772,18 +775,7 @@ class GameSummary(Resource):
         while not buffer.done():
             self.parts.append(buffer.read_struct())
 
-        self.end_time = datetime.utcfromtimestamp(self.parts[0][8])
-        self.game_speed = LOBBY_PROPERTIES[0xBB8][1][self.parts[0][0][1].decode('utf8')]
-        self.game_length = utils.Length(seconds=self.parts[0][7])
-        self.real_length = utils.Length(seconds=int(self.parts[0][7]/GAME_SPEED_FACTOR[self.game_speed]))
-        self.start_time = datetime.utcfromtimestamp(self.parts[0][8] - self.real_length.seconds)
-
         self.load_translations()
-        self.load_map_info()
-        self.load_settings()
-        self.load_player_stats()
-        self.load_players()
-
         dependencies = [sheet[1] for sheet in self.lang_sheets['enUS']]
         if 'Swarm (Mod)' in dependencies:
             self.expansion = 'HotS'
@@ -791,6 +783,17 @@ class GameSummary(Resource):
             self.expansion = 'WoL'
         else:
             self.expansion = ''
+
+        self.end_time = datetime.utcfromtimestamp(self.parts[0][8])
+        self.game_speed = LOBBY_PROPERTIES[0xBB8][1][self.parts[0][0][1].decode('utf8')]
+        self.game_length = utils.Length(seconds=self.parts[0][7])
+        self.real_length = utils.Length(seconds=int(self.parts[0][7]/GAME_SPEED_FACTOR[self.expansion][self.game_speed]))
+        self.start_time = datetime.utcfromtimestamp(self.parts[0][8] - self.real_length.seconds)
+
+        self.load_map_info()
+        self.load_settings()
+        self.load_player_stats()
+        self.load_players()
 
         self.game_type = self.settings['Teams'].replace(" ", "")
         self.real_type = utils.get_real_type(self.teams)
