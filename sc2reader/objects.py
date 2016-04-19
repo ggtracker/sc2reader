@@ -539,9 +539,14 @@ class MapInfo(object):
 
         if self.version >= 0x1f:
             self.unknown3 = data.read_cstring()
-            self.unknown4 = data.read_uint32()
 
-        self.unknown5 = data.read_uint32()
+        if self.version >= 0x26:
+            self.unknown4 = data.read_cstring()
+
+        if self.version >= 0x1f:
+            self.unknown5 = data.read_uint32()
+
+        self.unknown6 = data.read_uint32()
 
         #: The type of fog of war used on the map
         self.fog_type = data.read_cstring()
@@ -575,7 +580,7 @@ class MapInfo(object):
         self.load_screen_path = data.read_cstring()
 
         #: Unknown string, usually empty
-        self.unknown6 = data.read_bytes(data.read_uint16()).decode('utf8')
+        self.unknown7 = data.read_bytes(data.read_uint16()).decode('utf8')
 
         #: Load screen image scaling strategy: 0 = normal, 1 = aspect scaling, 2 = stretch the image.
         self.load_screen_scaling = data.read_uint32()
@@ -617,16 +622,16 @@ class MapInfo(object):
         #:
         self.data_flags = data.read_uint32()
 
-        self.unknown7 = data.read_uint32()
+        self.unknown8 = data.read_uint32()
 
         if self.version >= 0x19:
-            self.unknown8 = data.read_bytes(8)
+            self.unknown9 = data.read_bytes(8)
 
         if self.version >= 0x1f:
-            self.unknown9 = data.read_bytes(9)
+            self.unknown10 = data.read_bytes(9)
 
         if self.version >= 0x20:
-            self.unknown10 = data.read_bytes(4)
+            self.unknown11 = data.read_bytes(4)
 
         #: The number of players enabled via the data editor
         self.player_count = data.read_uint32()
