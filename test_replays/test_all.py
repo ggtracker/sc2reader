@@ -503,7 +503,7 @@ class TestReplays(unittest.TestCase):
           from pprint import pprint
           pprint(player)
           if player.name == 'Zenchii':
-              self.assertTrue(int(player.avg_apm) == 56)
+              self.assertEquals(int(player.avg_apm), 56)
 
           
 class TestGameEngine(unittest.TestCase):
