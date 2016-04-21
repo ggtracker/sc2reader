@@ -83,6 +83,14 @@ GAME_SPEED_FACTOR = {
     },
 }
 
+LOTV_SPEEDUP = 1.4
+
+GAME_SECONDS_PER_SECOND = {
+        'WoL':  1.4,
+        'HotS': 1.4,
+        'LotV': 1
+}
+
 GATEWAY_CODES = {
     'US': 'Americas',
     'KR': 'Asia',

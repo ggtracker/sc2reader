@@ -7,6 +7,7 @@ from collections import defaultdict
 from sc2reader import log_utils
 from sc2reader.utils import Length
 from sc2reader.factories.plugins.utils import PlayerSelection, GameState, JSONDateEncoder, plugin
+from sc2reader.constants import LOTV_SPEEDUP, GAME_SECONDS_PER_SECOND
 
 
 @plugin
@@ -100,18 +101,28 @@ def APMTracker(replay):
     above actions divided by the number of seconds played by the player (not
     necessarily the whole game) multiplied by 60.
     """
+
+    speed_multiplier = 1
+    if replay.expansion == 'LotV':
+        speed_multiplier = LOTV_SPEEDUP
+
+    game_seconds_per_second = GAME_SECONDS_PER_SECOND[replay.expansion]
+    if replay.expansion == 'LotV':
+        game_seconds_per_second = 1
+
     for player in replay.players:
         player.aps = defaultdict(int)
         player.apm = defaultdict(int)
         player.seconds_played = replay.length.seconds
 
         for event in player.events:
+            game_second = int(event.second/speed_multiplier)
             if event.name == 'SelectionEvent' or 'AbilityEvent' in event.name or 'Hotkey' in event.name:
-                player.aps[event.second] += 1.4
-                player.apm[int(event.second/60)] += 1.4
+                player.aps[game_second] += game_seconds_per_second
+                player.apm[int(game_second/60)] += game_seconds_per_second
 
             elif event.name == 'PlayerLeaveEvent':
-                player.seconds_played = event.second
+                player.seconds_played = game_second
 
         if len(player.apm) > 0:
             player.avg_apm = sum(player.aps.values())/float(player.seconds_played)*60

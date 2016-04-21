@@ -2,6 +2,7 @@
 from __future__ import absolute_import, print_function, unicode_literals, division
 
 from collections import defaultdict
+from sc2reader.constants import LOTV_SPEEDUP, GAME_SECONDS_PER_SECOND
 
 
 class APMTracker(object):
@@ -24,8 +25,15 @@ class APMTracker(object):
             human.seconds_played = replay.length.seconds
 
     def handlePlayerActionEvent(self, event, replay):
-        event.player.aps[event.second] += 1.4
-        event.player.apm[int(event.second/60)] += 1.4
+        speed_multiplier = 1
+        if replay.expansion == 'LotV':
+            speed_multiplier = LOTV_SPEEDUP
+
+        game_seconds_per_second = GAME_SECONDS_PER_SECOND[replay.expansion]
+
+        game_second = int(event.second/speed_multiplier)
+        event.player.aps[game_second] += game_seconds_per_second
+        event.player.apm[int(game_second/60)] += game_seconds_per_second
 
     def handlePlayerLeaveEvent(self, event, replay):
         event.player.seconds_played = event.second
