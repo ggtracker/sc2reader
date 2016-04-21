@@ -100,6 +100,15 @@ def APMTracker(replay):
     above actions divided by the number of seconds played by the player (not
     necessarily the whole game) multiplied by 60.
     """
+
+    speed_multiplier = 1
+    if replay.expansion == 'LotV':
+        speed_multiplier = 1.4
+
+    game_seconds_per_second = 1.4
+    if replay.expansion == 'LotV':
+        game_seconds_per_second = 1.4
+
     for player in replay.players:
         player.aps = defaultdict(int)
         player.apm = defaultdict(int)
@@ -107,14 +116,14 @@ def APMTracker(replay):
 
         for event in player.events:
             if event.name == 'SelectionEvent' or 'AbilityEvent' in event.name or 'Hotkey' in event.name:
-                player.aps[event.second] += 1.4
-                player.apm[int(event.second/60)] += 1.4
+                player.aps[event.second/speed_multiplier] += game_seconds_per_second
+                player.apm[int(event.second/60/speed_multiplier)] += game_seconds_per_second
 
             elif event.name == 'PlayerLeaveEvent':
-                player.seconds_played = event.second
+                player.seconds_played = event.second/speed_multiplier
 
         if len(player.apm) > 0:
-            player.avg_apm = sum(player.aps.values())/float(player.seconds_played)*60
+            player.avg_apm = sum(player.aps.values())/float(player.seconds_played)*60*speed_multiplier
         else:
             player.avg_apm = 0
 
