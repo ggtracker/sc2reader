@@ -494,6 +494,17 @@ class TestReplays(unittest.TestCase):
       self.assertEqual(replay.length.seconds, 1002)
       self.assertEqual(replay.real_length.seconds, 1002)
 
+    def test_lotv_apm(self):
+      from sc2reader.factories.plugins.replay import APMTracker, SelectionTracker, toJSON
+      factory = sc2reader.factories.SC2Factory()
+      factory.register_plugin("Replay", APMTracker())
+      replay = factory.load_replay("test_replays/lotv/lotv1.SC2Replay")
+      for player in replay.players:
+          from pprint import pprint
+          pprint(player)
+          if player.name == 'Zenchii':
+              self.assertTrue(int(player.avg_apm) == 56)
+
           
 class TestGameEngine(unittest.TestCase):
     class TestEvent(object):
