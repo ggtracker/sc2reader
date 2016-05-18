@@ -489,6 +489,11 @@ class TestReplays(unittest.TestCase):
         replay = sc2reader.load_replay("test_replays/3.2.0/1.SC2Replay")
         self.assertTrue(replay is not None)
 
+    def test_33(self):
+        for replaynum in range(1,4):
+            replay = sc2reader.load_replay("test_replays/3.3.0/{}.SC2Replay".format(replaynum))
+            self.assertTrue(replay is not None)
+
     def test_lotv_time(self):
       replay = sc2reader.load_replay("test_replays/lotv/lotv1.SC2Replay")
       self.assertEqual(replay.length.seconds, 1002)
