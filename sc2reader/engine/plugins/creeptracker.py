@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals, division
 
-from sets import Set
+try:
+    from sets import Set
+except:
+    Set = set
 from PIL.Image import open as PIL_open
-from PIL.Image import ANTIALIAS 
-from StringIO import StringIO
+from PIL.Image import ANTIALIAS
+try:
+    from StringIO import StringIO
+except:
+    pass
 from collections import defaultdict
 from itertools import tee
 

@@ -30,7 +30,10 @@ class ContextLoader(object):
                 event.logger.error(replay.filename)
                 event.logger.error("Release String: "+replay.release_string)
                 for player in replay.players:
-                    event.logger.error("\t"+unicode(player).encode('ascii', 'ignore'))
+                    try:
+                        event.logger.error("\t"+unicode(player).encode('ascii', 'ignore'))
+                    except:
+                        event.logger.error("\t"+player.__str__())
 
             self.logger.error("{0}\t{1}\tMissing ability {2:X} from {3}".format(event.frame, event.player.name, event.ability_id, replay.datapack.__class__.__name__))
 
