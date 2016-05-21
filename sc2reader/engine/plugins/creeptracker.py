@@ -3,14 +3,14 @@ from __future__ import absolute_import, print_function, unicode_literals, divisi
 
 try:
     from sets import Set
-except:
+except ImportError:
     Set = set
 from PIL.Image import open as PIL_open
 from PIL.Image import ANTIALIAS
 try:
     from StringIO import StringIO
-except:
-    pass
+except ImportError:
+    from io import StringIO
 from collections import defaultdict
 from itertools import tee
 
