@@ -14,6 +14,9 @@ class ContextLoader(object):
         replay.units = set()
         replay.unit = dict()
 
+        # keep track of last TargetAbilityEvent for UpdateTargetAbilityEvent
+        self.last_target_ability_event = None
+
     def handleGameEvent(self, event, replay):
         self.load_message_game_player(event, replay)
 
@@ -47,6 +50,8 @@ class ContextLoader(object):
             self.logger.error("Other unit {0} not found".format(event.other_unit_id))
 
     def handleTargetAbilityEvent(self, event, replay):
+        self.last_target_ability_event = event
+
         if not replay.datapack:
             return
 
@@ -61,6 +66,13 @@ class ContextLoader(object):
             unit = replay.datapack.create_unit(event.target_unit_id, event.target_unit_type, event.frame)
             event.target = unit
             replay.objects[event.target_unit_id] = unit
+
+    def handleUpdateTargetAbilityEvent(self, event, replay):
+        # store corresponding TargetAbilityEvent data in this event
+        # currently using for *MacroTracker only, so only need ability name
+        event.ability_name = self.last_target_ability_event.ability_name
+
+        self.handleTargetAbilityEvent(event, replay)
 
     def handleSelectionEvent(self, event, replay):
         if not replay.datapack:

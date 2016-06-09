@@ -339,6 +339,22 @@ class TargetAbilityEvent(AbilityEvent):
         self.location = (self.x, self.y, self.z)
 
 
+class UpdateTargetAbilityEvent(TargetAbilityEvent):
+    """
+    Extends :class:`TargetAbilityEvent`
+
+    This event is generated when a TargetAbilityEvent is updated, likely due to
+    changing the target unit. It is unclear if this needs to be a separate event
+    from TargetAbilityEvent, but for flexibility, it will be treated
+    differently.
+
+    One example of this event occuring is casting inject on a hatchery while
+    holding shift, and then shift clicking on a second hatchery.
+    """
+
+    name = 'UpdateTargetAbilityEvent'
+
+
 class SelfAbilityEvent(AbilityEvent):
     """
     Extends :class:`AbilityEvent`

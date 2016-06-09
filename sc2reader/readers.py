@@ -1525,7 +1525,7 @@ class GameEventsReader_34784(GameEventsReader_27950):
             61: (None, self.trigger_hotkey_pressed_event),
             103: (None, self.command_manager_state_event),
             104: (None, self.command_update_target_point_event),
-            105: (None, self.command_update_target_unit_event),
+            105: (UpdateTargetAbilityEvent, self.command_update_target_unit_event),
             106: (None, self.trigger_anim_length_query_by_name_event),
             107: (None, self.trigger_anim_length_query_by_props_event),
             108: (None, self.trigger_anim_offset_event),
@@ -1596,19 +1596,24 @@ class GameEventsReader_34784(GameEventsReader_27950):
 
     def command_update_target_unit_event(self, data):
         return dict(
-            target=dict(
-                target_unit_flags=data.read_uint16(),
+            flags=0,       # fill me with previous TargetUnitEvent.flags
+            ability=None,  # fill me with previous TargetUnitEvent.ability
+            data=('TargetUnit', dict(
+                flags=data.read_uint16(),
                 timer=data.read_uint8(),
-                tag=data.read_uint32(),
-                snapshot_unit_link=data.read_uint16(),
-                snapshot_control_player_id=data.read_bits(4) if data.read_bool() else None,
-                snapshot_upkeep_player_id=data.read_bits(4) if data.read_bool() else None,
-                snapshot_point=dict(
+                unit_tag=data.read_uint32(),
+                unit_link=data.read_uint16(),
+                control_player_id=data.read_bits(4) if data.read_bool() else None,
+                upkeep_player_id=data.read_bits(4) if data.read_bool() else None,
+                point=dict(
                     x=data.read_bits(20),
                     y=data.read_bits(20),
                     z=data.read_bits(32) - 2147483648,
-                )
-            )
+                ),
+            )),
+            sequence=0,          # fill me with previous TargetUnitEvent.flags
+            other_unit_tag=None, # fill me with previous TargetUnitEvent.flags
+            unit_group=None,     # fill me with previous TargetUnitEvent.flags
         )
 
     def command_event(self, data):
