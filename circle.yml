@@ -1,3 +1,11 @@
+general:
+  branches:
+    ignore:
+      - ggmaster
+      - hots
+      - jonomon
+      - master
+      - old_master
 test:
     override:
         - python -m unittest discover test_replays
