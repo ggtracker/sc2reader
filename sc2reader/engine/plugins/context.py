@@ -15,7 +15,7 @@ class ContextLoader(object):
         replay.unit = dict()
 
         # keep track of last TargetAbilityEvent for UpdateTargetAbilityEvent
-        self.last_target_ability_event = None
+        self.last_target_ability_event = {}
 
     def handleGameEvent(self, event, replay):
         self.load_message_game_player(event, replay)
@@ -28,6 +28,10 @@ class ContextLoader(object):
             return
 
         if event.ability_id not in replay.datapack.abilities:
+            # safeguard against missing abilities
+            if event.player.pid in self.last_target_ability_event:
+                del self.last_target_ability_event[event.player.pid]
+
             if not getattr(replay, 'marked_error', None):
                 replay.marked_error = True
                 event.logger.error(replay.filename)
@@ -50,7 +54,7 @@ class ContextLoader(object):
             self.logger.error("Other unit {0} not found".format(event.other_unit_id))
 
     def handleTargetAbilityEvent(self, event, replay):
-        self.last_target_ability_event = event
+        self.last_target_ability_event[event.player.pid] = event
 
         if not replay.datapack:
             return
@@ -68,9 +72,13 @@ class ContextLoader(object):
             replay.objects[event.target_unit_id] = unit
 
     def handleUpdateTargetAbilityEvent(self, event, replay):
-        # store corresponding TargetAbilityEvent data in this event
-        # currently using for *MacroTracker only, so only need ability name
-        event.ability_name = self.last_target_ability_event.ability_name
+        # We may not find a TargetAbilityEvent before finding an
+        # UpdateTargetAbilityEvent, perhaps due to Missing Abilities in the
+        # datapack
+        if event.player.pid in self.last_target_ability_event:
+            # store corresponding TargetAbilityEvent data in this event
+            # currently using for *MacroTracker only, so only need ability name
+            event.ability_name = self.last_target_ability_event[event.player.pid].ability_name
 
         self.handleTargetAbilityEvent(event, replay)
 
