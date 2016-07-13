@@ -1,6 +1,6 @@
 # Shows new data entries from the requested build files:
 #
-# Usage: python new_data.py sc2reader/data/HotS/24764_units.csv sc2reader/data/HotS/24764_abilites.csv
+# Usage: python new_units.py sc2reader/data/HotS/24764_units.csv sc2reader/data/HotS/24764_abilites.csv
 #
 # The output from this can be used to update the unit_lookup.csv and ability_lookup.csv files. Maybe the
 # script can be fixed to append these lines automatically...
