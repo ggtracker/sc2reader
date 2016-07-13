@@ -507,6 +507,10 @@ class TestReplays(unittest.TestCase):
             return hasattr(e, "ability") and e.ability_name == "SpawnLarva"
         self.assertEqual(len(filter(efilter, replay.events)), 23)
 
+    def test_34(self):
+        replay = sc2reader.load_replay("test_replays/3.4.0/issueYY.SC2Replay")
+        self.assertEqual(replay.expansion, 'LotV')
+
     def test_lotv_time(self):
         replay = sc2reader.load_replay("test_replays/lotv/lotv1.SC2Replay")
         self.assertEqual(replay.length.seconds, 1002)
