@@ -1,0 +1,18 @@
+Sometimes when a new version comes out, such as (3.4.0) 44401, Bliz will update the ids used to identify units and abilities.
+
+See dsjoerg's commits on Jul 13, 2016 to see what you need to modify to handle something like that: https://github.com/ggtracker/sc2reader/commits/upstream
+
+1 use the Galaxy Editor and Export Balance Data.
+2 To create the ability CSV file: ```find Balance\ Data -print0 | xargs -0 grep -h '<ability' | sort | uniq  | tr '="' ' ' | awk -v OFS=',' '{print $5, $3}' | sort -n```
+3 To create the unit CSV file:
+```
+import os
+from xml.etree import ElementTree
+balancedir = '/foo/bar/Balance Data'
+for i in os.listdir(balancedir):
+    if i.endswith(".xml"):
+      xml = ElementTree.parse(open(os.path.join(balancedir, i), 'r'))
+      print "{},{}".format(xml.findall('meta')[0].attrib['index'], xml.getroot().attrib['id'])
+```
+4 run `sc2reader/new_units.py` to find out what you need to add to `sc2reader/data/ability_lookup.csv`, and add it
+5 modify `sc2reader/data/__init__.py` and `sc2reader/resources.py` accordingly
