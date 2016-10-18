@@ -518,6 +518,7 @@ class TestReplays(unittest.TestCase):
 
     def test_37(self):
         replay = sc2reader.load_replay("test_replays/3.7.0/1.SC2Replay")
+        replay = sc2reader.load_replay("test_replays/3.7.0/2.SC2Replay")
 
 
 class TestGameEngine(unittest.TestCase):
