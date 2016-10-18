@@ -123,6 +123,7 @@ class InitDataReader(object):
                     tandem_id=data.read_bits(4) if replay.base_build >= 39576 and data.read_bool() else None,
                     commander_mastery_level=data.read_uint32() if replay.base_build >= 42932 else None,
                     commander_mastery_talents=[data.read_uint32() for i in range(data.read_bits(3))] if replay.base_build >= 42932 else None,
+                    reward_overrides=[data.read_unit32() for i in range(data.read_bits(17))] if replay.base_build >= 47185 else None,
                 ) for i in range(data.read_bits(5))],
                 random_seed=data.read_uint32(),
                 host_user_id=data.read_bits(4) if data.read_bool() else None,

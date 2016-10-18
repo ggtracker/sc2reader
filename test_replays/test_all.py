@@ -516,6 +516,9 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(replay.length.seconds, 1002)
         self.assertEqual(replay.real_length.seconds, 1002)
 
+    def test_37(self):
+        replay = sc2reader.load_replay("test_replays/3.7.0/1.SC2Replay")
+
 
 class TestGameEngine(unittest.TestCase):
     class TestEvent(object):
