@@ -13,6 +13,7 @@ else:
     import unittest
 
 import sc2reader
+from sc2reader.exceptions import CorruptTrackerFileError
 
 sc2reader.log_utils.log_to_console("INFO")
 
@@ -395,8 +396,10 @@ class TestReplays(unittest.TestCase):
       assert replay.player[2].creep_spread_by_minute[780] == 22.42
 
     def test_bad_unit_ids(self):
-      replay = sc2reader.load_replay("test_replays/2.0.11.26825/bad_unit_ids_1.SC2Replay", load_level=4)
-      replay = sc2reader.load_replay("test_replays/2.0.9.26147/bad_unit_ids_2.SC2Replay", load_level=4)
+        with self.assertRaises(CorruptTrackerFileError):
+            replay = sc2reader.load_replay("test_replays/2.0.11.26825/bad_unit_ids_1.SC2Replay", load_level=4)
+        with self.assertRaises(CorruptTrackerFileError):
+            replay = sc2reader.load_replay("test_replays/2.0.9.26147/bad_unit_ids_2.SC2Replay", load_level=4)
 
     def test_daedalus_point(self):
         replay = sc2reader.load_replay("test_replays/2.0.11.26825/DaedalusPoint.SC2Replay")
