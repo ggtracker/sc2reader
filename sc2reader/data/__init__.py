@@ -73,7 +73,7 @@ class Unit(object):
         self.killed_units = list()
 
         #: The unique in-game id for this unit. The id can sometimes be zero because
-        #: TargetAbilityEvents will create a new unit with id zero when a unit
+        #: TargetUnitCommandEvents will create a new unit with id zero when a unit
         #: behind the fog of war is targetted.
         self.id = unit_id
 
