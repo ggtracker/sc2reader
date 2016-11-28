@@ -140,13 +140,13 @@ def SelectionTracker(replay):
                 if debug:
                     logger.info("[{0}] {1} selected {2} units: {3}".format(Length(seconds=event.second), person.name, len(selections[0x0A].objects), selections[0x0A]))
 
-            elif event.name == 'SetToHotkeyEvent':
+            elif event.name == 'SetControlGroupEvent':
                 selections = player_selections[event.frame]
                 selections[event.control_group] = selections[0x0A].copy()
                 if debug:
                     logger.info("[{0}] {1} set hotkey {2} to current selection".format(Length(seconds=event.second), person.name, event.hotkey))
 
-            elif event.name == 'AddToHotkeyEvent':
+            elif event.name == 'AddToControlGroupEvent':
                 selections = player_selections[event.frame]
                 control_group = selections[event.control_group].copy()
                 error = not control_group.deselect(event.mask_type, event.mask_data)
@@ -155,7 +155,7 @@ def SelectionTracker(replay):
                 if debug:
                     logger.info("[{0}] {1} added current selection to hotkey {2}".format(Length(seconds=event.second), person.name, event.hotkey))
 
-            elif event.name == 'GetFromHotkeyEvent':
+            elif event.name == 'GetControlGroupEvent':
                 selections = player_selections[event.frame]
                 control_group = selections[event.control_group].copy()
                 error = not control_group.deselect(event.mask_type, event.mask_data)
