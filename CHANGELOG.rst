@@ -1,8 +1,7 @@
 CHANGELOG
 ============
 
-
-0.6.5 - December ?? 2013
+0.7.0 -
 ---------------------------
 
 * Deprecated unit.killed_by in favor of unit.killing_player
@@ -17,6 +16,27 @@ CHANGELOG
 * Removed the defunct replay.player_names attribute.
 * Removed the defunct replay.events_by_type attribute.
 * Removed the defunct replay.other_people attribute.
+* Replays can now be pickled and stored for later consumption.
+* All references to the gateway attribute have been replaced in favor of region; e.g. replay.region
+* Use generic UnitType and Ability classes for data. This means no more unit._type_class.__class__.__name__. But hopefully people were not doing that anyway.
+* Now a CorruptTrackerFileError is raised when the tracker file is corrupted (generally only older resume_from_replay replays)
+* Added replay.resume_from_replay flag. See replay.resume_user_info for additional info.
+* PacketEvent is now ProgressEvent.
+* SetToHotkeyEvent is now SetControlGroupEvent.
+* AddToHotkeyEvent is now AddToControlGroupEvent.
+* GetFromHotkeyEvent is now GetControlGroupEvent.
+* PlayerAbilityEvent is no longer part of the event hierarchy.
+* AbilityEvent doubled as both an abstract and concrete class (very bad, see #160). Now split into:
+   * AbilityEvent is now CommandEvent
+   * AbilityEvent is now BasicCommandEvent
+* TargetAbilityEvent is now TargetUnitCommandEvent
+* LocationAbilityEvent is now TargetPointCommandEvent
+* SelfAbilityEvent is now DataCommandEvent
+* Removed the defunct replay.player_names attribute.
+* Removed the defunct replay.events_by_type attribute.
+* Removed the defunct replay.other_people attribute.
+
+* event.name is no longer a class property; it can only be accessed from an event instance.
 * PingEvents now have new attributes:
    * event.to_all - true if ping seen by all
    * event.to_allies - true if ping seen by allies
@@ -28,7 +48,7 @@ CHANGELOG
 ---------------------------
 
 * Fix bug in code for logging errors.
-* Fix siege tank supply count
+* Fix siege tank supply count.
 * Small improvements to message.events parsing.
 
 0.6.3 - September 15th 2013

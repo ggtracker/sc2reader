@@ -156,7 +156,7 @@ class SC2Factory(object):
         return plugins
 
     def _get_options(self, cls, **new_options):
-        options = utils.AttributeDict()
+        options = dict()
         for opt_cls, cls_options in self.options.items():
             if issubclass(cls, opt_cls):
                 options.update(cls_options)
@@ -175,7 +175,7 @@ class SC2Factory(object):
             yield self._load_resource(resource, options=options)
 
     def load_remote_resource_contents(self, resource, **options):
-        self.logger.info("Fetching remote resource: "+resource)
+        self.logger.info("Fetching remote resource: " + resource)
         return urlopen(resource).read()
 
     def load_local_resource_contents(self, location, **options):

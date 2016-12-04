@@ -34,7 +34,7 @@ class InitDataReader(object):
                 hero=data.read_aligned_string(data.read_bits(9)) if replay.base_build >= 34784 else None,
                 skin=data.read_aligned_string(data.read_bits(9)) if replay.base_build >= 34784 else None,
                 mount=data.read_aligned_string(data.read_bits(9)) if replay.base_build >= 34784 else None,
-                toon_handle=data.read_aligned_string(data.read_bits(7)) if replay.base_build >= 34784 else None,                
+                toon_handle=data.read_aligned_string(data.read_bits(7)) if replay.base_build >= 34784 else None,
             ) for i in range(data.read_bits(5))],
 
             game_description=dict(
@@ -226,7 +226,7 @@ class MessageEventsReader(object):
 
             elif flag == 2:  # Loading progress message
                 progress = data.read_uint32()-2147483648
-                packets.append(PacketEvent(frame, pid, progress))
+                packets.append(ProgressEvent(frame, pid, progress))
 
             elif flag == 3:  # Server ping message
                 pass
@@ -327,7 +327,7 @@ class GameEventsReader_Base(object):
 
         # method short cuts, avoid dict lookups
         EVENT_DISPATCH = self.EVENT_DISPATCH
-        debug = replay.opt.debug
+        debug = replay.opt['debug']
         tell = data.tell
         read_frames = data.read_frames
         read_bits = data.read_bits
@@ -1362,7 +1362,7 @@ class GameEventsReader_24247(GameEventsReader_HotSBeta):
             21: (None, self.save_game_event),                     # New
             22: (None, self.save_game_done_event),                # Override
             23: (None, self.load_game_done_event),                # Override
-            43: (None, self.hijack_replay_game_event),            # New
+            43: (HijackReplayGameEvent, self.hijack_replay_game_event),  # New
             62: (None, self.trigger_target_mode_update_event),    # New
             101: (PlayerLeaveEvent, self.game_user_leave_event),  # New
             102: (None, self.game_user_join_event),               # New
@@ -1392,7 +1392,7 @@ class GameEventsReader_24247(GameEventsReader_HotSBeta):
     def hijack_replay_game_event(self, data):
         return dict(
             user_infos=[dict(
-                game_unit_id=data.read_bits(4),
+                game_user_id=data.read_bits(4),
                 observe=data.read_bits(2),
                 name=data.read_aligned_string(data.read_uint8()),
                 toon_handle=data.read_aligned_string(data.read_bits(7)) if data.read_bool() else None,
@@ -1526,7 +1526,7 @@ class GameEventsReader_34784(GameEventsReader_27950):
             61: (None, self.trigger_hotkey_pressed_event),
             103: (None, self.command_manager_state_event),
             104: (None, self.command_update_target_point_event),
-            105: (UpdateTargetAbilityEvent, self.command_update_target_unit_event),
+            105: (UpdateTargetUnitCommandEvent, self.command_update_target_unit_event),
             106: (None, self.trigger_anim_length_query_by_name_event),
             107: (None, self.trigger_anim_length_query_by_props_event),
             108: (None, self.trigger_anim_offset_event),

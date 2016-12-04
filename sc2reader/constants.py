@@ -23,7 +23,7 @@ LOCALIZED_RACES = {
     '프로토스': 'Protoss',
     '저그': 'Zerg',
 
-    # ??eu
+    # plPL
     'Terranie': 'Terran',
     'Protosi': 'Protoss',
     'Zergi': 'Zerg',
@@ -124,7 +124,7 @@ COLOR_CODES = {
 
 COLOR_CODES_INV = dict(zip(COLOR_CODES.values(), COLOR_CODES.keys()))
 
-REGIONS = {
+SUBREGIONS = {
     # United States
     'us': {
         1: 'us',
@@ -142,6 +142,7 @@ REGIONS = {
         1: 'kr',
         2: 'tw',
     },
+
     # Taiwan - appear to both map to same place
     'tw': {
         1: 'kr',

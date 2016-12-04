@@ -62,7 +62,7 @@ def toDict(replay):
 
     # Consolidate replay metadata into dictionary
     return {
-        'gateway': getattr(replay, 'gateway', None),
+        'region': getattr(replay, 'region', None),
         'map_name': getattr(replay, 'map_name', None),
         'file_time': getattr(replay, 'file_time', None),
         'filehash': getattr(replay, 'filehash', None),
@@ -94,7 +94,7 @@ def toDict(replay):
 def APMTracker(replay):
     """
     Builds ``player.aps`` and ``player.apm`` dictionaries where an action is
-    any Selection, Hotkey, or Ability event.
+    any Selection, Hotkey, or Command event.
 
     Also provides ``player.avg_apm`` which is defined as the sum of all the
     above actions divided by the number of seconds played by the player (not
@@ -106,7 +106,7 @@ def APMTracker(replay):
         player.seconds_played = replay.length.seconds
 
         for event in player.events:
-            if event.name == 'SelectionEvent' or 'AbilityEvent' in event.name or 'Hotkey' in event.name:
+            if event.name == 'SelectionEvent' or 'CommandEvent' in event.name or 'ControlGroup' in event.name:
                 player.aps[event.second] += 1.4
                 player.apm[int(event.second/60)] += 1.4
 
@@ -122,7 +122,7 @@ def APMTracker(replay):
 
 @plugin
 def SelectionTracker(replay):
-    debug = replay.opt.debug
+    debug = replay.opt['debug']
     logger = log_utils.get_logger(SelectionTracker)
 
     for person in replay.entities:
@@ -140,13 +140,13 @@ def SelectionTracker(replay):
                 if debug:
                     logger.info("[{0}] {1} selected {2} units: {3}".format(Length(seconds=event.second), person.name, len(selections[0x0A].objects), selections[0x0A]))
 
-            elif event.name == 'SetToHotkeyEvent':
+            elif event.name == 'SetControlGroupEvent':
                 selections = player_selections[event.frame]
                 selections[event.control_group] = selections[0x0A].copy()
                 if debug:
                     logger.info("[{0}] {1} set hotkey {2} to current selection".format(Length(seconds=event.second), person.name, event.hotkey))
 
-            elif event.name == 'AddToHotkeyEvent':
+            elif event.name == 'AddToControlGroupEvent':
                 selections = player_selections[event.frame]
                 control_group = selections[event.control_group].copy()
                 error = not control_group.deselect(event.mask_type, event.mask_data)
@@ -155,7 +155,7 @@ def SelectionTracker(replay):
                 if debug:
                     logger.info("[{0}] {1} added current selection to hotkey {2}".format(Length(seconds=event.second), person.name, event.hotkey))
 
-            elif event.name == 'GetFromHotkeyEvent':
+            elif event.name == 'GetControlGroupEvent':
                 selections = player_selections[event.frame]
                 control_group = selections[event.control_group].copy()
                 error = not control_group.deselect(event.mask_type, event.mask_data)

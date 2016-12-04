@@ -5,6 +5,7 @@ import collections
 from sc2reader.events import *
 from sc2reader.engine.events import InitGameEvent, EndGameEvent, PluginExit
 
+
 class GameEngine(object):
     """ GameEngine Specification
         --------------------------
@@ -17,14 +18,14 @@ class GameEngine(object):
         Example Usage::
 
             class Plugin1():
-                def handleAbilityEvent(self, event, replay):
+                def handleCommandEvent(self, event, replay):
                     pass
 
             class Plugin2():
                 def handleEvent(self, event, replay):
                     pass
 
-                def handleTargetAbilityEvent(self, event, replay):
+                def handleTargetUnitCommandEvent(self, event, replay):
                     pass
 
             ...
@@ -34,11 +35,11 @@ class GameEngine(object):
             engine.reigster_plugin(Plugin(5))
             engine.run(replay)
 
-        Calls functions in the following order for a ``TargetAbilityEvent``::
+        Calls functions in the following order for a ``TargetUnitCommandEvent``::
 
-            Plugin1.handleAbilityEvent(event, replay)
+            Plugin1.handleCommandEvent(event, replay)
             Plugin2.handleEvent(event, replay)
-            Plugin2.handleTargetAbilityEvent(event, replay)
+            Plugin2.handleTargetUnitCommandEvent(event, replay)
 
 
         Plugin Specification
@@ -56,9 +57,8 @@ class GameEngine(object):
             * handleMessageEvent - called for events in replay.message.events
             * handleGameEvent - called for events in replay.game.events
             * handleTrackerEvent - called for events in replay.tracker.events
-            * handlePlayerActionEvent - called for all game events indicating player actions
-            * handleAbilityEvent - called for all types of ability events
-            * handleHotkeyEvent - called for all player hotkey events
+            * handleCommandEvent - called for all types of command events
+            * handleControlGroupEvent - called for all player control group events
 
         Plugins may also handle optional ``InitGame`` and ``EndGame`` events generated
         by the GameEngine before and after processing all the events:
@@ -90,7 +90,7 @@ class GameEngine(object):
                     return
                 ...
 
-            def handleAbilityEvent(self, event, replay):
+            def handleCommandEvent(self, event, replay):
                 try:
                     possibly_throwing_error()
                 catch Error as e:
@@ -199,26 +199,18 @@ class GameEngine(object):
 
     def _get_plugin_event_handlers(self, plugin, event):
         handlers = list()
-        if isinstance(event, Event) and self._has_event_handler(plugin, Event):
-            handlers.append(self._get_event_handler(plugin, Event))
-        if isinstance(event, MessageEvent) and self._has_event_handler(plugin, MessageEvent):
-            handlers.append(self._get_event_handler(plugin, MessageEvent))
-        if isinstance(event, GameEvent) and self._has_event_handler(plugin, GameEvent):
-            handlers.append(self._get_event_handler(plugin, GameEvent))
-        if isinstance(event, TrackerEvent) and self._has_event_handler(plugin, TrackerEvent):
-            handlers.append(self._get_event_handler(plugin, TrackerEvent))
-        if isinstance(event, PlayerActionEvent) and self._has_event_handler(plugin, PlayerActionEvent):
-            handlers.append(self._get_event_handler(plugin, PlayerActionEvent))
-        if isinstance(event, AbilityEvent) and self._has_event_handler(plugin, AbilityEvent):
-            handlers.append(self._get_event_handler(plugin, AbilityEvent))
-        if isinstance(event, HotkeyEvent) and self._has_event_handler(plugin, HotkeyEvent):
-            handlers.append(self._get_event_handler(plugin, HotkeyEvent))
-        if self._has_event_handler(plugin, event):
-            handlers.append(self._get_event_handler(plugin, event))
+        if isinstance(event, Event) and hasattr(plugin, 'handleEvent'):
+            handlers.append(getattr(plugin, 'handleEvent', None))
+        if isinstance(event, MessageEvent) and hasattr(plugin, 'handleMessageEvent'):
+            handlers.append(getattr(plugin, 'handleMessageEvent', None))
+        if isinstance(event, GameEvent) and hasattr(plugin, 'handleGameEvent'):
+            handlers.append(getattr(plugin, 'handleGameEvent', None))
+        if isinstance(event, TrackerEvent) and hasattr(plugin, 'handleTrackerEvent'):
+            handlers.append(getattr(plugin, 'handleTrackerEvent', None))
+        if isinstance(event, CommandEvent) and hasattr(plugin, 'handleCommandEvent'):
+            handlers.append(getattr(plugin, 'handleCommandEvent', None))
+        if isinstance(event, ControlGroupEvent) and hasattr(plugin, 'handleControlGroupEvent'):
+            handlers.append(getattr(plugin, 'handleControlGroupEvent', None))
+        if hasattr(plugin, 'handle'+event.name):
+            handlers.append(getattr(plugin, 'handle'+event.name, None))
         return handlers
-
-    def _has_event_handler(self, plugin, event):
-        return hasattr(plugin, 'handle'+event.name)
-
-    def _get_event_handler(self, plugin, event):
-        return getattr(plugin, 'handle'+event.name, None)

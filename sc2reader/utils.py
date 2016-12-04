@@ -48,57 +48,11 @@ class DepotFile(object):
         return self.url
 
 
-class PersonDict(dict):
-    """
-    Deprecated!
-
-    Supports lookup on both the player name and player id
-
-    ::
-
-        person = PersonDict()
-        person[1] = Player(1,"ShadesofGray")
-        me = person.name("ShadesofGray")
-        del person[me.pid]
-
-    Delete is supported on the player id only
-    """
-    def __init__(self):
-        super(PersonDict, self).__init__()
-        self._key_map = dict()
-
-    def name(self, player_name):
-        """ deprecated because it is possible for multiple players to have the same name. """
-        return self[self._key_map[player_name]]
-
-    def __setitem__(self, key, value):
-        self._key_map[value.name] = key
-        super(PersonDict, self).__setitem__(key, value)
-
-
 def windows_to_unix(windows_time):
     # This windows timestamp measures the number of 100 nanosecond periods since
     # January 1st, 1601. First we subtract the number of nanosecond periods from
     # 1601-1970, then we divide by 10^7 to bring it back to seconds.
-    return int((windows_time-116444735995904000)/10**7)
-
-
-class AttributeDict(dict):
-    """
-    Support access to dictionary items via the dot syntax as though they
-    were class attributes. Also support setting new keys via dot syntax.
-    """
-    def __getattr__(self, name):
-        try:
-            return self[name]
-        except KeyError:
-            raise AttributeError('No such attribute {0}'.format(name))
-
-    def __setattr__(self, name, value):
-        self[name] = value
-
-    def copy(self):
-        return AttributeDict(self.items())
+    return int((windows_time - 116444735995904000) / 10 ** 7)
 
 
 @loggable
@@ -197,12 +151,6 @@ def extract_data_file(data_file, archive):
         raise MPQError("Unable to extract file: {0}".format(data_file), e)
 
 
-def merged_dict(a, b):
-    c = a.copy()
-    c.update(b)
-    return c
-
-
 def get_files(path, exclude=list(), depth=-1, followlinks=False, extension=None, **extras):
     """
     Retrieves files from the given path with configurable behavior.
@@ -252,12 +200,12 @@ class Length(timedelta):
     @property
     def hours(self):
         """ The number of hours in represented. """
-        return self.seconds//3600
+        return self.seconds // 3600
 
     @property
     def mins(self):
         """ The number of minutes in excess of the hours. """
-        return self.seconds//60 % 60
+        return self.seconds // 60 % 60
 
     @property
     def secs(self):
@@ -328,7 +276,7 @@ def toDict(replay):
 
     # Consolidate replay metadata into dictionary
     return {
-        'gateway': getattr(replay, 'gateway', None),
+        'region': getattr(replay, 'region', None),
         'map_name': getattr(replay, 'map_name', None),
         'file_time': getattr(replay, 'file_time', None),
         'filehash': getattr(replay, 'filehash', None),
