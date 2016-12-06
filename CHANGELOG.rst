@@ -1,6 +1,10 @@
 CHANGELOG
 ============
 
+0.8.0 -
+---------------------------
+* Merged into ggtracker/sc2reader, which mostly means that we have a bunch of parsing fixes.  Thanks @StoicLoofah!
+
 0.7.0 -
 ---------------------------
 

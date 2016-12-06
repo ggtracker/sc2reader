@@ -1,8 +1,10 @@
-Author and Maintainer:
+Maintainer:
+    David Joerg - @dsjoerg on github
+
+Author:
     Graylin Kim - graylinkim @ github
 
 Contributors:
-    David Joerg - @dsjoerg on github
     Alexander Hanhikoski - @alexhanh on github
     Bas Peschier (fizzgig) - @bpeschier on github
     Jason Dana - @sheutka on github
