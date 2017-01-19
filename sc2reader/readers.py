@@ -1848,7 +1848,6 @@ class GameEventsReader_38749(GameEventsReader_38215):
 class GameEventsReader_38996(GameEventsReader_38749):
 
     def trigger_ping_event(self, data):
-        print('yo')
         return dict(
             point=dict(
                 x=data.read_uint32() - 2147483648,
