@@ -33,7 +33,10 @@ Given the following plugins::
         def handleTargetAbilityEvent(self, event, replay):
             pass
 
-An engine handling a ``TargetAbilityEvent`` would call handlers in the following order::
+    sc2reader.engine.register_plugin(Plugin1())
+    sc2reader.engine.register_plugin(Plugin2())
+
+When the engine handles a ``TargetAbilityEvent`` it will call handlers in the following order::
 
     Plugin1.handleAbilityEvent(event, replay)
     Plugin2.handleEvent(event, replay)
@@ -84,3 +87,12 @@ If a plugin wishes to stop processing a replay it can yield a PluginExit event b
 The GameEngine will intercept this event and remove the plugin from the list of active plugins for this replay. The exit code and details will be available from the replay::
 
 	code, details = replay.plugins['MyPlugin']
+
+Using Your Plugin
+-----------------
+
+To use your plugin with sc2reader, just register it to the game engine:
+
+	sc2reader.engine.register_plugin(MyPlugin())
+
+Plugins will be called in order of registration for each event. If plugin B depends on plugin A make sure to register plugin A first!

@@ -23,7 +23,7 @@ LOCALIZED_RACES = {
     '프로토스': 'Protoss',
     '저그': 'Zerg',
 
-    # ??eu
+    # plPL
     'Terranie': 'Terran',
     'Protosi': 'Protoss',
     'Zergi': 'Zerg',
@@ -60,11 +60,27 @@ MESSAGE_CODES = {
 
 
 GAME_SPEED_FACTOR = {
-    'Slower':   0.6,
-    'Slow':     0.8,
-    'Normal':   1.0,
-    'Fast':     1.2,
-    'Faster':   1.4
+    'WoL': {
+        'Slower':   0.6,
+        'Slow':     0.8,
+        'Normal':   1.0,
+        'Fast':     1.2,
+        'Faster':   1.4
+    },
+    'HotS': {
+        'Slower':   0.6,
+        'Slow':     0.8,
+        'Normal':   1.0,
+        'Fast':     1.2,
+        'Faster':   1.4
+    },
+    'LotV': {
+        'Slower':   0.2,
+        'Slow':     0.4,
+        'Normal':   0.6,
+        'Fast':     0.8,
+        'Faster':   1.0
+    },
 }
 
 GATEWAY_CODES = {
@@ -108,7 +124,7 @@ COLOR_CODES = {
 
 COLOR_CODES_INV = dict(zip(COLOR_CODES.values(), COLOR_CODES.keys()))
 
-REGIONS = {
+SUBREGIONS = {
     # United States
     'us': {
         1: 'us',
@@ -126,6 +142,7 @@ REGIONS = {
         1: 'kr',
         2: 'tw',
     },
+
     # Taiwan - appear to both map to same place
     'tw': {
         1: 'kr',

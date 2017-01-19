@@ -1,8 +1,9 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 import datetime
 import json
+from xml.dom import minidom
 
 # Newer unittest features aren't built in for python 2.6
 import sys
@@ -12,9 +13,9 @@ else:
     import unittest
 
 import sc2reader
+from sc2reader.exceptions import CorruptTrackerFileError
 
 sc2reader.log_utils.log_to_console("INFO")
-
 
 class TestReplays(unittest.TestCase):
 
@@ -197,20 +198,20 @@ class TestReplays(unittest.TestCase):
             replay = sc2reader.load_replay(replayfilename)
             self.assertEqual(replay.expansion, "HotS")
             player_pids = set([player.pid for player in replay.players if player.is_human])
-            ability_pids = set([event.player.pid for event in replay.events if "AbilityEvent" in event.name])
+            ability_pids = set([event.player.pid for event in replay.events if "CommandEvent" in event.name])
             self.assertEqual(ability_pids, player_pids)
 
     def test_wol_pids(self):
         replay = sc2reader.load_replay("test_replays/1.5.4.24540/ggtracker_1471849.SC2Replay")
         self.assertEqual(replay.expansion, "WoL")
-        ability_pids = set([event.player.pid for event in replay.events if "AbilityEvent" in event.name])
+        ability_pids = set([event.player.pid for event in replay.events if "CommandEvent" in event.name])
         player_pids = set([player.pid for player in replay.players])
         self.assertEqual(ability_pids, player_pids)
 
     def test_hots_hatchfun(self):
         replay = sc2reader.load_replay("test_replays/2.0.0.24247/molten.SC2Replay")
         player_pids = set([ player.pid for player in replay.players])
-        spawner_pids = set([ event.player.pid for event in replay.events if "TargetAbilityEvent" in event.name and event.ability.name == "SpawnLarva"])
+        spawner_pids = set([ event.player.pid for event in replay.events if "TargetUnitCommandEvent" in event.name and event.ability.name == "SpawnLarva"])
         self.assertTrue(spawner_pids.issubset(player_pids))
 
     def test_hots_vs_ai(self):
@@ -227,6 +228,8 @@ class TestReplays(unittest.TestCase):
 
     def test_resume_from_replay(self):
         replay = sc2reader.load_replay("test_replays/2.0.3.24764/resume_from_replay.SC2Replay")
+        self.assertTrue(replay.resume_from_replay)
+        self.assertEqual(replay.resume_method, 0)
 
     def test_clan_players(self):
         replay = sc2reader.load_replay("test_replays/2.0.4.24944/Lunar Colony V.SC2Replay")
@@ -243,7 +246,7 @@ class TestReplays(unittest.TestCase):
 
     def test_cn_replays(self):
         replay = sc2reader.load_replay("test_replays/2.0.5.25092/cn1.SC2Replay")
-        self.assertEqual(replay.gateway, "cn")
+        self.assertEqual(replay.region, "cn")
         self.assertEqual(replay.expansion, "WoL")
 
     def test_unit_types(self):
@@ -272,6 +275,7 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(len(replay.players), 2)
         self.assertEqual(len(replay.people), 3)
 
+    @unittest.expectedFailure
     def test_map_info(self):
         replay = sc2reader.load_replay("test_replays/1.5.3.23260/ggtracker_109233.SC2Replay", load_map=True)
         self.assertEqual(replay.map.map_info.tile_set, 'Avernus')
@@ -301,6 +305,7 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(details, dict())
 
+    @unittest.expectedFailure
     def test_factory_plugins(self):
         from sc2reader.factories.plugins.replay import APMTracker, SelectionTracker, toJSON
 
@@ -318,7 +323,7 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(result["release"], "2.0.5.25092")
         self.assertEqual(result["game_length"], 986)
         self.assertEqual(result["real_length"], 704)
-        self.assertEqual(result["gateway"], "cn")
+        self.assertEqual(result["region"], "cn")
         self.assertEqual(result["game_fps"], 16.0)
         self.assertTrue(result["is_ladder"])
 
@@ -329,7 +334,7 @@ class TestReplays(unittest.TestCase):
         # Not a GameHeart game!
         replay = sc2reader.load_replay("test_replays/2.0.0.24247/molten.SC2Replay")
         player_pids = set([ player.pid for player in replay.players])
-        spawner_pids = set([ event.player.pid for event in replay.events if "TargetAbilityEvent" in event.name and event.ability.name == "SpawnLarva"])
+        spawner_pids = set([ event.player.pid for event in replay.events if "TargetUnitCommandEvent" in event.name and event.ability.name == "SpawnLarva"])
         self.assertTrue(spawner_pids.issubset(player_pids))
 
         replay = sc2reader.load_replay("test_replays/gameheart/gameheart.SC2Replay")
@@ -357,6 +362,228 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(replay.teams[0].players[0].name, 'EGJDRC')
         self.assertEqual(replay.teams[1].players[0].name, 'LiquidTaeJa')
         self.assertEqual(replay.winner, replay.teams[0])
+
+    def test_replay_event_order(self):
+        replay = sc2reader.load_replay("test_replays/event_order.SC2Replay")
+
+    def test_creepTracker(self):
+      from sc2reader.engine.plugins import CreepTracker
+
+      for replayfilename in [
+        "test_replays/2.0.8.25605/ggtracker_3621322.SC2Replay",
+        "test_replays/2.0.8.25605/ggtracker_3621402.SC2Replay",
+        "test_replays/2.0.8.25605/ggtracker_3663861.SC2Replay",
+        "test_replays/2.0.8.25605/ggtracker_3695400.SC2Replay",
+        "test_replays/3.1.2/6494799.SC2Replay",
+        ]:
+        factory = sc2reader.factories.SC2Factory()
+        pluginEngine=sc2reader.engine.GameEngine(plugins=[
+                CreepTracker()
+            ])
+        replay =factory.load_replay(replayfilename,engine=pluginEngine,load_map= True,load_level=4)
+
+        for player_id in replay.player:
+            if replay.player[player_id].play_race == "Zerg":
+                assert replay.player[player_id].max_creep_spread[1] >0
+                assert replay.player[player_id].creep_spread_by_minute[0] >0
+#                print "MCS", replay.player[player_id].max_creep_spread
+#                print "CSBM", replay.player[player_id].creep_spread_by_minute
+
+
+      replay =factory.load_replay("test_replays/2.0.8.25605/ggtracker_3621402.SC2Replay",load_map= True,engine=pluginEngine,load_level=4)
+      assert replay.player[2].max_creep_spread == (840,24.83)
+      assert  replay.player[2].creep_spread_by_minute[420] == 9.4
+      assert replay.player[2].creep_spread_by_minute[780] == 22.42
+
+    def test_bad_unit_ids(self):
+        with self.assertRaises(CorruptTrackerFileError):
+            replay = sc2reader.load_replay("test_replays/2.0.11.26825/bad_unit_ids_1.SC2Replay", load_level=4)
+        with self.assertRaises(CorruptTrackerFileError):
+            replay = sc2reader.load_replay("test_replays/2.0.9.26147/bad_unit_ids_2.SC2Replay", load_level=4)
+
+    def test_daedalus_point(self):
+        replay = sc2reader.load_replay("test_replays/2.0.11.26825/DaedalusPoint.SC2Replay")
+
+    def test_reloaded(self):
+        replay = sc2reader.load_replay("test_replays/2.1.3.28667/Habitation Station LE (54).SC2Replay")
+
+    def test_214(self):
+      replay = sc2reader.load_replay("test_replays/2.1.4/Catallena LE.SC2Replay", load_level=4)
+
+    def test_lotv1(self):
+      replay = sc2reader.load_replay("test_replays/lotv/lotv1.SC2Replay")
+      self.assertEqual(replay.expansion, "LotV")
+      replay = sc2reader.load_replay("test_replays/lotv/lotv2.SC2Replay")
+      self.assertEqual(replay.expansion, "LotV")
+
+
+    def test_lotv_creepTracker(self):
+      from sc2reader.engine.plugins import CreepTracker
+
+      for replayfilename in [
+        "test_replays/lotv/lotv1.SC2Replay",
+        ]:
+        factory = sc2reader.factories.SC2Factory()
+        pluginEngine=sc2reader.engine.GameEngine(plugins=[
+                CreepTracker()
+            ])
+        replay =factory.load_replay(replayfilename,engine=pluginEngine,load_map= True)
+
+        for player_id in replay.player:
+            if replay.player[player_id].play_race == "Zerg":
+                assert replay.player[player_id].max_creep_spread >0
+                assert replay.player[player_id].creep_spread_by_minute
+
+    def test_lotv_map(self):
+      # This test currently fails in decoders.py with 'TypeError: ord() expected a character, but string of length 0 found'
+      for replayfilename in [
+        "test_replays/lotv/lotv1.SC2Replay",
+        ]:
+        factory = sc2reader.factories.SC2Factory()
+        replay =factory.load_replay(replayfilename,load_level=1,load_map= True)
+
+    def test_30(self):
+      replay = sc2reader.load_replay("test_replays/3.0.0.38215/first.SC2Replay")
+      replay = sc2reader.load_replay("test_replays/3.0.0.38215/second.SC2Replay")
+      replay = sc2reader.load_replay("test_replays/3.0.0.38215/third.SC2Replay")
+
+    def test_31(self):
+      for i in range(1,5):
+          print "DOING {}".format(i)
+          replay = sc2reader.load_replay("test_replays/3.1.0/{}.SC2Replay".format(i))
+
+    def test_30_map(self):
+      for replayfilename in [
+              "test_replays/3.0.0.38215/third.SC2Replay",
+        ]:
+        factory = sc2reader.factories.SC2Factory()
+        replay =factory.load_replay(replayfilename,load_level=1,load_map= True)
+
+    def test_30_apms(self):
+        from sc2reader.factories.plugins.replay import APMTracker, SelectionTracker, toJSON
+
+        factory = sc2reader.factories.SC2Factory()
+        factory.register_plugin("Replay", APMTracker())
+        replay = factory.load_replay("test_replays/3.0.0.38215/fourth.SC2Replay")
+        for player in replay.players:
+            if player.name == 'Owl':
+                print player.name, player.avg_apm
+                self.assertTrue(player.avg_apm > 110)
+
+    def test_38749(self):
+        replay = sc2reader.load_replay("test_replays/3.0.0.38749/1.SC2Replay")
+        self.assertEqual(replay.expansion, 'HotS')
+        replay = sc2reader.load_replay("test_replays/3.0.0.38749/2.SC2Replay")
+        self.assertEqual(replay.expansion, 'HotS')
+
+    def test_38996(self):
+        replay = sc2reader.load_replay("test_replays/3.0.0.38996/1.SC2Replay")
+        self.assertEqual(replay.expansion, 'LotV')
+        replay = sc2reader.load_replay("test_replays/3.0.0.38996/2.SC2Replay")
+        self.assertEqual(replay.expansion, 'LotV')
+
+    def test_funny_minerals(self):
+        replay = sc2reader.load_replay("test_replays/3.1.0/centralprotocol.SC2Replay")
+        replay.load_map()
+        xmldoc = minidom.parseString(replay.map.archive.read_file('Objects'))
+        itemlist = xmldoc.getElementsByTagName('ObjectUnit')
+        mineralPosStrs = [ou.attributes['Position'].value for ou in itemlist if 'MineralField' in ou.attributes['UnitType'].value]
+        mineralFieldNames = list(set([ou.attributes['UnitType'].value for ou in itemlist if 'MineralField' in ou.attributes['UnitType'].value]))
+        #print mineralFieldNames
+        self.assertTrue(len(mineralPosStrs) > 0)
+
+    def test_dusk(self):
+        replay = sc2reader.load_replay("test_replays/3.1.0/dusktowers.SC2Replay")
+        self.assertEqual(replay.expansion, 'LotV')
+
+    def test_32(self):
+        replay = sc2reader.load_replay("test_replays/3.2.0/1.SC2Replay")
+        self.assertTrue(replay is not None)
+
+    def test_33(self):
+        for replaynum in range(1,4):
+            replay = sc2reader.load_replay("test_replays/3.3.0/{}.SC2Replay".format(replaynum))
+            self.assertTrue(replay is not None)
+
+    def test_33_shift_click_calldown_mule(self):
+        replay = sc2reader.load_replay("test_replays/3.3.0/ggissue48.SC2Replay")
+        def efilter(e):
+            return hasattr(e, "ability") and e.ability_name == "CalldownMULE"
+        self.assertEqual(len(filter(efilter, replay.events)), 29)
+
+    def test_33_shift_click_spawn_larva(self):
+        replay = sc2reader.load_replay("test_replays/3.3.0/ggissue49.SC2Replay")
+        def efilter(e):
+            return hasattr(e, "ability") and e.ability_name == "SpawnLarva"
+        self.assertEqual(len(filter(efilter, replay.events)), 23)
+
+    def test_34(self):
+        replay = sc2reader.load_replay("test_replays/3.4.0/issueYY.SC2Replay")
+        self.assertEqual(replay.expansion, 'LotV')
+
+    def test_lotv_time(self):
+        replay = sc2reader.load_replay("test_replays/lotv/lotv1.SC2Replay")
+        self.assertEqual(replay.length.seconds, 1002)
+        self.assertEqual(replay.real_length.seconds, 1002)
+
+    def test_37(self):
+        replay = sc2reader.load_replay("test_replays/3.7.0/1.SC2Replay")
+        replay = sc2reader.load_replay("test_replays/3.7.0/2.SC2Replay")
+
+
+class TestGameEngine(unittest.TestCase):
+    class TestEvent(object):
+        name='TestEvent'
+        def __init__(self, value):
+            self.value = value
+        def __str__(self):
+            return self.value
+
+    class TestPlugin1(object):
+        name = 'TestPlugin1'
+
+        def handleInitGame(self, event, replay):
+            yield TestGameEngine.TestEvent('b')
+            yield TestGameEngine.TestEvent('c')
+
+        def handleTestEvent(self, event, replay):
+            print("morestuff")
+            if event.value == 'd':
+                yield sc2reader.engine.PluginExit(self, code=1, details=dict(msg="Fail!"))
+            else:
+                yield TestGameEngine.TestEvent('d')
+
+        def handleEndGame(self, event, replay):
+            yield TestGameEngine.TestEvent('g')
+
+    class TestPlugin2(object):
+        name = 'TestPlugin2'
+        def handleInitGame(self, event, replay):
+            replay.engine_events = list()
+
+        def handleTestEvent(self, event, replay):
+            replay.engine_events.append(event)
+
+        def handlePluginExit(self, event, replay):
+            yield TestGameEngine.TestEvent('e')
+
+        def handleEndGame(self, event, replay):
+            yield TestGameEngine.TestEvent('f')
+
+    class MockReplay(object):
+        def __init__(self, events):
+            self.events = events
+
+    def test_plugin1(self):
+        engine = sc2reader.engine.GameEngine()
+        engine.register_plugin(self.TestPlugin1())
+        engine.register_plugin(self.TestPlugin2())
+        replay = self.MockReplay([self.TestEvent('a')])
+        engine.run(replay)
+        self.assertEqual(''.join(str(e) for e in replay.engine_events), 'bdecaf')
+        self.assertEqual(replay.plugin_failures, ['TestPlugin1'])
+        self.assertEqual(replay.plugin_result['TestPlugin1'], (1, dict(msg="Fail!")))
+        self.assertEqual(replay.plugin_result['TestPlugin2'], (0, dict()))
 
 
 if __name__ == '__main__':

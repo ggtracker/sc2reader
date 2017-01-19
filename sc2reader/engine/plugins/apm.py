@@ -7,7 +7,7 @@ from collections import defaultdict
 class APMTracker(object):
     """
     Builds ``player.aps`` and ``player.apm`` dictionaries where an action is
-    any Selection, Hotkey, or Ability event.
+    any Selection, ControlGroup, or Command event.
 
     Also provides ``player.avg_apm`` which is defined as the sum of all the
     above actions divided by the number of seconds played by the player (not
@@ -18,21 +18,29 @@ class APMTracker(object):
     name = 'APMTracker'
 
     def handleInitGame(self, event, replay):
-        for player in replay.players:
-            player.apm = defaultdict(int)
-            player.aps = defaultdict(int)
-            player.seconds_played = replay.length.seconds
+        for human in replay.humans:
+            human.apm = defaultdict(int)
+            human.aps = defaultdict(int)
+            human.seconds_played = replay.length.seconds
 
-    def handlePlayerActionEvent(self, event, replay):
-        event.player.aps[event.second] += 1
-        event.player.apm[int(event.second/60)] += 1
+    def handleControlGroupEvent(self, event, replay):
+        event.player.aps[event.second] += 1.4
+        event.player.apm[int(event.second/60)] += 1.4
+
+    def handleSelectionEvent(self, event, replay):
+        event.player.aps[event.second] += 1.4
+        event.player.apm[int(event.second/60)] += 1.4
+
+    def handleCommandEvent(self, event, replay):
+        event.player.aps[event.second] += 1.4
+        event.player.apm[int(event.second/60)] += 1.4
 
     def handlePlayerLeaveEvent(self, event, replay):
         event.player.seconds_played = event.second
 
     def handleEndGame(self, event, replay):
-        for player in replay.players:
-            if len(player.apm.keys()) > 0:
-                player.avg_apm = sum(player.aps.values())/float(player.seconds_played)*60
+        for human in replay.humans:
+            if len(human.apm.keys()) > 0:
+                human.avg_apm = sum(human.aps.values())/float(human.seconds_played)*60
             else:
-                player.avg_apm = 0
+                human.avg_apm = 0

@@ -11,4 +11,3 @@ computer player.
 
 .. automodule:: sc2reader.events.game
 	:members:
-	:undoc-members:

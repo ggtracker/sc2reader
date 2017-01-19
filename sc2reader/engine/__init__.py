@@ -11,6 +11,7 @@ from sc2reader.engine import plugins
 def setGameEngine(engine):
     module = sys.modules[__name__]
     module.run = engine.run
+    module.plugins = engine.plugins
     module.register_plugin = engine.register_plugin
     module.register_plugins = engine.register_plugins
 

@@ -4,15 +4,14 @@ import setuptools
 setuptools.setup(
     license="MIT",
     name="sc2reader",
-    version='0.5.1',
+    version='0.8.0',
     keywords=["starcraft 2", "sc2", "replay", "parser"],
     description="Utility for parsing Starcraft II replay files",
     long_description=open("README.rst").read()+"\n\n"+open("CHANGELOG.rst").read(),
 
     author="Graylin Kim",
     author_email="graylin.kim@gmail.com",
-    url="https://github.com/GraylinKim/sc2reader",
-    download_url="https://github.com/GraylinKim/sc2reader/archive/v0.5.1.tar.gz",
+    url="https://github.com/ggtracker/sc2reader",
 
     platforms=["any"],
 
@@ -47,7 +46,7 @@ setuptools.setup(
         ]
     },
 
-    install_requires=['mpyq>=0.2.3', 'argparse', 'ordereddict', 'unittest2'] if float(sys.version[:3]) < 2.7 else ['mpyq>=0.2.3'],
+    install_requires=['mpyq>=0.2.3', 'argparse', 'ordereddict', 'unittest2', 'pil'] if float(sys.version[:3]) < 2.7 else ['mpyq>=0.2.4'],
     packages=setuptools.find_packages(),
     include_package_data=True,
     zip_safe=True

@@ -166,8 +166,8 @@ class BitPackedDecoder(object):
         self.read_bool = functools.partial(self.read_bits, 1)
 
     def done(self):
-        """ Returns true when all bits in the buffer have been used"""
-        return self.tell() == self.length and self._bit_shift == 0
+        """ Returns true when all bytes in the buffer have been used"""
+        return self.tell() == self.length
 
     def byte_align(self):
         """ Moves cursor to the beginning of the next byte """
@@ -176,7 +176,7 @@ class BitPackedDecoder(object):
 
     def read_uint8(self):
         """ Returns the next 8 bits as an unsigned integer """
-        data = self._buffer.read_uint8()
+        data = ord(self._buffer.read(1))
 
         if self._bit_shift != 0:
             lo_mask, hi_mask = self._bit_masks[self._bit_shift]
@@ -231,7 +231,7 @@ class BitPackedDecoder(object):
 
     def read_vint(self):
         """ Reads a signed integer of variable length """
-        byte = self.read_uint8()
+        byte = ord(self._buffer.read(1))
         negative = byte & 0x01
         result = (byte & 0x7F) >> 1
         bits = 6
@@ -335,8 +335,8 @@ class BitPackedDecoder(object):
         """ Reads a nested data structure. If the type is not specified the
         first byte is used as the type identifier.
         """
-        self.byte_align()  # I think this is true
-        datatype = self.read_uint8() if datatype is None else datatype
+        self.byte_align()
+        datatype = ord(self._buffer.read(1)) if datatype is None else datatype
 
         if datatype == 0x00:  # array
             data = [self.read_struct() for i in range(self.read_vint())]
@@ -347,36 +347,33 @@ class BitPackedDecoder(object):
 
         elif datatype == 0x02:  # blob
             length = self.read_vint()
-            data = self.read_bytes(length)
+            data = self._buffer.read_bytes(length)
 
         elif datatype == 0x03:  # choice
             flag = self.read_vint()
             data = self.read_struct()
 
         elif datatype == 0x04:  # optional
-            exists = self.read_uint8() != 0
+            exists = self._buffer.read_uint8() != 0
             data = self.read_struct() if exists else None
 
         elif datatype == 0x05:  # Struct
-            data = OrderedDict()
             entries = self.read_vint()
-            for i in range(entries):
-                key = self.read_vint()  # Must be read first
-                data[key] = self.read_struct()
+            data = dict([(self.read_vint(), self.read_struct()) for i in range(entries)])
 
         elif datatype == 0x06:  # u8
-            data = self.read_uint8()
+            data = ord(self._buffer.read(1))
 
         elif datatype == 0x07:  # u32
-            data = self.read_bytes(4)  # self.read_uint32()
+            data = self._buffer.read_bytes(4)  # self.read_uint32()
 
         elif datatype == 0x08:  # u64
-            data = self.read_unit64()
+            data = self._buffer.read_uint64()
 
         elif datatype == 0x09:  # vint
             data = self.read_vint()
 
         else:
-            raise TypeError("Unknown Data Structure: '%s'" % datatype)
+            raise TypeError("Unknown Data Structure: '{0}'".format(datatype))
 
         return data

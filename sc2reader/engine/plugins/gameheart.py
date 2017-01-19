@@ -69,6 +69,9 @@ class GameHeartNormalizer(object):
     def fix_entities(self, replay, actual_players):
         # Change the players that aren't playing into observers
         for p in [p for p in replay.players if p.pid not in actual_players]:
+            # Fix the slot data to be accurate
+            p.slot_data['observe'] = 1
+            p.slot_data['team_id'] = None
             obs = Observer(p.sid, p.slot_data, p.uid, p.init_data, p.pid)
 
             # Because these obs start the game as players the client

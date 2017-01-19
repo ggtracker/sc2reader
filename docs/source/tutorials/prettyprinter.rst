@@ -38,18 +38,18 @@ The first step is to get a script up to accept a path from the command line.
     if __name__ == '__main__':
         main()
 
-Now we need to use sc2reader to read that file into a :class:`Replay` object that contains all the information that we are looking for.
+Now we need to use sc2reader to read that file into a :class:`~sc2reader.resources.Replay` object that contains all the information that we are looking for.
 
 ::
 
-    from sc2reader import SC2Reader
+    from sc2reader.factories import SC2Factory
 
     def main():
         path = sys.argv[1]
-        sc2 = SC2Reader()
+        sc2 = SC2Factory()
         replay = sc2.load_replay(path)
 
-In the code above, we imported the :class:`SC2Reader` class from the sc2reader package. This class is a factory class that is used to load replays. This factory is configurable in a variety of ways but sane defaults are provided so that most users probably won't need to do any substantial configuration. In fact, because many users will never need to configure the SC2Reader factory the package provides a default factory that can be used by operating directly on the sc2reader package.
+In the code above, we imported the :class:`~sc2reader.factories.SC2Factory` class from the ``sc2reader.factories`` package. This class is a factory class that is used to load replays. This factory is configurable in a variety of ways but sane defaults are provided so that most users probably won't need to do any substantial configuration. In fact, because many users will never need to configure the SC2Factory the package provides a default factory that can be used by operating directly on the sc2reader package.
 
 ::
 
@@ -61,7 +61,7 @@ In the code above, we imported the :class:`SC2Reader` class from the sc2reader p
 
 We'll use this short hand method for the rest of this tutorial.
 
-The replay object itself is a dumb data structure; there are no access methods only attributes. For our script we will need the following set of attributes, a full list of attributes can be found on the :class:`Replay` reference page.
+The replay object itself is a dumb data structure; there are no access methods only attributes. For our script we will need the following set of attributes, a full list of attributes can be found on the :class:`~sc2reader.resources.Replay` reference page.
 
 ::
 
@@ -71,13 +71,13 @@ The replay object itself is a dumb data structure; there are no access methods o
     '1.4.0.19679'
     >>> replay.category
     'Ladder'
-    >>> replay.date
+    >>> replay.end_time
     datetime.datetime(2011, 9, 20, 21, 8, 8)
     >>> replay.type
     '2v2'
-    >>> replay.map
+    >>> replay.map_name
     'The Boneyard'
-    >>> replay.length # string format is MM.SS
+    >>> replay.game_length # string format is MM.SS
     Length(0, 1032)
     >>> replay.teams
     [<sc2reader.objects.Team object at 0x2b5e410>, <sc2reader.objects.Team object at 0x2b5e4d0>]
@@ -88,7 +88,7 @@ Many of the replay attributes are nested data structures which are generally all
 
     >>> replay.teams[0].players[0].color.hex
     'B4141E'
-    >>> replay.player['Remedy'].url
+    >>> replay.player.name('Remedy').url
     'http://us.battle.net/sc2/en/profile/2198663/1/Remedy/'
 
 Each of these nested structures can be found either on its own reference page or lumped together with the other minor structures on the Misc Structures page.
@@ -103,13 +103,13 @@ So now all we need to do is build the ouput using the available replay attribute
     {filename}
     --------------------------------------------
     SC2 Version {release_string}
-    {category} Game, {date}
-    {type} on {map}
-    Length: {length}
+    {category} Game, {start_time}
+    {type} on {map_name}
+    Length: {game_length}
 
     """.format(**replay.__dict__)
 
-In the code above we are taking advantage of the dump data structure design of the :class:`Replay` objects and unpacking its internal dictionary into the string.format method. If you aren't familiar with some of these concepts they are well worth reading up on; string templates are awesome!
+In the code above we are taking advantage of the dump data structure design of the :class:`~sc2reader.resources.Replay` objects and unpacking its internal dictionary into the ``string.format`` method. If you aren't familiar with some of these concepts they are well worth reading up on; string templates are awesome!
 
 Similar formatting written in a more verbose and less pythonic way:
 
@@ -119,12 +119,12 @@ Similar formatting written in a more verbose and less pythonic way:
         output  = replay.filename+'\n'
         output += "--------------------------------------------\n"
         output += "SC2 Version "+replay.release_string+'\n'
-        output += replay.category+" Game, "+str(replay.date)+'\n'
-        output += replay.type+" on "+replay.map+'\n'
-        output += "Length: "+str(replay.length)
+        output += replay.category+" Game, "+str(replay.start_time)+'\n'
+        output += replay.type+" on "+replay.map_name+'\n'
+        output += "Length: "+str(replay.game_length)
         return output
 
-Next we need to format the teams for display. The :class:`Team` and :class:`Player` data structures are pretty straightforward as well so we can apply a bit of string formatting and produce this:
+Next we need to format the teams for display. The :class:`~sc2reader.objects.Team` and :class:`~sc2reader.objects.Player` data structures are pretty straightforward as well so we can apply a bit of string formatting and produce this:
 
 ::
 
@@ -162,9 +162,9 @@ So lets put it all together into the final script, ``prettyPrinter.py``:
     {filename}
     --------------------------------------------
     SC2 Version {release_string}
-    {category} Game, {date}
-    {type} on {map}
-    Length: {length}
+    {category} Game, {start_time}
+    {type} on {map_name}
+    Length: {game_length}
 
     {formattedTeams}
     """.format(formattedTeams=formatTeams(replay), **replay.__dict__)
@@ -182,10 +182,10 @@ So lets put it all together into the final script, ``prettyPrinter.py``:
 Making Improvements
 ---------------------------
 
-So our script works fine for single files, but what if you want to handle  multiple files or directories? sc2reader provides two functions for loading replays: :meth:`~SC2Reader.load_replay` and :meth:`~SC2Reader.load_replays` which return a single replay and  a list respectively. :meth:`~SC2Reader.load_replay` was used above for convenience but :meth:`~SC2Reader.load_replays` is much more versitile. Here's the difference:
+So our script works fine for single files, but what if you want to handle  multiple files or directories? sc2reader provides two functions for loading replays: :meth:`~sc2reader.factories.SC2Factory.load_replay` and :meth:`~sc2reader.factories.SC2Factory.load_replays` which return a single replay and  a list respectively. :meth:`~sc2reader.factories.SC2Factory.load_replay` was used above for convenience but :meth:`~sc2reader.factories.SC2Factory.load_replays` is much more versitile. Here's the difference:
 
-* :meth:`~SC2Reader.load_replay`: accepts a file path or an opened file object.
-* :meth:`~SC2Reader.load_replays`: accepts a collection of opened file objects or a path (both directory and file paths acceptable) or a collection of paths. You could even pass in a collection of mixed paths and opened file objects.
+* :meth:`~sc2reader.factories.SC2Factory.load_replay`: accepts a file path or an opened file object.
+* :meth:`~sc2reader.factories.SC2Factory.load_replays`: accepts a collection of opened file objects or file paths. Can also accept a single path to a directory; files will be pulled from the directory using :func:`~sc2reader.utils.get_files` and the given options.
 
 With this in mind, lets make a slight change to our main function to support any number of paths to any combination of files and directories:
 
@@ -203,13 +203,13 @@ Any time that you start dealing with directories or collections of files you run
 * exclude: Default []. When recursing directories you can choose to exclude  directories from the file search by directory name (not full path).
 * followlinks: Default false. When recursing directories, enables or disables the follow symlinks behavior.
 
-Remember above that the short hand notation that we have been using works with a default instance of the SC2Reader class. :class:`SC2Reader` factories can be customized either on construction or with the :meth:`~SC2Reader.configure` method.
+Remember above that the short hand notation that we have been using works with a default instance of the SC2Factory class. :class:`sc2reader.factories.SC2Factory` objects can be customized either on construction or with the :meth:`~sc2reader.factories.SC2Factory.configure` method.
 
 ::
 
-    from sc2reader import SC2Reader
+    from sc2reader.factories import SC2Factory
 
-    sc2 = SC2Reader(
+    sc2 = SC2Factory(
         directory='~/Documents/Starcraft II/Multiplayer/Replays',
         exclude=['Customs','Pros'],
         followlinks=True
@@ -243,6 +243,7 @@ There are 4 available load levels:
 * 0: Parses the replay header for version, build, and length information
 * 1: Also parses the replay.details, replay.attribute.events and replay.initData files for game settings, map, and time information
 * 2: Also parses the replay.message.events file and constructs game teams and players.
-* 3: Also parses the replay.game.events file for player action events.
+* 3: Also parses the replay.tracker.events file
+* 4: Also parses the replay.game.events file for player action events.
 
-So that's it! An ideal prettyPrinter script might let the user configure these options as arguments using the argparse library. Such an expansion is beyond the scope of sc2reader though, so we'll leave it that one to you.
+So that's it! An ideal prettyPrinter script might let the user configure these options as arguments using the ``argparse`` library. Such an expansion is beyond the scope of sc2reader though, so we'll leave it that one to you.
