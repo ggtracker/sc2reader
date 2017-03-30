@@ -530,6 +530,14 @@ class TestReplays(unittest.TestCase):
         replay = sc2reader.load_replay("test_replays/3.7.0/1.SC2Replay")
         replay = sc2reader.load_replay("test_replays/3.7.0/2.SC2Replay")
 
+    def test_312(self):
+      for replayfilename in [
+              "test_replays/3.12/Honorgrounds.SC2Replay",
+        ]:
+        factory = sc2reader.factories.SC2Factory()
+        replay =factory.load_replay(replayfilename,load_level=0)
+        replay =factory.load_replay(replayfilename,load_level=1)
+        
 
 class TestGameEngine(unittest.TestCase):
     class TestEvent(object):
