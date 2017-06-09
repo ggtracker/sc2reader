@@ -164,8 +164,13 @@ def combine_lookups(old_unit_lookup, old_ability_lookup, new_unit_lookup, new_ab
     unit_lookup = collections.OrderedDict(old_unit_lookup)
     ability_lookup = collections.OrderedDict(old_ability_lookup)
 
-    # Just straightforwardly add any missing units
+    # First just straightforwardly add any missing units
     unit_lookup.update(new_unit_lookup)
+
+    # Doing this step allows us to preserve any non-standard unit names in the old build data that may have been
+    # overwritten in the new build data. This allows us to retain support for downstream clients using the existing
+    # unit names.
+    unit_lookup.update(old_unit_lookup)
 
     # When merging old and new ability lookups, prefer to overwrite old cell data with new cell data when merging rows
     # in the case of a key clash, but preserve old cell data if cell is empty in new ability lookup table
