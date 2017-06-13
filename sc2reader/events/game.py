@@ -329,6 +329,16 @@ class TargetUnitCommandEvent(CommandEvent):
         #: The location of the target. Available for TargetPoint and TargetUnit type events
         self.location = (self.x, self.y, self.z)
 
+class UpdateTargetPointCommandEvent(TargetPointCommandEvent):
+    """
+    Extends :class: 'TargetPointCommandEvent'
+
+    This event is generated when the user changes the point of a unit. Appears to happen
+    when a unit is moving and it is given a new command. It's possible there are other
+    instances of this occurring.
+
+    """
+    name = 'UpdateTargetPointCommandEvent'
 
 class UpdateTargetUnitCommandEvent(TargetUnitCommandEvent):
     """
