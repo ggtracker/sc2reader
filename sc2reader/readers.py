@@ -1525,7 +1525,7 @@ class GameEventsReader_34784(GameEventsReader_27950):
             25: (None, self.command_manager_reset_event),         # Re-using this old number
             61: (None, self.trigger_hotkey_pressed_event),
             103: (None, self.command_manager_state_event),
-            104: (None, self.command_update_target_point_event),
+            104: (UpdateTargetPointCommandEvent, self.command_update_target_point_event),
             105: (UpdateTargetUnitCommandEvent, self.command_update_target_unit_event),
             106: (None, self.trigger_anim_length_query_by_name_event),
             107: (None, self.trigger_anim_length_query_by_props_event),
@@ -1588,11 +1588,18 @@ class GameEventsReader_34784(GameEventsReader_27950):
 
     def command_update_target_point_event(self, data):
         return dict(
-            target=dict(
-                x=data.read_bits(20),
-                y=data.read_bits(20),
-                z=data.read_uint32() - 2147483648,
-            )
+            flags=0,  # fill me with previous TargetPointEvent.flags
+            ability=None,  # fill me with previous TargetPointEvent.ability
+            data=('TargetPoint', dict(
+                point=dict(
+                    x=data.read_bits(20),
+                    y=data.read_bits(20),
+                    z=data.read_bits(32) - 2147483648,
+                ),
+            )),
+            sequence=0,  # fill me with previous TargetPointEvent.flags
+            other_unit_tag=None,  # fill me with previous TargetPointEvent.flags
+            unit_group=None,  # fill me with previous TargetPointEvent.flags
         )
 
     def command_update_target_unit_event(self, data):
