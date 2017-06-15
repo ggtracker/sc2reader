@@ -172,8 +172,8 @@ def combine_lookups(old_unit_lookup, old_ability_lookup, new_unit_lookup, new_ab
     # unit names.
     unit_lookup.update(old_unit_lookup)
 
-    # When merging old and new ability lookups, prefer to overwrite old cell data with new cell data when merging rows
-    # in the case of a key clash, but preserve old cell data if cell is empty in new ability lookup table
+    # When merging old and new ability lookups, prefer to preserve old cell data over new cell data when merging rows
+    # in the case of a key clash, but use new cell data if old cell data is empty.
     for ability_name, commands in new_ability_lookup.items():
         if ability_name not in ability_lookup:
             ability_lookup[ability_name] = commands
@@ -183,7 +183,7 @@ def combine_lookups(old_unit_lookup, old_ability_lookup, new_unit_lookup, new_ab
                 while len(ability_lookup[ability_name]) <= i:
                     ability_lookup[ability_name].append("")
 
-                if command != "":
+                if ability_lookup[ability_name][i] == "":
                     ability_lookup[ability_name][i] = command
 
     return unit_lookup, ability_lookup
