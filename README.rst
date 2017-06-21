@@ -268,9 +268,7 @@ To run the tests just use::
 
 When repeatedly running tests it can be very helpful to make sure you've set a local cache directory to prevent long fetch times from battle.net::
 
-    export SC2READER_CACHE_DIR=local_cache
-    # or
-    SC2READER_CACHE_DIR=local_cache python test_replays/test_all.py
+    SC2READER_CACHE_DIR=local_cache PYTHONPATH=. python -m unittest test_replays.test_all
 
 To run just one test:
 
