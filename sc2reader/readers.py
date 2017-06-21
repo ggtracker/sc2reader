@@ -35,6 +35,7 @@ class InitDataReader(object):
                 skin=data.read_aligned_string(data.read_bits(9)) if replay.base_build >= 34784 else None,
                 mount=data.read_aligned_string(data.read_bits(9)) if replay.base_build >= 34784 else None,
                 toon_handle=data.read_aligned_string(data.read_bits(7)) if replay.base_build >= 34784 else None,
+                scaled_rating=data.read_uint32()-2147483648 if replay.base_build >= 54518 and data.read_bool() else None,
             ) for i in range(data.read_bits(5))],
 
             game_description=dict(
@@ -89,6 +90,7 @@ class InitDataReader(object):
                 is_blizzardMap=data.read_bool(),
                 is_premade_ffa=data.read_bool(),
                 is_coop_mode=data.read_bool() if replay.base_build >= 23925 else None,
+                is_realtime_mode=data.read_bool() if replay.base_build >= 54518 else None,
             ),
 
             lobby_state=dict(
