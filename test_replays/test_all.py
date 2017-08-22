@@ -386,8 +386,8 @@ class TestReplays(unittest.TestCase):
             if replay.player[player_id].play_race == "Zerg":
                 assert replay.player[player_id].max_creep_spread[1] >0
                 assert replay.player[player_id].creep_spread_by_minute[0] >0
-#                print "MCS", replay.player[player_id].max_creep_spread
-#                print "CSBM", replay.player[player_id].creep_spread_by_minute
+#                print("MCS", replay.player[player_id].max_creep_spread)
+#                print("CSBM", replay.player[player_id].creep_spread_by_minute)
 
 
       replay =factory.load_replay("test_replays/2.0.8.25605/ggtracker_3621402.SC2Replay",load_map= True,engine=pluginEngine,load_level=4)
@@ -449,7 +449,7 @@ class TestReplays(unittest.TestCase):
 
     def test_31(self):
       for i in range(1,5):
-          print "DOING {}".format(i)
+          print("DOING {}".format(i))
           replay = sc2reader.load_replay("test_replays/3.1.0/{}.SC2Replay".format(i))
 
     def test_30_map(self):
@@ -467,7 +467,7 @@ class TestReplays(unittest.TestCase):
         replay = factory.load_replay("test_replays/3.0.0.38215/fourth.SC2Replay")
         for player in replay.players:
             if player.name == 'Owl':
-                print player.name, player.avg_apm
+                print(player.name, player.avg_apm)
                 self.assertTrue(player.avg_apm > 110)
 
     def test_38749(self):
@@ -489,7 +489,7 @@ class TestReplays(unittest.TestCase):
         itemlist = xmldoc.getElementsByTagName('ObjectUnit')
         mineralPosStrs = [ou.attributes['Position'].value for ou in itemlist if 'MineralField' in ou.attributes['UnitType'].value]
         mineralFieldNames = list(set([ou.attributes['UnitType'].value for ou in itemlist if 'MineralField' in ou.attributes['UnitType'].value]))
-        #print mineralFieldNames
+        # print(mineralFieldNames)
         self.assertTrue(len(mineralPosStrs) > 0)
 
     def test_dusk(self):
