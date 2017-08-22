@@ -38,6 +38,11 @@ import traceback
 
 import sc2reader
 
+try:
+    raw_input          # Python 2
+except NameError:
+    raw_input = input  # Python 3
+
 decisions = dict()
 
 
