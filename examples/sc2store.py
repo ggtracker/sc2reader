@@ -172,15 +172,15 @@ def main():
 
     for path in args.paths:
         for file_name in sc2reader.utils.get_files(path, depth=0):
-            print "CREATING: {0}".format(file_name)
+            print("CREATING: {0}".format(file_name))
             db.add(Game(sc2reader.read_file(file_name), db))
 
     db.commit()
 
-    print list(db.query(distinct(Person.name)).all())
+    print(list(db.query(distinct(Person.name)).all()))
 
     #for row in db.query(distinct(Person.name)).all():
-    #    print row
+    #    print(row)
 
 
 def load_session(args):
