@@ -11,6 +11,11 @@ except ImportError as e:
 
 from sc2reader.log_utils import loggable
 
+try:
+    cmp                                        # Python 2
+except NameError:
+    cmp = lambda a, b: (a > b) - (a < b)  # noqa Python 3
+
 ABIL_LOOKUP = dict()
 for entry in pkgutil.get_data('sc2reader.data', 'ability_lookup.csv').decode('utf8').split('\n'):
     if not entry:
