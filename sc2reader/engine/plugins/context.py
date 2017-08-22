@@ -39,7 +39,7 @@ class ContextLoader(object):
                 for player in replay.players:
                     try:
                         event.logger.error("\t"+unicode(player).encode('ascii', 'ignore'))
-                    except:
+                    except NameError:  # unicode() is not defined in Python 3
                         event.logger.error("\t"+player.__str__())
 
             self.logger.error("{0}\t{1}\tMissing ability {2:X} from {3}".format(event.frame, event.player.name, event.ability_id, replay.datapack.__class__.__name__))
