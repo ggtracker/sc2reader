@@ -13,8 +13,8 @@ jobs:
           - master
           - old_master
       steps:
-        checkout
-        run:
+        - checkout
+        - run:
             name: Flake8 and unittests on Python 2.7.13
             command: |
               # pip install virtualenv
@@ -50,8 +50,8 @@ jobs:
           - master
           - old_master
       steps:
-        checkout
-        run:
+        - checkout
+        - run:
             name: Flake8 and unittests on Python 3.6.2
             command: |
               python -m venv venv
