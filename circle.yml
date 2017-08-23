@@ -3,11 +3,11 @@ jobs:
   build:
     working_directory: ~/sc2reader
     docker:
-      - image: python:2.7.13
+      - image: python:3.6.2
     steps:
       - checkout
       - run:
-          name: Flake8 and unittests on Python 2.7.13
+          name: Flake8 and unittests on Python 3.6.2
           command: |
             python -m venv venv
             . venv/bin/activate
@@ -21,11 +21,11 @@ jobs:
   build:
     working_directory: ~/sc2reader
     docker:
-      - image: python:3.6.2
+      - image: python:2.7.13
     steps:
       - checkout
       - run:
-          name: Flake8 and unittests on Python 3.6.2
+          name: Flake8 and unittests on Python 2.7.13
           command: |
             python -m venv venv
             . venv/bin/activate
