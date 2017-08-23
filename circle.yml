@@ -1,6 +1,6 @@
 machine:
   post:
-    - pyenv global 2.7 3.6
+    - pyenv global 2.7 3.5
 dependencies:
   pre:
     - pip install --upgrade pip
