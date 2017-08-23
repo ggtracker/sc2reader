@@ -1,6 +1,12 @@
 machine:
   post:
     - pyenv global 2.7.12 3.6.2
+dependencies:
+  pre:
+    - pip install --upgrade pip
+    - pip3 install --upgrade pip
+    - pip install hacking
+    - pip3 install hacking
 general:
   branches:
     ignore:
