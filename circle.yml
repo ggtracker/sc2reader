@@ -31,6 +31,8 @@ jobs:
             pip install virtualenv
             virtualenv sc2reader
             pwd
+            source sc2reader/bin/activate
+            pwd
             python -V
             pip -V
             pip install hacking
@@ -38,3 +40,4 @@ jobs:
             python -m flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
             python -m unittest discover test_replays
             python -m unittest discover test_s2gs
+            echo "Done."
