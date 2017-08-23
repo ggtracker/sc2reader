@@ -1,5 +1,6 @@
 version: 2
 jobs:
+ Python3:
   build:
     working_directory: ~/sc2reader
     docker:
@@ -26,6 +27,7 @@ jobs:
             python -m flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
             python -m unittest discover test_replays
             python -m unittest discover test_s2gs
+ Python2:
   build:
     # working_directory: ~/sc2reader
     docker:
