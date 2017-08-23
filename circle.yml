@@ -1,7 +1,7 @@
 version: 2
 jobs:
   Python3:
-    build:
+    - build:
       working_directory: ~/sc2reader
       docker:
         - image: python:3.6.2
@@ -28,7 +28,7 @@ jobs:
               python -m unittest discover test_replays
               python -m unittest discover test_s2gs
   Python2:
-    build:
+    - build:
       # working_directory: ~/sc2reader
       docker:
         - image: python:2.7.13
