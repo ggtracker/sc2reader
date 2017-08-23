@@ -14,7 +14,7 @@ jobs:
             pwd
             python -V
             pip -V 
-            pip install hacking
+            pip install hacking Pillow
             python -m flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
             python -m flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
             python -m unittest discover test_replays
@@ -38,7 +38,7 @@ jobs:
             ls
             python -V
             pip -V
-            pip install hacking
+            pip install hacking Pillow
             echo "Flake8 round one"
             python -m flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
             echo "Flake8 round two"
