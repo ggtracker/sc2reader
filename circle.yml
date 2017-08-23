@@ -1,32 +1,5 @@
 version: 2
 jobs:
-  Python3:
-    build:
-      working_directory: ~/sc2reader
-      docker:
-        - image: python:3.6.2
-      branches:
-        ignore:
-          - ggmaster
-          - hots
-          - jonomon
-          - master
-          - old_master
-      steps:
-        checkout
-        run:
-            name: Flake8 and unittests on Python 3.6.2
-            command: |
-              python -m venv venv
-              . venv/bin/activate
-              pwd
-              python -V
-              pip -V
-              pip install hacking Pillow
-              python -m flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
-              python -m flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-              python -m unittest discover test_replays
-              python -m unittest discover test_s2gs
   Python2:
     build:
       # working_directory: ~/sc2reader
@@ -64,3 +37,30 @@ jobs:
               echo "Unittest round two"
               python -m unittest discover test_s2gs
               echo "Done."
+  Python3:
+    build:
+      working_directory: ~/sc2reader
+      docker:
+        - image: python:3.6.2
+      branches:
+        ignore:
+          - ggmaster
+          - hots
+          - jonomon
+          - master
+          - old_master
+      steps:
+        checkout
+        run:
+            name: Flake8 and unittests on Python 3.6.2
+            command: |
+              python -m venv venv
+              . venv/bin/activate
+              pwd
+              python -V
+              pip -V
+              pip install hacking Pillow
+              python -m flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
+              python -m flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+              python -m unittest discover test_replays
+              python -m unittest discover test_s2gs
