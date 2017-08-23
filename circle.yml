@@ -28,12 +28,12 @@ jobs:
       - run:
           name: Flake8 and unittests on Python 2.7.13
           command: |
-            pip install virtualenv
-            virtualenv sc2reader
-            pwd
-            ls
-            cd sc2reader
-            source bin/activate
+            # pip install virtualenv
+            # virtualenv sc2reader
+            # pwd
+            # ls
+            # cd sc2reader
+            # source bin/activate
             pwd
             ls
             python -V
