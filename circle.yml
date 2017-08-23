@@ -11,6 +11,7 @@ jobs:
           command: |
             python -m venv venv
             . venv/bin/activate
+            pwd
             python -V
             pip -V 
             pip install hacking
@@ -27,8 +28,9 @@ jobs:
       - run:
           name: Flake8 and unittests on Python 2.7.13
           command: |
-            python -m venv venv
-            . venv/bin/activate
+            pip install virtualenv
+            virtualenv sc2reader
+            pwd
             python -V
             pip -V
             pip install hacking
