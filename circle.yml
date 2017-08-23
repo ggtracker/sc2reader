@@ -31,9 +31,11 @@ jobs:
             pip install virtualenv
             virtualenv sc2reader
             pwd
-            source sc2reader/bin/activate
+            ls
             cd sc2reader
+            source bin/activate
             pwd
+            ls
             python -V
             pip -V
             pip install hacking
