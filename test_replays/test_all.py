@@ -538,6 +538,13 @@ class TestReplays(unittest.TestCase):
         replay =factory.load_replay(replayfilename,load_level=0)
         replay =factory.load_replay(replayfilename,load_level=1)
         
+    def test_316(self):
+      for replayfilename in [
+              "test_replays/3.16/AbyssalReef.SC2Replay",
+        ]:
+        factory = sc2reader.factories.SC2Factory()
+        replay =factory.load_replay(replayfilename)
+        
     def test_54518(self):
       for replayfilename in [
               "test_replays/3.14.0.54518/1.SC2Replay",
