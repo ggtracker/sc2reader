@@ -41,7 +41,7 @@ This file was introduced in 2.0.4 and is unncessary for the Starcraft II to repr
 What isn't in a replay?
 --------------------------
 
-Replays are specifically designed to only include data essential to recreate the game. Game state is not recorded because the game engine can recreate it based off the other information. That means no player resource counts, colleciton rates, supply values, vision, unit positions, unit deaths, etc. Information that you are super interested in probably is not directly recorded. Fortunately since 2.0.4 tracker events now record some of this information; prior to that patch we had to run our own simulations to guess at most of the data.
+Replays are specifically designed to only include data essential to recreate the game. Game state is not recorded because the game engine can recreate it based off the other information. That means no player resource counts, collection rates, supply values, vision, unit positions, unit deaths, etc. Information that you are super interested in probably is not directly recorded. Fortunately since 2.0.4 tracker events now record some of this information; prior to that patch we had to run our own simulations to guess at most of the data.
 
 
 The other important aspect of this is that instead of completely describing all of the game data (unit data, ability data, map info, etc), replays maintain a list of dependencies. These dependencies might look like this:
