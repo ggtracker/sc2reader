@@ -58,6 +58,7 @@ class InitDataReader(object):
                     observers=data.read_bits(2),
                     user_difficulty=data.read_bits(2),
                     client_debug_flags=data.read_uint64() if replay.base_build >= 22612 else None,
+                    build_coach_enabled=data.read_bool() if replay.base_build >= 59587 else None,
                 ),
                 game_speed=data.read_bits(3),
                 game_type=data.read_bits(3),
