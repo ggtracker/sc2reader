@@ -201,7 +201,7 @@ class Player(object):
         self.play_race = LOCALIZED_RACES.get(detail_data['race'], detail_data['race'])
 
         #: The co-op commander the player picked
-        self.commander = slot_data['commander']
+        self.commander = slot_data['commander'].decode('utf8')
 
         #: A reference to a :class:`~sc2reader.utils.Color` object representing the player's color
         self.color = utils.Color(**detail_data['color'])
