@@ -298,7 +298,8 @@
         "T5": "Team 5",
         "T6": "Team 6",
         "T7": "Team 7",
-        "T8": "Team 8"
+        "T8": "Team 8",
+        "T9": "Team 9"
       }
     ],
     "3000": [
@@ -697,10 +698,17 @@
       "Commander",
       {
         "": "Pick Commander",
+        "Abat": "Abathur",
+        "Alar": "Alarak",
         "Arta": "Artanis",
+        "Deha": "Dehaka",
+        "Feni": "Fenix",
+        "Horn": "Horner",
         "Kara": "Karax",
         "Kerr": "Kerrigan",
+        "Nova": "Nova",
         "Rayn": "Raynor",
+        "Stuk": "Stukov",
         "Swan": "Swann",
         "Vora": "Vorazun",
         "Zaga": "Zagara"
