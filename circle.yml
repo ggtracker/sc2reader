@@ -1,6 +1,6 @@
 machine:
   post:
-    - pyenv global 2.7 3.5
+    - pyenv global 2.7 3.4
 
 dependencies:
   pre:
