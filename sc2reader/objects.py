@@ -201,7 +201,22 @@ class Player(object):
         self.play_race = LOCALIZED_RACES.get(detail_data['race'], detail_data['race'])
 
         #: The co-op commander the player picked
-        self.commander = slot_data['commander'].decode('utf8')
+        #: Kerrigan, Raynor, etc.
+        self.commander = slot_data['commander']
+        if self.commander is not None:
+            self.commander = self.commander.decode('utf8')
+
+        #: The level of the co-op commander
+        #: 1-15 or None
+        self.commander_level = slot_data['commander_level']
+
+        #: The mastery level of the co-op commander
+        #: >0 or None
+        self.comander_mastery_level = slot_data['commander_mastery_talents']
+
+        #: The mastery talents picked for the co-op commander
+        #: list of longs of length 6, each between 0 and 30
+        self.comander_mastery_talents = slot_data['commander_mastery_talents']
 
         #: A reference to a :class:`~sc2reader.utils.Color` object representing the player's color
         self.color = utils.Color(**detail_data['color'])
