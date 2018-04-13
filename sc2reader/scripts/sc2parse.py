@@ -45,12 +45,12 @@ def main():
                     if not args.one_each or replay.is_ladder:
                         replay = sc2reader.load_replay(path, debug=True)
 
-                        human.pids = set([human.pid for human in replay.humans])
+                        human_pids = set([human.pid for human in replay.humans])
                         event_pids = set([event.player.pid for event in replay.events if getattr(event, 'player', None)])
                         player_pids = set([player.pid for player in replay.players if player.is_human])
                         ability_pids = set([event.player.pid for event in replay.events if 'CommandEvent' in event.name])
-                        if human.pids != event_pids:
-                            print('Event Pid problem!  pids={pids} but event pids={event_pids}'.format(pids=human.pids, event_pids=event_pids))
+                        if human_pids != event_pids:
+                            print('Event Pid problem!  pids={pids} but event pids={event_pids}'.format(pids=human_pids, event_pids=event_pids))
                             print(' with {path}: {build} - {real_type} on {map_name} - Played {start_time}'.format(path=path, **replay.__dict__))
                         elif player_pids != ability_pids:
                             print('Ability Pid problem!  pids={pids} but event pids={event_pids}'.format(pids=player_pids, event_pids=ability_pids))
