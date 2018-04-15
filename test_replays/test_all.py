@@ -509,13 +509,13 @@ class TestReplays(unittest.TestCase):
         replay = sc2reader.load_replay("test_replays/3.3.0/ggissue48.SC2Replay")
         def efilter(e):
             return hasattr(e, "ability") and e.ability_name == "CalldownMULE"
-        self.assertEqual(len(filter(efilter, replay.events)), 29)
+        self.assertEqual(len(list(filter(efilter, replay.events))), 29)
 
     def test_33_shift_click_spawn_larva(self):
         replay = sc2reader.load_replay("test_replays/3.3.0/ggissue49.SC2Replay")
         def efilter(e):
             return hasattr(e, "ability") and e.ability_name == "SpawnLarva"
-        self.assertEqual(len(filter(efilter, replay.events)), 23)
+        self.assertEqual(len(list(filter(efilter, replay.events))), 23)
 
     def test_34(self):
         replay = sc2reader.load_replay("test_replays/3.4.0/issueYY.SC2Replay")
