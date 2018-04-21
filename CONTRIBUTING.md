@@ -14,7 +14,7 @@ If you can't share your code/replays publicly try to replicate with a smaller sc
 Patches
 =========
 
-Please submit patches by pull request where possible. Patches should add a test to confirm their fix and should not break previously working tests.
+Please submit patches by pull request where possible. Patches should add a test to confirm their fix and should not break previously working tests.   Circle CI automatically runs tests on each pull request so please check https://circleci.com/gh/ggtracker to see the results of those tests.
 
 If you are having trouble running/add/fixing tests for your patch let me know and I'll see if I can help.
 
