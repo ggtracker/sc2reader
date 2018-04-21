@@ -26,6 +26,9 @@ class CreepTracker(object):
     This uses the creep_tracker class to calculate the features
     '''
     name = 'CreepTracker'
+    
+    def __init__(self):
+        self.creepTracker = None
 
     def handleInitGame(self, event, replay):
       try:
