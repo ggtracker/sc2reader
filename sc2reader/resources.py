@@ -182,7 +182,7 @@ class Replay(Resource):
     people_hash = str()
 
     #: SC2 Expansion. One of 'WoL', 'HotS'
-    expasion = str()
+    expansion = str()
 
     def __init__(self, replay_file, filename=None, load_level=4, engine=sc2reader.engine, **options):
         super(Replay, self).__init__(replay_file, filename, **options)
