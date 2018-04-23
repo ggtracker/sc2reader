@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function, unicode_literals, division
 
+from io import BytesIO
+
 try:
     from sets import Set
 except ImportError:
@@ -113,7 +115,7 @@ class creep_tracker():
         #Get map information
         replayMap = replay.map
         # extract image from replay package
-        mapsio = StringIO(replayMap.minimap)
+        mapsio = BytesIO(replayMap.minimap)
         im = PIL_open(mapsio)
         ##remove black box around minimap
 
