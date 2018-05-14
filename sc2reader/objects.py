@@ -124,7 +124,7 @@ class Entity(object):
 
         #:
         self.hero_mount = slot_data['mount']
-        
+
         #: The unique Battle.net account identifier in the form of
         #: <region_id>-S2-<subregion>-<toon_id>
         self.toon_handle = slot_data['toon_handle']
@@ -164,9 +164,12 @@ class Player(object):
     :param dict detail_data: The detail data associated with this player
     :param dict attribute_data: The attribute data associated with this player
     """
-    def __init__(self, pid, detail_data, attribute_data):
+    def __init__(self, pid, slot_data, detail_data, attribute_data):
         #: The player's unique in-game player id
         self.pid = int(pid)
+
+        #: The player's replay.initData slot data
+        self.slot_data = slot_data
 
         #: The replay.details data on this player
         self.detail_data = detail_data
@@ -196,6 +199,24 @@ class Player(object):
         #: The race the player played the game with.
         #: One of Protoss, Terran, Zerg
         self.play_race = LOCALIZED_RACES.get(detail_data['race'], detail_data['race'])
+
+        #: The co-op commander the player picked
+        #: Kerrigan, Raynor, etc.
+        self.commander = slot_data['commander']
+        if self.commander is not None:
+            self.commander = self.commander.decode('utf8')
+
+        #: The level of the co-op commander
+        #: 1-15 or None
+        self.commander_level = slot_data['commander_level']
+
+        #: The mastery level of the co-op commander
+        #: >0 or None
+        self.commander_mastery_level = slot_data['commander_mastery_talents']
+
+        #: The mastery talents picked for the co-op commander
+        #: list of longs of length 6, each between 0 and 30
+        self.commander_mastery_talents = slot_data['commander_mastery_talents']
 
         #: A reference to a :class:`~sc2reader.utils.Color` object representing the player's color
         self.color = utils.Color(**detail_data['color'])
@@ -290,7 +311,7 @@ class Computer(Entity, Player):
     """
     def __init__(self, sid, slot_data, pid, detail_data, attribute_data):
         Entity.__init__(self, sid, slot_data)
-        Player.__init__(self, pid, detail_data, attribute_data)
+        Player.__init__(self, pid, slot_data, detail_data, attribute_data)
 
         #: The auto-generated in-game name for this computer player
         self.name = detail_data['name']
@@ -316,7 +337,7 @@ class Participant(Entity, User, Player):
     def __init__(self, sid, slot_data, uid, init_data, pid, detail_data, attribute_data):
         Entity.__init__(self, sid, slot_data)
         User.__init__(self, uid, init_data)
-        Player.__init__(self, pid, detail_data, attribute_data)
+        Player.__init__(self, pid, slot_data, detail_data, attribute_data)
 
     def __str__(self):
         return "Player {0} - {1} ({2})".format(self.pid, self.name, self.play_race)
@@ -563,7 +584,7 @@ class MapInfo(object):
         # Leave early so we dont barf. Turns out ggtracker doesnt need
         # any of the map data thats loaded below.
         return
-        
+
         #: Load screen type: 0 = default, 1 = custom
         self.load_screen_type = data.read_uint32()
 

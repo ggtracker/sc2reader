@@ -568,6 +568,13 @@ class TestReplays(unittest.TestCase):
         factory = sc2reader.factories.SC2Factory()
         replay = factory.load_replay(replayfilename)
 
+    def test_coop(self):
+      for replayfilename in [
+              "test_replays/coop/CoA.SC2Replay",
+        ]:
+        factory = sc2reader.factories.SC2Factory()
+        replay = factory.load_replay(replayfilename)
+
 
 class TestGameEngine(unittest.TestCase):
     class TestEvent(object):

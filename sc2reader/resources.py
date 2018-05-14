@@ -416,7 +416,8 @@ class Replay(Resource):
                     self.entities.append(Observer(slot_id, slot_data, user_id, initData['user_initial_data'][user_id], player_id))
                     player_id += 1
 
-            elif slot_data['control'] == 3:
+            elif slot_data['control'] == 3 and detail_id < len(details['players']):
+                # detail_id check needed for coop
                 self.entities.append(Computer(slot_id, slot_data, player_id, details['players'][detail_id], self.attributes.get(player_id, dict())))
                 detail_id += 1
                 player_id += 1
