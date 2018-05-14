@@ -77,11 +77,12 @@ class CreepTracker(object):
           if player.play_race[0] == 'Z':
             self.creepTracker.reduce_cgu_per_minute(player.pid)
             player.creep_spread_by_minute = self.creepTracker.get_creep_spread_area(player.pid)
+            # note that player.max_creep_spread may be a tuple or an int
             if player.creep_spread_by_minute:
                 player.max_creep_spread  = max(player.creep_spread_by_minute.items(),key=lambda x:x[1])
             else:
                 ## Else statement is for players with no creep spread(ie: not Zerg)
-                player.max_creep_spread  =0
+                player.max_creep_spread  = 0
       except Exception as e:
         print("Whoa! {}".format(e))
         pass
