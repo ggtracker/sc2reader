@@ -212,11 +212,11 @@ class Player(object):
 
         #: The mastery level of the co-op commander
         #: >0 or None
-        self.comander_mastery_level = slot_data['commander_mastery_talents']
+        self.commander_mastery_level = slot_data['commander_mastery_talents']
 
         #: The mastery talents picked for the co-op commander
         #: list of longs of length 6, each between 0 and 30
-        self.comander_mastery_talents = slot_data['commander_mastery_talents']
+        self.commander_mastery_talents = slot_data['commander_mastery_talents']
 
         #: A reference to a :class:`~sc2reader.utils.Color` object representing the player's color
         self.color = utils.Color(**detail_data['color'])
