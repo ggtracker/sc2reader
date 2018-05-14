@@ -431,7 +431,7 @@ class TestReplays(unittest.TestCase):
 
         for player_id in replay.player:
             if replay.player[player_id].play_race == "Zerg":
-                assert replay.player[player_id].max_creep_spread >0
+                assert replay.player[player_id].max_creep_spread != 0
                 assert replay.player[player_id].creep_spread_by_minute
 
     def test_lotv_map(self):
