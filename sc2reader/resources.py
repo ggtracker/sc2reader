@@ -181,7 +181,7 @@ class Replay(Resource):
     people_hash = str()
 
     #: SC2 Expansion. One of 'WoL', 'HotS'
-    expasion = str()
+    expansion = str()
 
     #: True of the game was resumed from a replay
     resume_from_replay = False
