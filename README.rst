@@ -310,6 +310,7 @@ and kept this project going.
   their `s2protocol`_ full reference implementation.
 
 
+.. _ggtracker.com: http://ggtracker.com
 .. _phpsc2replay: http://code.google.com/p/phpsc2replay/
 .. _sc2replay-csharp: https://github.com/ascendedguard/sc2replay-csharp
 .. _s2protocol: https://github.com/Blizzard/s2protocol
