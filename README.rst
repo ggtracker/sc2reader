@@ -12,16 +12,16 @@ Who Uses sc2reader?
 
 sc2reader is currently powering:
 
-* Websites: `ggtracker.com`_, `gamereplays.org`_, `sc2companion.com`_
+* Websites: `gggreplays.com`_, `gamereplays.org`_, `spawningtool.com`_
 * Tools: `The Core`_
 * Experiments: `Midi Conversion`_
 
 If you use sc2reader and you would like your tool, site, project, or implementation listed above, drop us a line on our `mailing list`_ or stop by our #sc2reader IRC channel and say hi!
 
 
-.. _ggtracker.com: http://ggtracker.com
+.. _gggreplays.com: http://gggreplays.com
 .. _gamereplays.org: http://www.gamereplays.org/starcraft2/
-.. _sc2companion.com: http://sc2companion.com
+.. _spawningtool.com: https://lotv.spawningtool.com
 .. _The Core: http://www.teamliquid.net/forum/viewmessage.php?topic_id=341878
 .. _Midi Conversion: https://github.com/obohrer/sc2midi
 
@@ -47,7 +47,7 @@ Replays can be parsed for the following general types of information:
 - Unfiltered Unit commands (attack, move, train, build, psi storm, etc)
 - Camera Movements for all players and observers.
 
-Replays from release 2.0.8 on ward make additional state information available:
+Replays from release 2.0.8 onward make additional state information available:
 
 - Unit states - creation time, positions, and deaths times
 - Player resource stats - collection rates/unspent totals
@@ -142,7 +142,7 @@ If you want to load a collection of replays, you can use the plural form. Loadin
 
     replays = sc2reader.load_replays('path/to/replay/directory')
 
-.. _sc2reader.scripts: https://github.com/GraylinKim/sc2reader/tree/master/sc2reader/scripts
+.. _sc2reader.scripts: https://github.com/ggtracker/sc2reader/tree/upstream/sc2reader/scripts
 
 
 Loading Maps
@@ -214,31 +214,31 @@ or with setuptools (specify a valid x.x.x)::
     cd sc2reader-x.x.x
     python setup.py install
 
-Releases to PyPi can be very delayed (sorry!), for the latest and greatest you are encouraged to install from Github master.
+Releases to PyPi can be very delayed (sorry!), for the latest and greatest you are encouraged to install from Github upstream.
 
 
 From Github
 --------------------------
 
-Github master is generally stable with development branches more unstable.
+Github upstream is generally stable with development branches more unstable.
 
-We use `travis-ci`_ to provide a record of our `continuous testing`_ and `coveralls.io`_ provides a record of our `test coverage`_. Please verify that tests are passing before installing development versions.
+We use `circle-ci`_ to provide a record of our `continuous testing`_. Please verify that tests are passing before installing development versions.
 
 Install from the latest source on Github with pip::
 
-    pip install -e git+git://github.com/GraylinKim/sc2reader#egg=sc2reader
+    pip install -e git+git://github.com/ggtracker/sc2reader#egg=sc2reader
 
 or with setuptools::
 
-    wget -O sc2reader-master.tar.gz https://github.com/GraylinKim/sc2reader/tarball/master
-    tar -xzf sc2reader-master.tar.gz
-    cd sc2reader-master
+    wget -O sc2reader-upstream.tar.gz https://github.com/ggtracker/sc2reader/tarball/upstream
+    tar -xzf sc2reader-upstream.tar.gz
+    cd sc2reader-upstream
     python setup.py install
 
-.. _travis-ci: https://travis-ci.org/
+.. _circle-ci: https://circleci.com/
 .. _coveralls.io: https://coveralls.io
 .. _test coverage: https://coveralls.io/r/GraylinKim/sc2reader
-.. _continuous testing: https://travis-ci.org/GraylinKim/sc2reader
+.. _continuous testing: https://circleci.com/gh/ggtracker/sc2reader
 
 
 For Contributors
@@ -246,14 +246,14 @@ For Contributors
 
 Contributors should install from an active git repository using setuptools in `develop`_ mode. This will install links to the live code so that local edits are available to external modules automatically::
 
-    git clone https://github.com/GraylinKim/sc2reader.git
+    git clone https://github.com/ggtracker/sc2reader.git
     cd sc2reader
     python setup.py develop
 
 Please review the `CONTRIBUTING.md`_ file and get in touch with us before doing too much work. It'll make everyone happier in the long run.
 
 .. _develop: http://peak.telecommunity.com/DevCenter/setuptools#development-mode
-.. _CONTRIBUTING.md: https://github.com/GraylinKim/sc2reader/blob/master/CONTRIBUTING.md
+.. _CONTRIBUTING.md: https://github.com/ggtracker/sc2reader/blob/upstream/CONTRIBUTING.md
 
 
 Testing
@@ -273,8 +273,8 @@ When repeatedly running tests it can be very helpful to make sure you've set a l
 To run just one test:
 
     SC2READER_CACHE_DIR=local_cache PYTHONPATH=. python -m unittest test_replays.test_all.TestReplays.test_38749
-    
-    
+
+
 Good luck, have fun!
 
 
@@ -290,7 +290,7 @@ Issues and Support
 We have an `issue tracker`_ on Github that all bug reports and feature requests should be directed to. We have a `mailing list`_ with Google Groups that you can use to reach out for support. We are generally on FreeNode in the #sc2reader and can generally provide live support and address issues there as well.
 
 .. _mailing list: http://groups.google.com/group/sc2reader
-.. _issue tracker: https://github.com/GraylinKim/sc2reader/issues
+.. _issue tracker: https://github.com/ggtracker/sc2reader/issues
 
 
 Acknowledgements
