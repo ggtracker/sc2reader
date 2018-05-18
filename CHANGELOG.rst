@@ -1,7 +1,14 @@
 CHANGELOG
 ============
 
-0.8.0 -
+1.0.0 - May 18, 2018
+--------------------
+* Added support for protocol 48258 through 64469
+* Update game data and scripts for generating game data
+* Fix ggtracker/sc2reader CircleCI build for python 3
+* Added support for parsing Co-op replays
+
+0.8.0 - December 16, 2016
 ---------------------------
 * Merged into ggtracker/sc2reader, which mostly means that we have a bunch of parsing fixes.  Thanks @StoicLoofah!
 
