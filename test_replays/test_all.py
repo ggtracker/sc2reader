@@ -575,6 +575,13 @@ class TestReplays(unittest.TestCase):
         factory = sc2reader.factories.SC2Factory()
         replay = factory.load_replay(replayfilename)
 
+    def test_65895(self):
+      for replayfilename in [
+              "test_replays/4.4.0.65895/1.SC2Replay",
+        ]:
+        factory = sc2reader.factories.SC2Factory()
+        replay = factory.load_replay(replayfilename)
+
 
 class TestGameEngine(unittest.TestCase):
     class TestEvent(object):
