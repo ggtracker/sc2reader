@@ -1,6 +1,10 @@
 CHANGELOG
 ============
 
+1.1.0 - June 26, 2018
+---------------------
+* Added support for protocol 65895 (StarCraft 4.4.0)
+
 1.0.0 - May 18, 2018
 --------------------
 * Added support for protocol 48258 through 64469

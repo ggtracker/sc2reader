@@ -1920,6 +1920,31 @@ class GameEventsReader_64469(GameEventsReader_38996):
             unit_group=data.read_uint32() if data.read_bool() else None,
         )
 
+
+class GameEventsReader_65895(GameEventsReader_64469):
+    """
+    corresponds to StarCraft 4.4.0
+    """
+
+    def __init__(self):
+        super(GameEventsReader_65895, self).__init__()
+
+        self.EVENT_DISPATCH.update({
+            116: (None, self.set_sync_loading),
+            117: (None, self.set_sync_playing),
+        })
+
+    def set_sync_loading(self, data):
+        return dict(
+            sync_load=data.read_uint32()
+        )
+
+    def set_sync_playing(self, data):
+        return dict(
+            sync_load=data.read_uint32()
+        )
+
+
 class TrackerEventsReader(object):
 
     def __init__(self):
