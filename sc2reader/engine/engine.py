@@ -151,6 +151,7 @@ class GameEngine(object):
         # the front of the line for immediate processing.
         while len(event_queue) > 0:
             event = event_queue.popleft()
+            assert event.player, 'Event with no player: {}'.format(event)
 
             if event.name == 'PluginExit':
                 # Remove the plugin and reset the handlers.
