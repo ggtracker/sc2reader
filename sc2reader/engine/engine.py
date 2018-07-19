@@ -151,7 +151,6 @@ class GameEngine(object):
         # the front of the line for immediate processing.
         while len(event_queue) > 0:
             event = event_queue.popleft()
-            assert event.player, 'Event with no player: {}'.format(event)
 
             if event.name == 'PluginExit':
                 # Remove the plugin and reset the handlers.
@@ -172,6 +171,7 @@ class GameEngine(object):
             # which get processed after the current event finishes. The new_events
             # batch is constructed in reverse order because extendleft reverses
             # the order again with a series of appendlefts.
+            assert event.player, 'Event with no player: {}'.format(event)
             new_events = collections.deque()
             for event_handler in event_handlers:
                 try:
