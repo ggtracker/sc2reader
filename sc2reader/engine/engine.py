@@ -171,7 +171,6 @@ class GameEngine(object):
             # which get processed after the current event finishes. The new_events
             # batch is constructed in reverse order because extendleft reverses
             # the order again with a series of appendlefts.
-            assert event.player, 'Event with no player: {}'.format(event)
             new_events = collections.deque()
             for event_handler in event_handlers:
                 try:
