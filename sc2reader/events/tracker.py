@@ -230,7 +230,7 @@ class PlayerStatsEvent(TrackerEvent):
         self.ff_vespene_lost_technology = clamp(self.stats[38]) if build >= 26490 else None
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Stats Update".format(self.player)
+        return self._str_prefix() + "{0: >15} - Stats Update".format(str(self.player))
 
 
 class UnitBornEvent(TrackerEvent):
@@ -291,7 +291,7 @@ class UnitBornEvent(TrackerEvent):
             self.location = (self.x, self.y)
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Unit born {1}".format(self.unit_upkeeper, self.unit)
+        return self._str_prefix() + "{0: >15} - Unit born {1}".format(str(self.unit_upkeeper), self.unit)
 
 
 class UnitDiedEvent(TrackerEvent):
@@ -361,7 +361,7 @@ class UnitDiedEvent(TrackerEvent):
                 self.killing_unit_id = self.killing_unit_index << 18 | self.killing_unit_recycle
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Unit died {1}.".format(self.unit.owner, self.unit)
+        return self._str_prefix() + "{0: >15} - Unit died {1}.".format(str(self.unit.owner), self.unit)
 
 
 class UnitOwnerChangeEvent(TrackerEvent):
@@ -397,7 +397,7 @@ class UnitOwnerChangeEvent(TrackerEvent):
         self.unit_controller = None
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} took {1}".format(self.unit_upkeeper, self.unit)
+        return self._str_prefix() + "{0: >15} took {1}".format(str(self.unit_upkeeper), self.unit)
 
 
 class UnitTypeChangeEvent(TrackerEvent):
@@ -425,7 +425,7 @@ class UnitTypeChangeEvent(TrackerEvent):
         self.unit_type_name = data[2].decode('utf8')
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Unit {0} type changed to {1}".format(self.unit.owner, self.unit, self.unit_type_name)
+        return self._str_prefix() + "{0: >15} - Unit {0} type changed to {1}".format(str(self.unit.owner), self.unit, self.unit_type_name)
 
 
 class UpgradeCompleteEvent(TrackerEvent):
@@ -448,7 +448,7 @@ class UpgradeCompleteEvent(TrackerEvent):
         self.count = data[2]
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - {1}upgrade completed".format(self.player, self.upgrade_type_name)
+        return self._str_prefix() + "{0: >15} - {1} upgrade completed".format(str(self.player), self.upgrade_type_name)
 
 
 class UnitInitEvent(TrackerEvent):
@@ -504,7 +504,7 @@ class UnitInitEvent(TrackerEvent):
             self.location = (self.x, self.y)
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Unit initiated {1}".format(self.unit_upkeeper, self.unit)
+        return self._str_prefix() + "{0: >15} - Unit initiated {1}".format(str(self.unit_upkeeper), self.unit)
 
 
 class UnitDoneEvent(TrackerEvent):
@@ -528,7 +528,7 @@ class UnitDoneEvent(TrackerEvent):
         self.unit = None
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Unit {1} done".format(self.unit.owner, self.unit)
+        return self._str_prefix() + "{0: >15} - Unit {1} done".format(str(self.unit.owner), self.unit)
 
 
 class UnitPositionsEvent(TrackerEvent):
