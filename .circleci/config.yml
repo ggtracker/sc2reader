@@ -14,19 +14,19 @@ my-steps: &steps
   - run: python -m unittest discover test_replays
 
 jobs:
-  Python_2.7:
+  Python2:
     docker:
-      - image: circleci/python:2.7
+      - image: circleci/python:2.7.15
     steps: *steps
 
-  Python_3.6:
+  Python3:
     docker:
-      - image: circleci/python:3.6
+      - image: circleci/python:3.7
     steps: *steps
 
 workflows:
   version: 2
   build:
     jobs:
-      - Python_2.7
-      - Python_3.6
+      - Python2
+      - Python3
