@@ -1,6 +1,11 @@
 CHANGELOG
 ============
 
+1.2.0 - October 7, 2018
+-----------------------
+* Added support for Tychus
+* Verified that StarCraft 4.6.1 replays work
+
 1.1.0 - June 26, 2018
 ---------------------
 * Added support for protocol 65895 (StarCraft 4.4.0)
