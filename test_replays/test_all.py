@@ -13,9 +13,9 @@ else:
     import unittest
 # StringIO was changed in python 3
 try:
-    from io import StringIO
-except ImportError:
     from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 import sc2reader
 from sc2reader.exceptions import CorruptTrackerFileError
@@ -589,12 +589,12 @@ class TestReplays(unittest.TestCase):
 
     def test_event_print(self):
         replay = sc2reader.load_replay("test_replays/lotv/lotv1.SC2Replay")
-        with StringIO() as capturedOutput:
-            sys.stdout = capturedOutput
-            for event in replay.events:
-                print(event)
-            self.assertIn("PlayerLeaveEvent", capturedOutput.getvalue())
-            sys.stdout = sys.__stdout__
+        sys.stdout = capturedOutput = StringIO()
+        for event in replay.events:
+            print(event)
+        self.assertIn("PlayerLeaveEvent", capturedOutput.getvalue())
+        sys.stdout = sys.__stdout__
+        capturedOutput.close()
 
 
 class TestGameEngine(unittest.TestCase):
