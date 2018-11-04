@@ -11,6 +11,11 @@ if sys.version_info[:2] < (2, 7):
     import unittest2 as unittest
 else:
     import unittest
+# StringIO was changed in python 3
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 import sc2reader
 from sc2reader.exceptions import CorruptTrackerFileError
@@ -581,6 +586,15 @@ class TestReplays(unittest.TestCase):
         ]:
         factory = sc2reader.factories.SC2Factory()
         replay = factory.load_replay(replayfilename)
+
+    def test_event_print(self):
+        replay = sc2reader.load_replay("test_replays/lotv/lotv1.SC2Replay")
+        sys.stdout = capturedOutput = StringIO()
+        for event in replay.events:
+            print(event)
+        self.assertIn("PlayerLeaveEvent", capturedOutput.getvalue())
+        sys.stdout = sys.__stdout__
+        capturedOutput.close()
 
 
 class TestGameEngine(unittest.TestCase):
