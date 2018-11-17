@@ -118,7 +118,7 @@ class InitDataReader(object):
                     working_set_slot_id=data.read_uint8() if replay.base_build >= 24764 and data.read_bool() else None,
                     rewards=[data.read_uint32() for i in range(data.read_bits(17 if replay.base_build >= 34784 else 6 if replay.base_build >= 24764 else 5))],
                     toon_handle=data.read_aligned_string(data.read_bits(7)) if replay.base_build >= 17266 else None,
-                    licenses=[data.read_uint32() for i in range(data.read_bits(9))] if replay.base_build >= 19132 else [],
+                    licenses=[data.read_uint32() for i in range(data.read_bits(13 if replay.base_build >= 70154 else 9))] if replay.base_build >= 19132 else [],
                     tandem_leader_user_id=data.read_bits(4) if replay.base_build >= 34784 and data.read_bool() else None,
                     commander=data.read_aligned_bytes(data.read_bits(9)) if replay.base_build >= 34784 else None,
                     commander_level=data.read_uint32() if replay.base_build >= 36442 else None,

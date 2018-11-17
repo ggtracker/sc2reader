@@ -596,6 +596,13 @@ class TestReplays(unittest.TestCase):
         sys.stdout = sys.__stdout__
         capturedOutput.close()
 
+    def test_70154(self):
+      for replayfilename in [
+              "test_replays/4.7.0.70154/1.SC2Replay",
+        ]:
+        factory = sc2reader.factories.SC2Factory()
+        replay = factory.load_replay(replayfilename)
+
 
 class TestGameEngine(unittest.TestCase):
     class TestEvent(object):
