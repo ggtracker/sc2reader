@@ -160,7 +160,7 @@ HallucinationZealot,HallucinateZealot,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 HangarQueue5,CancelLast,CancelSlot,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 HerdInteract,Herd,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 HoldFire,Stop,HoldFire,Cheer,Dance,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-HydraliskDenResearch,,ResearchEvolveMuscularAugments,EvolveGroovedSpines,EvolveMuscularAugments,,,,,,,,,,,,,,,,,,,,,,,,,,,CancelHydraliskDenResearch,
+HydraliskDenResearch,ResearchEvolveGroovedSpines,ResearchEvolveMuscularAugments,EvolveGroovedSpines,EvolveMuscularAugments,,,,,,,,,,,,,,,,,,,,,,,,,,,CancelHydraliskDenResearch,
 InfestationPitResearch,,,EvolvePathogenGlands,EvolveNeuralParasite,EvolveEnduringLocusts,,,,,,,,,,,,,,,,,,,,,,,,,,CancelInfestationPitResearch,
 InfestedTerrans,SpawnInfestedTerran,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 InfestedTerransLayEgg,SpawnInfestedTerran,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
@@ -858,3 +858,6 @@ ChronoBoostEnergyCost,ChronoBoostEnergyCost
 ObserverMorphtoObserverSiege,ObserverMorphtoObserverSiege
 RavenRepairDroneHeal,RavenRepairDroneHeal
 NexusMassRecall,NexusMassRecall
+OverlordSingleTransport,Load,,UnloadAt
+ParasiticBombRelayDodge,ParasiticBombRelayDodge
+ViperParasiticBombRelay,ViperParasiticBombRelay
