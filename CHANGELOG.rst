@@ -1,6 +1,13 @@
 CHANGELOG
 ============
 
+1.3.0 - November 16, 2018
+-------------------------
+* Added support for protocol 70154 (StarCraft 4.7.0)
+* Added support for Zeratul
+* Updated CircleCI build for Python 3.7
+* Fixed a bug with printing TrackerEvent
+
 1.2.0 - October 7, 2018
 -----------------------
 * Added support for Tychus

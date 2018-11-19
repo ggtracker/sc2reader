@@ -411,7 +411,7 @@ hots_builds['38215'].id = '38215'
 
 # Load LotV Data
 lotv_builds = dict()
-for version in ('base', '44401', '47185', '48258', '53644', '54724', '59587'):
+for version in ('base', '44401', '47185', '48258', '53644', '54724', '59587', '70154'):
     lotv_builds[version] = load_build('LotV', version)
 
 datapacks = builds = {'WoL': wol_builds, 'HotS': hots_builds, 'LotV': lotv_builds}
