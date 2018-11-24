@@ -268,11 +268,19 @@ class Replay(Resource):
             self.length = self.game_length = self.real_length = utils.Length(seconds=int(self.frames/fps))
 
         # Load basic details if requested
+        # .backup files are read in case the main files are missing or removed
         if load_level >= 1:
             self.load_level = 1
-            for data_file in ['replay.initData', 'replay.details', 'replay.attributes.events']:
+            files = [
+                'replay.initData.backup',
+                'replay.details.backup',
+                'replay.attributes.events',
+                'replay.initData',
+                'replay.details'
+            ]
+            for data_file in files:
                 self._read_data(data_file, self._get_reader(data_file))
-            self.load_details()
+            self.load_all_details()
             self.datapack = self._get_datapack()
 
             # Can only be effective if map data has been loaded
@@ -311,18 +319,24 @@ class Replay(Resource):
 
             engine.run(self)
 
-    def load_details(self):
+    def load_init_data(self):
         if 'replay.initData' in self.raw_data:
             initData = self.raw_data['replay.initData']
-            options = initData['game_description']['game_options']
-            self.amm = options['amm']
-            self.ranked = options['ranked']
-            self.competitive = options['competitive']
-            self.practice = options['practice']
-            self.cooperative = options['cooperative']
-            self.battle_net = options['battle_net']
-            self.hero_duplicates_allowed = options['hero_duplicates_allowed']
+        elif 'replay.initData.backup' in self.raw_data:
+            initData = self.raw_data['replay.initData.backup']
+        else:
+            return
 
+        options = initData['game_description']['game_options']
+        self.amm = options['amm']
+        self.ranked = options['ranked']
+        self.competitive = options['competitive']
+        self.practice = options['practice']
+        self.cooperative = options['cooperative']
+        self.battle_net = options['battle_net']
+        self.hero_duplicates_allowed = options['hero_duplicates_allowed']
+
+    def load_attribute_events(self):
         if 'replay.attributes.events' in self.raw_data:
             # Organize the attribute data to be useful
             self.attributes = defaultdict(dict)
@@ -337,57 +351,75 @@ class Replay(Resource):
             self.is_ladder = (self.category == "Ladder")
             self.is_private = (self.category == "Private")
 
+    def load_details(self):
         if 'replay.details' in self.raw_data:
             details = self.raw_data['replay.details']
+        elif 'replay.details.backup' in self.raw_data:
+            details = self.raw_data['replay.details.backup']
+        else:
+            return
 
-            self.map_name = details['map_name']
+        self.map_name = details['map_name']
+        self.region = details['cache_handles'][0].server.lower()
+        self.map_hash = details['cache_handles'][-1].hash
+        self.map_file = details['cache_handles'][-1]
 
-            self.region = details['cache_handles'][0].server.lower()
-            self.map_hash = details['cache_handles'][-1].hash
-            self.map_file = details['cache_handles'][-1]
+        # Expand this special case mapping
+        if self.region == 'sg':
+            self.region = 'sea'
 
-            # Expand this special case mapping
-            if self.region == 'sg':
-                self.region = 'sea'
+        dependency_hashes = [d.hash for d in details['cache_handles']]
+        if hashlib.sha256('Standard Data: Void.SC2Mod'.encode('utf8')).hexdigest() in dependency_hashes:
+            self.expansion = 'LotV'
+        elif hashlib.sha256('Standard Data: Swarm.SC2Mod'.encode('utf8')).hexdigest() in dependency_hashes:
+            self.expansion = 'HotS'
+        elif hashlib.sha256('Standard Data: Liberty.SC2Mod'.encode('utf8')).hexdigest() in dependency_hashes:
+            self.expansion = 'WoL'
+        else:
+            self.expansion = ''
 
-            dependency_hashes = [d.hash for d in details['cache_handles']]
-            if hashlib.sha256('Standard Data: Void.SC2Mod'.encode('utf8')).hexdigest() in dependency_hashes:
-                self.expansion = 'LotV'
-            elif hashlib.sha256('Standard Data: Swarm.SC2Mod'.encode('utf8')).hexdigest() in dependency_hashes:
-                self.expansion = 'HotS'
-            elif hashlib.sha256('Standard Data: Liberty.SC2Mod'.encode('utf8')).hexdigest() in dependency_hashes:
-                self.expansion = 'WoL'
-            else:
-                self.expansion = ''
+        self.windows_timestamp = details['file_time']
+        self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
+        self.end_time = datetime.utcfromtimestamp(self.unix_timestamp)
 
-            self.windows_timestamp = details['file_time']
-            self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
-            self.end_time = datetime.utcfromtimestamp(self.unix_timestamp)
+        # The utc_adjustment is either the adjusted windows timestamp OR
+        # the value required to get the adjusted timestamp. We know the upper
+        # limit for any adjustment number so use that to distinguish between
+        # the two cases.
+        if details['utc_adjustment'] < 10**7*60*60*24:
+            self.time_zone = details['utc_adjustment']/(10**7*60*60)
+        else:
+            self.time_zone = (details['utc_adjustment']-details['file_time'])/(10**7*60*60)
 
-            # The utc_adjustment is either the adjusted windows timestamp OR
-            # the value required to get the adjusted timestamp. We know the upper
-            # limit for any adjustment number so use that to distinguish between
-            # the two cases.
-            if details['utc_adjustment'] < 10**7*60*60*24:
-                self.time_zone = details['utc_adjustment']/(10**7*60*60)
-            else:
-                self.time_zone = (details['utc_adjustment']-details['file_time'])/(10**7*60*60)
+        self.game_length = self.length
+        self.real_length = utils.Length(seconds=int(self.length.seconds/GAME_SPEED_FACTOR[self.expansion][self.speed]))
+        self.start_time = datetime.utcfromtimestamp(self.unix_timestamp-self.real_length.seconds)
+        self.date = self.end_time  # backwards compatibility
 
-            self.game_length = self.length
-            self.real_length = utils.Length(seconds=int(self.length.seconds/GAME_SPEED_FACTOR[self.expansion][self.speed]))
-            self.start_time = datetime.utcfromtimestamp(self.unix_timestamp-self.real_length.seconds)
-            self.date = self.end_time  # backwards compatibility
+    def load_all_details(self):
+        self.load_init_data()
+        self.load_attribute_events()
+        self.load_details()
 
     def load_map(self):
         self.map = self.factory.load_map(self.map_file, **self.opt)
 
     def load_players(self):
         # If we don't at least have details and attributes_events we can go no further
-        if 'replay.details' not in self.raw_data:
+        # We can use the backup detail files if the main files have been removed
+        if 'replay.details' in self.raw_data:
+            details = self.raw_data['replay.details']
+        elif 'replay.details.backup' in self.raw_data:
+            details = self.raw_data['replay.details.backup']
+        else:
             return
         if 'replay.attributes.events' not in self.raw_data:
             return
-        if 'replay.initData' not in self.raw_data:
+        if 'replay.initData' in self.raw_data:
+            initData = self.raw_data['replay.initData']
+        elif 'replay.initData.backup' in self.raw_data:
+            initData = self.raw_data['replay.initData.backup']
+        else:
             return
 
         self.clients = list()
@@ -397,8 +429,6 @@ class Replay(Resource):
         # information. detail_id marks the current index into this data.
         detail_id = 0
         player_id = 1
-        details = self.raw_data['replay.details']
-        initData = self.raw_data['replay.initData']
 
         # Assume that the first X map slots starting at 1 are player slots
         # so that we can assign player ids without the map
@@ -568,6 +598,8 @@ class Replay(Resource):
         """Registers factory default readers."""
         self.register_reader('replay.details', readers.DetailsReader(), lambda r: True)
         self.register_reader('replay.initData', readers.InitDataReader(), lambda r: True)
+        self.register_reader('replay.details.backup', readers.DetailsReader(), lambda r: True)
+        self.register_reader('replay.initData.backup', readers.InitDataReader(), lambda r: True)
         self.register_reader('replay.tracker.events', readers.TrackerEventsReader(), lambda r: True)
         self.register_reader('replay.message.events', readers.MessageEventsReader(), lambda r: True)
         self.register_reader('replay.attributes.events', readers.AttributesEventsReader(), lambda r: True)
