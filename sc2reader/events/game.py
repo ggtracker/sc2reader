@@ -37,8 +37,12 @@ class GameEvent(Event):
         self.name = self.__class__.__name__
 
     def _str_prefix(self):
-        if self.player:
-            player_name = self.player.name if getattr(self, 'pid', 16) != 16 else "Global"
+        if getattr(self, 'pid', 16) == 16:
+            player_name = "Global"
+        elif self.player and not self.player.name:
+            player_name = "Player {0} - ({1})".format(self.player.pid, self.player.play_race)
+        elif self.player:
+            player_name = self.player.name
         else:
             player_name = "no name"
         return "{0}\t{1:<15} ".format(Length(seconds=int(self.frame / 16)), player_name)

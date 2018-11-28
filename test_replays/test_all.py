@@ -19,6 +19,8 @@ except ImportError:
 
 import sc2reader
 from sc2reader.exceptions import CorruptTrackerFileError
+from sc2reader.events.game import GameEvent
+from sc2reader.objects import Player
 
 sc2reader.log_utils.log_to_console("INFO")
 
@@ -603,6 +605,41 @@ class TestReplays(unittest.TestCase):
         factory = sc2reader.factories.SC2Factory()
         replay = factory.load_replay(replayfilename)
 
+    def test_anonymous_replay(self):
+        replayfilename = "test_replays/4.1.2.60604/1.SC2Replay"
+        factory = sc2reader.factories.SC2Factory()
+        replay = factory.load_replay(replayfilename)
+
+    def test_game_event_string(self):
+        time = "00.01"
+        # Global
+        player = MockPlayer()
+        player.name = "TestPlayer"
+        player.play_race = "TestRace"
+        event = GameEvent(16, 16)
+        event.player = player
+        self.assertEqual("{0}\t{1:<15} ".format(time, "Global"), event._str_prefix())
+
+        # Player with name
+        player = MockPlayer()
+        player.name = "TestPlayer"
+        player.play_race = "TestRace"
+        event = GameEvent(16, 1)
+        event.player = player
+        self.assertEqual("{0}\t{1:<15} ".format(time, player.name), event._str_prefix())
+
+        # No Player
+        player = MockPlayer()
+        event = GameEvent(16, 1)
+        self.assertEqual("{0}\t{1:<15} ".format(time, "no name"), event._str_prefix())
+
+        # Player without name
+        player = MockPlayer()
+        player.play_race = "TestRace"
+        player.pid = 1
+        event = GameEvent(16, 1)
+        event.player = player
+        self.assertEqual("{0}\tPlayer {1} - ({2}) ".format(time, player.pid, player.play_race), event._str_prefix())
 
 class TestGameEngine(unittest.TestCase):
     class TestEvent(object):
@@ -658,6 +695,11 @@ class TestGameEngine(unittest.TestCase):
         self.assertEqual(replay.plugin_result['TestPlugin1'], (1, dict(msg="Fail!")))
         self.assertEqual(replay.plugin_result['TestPlugin2'], (0, dict()))
 
+class MockPlayer(object):
+    def __init__(self):
+        self.name = None
+        self.play_race = None
+        self.pid = None
 
 if __name__ == '__main__':
     unittest.main()
