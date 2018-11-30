@@ -1,6 +1,10 @@
 CHANGELOG
 ============
 
+1.3.1 - November 29, 2018
+-------------------------
+* Parse backup if data is missing #69
+
 1.3.0 - November 16, 2018
 -------------------------
 * Added support for protocol 70154 (StarCraft 4.7.0)
