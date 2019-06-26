@@ -654,7 +654,6 @@ class TestGameEngine(unittest.TestCase):
             yield TestGameEngine.TestEvent("c")
 
         def handleTestEvent(self, event, replay):
-            print("morestuff")
             if event.value == "d":
                 yield sc2reader.engine.PluginExit(self, code=1, details=dict(msg="Fail!"))
             else:
