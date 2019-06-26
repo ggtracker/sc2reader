@@ -18,7 +18,9 @@ def plugin(func):
             opt = kwargs.copy()
             opt.update(options)
             return func(*args, **opt)
+
         return call
+
     return wrapper
 
 
@@ -56,7 +58,7 @@ class GameState(dict):
         else:
             # Copy the previous state and use it as our basis here
             state = self[prev_frame]
-            if hasattr(state, 'copy'):
+            if hasattr(state, "copy"):
                 state = state.copy()
 
         self[frame] = state
@@ -76,34 +78,41 @@ class UnitSelection(object):
         self.objects = objects or list()
 
     def select(self, new_objects):
-        new_set = set(self.objects+list(new_objects))
+        new_set = set(self.objects + list(new_objects))
         self.objects = sorted(new_set, key=lambda obj: obj.id)
 
     def deselect(self, mode, data):
         """Returns false if there was a data error when deselecting"""
         size = len(self.objects)
 
-        if mode == 'None':
+        if mode == "None":
             return True
 
-        elif mode == 'Mask':
+        elif mode == "Mask":
             """ Deselect objects according to deselect mask """
             mask = data
             if len(mask) < size:
                 # pad to the right
-                mask = mask+[False]*(len(self.objects)-len(mask))
+                mask = mask + [False] * (len(self.objects) - len(mask))
 
             self.logger.debug("Deselection Mask: {0}".format(mask))
-            self.objects = [obj for (slct, obj) in filter(lambda slct_obj: not slct_obj[0], zip(mask, self.objects))]
+            self.objects = [
+                obj
+                for (slct, obj) in filter(
+                    lambda slct_obj: not slct_obj[0], zip(mask, self.objects)
+                )
+            ]
             return len(mask) <= size
 
-        elif mode == 'OneIndices':
+        elif mode == "OneIndices":
             """ Deselect objects according to indexes """
             clean_data = list(filter(lambda i: i < size, data))
-            self.objects = [self.objects[i] for i in range(len(self.objects)) if i not in clean_data]
+            self.objects = [
+                self.objects[i] for i in range(len(self.objects)) if i not in clean_data
+            ]
             return len(clean_data) == len(data)
 
-        elif mode == 'ZeroIndices':
+        elif mode == "ZeroIndices":
             """ Deselect objects according to indexes """
             clean_data = list(filter(lambda i: i < size, data))
             self.objects = [self.objects[i] for i in clean_data]
@@ -113,7 +122,7 @@ class UnitSelection(object):
             return False
 
     def __str__(self):
-        return ', '.join(str(obj) for obj in self.objects)
+        return ", ".join(str(obj) for obj in self.objects)
 
     def copy(self):
         return UnitSelection(self.objects[:])

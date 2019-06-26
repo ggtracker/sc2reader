@@ -34,7 +34,7 @@ class ByteDecoder(object):
         """ Accepts both strings and files implementing ``read()`` and
         decodes them in the specified endian format.
         """
-        if hasattr(contents, 'read'):
+        if hasattr(contents, "read"):
             self._contents = contents.read()
         else:
             self._contents = contents
@@ -49,18 +49,21 @@ class ByteDecoder(object):
 
         # decode the endian value if necessary
         self.endian = endian.lower()
-        if self.endian.lower() == 'little':
+        if self.endian.lower() == "little":
             self.endian = "<"
-        elif self.endian.lower() == 'big':
+        elif self.endian.lower() == "big":
             self.endian = ">"
-        elif self.endian not in ('<', '>'):
-            raise ValueError("Endian must be one of 'little', '<', 'big', or '>' but was: "+self.endian)
+        elif self.endian not in ("<", ">"):
+            raise ValueError(
+                "Endian must be one of 'little', '<', 'big', or '>' but was: "
+                + self.endian
+            )
 
         # Pre-compiling
-        self._unpack_int = struct.Struct(str(self.endian+'I')).unpack
-        self._unpack_short = struct.Struct(str(self.endian+'H')).unpack
-        self._unpack_longlong = struct.Struct(str(self.endian+'Q')).unpack
-        self._unpack_bytes = lambda bytes: bytes if self.endian == '>' else bytes[::-1]
+        self._unpack_int = struct.Struct(str(self.endian + "I")).unpack
+        self._unpack_short = struct.Struct(str(self.endian + "H")).unpack
+        self._unpack_longlong = struct.Struct(str(self.endian + "Q")).unpack
+        self._unpack_bytes = lambda bytes: bytes if self.endian == ">" else bytes[::-1]
 
     def done(self):
         """ Returns true when all bytes have been decoded """
@@ -73,7 +76,7 @@ class ByteDecoder(object):
     def peek(self, count):
         """ Returns the raw byte string for the next ``count`` bytes """
         start = self.tell()
-        return self._contents[start:start+count]
+        return self._contents[start : start + count]
 
     def read_uint8(self):
         """ Returns the next byte as an unsigned integer """
@@ -97,17 +100,17 @@ class ByteDecoder(object):
 
     def read_uint(self, count):
         """ Returns the next ``count`` bytes as an unsigned integer """
-        unpack = struct.Struct(str(self.endian+'B'*count)).unpack
+        unpack = struct.Struct(str(self.endian + "B" * count)).unpack
         uint = 0
         for byte in unpack(self.read(count)):
             uint = uint << 8 | byte
         return uint
 
-    def read_string(self, count, encoding='utf8'):
+    def read_string(self, count, encoding="utf8"):
         """ Read a string in given encoding (default utf8) that is ``count`` bytes long """
         return self.read_bytes(count).decode(encoding)
 
-    def read_cstring(self, encoding='utf8'):
+    def read_cstring(self, encoding="utf8"):
         """ Read a NULL byte terminated character string decoded with given encoding (default utf8). Ignores endian. """
         cstring = BytesIO()
         while True:
@@ -128,6 +131,7 @@ class BitPackedDecoder(object):
     bits and not in bytes.
 
     """
+
     #: The ByteDecoder used internally to read byte
     #: aligned values.
     _buffer = None
@@ -153,7 +157,7 @@ class BitPackedDecoder(object):
     _bit_masks = list(zip(_lo_masks, _hi_masks))
 
     def __init__(self, contents):
-        self._buffer = ByteDecoder(contents, endian='BIG')
+        self._buffer = ByteDecoder(contents, endian="BIG")
 
         # Partially expose the ByteBuffer interface
         self.length = self._buffer.length
@@ -194,8 +198,8 @@ class BitPackedDecoder(object):
         if self._bit_shift != 0:
             lo_mask, hi_mask = self._bit_masks[self._bit_shift]
             hi_bits = (self._next_byte & hi_mask) << 8
-            mi_bits = (data & 0xFF00) >> (8-self._bit_shift)
-            lo_bits = (data & lo_mask)
+            mi_bits = (data & 0xFF00) >> (8 - self._bit_shift)
+            lo_bits = data & lo_mask
             self._next_byte = data & 0xFF
             data = hi_bits | mi_bits | lo_bits
 
@@ -208,8 +212,8 @@ class BitPackedDecoder(object):
         if self._bit_shift != 0:
             lo_mask, hi_mask = self._bit_masks[self._bit_shift]
             hi_bits = (self._next_byte & hi_mask) << 24
-            mi_bits = (data & 0xFFFFFF00) >> (8-self._bit_shift)
-            lo_bits = (data & lo_mask)
+            mi_bits = (data & 0xFFFFFF00) >> (8 - self._bit_shift)
+            lo_bits = data & lo_mask
             self._next_byte = data & 0xFF
             data = hi_bits | mi_bits | lo_bits
 
@@ -222,8 +226,8 @@ class BitPackedDecoder(object):
         if self._bit_shift != 0:
             lo_mask, hi_mask = self._bit_masks[self._bit_shift]
             hi_bits = (self._next_byte & hi_mask) << 56
-            mi_bits = (data & 0xFFFFFFFFFFFFFF00) >> (8-self._bit_shift)
-            lo_bits = (data & lo_mask)
+            mi_bits = (data & 0xFFFFFFFFFFFFFF00) >> (8 - self._bit_shift)
+            lo_bits = data & lo_mask
             self._next_byte = data & 0xFF
             data = hi_bits | mi_bits | lo_bits
 
@@ -246,7 +250,7 @@ class BitPackedDecoder(object):
         self.byte_align()
         return self._buffer.read_bytes(count)
 
-    def read_aligned_string(self, count, encoding='utf8'):
+    def read_aligned_string(self, count, encoding="utf8"):
         """ Skips to the beginning of the next byte and returns the next ``count`` bytes decoded with encoding (default utf8) """
         self.byte_align()
         return self._buffer.read_string(count, encoding)
@@ -259,8 +263,10 @@ class BitPackedDecoder(object):
             temp_buffer = BytesIO()
             prev_byte = self._next_byte
             lo_mask, hi_mask = self._bit_masks[self._bit_shift]
-            for next_byte in struct.unpack(str("B")*count, data):
-                temp_buffer.write(struct.pack(str("B"), prev_byte & hi_mask | next_byte & lo_mask))
+            for next_byte in struct.unpack(str("B") * count, data):
+                temp_buffer.write(
+                    struct.pack(str("B"), prev_byte & hi_mask | next_byte & lo_mask)
+                )
                 prev_byte = next_byte
 
             self._next_byte = prev_byte
@@ -277,7 +283,7 @@ class BitPackedDecoder(object):
 
         # If we've got a byte in progress use it first
         if bit_shift != 0:
-            bits_left = 8-bit_shift
+            bits_left = 8 - bit_shift
 
             if bits_left < bits:
                 bits -= bits_left
@@ -291,7 +297,7 @@ class BitPackedDecoder(object):
 
         # Then grab any additional whole bytes as needed
         if bits >= 8:
-            bytes = int(bits/8)
+            bytes = int(bits / 8)
 
             if bytes == 1:
                 bits -= 8
@@ -306,7 +312,7 @@ class BitPackedDecoder(object):
                 result |= self._buffer.read_uint32() << bits
 
             else:
-                for byte in struct.unpack(str("B")*bytes, self._read(bytes)):
+                for byte in struct.unpack(str("B") * bytes, self._read(bytes)):
                     bits -= 8
                     result |= byte << bits
 
@@ -359,7 +365,9 @@ class BitPackedDecoder(object):
 
         elif datatype == 0x05:  # Struct
             entries = self.read_vint()
-            data = dict([(self.read_vint(), self.read_struct()) for i in range(entries)])
+            data = dict(
+                [(self.read_vint(), self.read_struct()) for i in range(entries)]
+            )
 
         elif datatype == 0x06:  # u8
             data = ord(self._buffer.read(1))

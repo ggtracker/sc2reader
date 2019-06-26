@@ -23,7 +23,8 @@ class SelectionTracker(object):
 
         # TODO: list a few error inducing sitations
     """
-    name = 'SelectionTracker'
+
+    name = "SelectionTracker"
 
     def handleInitGame(self, event, replay):
         for person in replay.entities:
@@ -34,7 +35,9 @@ class SelectionTracker(object):
 
     def handleSelectionEvent(self, event, replay):
         selection = event.player.selection[event.control_group]
-        new_selection, error = self._deselect(selection, event.mask_type, event.mask_data)
+        new_selection, error = self._deselect(
+            selection, event.mask_type, event.mask_data
+        )
         new_selection = self._select(new_selection, event.objects)
         event.player.selection[event.control_group] = new_selection
         if error:
@@ -42,7 +45,9 @@ class SelectionTracker(object):
 
     def handleGetControlGroupEvent(self, event, replay):
         selection = event.player.selection[event.control_group]
-        new_selection, error = self._deselect(selection, event.mask_type, event.mask_data)
+        new_selection, error = self._deselect(
+            selection, event.mask_type, event.mask_data
+        )
         event.player.selection[10] = new_selection
         if error:
             event.player.selection_errors += 1
@@ -52,36 +57,38 @@ class SelectionTracker(object):
 
     def handleAddToControlGroupEvent(self, event, replay):
         selection = event.player.selection[event.control_group]
-        new_selection, error = self._deselect(selection, event.mask_type, event.mask_data)
+        new_selection, error = self._deselect(
+            selection, event.mask_type, event.mask_data
+        )
         new_selection = self._select(new_selection, event.player.selection[10])
         event.player.selection[event.control_group] = new_selection
         if error:
             event.player.selection_errors += 1
 
     def _select(self, selection, units):
-        return sorted(set(selection+units))
+        return sorted(set(selection + units))
 
     def _deselect(self, selection, mode, data):
         """Returns false if there was a data error when deselecting"""
-        if mode == 'None':
+        if mode == "None":
             return selection, False
 
         selection_size, data_size = len(selection), len(data)
 
-        if mode == 'Mask':
+        if mode == "Mask":
             # Deselect objects according to deselect mask
             sfilter = lambda bit_u: not bit_u[0]
-            mask = data+[False]*(selection_size-data_size)
+            mask = data + [False] * (selection_size - data_size)
             new_selection = [u for (bit, u) in filter(sfilter, zip(mask, selection))]
             error = data_size > selection_size
 
-        elif mode == 'OneIndices':
+        elif mode == "OneIndices":
             # Deselect objects according to indexes
             clean_data = list(filter(lambda i: i < selection_size, data))
             new_selection = [u for i, u in enumerate(selection) if i < selection_size]
             error = len(list(filter(lambda i: i >= selection_size, data))) != 0
 
-        elif mode == 'ZeroIndices':
+        elif mode == "ZeroIndices":
             # Select objects according to indexes
             clean_data = list(filter(lambda i: i < selection_size, data))
             new_selection = [selection[i] for i in clean_data]

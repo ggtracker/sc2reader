@@ -20,21 +20,21 @@ class DepotFile(object):
     """
 
     #: The url template for all DepotFiles
-    url_template = 'http://{0}.depot.battle.net:1119/{1}.{2}'
+    url_template = "http://{0}.depot.battle.net:1119/{1}.{2}"
 
     def __init__(self, bytes):
         #: The server the file is hosted on
-        self.server = bytes[4:8].decode('utf-8').strip('\x00 ')
+        self.server = bytes[4:8].decode("utf-8").strip("\x00 ")
 
         # There is no SEA depot, use US instead
-        if self.server == 'SEA':
-            self.server = 'US'
+        if self.server == "SEA":
+            self.server = "US"
 
         #: The unique content based hash of the file
-        self.hash = binascii.b2a_hex(bytes[8:]).decode('utf8')
+        self.hash = binascii.b2a_hex(bytes[8:]).decode("utf8")
 
         #: The extension of the file on the server
-        self.type = bytes[0:4].decode('utf8')
+        self.type = bytes[0:4].decode("utf8")
 
     @property
     def url(self):
@@ -71,11 +71,12 @@ class Color(object):
     Only standard Starcraft colors are supported. ValueErrors will be thrown
     on invalid names or hex values.
     """
+
     def __init__(self, name=None, r=0, g=0, b=0, a=255):
         if name:
             if name not in COLOR_CODES_INV:
                 self.logger.warn("Invalid color name: " + name)
-            hexstr = COLOR_CODES_INV.get(name, '000000')
+            hexstr = COLOR_CODES_INV.get(name, "000000")
             self.r = int(hexstr[0:2], 16)
             self.g = int(hexstr[2:4], 16)
             self.b = int(hexstr[4:6], 16)
@@ -114,7 +115,6 @@ def get_real_type(teams):
 
 
 def extract_data_file(data_file, archive):
-
     def recovery_attempt():
         try:
             return archive.read_file(data_file)
@@ -151,7 +151,9 @@ def extract_data_file(data_file, archive):
         raise MPQError("Unable to extract file: {0}".format(data_file), e)
 
 
-def get_files(path, exclude=list(), depth=-1, followlinks=False, extension=None, **extras):
+def get_files(
+    path, exclude=list(), depth=-1, followlinks=False, extension=None, **extras
+):
     """
     Retrieves files from the given path with configurable behavior.
 
@@ -167,7 +169,9 @@ def get_files(path, exclude=list(), depth=-1, followlinks=False, extension=None,
 
     # If an extension is supplied, use it to do a type check
     if extension:
-        type_check = lambda path: os.path.splitext(path)[1][1:].lower() == extension.lower()
+        type_check = (
+            lambda path: os.path.splitext(path)[1][1:].lower() == extension.lower()
+        )
     else:
         type_check = lambda n: True
 
@@ -237,68 +241,76 @@ def toDict(replay):
     observers = list()
     for observer in replay.observers:
         messages = list()
-        for message in getattr(observer, 'messages', list()):
-            messages.append({
-                'time': message.time.seconds,
-                'text': message.text,
-                'is_public': message.to_all
-            })
-        observers.append({
-            'name': getattr(observer, 'name', None),
-            'pid': getattr(observer, 'pid', None),
-            'messages': messages,
-        })
+        for message in getattr(observer, "messages", list()):
+            messages.append(
+                {
+                    "time": message.time.seconds,
+                    "text": message.text,
+                    "is_public": message.to_all,
+                }
+            )
+        observers.append(
+            {
+                "name": getattr(observer, "name", None),
+                "pid": getattr(observer, "pid", None),
+                "messages": messages,
+            }
+        )
 
     # Build players into dictionary
     players = list()
     for player in replay.players:
         messages = list()
         for message in player.messages:
-            messages.append({
-                'time': message.time.seconds,
-                'text': message.text,
-                'is_public': message.to_all
-            })
-        players.append({
-            'avg_apm': getattr(player, 'avg_apm', None),
-            'color': player.color.__dict__ if hasattr(player, 'color') else None,
-            'handicap': getattr(player, 'handicap', None),
-            'name': getattr(player, 'name', None),
-            'pick_race': getattr(player, 'pick_race', None),
-            'pid': getattr(player, 'pid', None),
-            'play_race': getattr(player, 'play_race', None),
-            'result': getattr(player, 'result', None),
-            'type': getattr(player, 'type', None),
-            'uid': getattr(player, 'uid', None),
-            'url': getattr(player, 'url', None),
-            'messages': messages,
-        })
+            messages.append(
+                {
+                    "time": message.time.seconds,
+                    "text": message.text,
+                    "is_public": message.to_all,
+                }
+            )
+        players.append(
+            {
+                "avg_apm": getattr(player, "avg_apm", None),
+                "color": player.color.__dict__ if hasattr(player, "color") else None,
+                "handicap": getattr(player, "handicap", None),
+                "name": getattr(player, "name", None),
+                "pick_race": getattr(player, "pick_race", None),
+                "pid": getattr(player, "pid", None),
+                "play_race": getattr(player, "play_race", None),
+                "result": getattr(player, "result", None),
+                "type": getattr(player, "type", None),
+                "uid": getattr(player, "uid", None),
+                "url": getattr(player, "url", None),
+                "messages": messages,
+            }
+        )
 
     # Consolidate replay metadata into dictionary
     return {
-        'region': getattr(replay, 'region', None),
-        'map_name': getattr(replay, 'map_name', None),
-        'file_time': getattr(replay, 'file_time', None),
-        'filehash': getattr(replay, 'filehash', None),
-        'unix_timestamp': getattr(replay, 'unix_timestamp', None),
-        'date': getattr(replay, 'date', None),
-        'utc_date': getattr(replay, 'utc_date', None),
-        'speed': getattr(replay, 'speed', None),
-        'category': getattr(replay, 'category', None),
-        'type': getattr(replay, 'type', None),
-        'is_ladder': getattr(replay, 'is_ladder', False),
-        'is_private': getattr(replay, 'is_private', False),
-        'filename': getattr(replay, 'filename', None),
-        'file_time': getattr(replay, 'file_time', None),
-        'frames': getattr(replay, 'frames', None),
-        'build': getattr(replay, 'build', None),
-        'release': getattr(replay, 'release_string', None),
-        'game_fps': getattr(replay, 'game_fps', None),
-        'game_length': getattr(getattr(replay, 'game_length', None), 'seconds', None),
-        'players': players,
-        'observers': observers,
-        'real_length': getattr(getattr(replay, 'real_length', None), 'seconds', None),
-        'real_type': getattr(replay, 'real_type', None),
-        'time_zone': getattr(replay, 'time_zone', None),
-        'versions': getattr(replay, 'versions', None)
+        "region": getattr(replay, "region", None),
+        "map_name": getattr(replay, "map_name", None),
+        "file_time": getattr(replay, "file_time", None),
+        "filehash": getattr(replay, "filehash", None),
+        "unix_timestamp": getattr(replay, "unix_timestamp", None),
+        "date": getattr(replay, "date", None),
+        "utc_date": getattr(replay, "utc_date", None),
+        "speed": getattr(replay, "speed", None),
+        "category": getattr(replay, "category", None),
+        "type": getattr(replay, "type", None),
+        "is_ladder": getattr(replay, "is_ladder", False),
+        "is_private": getattr(replay, "is_private", False),
+        "filename": getattr(replay, "filename", None),
+        "file_time": getattr(replay, "file_time", None),
+        "frames": getattr(replay, "frames", None),
+        "build": getattr(replay, "build", None),
+        "release": getattr(replay, "release_string", None),
+        "game_fps": getattr(replay, "game_fps", None),
+        "game_length": getattr(getattr(replay, "game_length", None), "seconds", None),
+        "players": players,
+        "observers": observers,
+        "real_length": getattr(getattr(replay, "real_length", None), "seconds", None),
+        "real_type": getattr(replay, "real_type", None),
+        "time_zone": getattr(replay, "time_zone", None),
+        "versions": getattr(replay, "versions", None),
     }

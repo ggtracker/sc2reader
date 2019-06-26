@@ -31,7 +31,7 @@ class GameState(dict):
         else:
             # Copy the previous state and use it as our basis here
             state = self[prev_frame]
-            if hasattr(state, 'copy'):
+            if hasattr(state, "copy"):
                 state = state.copy()
 
         self[frame] = state
