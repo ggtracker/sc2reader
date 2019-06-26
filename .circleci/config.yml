@@ -10,7 +10,7 @@ my-steps: &steps
   # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
   - run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
   #- run: pytest # test_s2gs test_replays
-  # - run: python -m unittest discover test_s2gs
+  - run: python -m unittest discover test_s2gs
   - run: python -m unittest discover test_replays
 
 jobs:
