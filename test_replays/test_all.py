@@ -435,19 +435,21 @@ class TestReplays(unittest.TestCase):
     def test_lotv_creepTracker(self):
         from sc2reader.engine.plugins import CreepTracker
 
-        for replayfilename in ["test_replays/lotv/lotv1.SC2Replay"]:
+        for replayfilename in ["test_replays/4.0.0.59587/1.SC2Replay"]:
             factory = sc2reader.factories.SC2Factory()
             pluginEngine = sc2reader.engine.GameEngine(plugins=[CreepTracker()])
             replay = factory.load_replay(replayfilename, engine=pluginEngine, load_map=True)
 
+            is_at_least_one_zerg_in_game = False
             for player_id in replay.player:
                 if replay.player[player_id].play_race == "Zerg":
+                    is_at_least_one_zerg_in_game = True
                     assert replay.player[player_id].max_creep_spread != 0
                     assert replay.player[player_id].creep_spread_by_minute
+            assert is_at_least_one_zerg_in_game
 
     def test_lotv_map(self):
-        # This test currently fails in decoders.py with 'TypeError: ord() expected a character, but string of length 0 found'
-        for replayfilename in ["test_replays/lotv/lotv1.SC2Replay"]:
+        for replayfilename in ["test_replays/4.0.0.59587/1.SC2Replay"]:
             factory = sc2reader.factories.SC2Factory()
             replay = factory.load_replay(replayfilename, load_level=1, load_map=True)
 
