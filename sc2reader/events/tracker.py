@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    division,
+)
 
 import functools
 
@@ -251,7 +256,9 @@ class PlayerStatsEvent(TrackerEvent):
         self.vespene_used_active_forces = clamp(self.stats[32])
 
         #: Minerals of army value lost to friendly fire
-        self.ff_minerals_lost_army = clamp(self.stats[33]) if build >= 26490 else None
+        self.ff_minerals_lost_army = (
+            clamp(self.stats[33]) if build >= 26490 else None
+        )
 
         #: Minerals of economy value lost to friendly fire
         self.ff_minerals_lost_economy = (
@@ -264,10 +271,14 @@ class PlayerStatsEvent(TrackerEvent):
         )
 
         #: Vespene of army value lost to friendly fire
-        self.ff_vespene_lost_army = clamp(self.stats[36]) if build >= 26490 else None
+        self.ff_vespene_lost_army = (
+            clamp(self.stats[36]) if build >= 26490 else None
+        )
 
         #: Vespene of economy value lost to friendly fire
-        self.ff_vespene_lost_economy = clamp(self.stats[37]) if build >= 26490 else None
+        self.ff_vespene_lost_economy = (
+            clamp(self.stats[37]) if build >= 26490 else None
+        )
 
         #: Vespene of technology value lost to friendly fire
         self.ff_vespene_lost_technology = (
@@ -275,7 +286,9 @@ class PlayerStatsEvent(TrackerEvent):
         )
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Stats Update".format(str(self.player))
+        return self._str_prefix() + "{0: >15} - Stats Update".format(
+            str(self.player)
+        )
 
 
 class UnitBornEvent(TrackerEvent):

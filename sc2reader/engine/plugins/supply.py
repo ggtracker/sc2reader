@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    division,
+)
 
 from collections import defaultdict
 
@@ -14,7 +19,9 @@ class SupplyTracker(object):
             time_built = 0 if time_built < 0 else time_built
             new_unit = (supplyCount, event.unit_id)
             self.units_alive[event.control_pid].append(new_unit)
-            total_supply = sum([x[0] for x in self.units_alive[event.control_pid]])
+            total_supply = sum(
+                [x[0] for x in self.units_alive[event.control_pid]]
+            )
             replay.players[event.control_pid - 1].current_food_used[
                 time_built
             ] = total_supply
@@ -23,7 +30,9 @@ class SupplyTracker(object):
                 time_built,
                 replay.players[event.control_pid - 1],
                 "SUPPLY",
-                replay.players[event.control_pid - 1].current_food_used[time_built],
+                replay.players[event.control_pid - 1].current_food_used[
+                    time_built
+                ],
             )
 
         elif unit_name in self.supply_gen_unit:
@@ -33,7 +42,9 @@ class SupplyTracker(object):
             time_complete = event.second + build_time
             supply_gen_unit = (supply_gen_count, event.unit_id)
             self.supply_gen[event.control_pid].append(supply_gen_unit)
-            total_supply_gen = sum([x[0] for x in self.supply_gen[event.control_pid]])
+            total_supply_gen = sum(
+                [x[0] for x in self.supply_gen[event.control_pid]]
+            )
             replay.players[event.control_pid - 1].current_food_made[
                 time_complete
             ] = total_supply_gen
@@ -42,7 +53,9 @@ class SupplyTracker(object):
                 time_complete,
                 replay.players[event.control_pid - 1],
                 "Built",
-                replay.players[event.control_pid - 1].current_food_made[time_complete],
+                replay.players[event.control_pid - 1].current_food_made[
+                    time_complete
+                ],
             )
         else:
             print("Unit name {0} does not exist".format(event.unit_type_name))
@@ -51,7 +64,9 @@ class SupplyTracker(object):
     def remove_from_units_alive(self, event, replay):
         died_unit_id = event.unit_id
         for player in replay.player:
-            dead_unit = filter(lambda x: x[1] == died_unit_id, self.units_alive[player])
+            dead_unit = filter(
+                lambda x: x[1] == died_unit_id, self.units_alive[player]
+            )
             if dead_unit:
                 self.units_alive[player].remove(dead_unit[0])
                 total_supply = sum([x[0] for x in self.units_alive[player]])

@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    division,
+)
 
 from bisect import bisect_left
 from collections import defaultdict
@@ -108,7 +113,9 @@ class UnitSelection(object):
             """ Deselect objects according to indexes """
             clean_data = list(filter(lambda i: i < size, data))
             self.objects = [
-                self.objects[i] for i in range(len(self.objects)) if i not in clean_data
+                self.objects[i]
+                for i in range(len(self.objects))
+                if i not in clean_data
             ]
             return len(clean_data) == len(data)
 

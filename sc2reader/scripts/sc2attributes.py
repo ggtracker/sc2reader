@@ -28,7 +28,12 @@
 # those decisions. The decisions are pickled instead of in json
 # because the data structure is too complex for the json format.
 #
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    division,
+)
 
 import argparse
 import json
@@ -53,7 +58,11 @@ def main():
         description="Recursively parses replay files, inteded for debugging parse issues."
     )
     parser.add_argument(
-        "folders", metavar="folder", type=str, nargs="+", help="Path to a folder"
+        "folders",
+        metavar="folder",
+        type=str,
+        nargs="+",
+        help="Path to a folder",
     )
     args = parser.parse_args()
 
@@ -78,7 +87,9 @@ def main():
                     group_name = summary.translations["enUS"][group_key]
                     attribute_values = dict()
                     if str(group_key) in attributes:
-                        attribute_name, attribute_values = attributes[str(group_key)]
+                        attribute_name, attribute_values = attributes[
+                            str(group_key)
+                        ]
                         if attribute_name != group_name:
                             group_name = get_choice(
                                 group_key, attribute_name, group_name
@@ -86,11 +97,13 @@ def main():
 
                     for value in prop[1]:
                         value_key = value[0].strip("\x00 ").replace(" v ", "v")
-                        value_name = summary.lang_sheets["enUS"][value[1][0][1]][
-                            value[1][0][2]
-                        ]
+                        value_name = summary.lang_sheets["enUS"][
+                            value[1][0][1]
+                        ][value[1][0][2]]
                         if str(value_key) in attribute_values:
-                            attribute_value_name = attribute_values[str(value_key)]
+                            attribute_value_name = attribute_values[
+                                str(value_key)
+                            ]
                             if value_name != attribute_value_name:
                                 value_name = get_choice(
                                     (group_key, value_key),
@@ -122,7 +135,9 @@ def get_choice(s2gs_key, old_value, new_value):
     key = frozenset([s2gs_key, old_value, new_value])
     if key not in decisions:
         print(
-            "Naming conflict on {0}: {1} != {2}".format(s2gs_key, old_value, new_value)
+            "Naming conflict on {0}: {1} != {2}".format(
+                s2gs_key, old_value, new_value
+            )
         )
         print("Which do you want to use?")
         print("  (o) Old value '{0}'".format(old_value))

@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    division,
+)
 
 import struct
 
@@ -32,13 +37,17 @@ class InitDataReader(object):
                     if replay.base_build >= 24764 and data.read_bool()
                     else None,
                     random_seed=data.read_uint32(),
-                    race_preference=data.read_uint8() if data.read_bool() else None,
+                    race_preference=data.read_uint8()
+                    if data.read_bool()
+                    else None,
                     team_preference=data.read_uint8()
                     if replay.base_build >= 16561 and data.read_bool()
                     else None,
                     test_map=data.read_bool(),
                     test_auto=data.read_bool(),
-                    examine=data.read_bool() if replay.base_build >= 21955 else None,
+                    examine=data.read_bool()
+                    if replay.base_build >= 21955
+                    else None,
                     custom_interface=data.read_bool()
                     if replay.base_build >= 24764
                     else None,
@@ -78,7 +87,9 @@ class InitDataReader(object):
                     if replay.base_build >= 34784 and replay.base_build < 38215
                     else None,
                     competitive=data.read_bool(),
-                    practice=data.read_bool() if replay.base_build >= 34784 else None,
+                    practice=data.read_bool()
+                    if replay.base_build >= 34784
+                    else None,
                     cooperative=data.read_bool()
                     if replay.base_build >= 34784
                     else None,
@@ -122,7 +133,9 @@ class InitDataReader(object):
                         allowedControls=data.read_bits(data.read_uint8()),
                         allowed_observe_types=data.read_bits(data.read_bits(2)),
                         allowed_ai_builds=data.read_bits(
-                            data.read_bits(8 if replay.base_build >= 38749 else 7)
+                            data.read_bits(
+                                8 if replay.base_build >= 38749 else 7
+                            )
                         )
                         if replay.base_build >= 23925
                         else None,
@@ -130,7 +143,9 @@ class InitDataReader(object):
                     for i in range(data.read_bits(5))
                 ],
                 default_difficulty=data.read_bits(6),
-                default_ai_build=data.read_bits(8 if replay.base_build >= 38749 else 7)
+                default_ai_build=data.read_bits(
+                    8 if replay.base_build >= 38749 else 7
+                )
                 if replay.base_build >= 23925
                 else None,
                 cache_handles=[
@@ -147,7 +162,9 @@ class InitDataReader(object):
                 else None,
                 is_blizzardMap=data.read_bool(),
                 is_premade_ffa=data.read_bool(),
-                is_coop_mode=data.read_bool() if replay.base_build >= 23925 else None,
+                is_coop_mode=data.read_bool()
+                if replay.base_build >= 23925
+                else None,
                 is_realtime_mode=data.read_bool()
                 if replay.base_build >= 54518
                 else None,
@@ -161,10 +178,16 @@ class InitDataReader(object):
                         control=data.read_uint8(),
                         user_id=data.read_bits(4) if data.read_bool() else None,
                         team_id=data.read_bits(4),
-                        colorPref=data.read_bits(5) if data.read_bool() else None,
-                        race_pref=data.read_uint8() if data.read_bool() else None,
+                        colorPref=data.read_bits(5)
+                        if data.read_bool()
+                        else None,
+                        race_pref=data.read_uint8()
+                        if data.read_bool()
+                        else None,
                         difficulty=data.read_bits(6),
-                        ai_build=data.read_bits(8 if replay.base_build >= 38749 else 7)
+                        ai_build=data.read_bits(
+                            8 if replay.base_build >= 38749 else 7
+                        )
                         if replay.base_build >= 23925
                         else None,
                         handicap=data.read_bits(7),
@@ -183,7 +206,9 @@ class InitDataReader(object):
                         else None,
                         artifacts=[
                             dict(
-                                type_struct=data.read_aligned_string(data.read_bits(9))
+                                type_struct=data.read_aligned_string(
+                                    data.read_bits(9)
+                                )
                             )
                             for i in range(data.read_bits(4))
                         ]
@@ -210,7 +235,9 @@ class InitDataReader(object):
                         licenses=[
                             data.read_uint32()
                             for i in range(
-                                data.read_bits(13 if replay.base_build >= 70154 else 9)
+                                data.read_bits(
+                                    13 if replay.base_build >= 70154 else 9
+                                )
                             )
                         ]
                         if replay.base_build >= 19132
@@ -241,7 +268,10 @@ class InitDataReader(object):
                         reward_overrides=[
                             [
                                 data.read_uint32(),
-                                [data.read_uint32() for i in range(data.read_bits(17))],
+                                [
+                                    data.read_uint32()
+                                    for i in range(data.read_bits(17))
+                                ],
                             ]
                             for j in range(data.read_bits(17))
                         ]
@@ -258,13 +288,17 @@ class InitDataReader(object):
                 else None,
                 game_duration=data.read_uint32(),
                 default_difficulty=data.read_bits(6),
-                default_ai_build=data.read_bits(8 if replay.base_build >= 38749 else 7)
+                default_ai_build=data.read_bits(
+                    8 if replay.base_build >= 38749 else 7
+                )
                 if replay.base_build >= 24764
                 else None,
             ),
         )
         if not data.done():
-            raise ValueError("{0} bytes left!".format(data.length - data.tell()))
+            raise ValueError(
+                "{0} bytes left!".format(data.length - data.tell())
+            )
         return result
 
 
@@ -331,7 +365,9 @@ class DetailsReader(object):
             if (replay.build >= 22612 and replay.versions[1] == 1)
             else None,
             campaign_index=details[15] if replay.versions[1] == 2 else None,
-            restartAsTransitionMap=details[16] if replay.build > 26490 else None,
+            restartAsTransitionMap=details[16]
+            if replay.build > 26490
+            else None,
         )
 
 
@@ -348,12 +384,16 @@ class MessageEventsReader(object):
             pid = data.read_bits(5)
             flag = data.read_bits(4)
             if flag == 0:  # Client chat message
-                recipient = data.read_bits(3 if replay.base_build >= 21955 else 2)
+                recipient = data.read_bits(
+                    3 if replay.base_build >= 21955 else 2
+                )
                 text = data.read_aligned_string(data.read_bits(11))
                 messages.append(ChatEvent(frame, pid, recipient, text))
 
             elif flag == 1:  # Client ping message
-                recipient = data.read_bits(3 if replay.base_build >= 21955 else 2)
+                recipient = data.read_bits(
+                    3 if replay.base_build >= 21955 else 2
+                )
                 x = data.read_uint32() - 2147483648
                 y = data.read_uint32() - 2147483648
                 pings.append(PingEvent(frame, pid, recipient, x, y))
@@ -439,7 +479,10 @@ class GameEventsReader_Base(object):
             81: (None, self.trigger_battle_report_panel_exit_event),
             82: (None, self.trigger_battle_report_panel_play_mission_event),
             83: (None, self.trigger_battle_report_panel_play_scene_event),
-            84: (None, self.trigger_battle_report_panel_selection_changed_event),
+            84: (
+                None,
+                self.trigger_battle_report_panel_selection_changed_event,
+            ),
             85: (None, self.trigger_victory_panel_play_mission_again_event),
             86: (None, self.trigger_movie_started_event),
             87: (None, self.trigger_movie_finished_event),
@@ -481,7 +524,9 @@ class GameEventsReader_Base(object):
                 fstamp += read_frames()
                 pid = read_bits(5)
                 event_type = read_bits(7)
-                event_class, event_parser = EVENT_DISPATCH.get(event_type, (None, None))
+                event_class, event_parser = EVENT_DISPATCH.get(
+                    event_type, (None, None)
+                )
                 if event_parser is not None:
                     event_data = event_parser(data)
                     if event_class is not None:
@@ -561,7 +606,9 @@ class GameEventsReader_Base(object):
 
         # Change mask representation from an int to a bit array with
         # True => Deselect, False => Keep
-        return [(bit_mask & bit != 0) for bit in self.SINGLE_BIT_MASKS[:mask_length]]
+        return [
+            (bit_mask & bit != 0) for bit in self.SINGLE_BIT_MASKS[:mask_length]
+        ]
 
 
 class GameEventsReader_15405(GameEventsReader_Base):
@@ -629,7 +676,8 @@ class GameEventsReader_15405(GameEventsReader_Base):
     def game_cheat_event(self, data):
         return dict(
             point=dict(
-                x=data.read_uint32() - 2147483648, y=data.read_uint32() - 2147483648
+                x=data.read_uint32() - 2147483648,
+                y=data.read_uint32() - 2147483648,
             ),
             time=data.read_uint32() - 2147483648,
             verb=data.read_aligned_string(data.read_bits(10)),
@@ -654,7 +702,9 @@ class GameEventsReader_15405(GameEventsReader_Base):
                 unit_tag=data.read_uint32(),
                 unit_link=data.read_uint16(),
                 control_player_id=None,
-                upkeep_player_id=data.read_bits(4) if data.read_bool() else None,
+                upkeep_player_id=data.read_bits(4)
+                if data.read_bool()
+                else None,
                 point=dict(
                     x=data.read_uint32() - 2147483648,
                     y=data.read_uint32() - 2147483648,
@@ -673,7 +723,10 @@ class GameEventsReader_15405(GameEventsReader_Base):
         return dict(
             control_group_index=data.read_bits(4),
             subgroup_index=data.read_uint8(),
-            remove_mask=("Mask", self.read_selection_bitmask(data, data.read_uint8())),
+            remove_mask=(
+                "Mask",
+                self.read_selection_bitmask(data, data.read_uint8()),
+            ),
             add_subgroups=[
                 dict(
                     unit_link=data.read_uint16(),
@@ -683,14 +736,19 @@ class GameEventsReader_15405(GameEventsReader_Base):
                 )
                 for i in range(data.read_uint8())
             ],
-            add_unit_tags=[data.read_uint32() for i in range(data.read_uint8())],
+            add_unit_tags=[
+                data.read_uint32() for i in range(data.read_uint8())
+            ],
         )
 
     def control_group_update_event(self, data):
         return dict(
             control_group_index=data.read_bits(4),
             control_group_update=data.read_bits(2),
-            remove_mask=("Mask", self.read_selection_bitmask(data, data.read_uint8()))
+            remove_mask=(
+                "Mask",
+                self.read_selection_bitmask(data, data.read_uint8()),
+            )
             if data.read_bool()
             else ("None", None),
         )
@@ -712,7 +770,8 @@ class GameEventsReader_15405(GameEventsReader_Base):
         return dict(
             recipient_id=data.read_bits(4),
             resources=[
-                data.read_uint32() - 2147483648 for i in range(data.read_bits(3))
+                data.read_uint32() - 2147483648
+                for i in range(data.read_bits(3))
             ],
         )
 
@@ -727,7 +786,9 @@ class GameEventsReader_15405(GameEventsReader_Base):
             build=None,
             target_unit_tag=data.read_uint32(),
             target_unit_link=data.read_uint16(),
-            target_upkeep_player_id=data.read_bits(4) if data.read_bool() else None,
+            target_upkeep_player_id=data.read_bits(4)
+            if data.read_bool()
+            else None,
             target_control_player_id=None,
             target_point=dict(
                 x=data.read_uint32() - 2147483648,
@@ -810,7 +871,10 @@ class GameEventsReader_15405(GameEventsReader_Base):
                 0: lambda: ("None", None),
                 1: lambda: ("Checked", data.read_bool()),
                 2: lambda: ("ValueChanged", data.read_uint32()),
-                3: lambda: ("SelectionChanged", data.read_uint32() - 2147483648),
+                3: lambda: (
+                    "SelectionChanged",
+                    data.read_uint32() - 2147483648,
+                ),
                 4: lambda: (
                     "TextChanged",
                     data.read_aligned_string(data.read_bits(11)),
@@ -821,7 +885,9 @@ class GameEventsReader_15405(GameEventsReader_Base):
     def trigger_sound_length_sync_event(self, data):
         return dict(
             sync_info=dict(
-                sound_hash=[data.read_uint32() for i in range(data.read_uint8())],
+                sound_hash=[
+                    data.read_uint32() for i in range(data.read_uint8())
+                ],
                 length=[data.read_uint32() for i in range(data.read_uint8())],
             )
         )
@@ -865,7 +931,8 @@ class GameEventsReader_15405(GameEventsReader_Base):
     def resource_request_event(self, data):
         return dict(
             resources=[
-                data.read_uint32() - 2147483648 for i in range(data.read_bits(3))
+                data.read_uint32() - 2147483648
+                for i in range(data.read_bits(3))
             ]
         )
 
@@ -941,7 +1008,9 @@ class GameEventsReader_15405(GameEventsReader_Base):
     def trigger_purchase_panel_selected_purchase_item_changed_event(self, data):
         return dict(item_id=data.read_uint32() - 2147483648)
 
-    def trigger_purchase_panel_selected_purchase_category_changed_event(self, data):
+    def trigger_purchase_panel_selected_purchase_category_changed_event(
+        self, data
+    ):
         return dict(category_id=data.read_uint32() - 2147483648)
 
     def trigger_button_pressed_event(self, data):
@@ -958,7 +1027,9 @@ class GameEventsReader_16561(GameEventsReader_15405):
             ability=dict(
                 ability_link=data.read_uint16(),
                 ability_command_index=data.read_bits(5),
-                ability_command_data=data.read_uint8() if data.read_bool() else None,
+                ability_command_data=data.read_uint8()
+                if data.read_bool()
+                else None,
             )
             if data.read_bool()
             else None,
@@ -1025,7 +1096,9 @@ class GameEventsReader_16561(GameEventsReader_15405):
                 )
                 for i in range(data.read_uint8())
             ],
-            add_unit_tags=[data.read_uint32() for i in range(data.read_uint8())],
+            add_unit_tags=[
+                data.read_uint32() for i in range(data.read_uint8())
+            ],
         )
 
     def control_group_update_event(self, data):
@@ -1113,7 +1186,9 @@ class GameEventsReader_18574(GameEventsReader_18092):
             ability=dict(
                 ability_link=data.read_uint16(),
                 ability_command_index=data.read_bits(5),
-                ability_command_data=data.read_uint8() if data.read_bool() else None,
+                ability_command_data=data.read_uint8()
+                if data.read_bool()
+                else None,
             )
             if data.read_bool()
             else None,
@@ -1164,7 +1239,9 @@ class GameEventsReader_19595(GameEventsReader_19132):
             ability=dict(
                 ability_link=data.read_uint16(),
                 ability_command_index=data.read_bits(5),
-                ability_command_data=data.read_uint8() if data.read_bool() else None,
+                ability_command_data=data.read_uint8()
+                if data.read_bool()
+                else None,
             )
             if data.read_bool()
             else None,
@@ -1213,8 +1290,12 @@ class GameEventsReader_19595(GameEventsReader_19132):
             build=None,
             target_unit_tag=data.read_uint32(),
             target_unit_link=data.read_uint16(),
-            target_upkeep_player_id=data.read_bits(4) if data.read_bool() else None,
-            target_control_player_id=data.read_bits(4) if data.read_bool() else None,
+            target_upkeep_player_id=data.read_bits(4)
+            if data.read_bool()
+            else None,
+            target_control_player_id=data.read_bits(4)
+            if data.read_bool()
+            else None,
             target_point=dict(
                 x=data.read_uint32() - 2147483648,
                 y=data.read_uint32() - 2147483648,
@@ -1238,7 +1319,10 @@ class GameEventsReader_22612(GameEventsReader_21029):
                 97: (None, self.trigger_cutscene_bookmark_fired_event),
                 98: (None, self.trigger_cutscene_end_scene_fired_event),
                 99: (None, self.trigger_cutscene_conversation_line_event),
-                100: (None, self.trigger_cutscene_conversation_line_missing_event),
+                100: (
+                    None,
+                    self.trigger_cutscene_conversation_line_missing_event,
+                ),
             }
         )
 
@@ -1261,7 +1345,9 @@ class GameEventsReader_22612(GameEventsReader_21029):
             ability=dict(
                 ability_link=data.read_uint16(),
                 ability_command_index=data.read_bits(5),
-                ability_command_data=data.read_uint8() if data.read_bool() else None,
+                ability_command_data=data.read_uint8()
+                if data.read_bool()
+                else None,
             )
             if data.read_bool()
             else None,
@@ -1330,7 +1416,9 @@ class GameEventsReader_22612(GameEventsReader_21029):
                 )
                 for i in range(data.read_bits(9))
             ],
-            add_unit_tags=[data.read_uint32() for i in range(data.read_bits(9))],
+            add_unit_tags=[
+                data.read_uint32() for i in range(data.read_bits(9))
+            ],
         )
 
     def control_group_update_event(self, data):
@@ -1387,7 +1475,8 @@ class GameEventsReader_22612(GameEventsReader_21029):
     def trigger_ping_event(self, data):
         return dict(
             point=dict(
-                x=data.read_uint32() - 2147483648, y=data.read_uint32() - 2147483648
+                x=data.read_uint32() - 2147483648,
+                y=data.read_uint32() - 2147483648,
             ),
             unit_tag=data.read_uint32(),
             pinged_minimap=data.read_bool(),
@@ -1396,7 +1485,8 @@ class GameEventsReader_22612(GameEventsReader_21029):
     def trigger_transmission_offset_event(self, data):
         # I'm not actually sure when this second int is introduced..
         return dict(
-            transmission_id=data.read_uint32() - 2147483648, thread=data.read_uint32()
+            transmission_id=data.read_uint32() - 2147483648,
+            thread=data.read_uint32(),
         )
 
     def achievement_awarded_event(self, data):
@@ -1429,7 +1519,9 @@ class GameEventsReader_23260(GameEventsReader_22612):
     def trigger_sound_length_sync_event(self, data):
         return dict(
             sync_info=dict(
-                sound_hash=[data.read_uint32() for i in range(data.read_bits(7))],
+                sound_hash=[
+                    data.read_uint32() for i in range(data.read_bits(7))
+                ],
                 length=[data.read_uint32() for i in range(data.read_bits(7))],
             )
         )
@@ -1490,7 +1582,9 @@ class GameEventsReader_HotSBeta(GameEventsReader_23260):
                 )
                 for i in range(data.read_bits(9))
             ],
-            add_unit_tags=[data.read_uint32() for i in range(data.read_bits(9))],
+            add_unit_tags=[
+                data.read_uint32() for i in range(data.read_bits(9))
+            ],
         )
 
     def camera_update_event(self, data):
@@ -1511,7 +1605,10 @@ class GameEventsReader_HotSBeta(GameEventsReader_23260):
                 0: lambda: ("None", None),
                 1: lambda: ("Checked", data.read_bool()),
                 2: lambda: ("ValueChanged", data.read_uint32()),
-                3: lambda: ("SelectionChanged", data.read_uint32() - 2147483648),
+                3: lambda: (
+                    "SelectionChanged",
+                    data.read_uint32() - 2147483648,
+                ),
                 4: lambda: (
                     "TextChanged",
                     data.read_aligned_string(data.read_bits(11)),
@@ -1537,7 +1634,10 @@ class GameEventsReader_24247(GameEventsReader_HotSBeta):
                 21: (None, self.save_game_event),  # New
                 22: (None, self.save_game_done_event),  # Override
                 23: (None, self.load_game_done_event),  # Override
-                43: (HijackReplayGameEvent, self.hijack_replay_game_event),  # New
+                43: (
+                    HijackReplayGameEvent,
+                    self.hijack_replay_game_event,
+                ),  # New
                 62: (None, self.trigger_target_mode_update_event),  # New
                 101: (PlayerLeaveEvent, self.game_user_leave_event),  # New
                 102: (None, self.game_user_join_event),  # New
@@ -1732,7 +1832,10 @@ class GameEventsReader_34784(GameEventsReader_27950):
                 109: (None, self.catalog_modify_event),
                 110: (None, self.hero_talent_tree_selected_event),
                 111: (None, self.trigger_profiler_logging_finished_event),
-                112: (None, self.hero_talent_tree_selection_panel_toggled_event),
+                112: (
+                    None,
+                    self.hero_talent_tree_selection_panel_toggled_event,
+                ),
             }
         )
 
@@ -1805,8 +1908,12 @@ class GameEventsReader_34784(GameEventsReader_27950):
                     timer=data.read_uint8(),
                     unit_tag=data.read_uint32(),
                     unit_link=data.read_uint16(),
-                    control_player_id=data.read_bits(4) if data.read_bool() else None,
-                    upkeep_player_id=data.read_bits(4) if data.read_bool() else None,
+                    control_player_id=data.read_bits(4)
+                    if data.read_bool()
+                    else None,
+                    upkeep_player_id=data.read_bits(4)
+                    if data.read_bool()
+                    else None,
                     point=dict(
                         x=data.read_bits(20),
                         y=data.read_bits(20),
@@ -1825,7 +1932,9 @@ class GameEventsReader_34784(GameEventsReader_27950):
             ability=dict(
                 ability_link=data.read_uint16(),
                 ability_command_index=data.read_bits(5),
-                ability_command_data=data.read_uint8() if data.read_bool() else None,
+                ability_command_data=data.read_uint8()
+                if data.read_bool()
+                else None,
             )
             if data.read_bool()
             else None,
@@ -1891,7 +2000,8 @@ class GameEventsReader_34784(GameEventsReader_27950):
     def trigger_ping_event(self, data):
         return dict(
             point=dict(
-                x=data.read_uint32() - 2147483648, y=data.read_uint32() - 2147483648
+                x=data.read_uint32() - 2147483648,
+                y=data.read_uint32() - 2147483648,
             ),
             unit_tag=data.read_uint32(),
             pinged_minimap=data.read_bool(),
@@ -1927,7 +2037,9 @@ class GameEventsReader_34784(GameEventsReader_27950):
             if data.read_bool()
             else None,
             hijack=data.read_bool(),
-            hijack_clone_game_user_id=data.read_bits(4) if data.read_bool() else None,
+            hijack_clone_game_user_id=data.read_bits(4)
+            if data.read_bool()
+            else None,
         )
 
     def game_user_leave_event(self, data):
@@ -1964,7 +2076,10 @@ class GameEventsReader_38215(GameEventsReader_36442):
         self.EVENT_DISPATCH.update(
             {
                 76: (None, self.trigger_command_error_event),
-                92: (None, self.trigger_mousewheel_event),  # 172 in protocol38125.py
+                92: (
+                    None,
+                    self.trigger_mousewheel_event,
+                ),  # 172 in protocol38125.py
             }
         )
 
@@ -1974,7 +2089,9 @@ class GameEventsReader_38215(GameEventsReader_36442):
             ability=dict(
                 ability_link=data.read_uint16(),
                 ability_command_index=data.read_bits(5),
-                ability_command_data=data.read_uint8() if data.read_bool() else None,
+                ability_command_data=data.read_uint8()
+                if data.read_bool()
+                else None,
             )
             if data.read_bool()
             else None,
@@ -1995,7 +2112,9 @@ class GameEventsReader_38215(GameEventsReader_36442):
             ability=dict(
                 ability_link=data.read_uint16(),
                 ability_command_index=data.read_bits(5),
-                ability_command_data=data.read_uint8() if data.read_bool() else None,
+                ability_command_data=data.read_uint8()
+                if data.read_bool()
+                else None,
             )
             if data.read_bool()
             else None,
@@ -2063,12 +2182,17 @@ class GameEventsReader_38749(GameEventsReader_38215):
     def trigger_ping_event(self, data):
         return dict(
             point=dict(
-                x=data.read_uint32() - 2147483648, y=data.read_uint32() - 2147483648
+                x=data.read_uint32() - 2147483648,
+                y=data.read_uint32() - 2147483648,
             ),
             unit_tag=data.read_uint32(),
             unit_link=data.read_uint16(),
-            unit_control_player_id=(data.read_bits(4) if data.read_bool() else None),
-            unit_upkeep_player_id=(data.read_bits(4) if data.read_bool() else None),
+            unit_control_player_id=(
+                data.read_bits(4) if data.read_bool() else None
+            ),
+            unit_upkeep_player_id=(
+                data.read_bits(4) if data.read_bool() else None
+            ),
             unit_position=dict(
                 x=data.read_bits(20),
                 y=data.read_bits(20),
@@ -2083,12 +2207,17 @@ class GameEventsReader_38996(GameEventsReader_38749):
     def trigger_ping_event(self, data):
         return dict(
             point=dict(
-                x=data.read_uint32() - 2147483648, y=data.read_uint32() - 2147483648
+                x=data.read_uint32() - 2147483648,
+                y=data.read_uint32() - 2147483648,
             ),
             unit_tag=data.read_uint32(),
             unit_link=data.read_uint16(),
-            unit_control_player_id=(data.read_bits(4) if data.read_bool() else None),
-            unit_upkeep_player_id=(data.read_bits(4) if data.read_bool() else None),
+            unit_control_player_id=(
+                data.read_bits(4) if data.read_bool() else None
+            ),
+            unit_upkeep_player_id=(
+                data.read_bits(4) if data.read_bool() else None
+            ),
             unit_position=dict(
                 x=data.read_bits(20),
                 y=data.read_bits(20),
@@ -2110,7 +2239,9 @@ class GameEventsReader_64469(GameEventsReader_38996):
             ability=dict(
                 ability_link=data.read_uint16(),
                 ability_command_index=data.read_bits(5),
-                ability_command_data=data.read_uint8() if data.read_bool() else None,
+                ability_command_data=data.read_uint8()
+                if data.read_bool()
+                else None,
             )
             if data.read_bool()
             else None,
@@ -2163,7 +2294,10 @@ class GameEventsReader_65895(GameEventsReader_64469):
         super(GameEventsReader_65895, self).__init__()
 
         self.EVENT_DISPATCH.update(
-            {116: (None, self.set_sync_loading), 117: (None, self.set_sync_playing)}
+            {
+                116: (None, self.set_sync_loading),
+                117: (None, self.set_sync_playing),
+            }
         )
 
     def set_sync_loading(self, data):

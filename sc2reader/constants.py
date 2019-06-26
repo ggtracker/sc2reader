@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    division,
+)
 
 # These are found in Repack-MPQ/fileset.{locale}#Mods#Core.SC2Mod#{locale}.SC2Data/LocalizedData/Editor/EditorCategoryStrings.txt
 # EDSTR_CATEGORY_Race
@@ -46,9 +51,27 @@ MESSAGE_CODES = {"0": "All", "2": "Allies", "128": "Header", "125": "Ping"}
 
 
 GAME_SPEED_FACTOR = {
-    "WoL": {"Slower": 0.6, "Slow": 0.8, "Normal": 1.0, "Fast": 1.2, "Faster": 1.4},
-    "HotS": {"Slower": 0.6, "Slow": 0.8, "Normal": 1.0, "Fast": 1.2, "Faster": 1.4},
-    "LotV": {"Slower": 0.2, "Slow": 0.4, "Normal": 0.6, "Fast": 0.8, "Faster": 1.0},
+    "WoL": {
+        "Slower": 0.6,
+        "Slow": 0.8,
+        "Normal": 1.0,
+        "Fast": 1.2,
+        "Faster": 1.4,
+    },
+    "HotS": {
+        "Slower": 0.6,
+        "Slow": 0.8,
+        "Normal": 1.0,
+        "Fast": 1.2,
+        "Faster": 1.4,
+    },
+    "LotV": {
+        "Slower": 0.2,
+        "Slow": 0.4,
+        "Normal": 0.6,
+        "Fast": 0.8,
+        "Faster": 1.0,
+    },
 }
 
 GATEWAY_CODES = {
@@ -107,7 +130,9 @@ SUBREGIONS = {
 import json
 import pkgutil
 
-attributes_json = pkgutil.get_data("sc2reader.data", "attributes.json").decode("utf8")
+attributes_json = pkgutil.get_data("sc2reader.data", "attributes.json").decode(
+    "utf8"
+)
 attributes_dict = json.loads(attributes_json)
 LOBBY_PROPERTIES = dict()
 for key, value in attributes_dict.get("attributes", dict()).items():

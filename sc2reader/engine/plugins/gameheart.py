@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    division,
+)
 
 from datetime import datetime
 from sc2reader.utils import Length, get_real_type
@@ -26,7 +31,9 @@ class GameHeartNormalizer(object):
 
     name = "GameHeartNormalizer"
 
-    PRIMARY_BUILDINGS = dict(Hatchery="Zerg", Nexus="Protoss", CommandCenter="Terran")
+    PRIMARY_BUILDINGS = dict(
+        Hatchery="Zerg", Nexus="Protoss", CommandCenter="Terran"
+    )
 
     def handleInitGame(self, event, replay):
         # without tracker events game heart games can't be fixed
@@ -37,7 +44,9 @@ class GameHeartNormalizer(object):
         start_frame = -1
         actual_players = {}
         for event in replay.tracker_events:
-            if start_frame != -1 and event.frame > start_frame + 5:  # fuzz it a little
+            if (
+                start_frame != -1 and event.frame > start_frame + 5
+            ):  # fuzz it a little
                 break
             if (
                 event.name == "UnitBornEvent"
@@ -61,7 +70,9 @@ class GameHeartNormalizer(object):
         replay.game_length = Length(seconds=replay.frames / 16)
         replay.real_type = get_real_type(replay.teams)
         replay.real_length = Length(
-            seconds=int(replay.game_length.seconds / GAME_SPEED_FACTOR[replay.speed])
+            seconds=int(
+                replay.game_length.seconds / GAME_SPEED_FACTOR[replay.speed]
+            )
         )
         replay.start_time = datetime.utcfromtimestamp(
             replay.unix_timestamp - replay.real_length.seconds

@@ -16,7 +16,12 @@ are caught and reported. At some point these things should be moved to WARN.
 If there are parse exceptions, this script should be run to generate an info
 for the ticket filed.
 """
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    division,
+)
 
 import argparse
 import sc2reader
@@ -40,7 +45,11 @@ def main():
         action="store_true",
     )
     parser.add_argument(
-        "folders", metavar="folder", type=str, nargs="+", help="Path to a folder"
+        "folders",
+        metavar="folder",
+        type=str,
+        nargs="+",
+        help="Path to a folder",
     )
     args = parser.parse_args()
 
@@ -53,7 +62,9 @@ def main():
                 already_did = rs in releases_parsed
                 releases_parsed.add(rs)
                 if not args.one_each or not already_did:
-                    replay = sc2reader.load_replay(path, debug=True, load_level=1)
+                    replay = sc2reader.load_replay(
+                        path, debug=True, load_level=1
+                    )
                     if not args.one_each or replay.is_ladder:
                         replay = sc2reader.load_replay(path, debug=True)
 
@@ -66,7 +77,11 @@ def main():
                             ]
                         )
                         player_pids = set(
-                            [player.pid for player in replay.players if player.is_human]
+                            [
+                                player.pid
+                                for player in replay.players
+                                if player.is_human
+                            ]
                         )
                         ability_pids = set(
                             [
@@ -106,7 +121,10 @@ def main():
                             print(
                                 "Units were: {units}".format(
                                     units=set(
-                                        [obj.name for obj in replay.objects.values()]
+                                        [
+                                            obj.name
+                                            for obj in replay.objects.values()
+                                        ]
                                     )
                                 )
                             )
@@ -125,13 +143,19 @@ def main():
                 print("[ERROR] {}", e)
                 for event in e.game_events[-5:]:
                     print("{0}".format(event))
-                print(e.buffer.read_range(e.location, e.location + 50).encode("hex"))
+                print(
+                    e.buffer.read_range(e.location, e.location + 50).encode(
+                        "hex"
+                    )
+                )
                 print
             except Exception as e:
                 print("")
                 print(path)
                 try:
-                    replay = sc2reader.load_replay(path, debug=True, load_level=2)
+                    replay = sc2reader.load_replay(
+                        path, debug=True, load_level=2
+                    )
                     print(
                         "{build} - {real_type} on {map_name} - Played {start_time}".format(
                             **replay.__dict__
@@ -147,7 +171,9 @@ def main():
                     traceback.print_exc()
                     print("")
                 except Exception as e2:
-                    replay = sc2reader.load_replay(path, debug=True, load_level=0)
+                    replay = sc2reader.load_replay(
+                        path, debug=True, load_level=0
+                    )
                     print(
                         "Total failure parsing {release_string}".format(
                             **replay.__dict__

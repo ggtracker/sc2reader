@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    division,
+)
 
 from collections import defaultdict, namedtuple
 from datetime import datetime
@@ -15,7 +20,10 @@ from sc2reader import log_utils
 from sc2reader import readers
 from sc2reader import exceptions
 from sc2reader.data import datapacks
-from sc2reader.exceptions import SC2ReaderLocalizationError, CorruptTrackerFileError
+from sc2reader.exceptions import (
+    SC2ReaderLocalizationError,
+    CorruptTrackerFileError,
+)
 from sc2reader.objects import (
     Participant,
     Observer,
@@ -269,7 +277,9 @@ class Replay(Resource):
             try:
                 self.archive = mpyq.MPQArchive(replay_file, listfile=False)
             except Exception as e:
-                raise exceptions.MPQError("Unable to construct the MPQArchive", e)
+                raise exceptions.MPQError(
+                    "Unable to construct the MPQArchive", e
+                )
 
             header_content = self.archive.header["user_data_header"]["content"]
             header_data = BitPackedDecoder(header_content).read_struct()
@@ -331,7 +341,9 @@ class Replay(Resource):
         # Run this replay through the engine as indicated
         if engine:
             resume_events = [
-                ev for ev in self.game_events if ev.name == "HijackReplayGameEvent"
+                ev
+                for ev in self.game_events
+                if ev.name == "HijackReplayGameEvent"
             ]
             if (
                 self.base_build <= 26490
@@ -396,17 +408,23 @@ class Replay(Resource):
 
         dependency_hashes = [d.hash for d in details["cache_handles"]]
         if (
-            hashlib.sha256("Standard Data: Void.SC2Mod".encode("utf8")).hexdigest()
+            hashlib.sha256(
+                "Standard Data: Void.SC2Mod".encode("utf8")
+            ).hexdigest()
             in dependency_hashes
         ):
             self.expansion = "LotV"
         elif (
-            hashlib.sha256("Standard Data: Swarm.SC2Mod".encode("utf8")).hexdigest()
+            hashlib.sha256(
+                "Standard Data: Swarm.SC2Mod".encode("utf8")
+            ).hexdigest()
             in dependency_hashes
         ):
             self.expansion = "HotS"
         elif (
-            hashlib.sha256("Standard Data: Liberty.SC2Mod".encode("utf8")).hexdigest()
+            hashlib.sha256(
+                "Standard Data: Liberty.SC2Mod".encode("utf8")
+            ).hexdigest()
             in dependency_hashes
         ):
             self.expansion = "WoL"
@@ -424,14 +442,15 @@ class Replay(Resource):
         if details["utc_adjustment"] < 10 ** 7 * 60 * 60 * 24:
             self.time_zone = details["utc_adjustment"] / (10 ** 7 * 60 * 60)
         else:
-            self.time_zone = (details["utc_adjustment"] - details["file_time"]) / (
-                10 ** 7 * 60 * 60
-            )
+            self.time_zone = (
+                details["utc_adjustment"] - details["file_time"]
+            ) / (10 ** 7 * 60 * 60)
 
         self.game_length = self.length
         self.real_length = utils.Length(
             seconds=int(
-                self.length.seconds / GAME_SPEED_FACTOR[self.expansion][self.speed]
+                self.length.seconds
+                / GAME_SPEED_FACTOR[self.expansion][self.speed]
             )
         )
         self.start_time = datetime.utcfromtimestamp(
@@ -507,7 +526,9 @@ class Replay(Resource):
                     )
                     player_id += 1
 
-            elif slot_data["control"] == 3 and detail_id < len(details["players"]):
+            elif slot_data["control"] == 3 and detail_id < len(
+                details["players"]
+            ):
                 # detail_id check needed for coop
                 self.entities.append(
                     Computer(
@@ -558,7 +579,9 @@ class Replay(Resource):
                     self.winner = team
             else:
                 self.logger.warn(
-                    "Conflicting results for Team {0}: {1}".format(team.number, results)
+                    "Conflicting results for Team {0}: {1}".format(
+                        team.number, results
+                    )
                 )
                 team.result = "Unknown"
 
@@ -602,7 +625,9 @@ class Replay(Resource):
         self.packets = self.raw_data["replay.message.events"]["packets"]
 
         self.message_events = self.messages + self.pings + self.packets
-        self.events = sorted(self.events + self.message_events, key=lambda e: e.frame)
+        self.events = sorted(
+            self.events + self.message_events, key=lambda e: e.frame
+        )
 
     def load_game_events(self):
         # Copy the events over
@@ -611,7 +636,9 @@ class Replay(Resource):
             return
 
         self.game_events = self.raw_data["replay.game.events"]
-        self.events = sorted(self.events + self.game_events, key=lambda e: e.frame)
+        self.events = sorted(
+            self.events + self.game_events, key=lambda e: e.frame
+        )
 
         # hideous hack for HotS 2.0.0.23925, see https://github.com/GraylinKim/sc2reader/issues/87
         if (
@@ -627,7 +654,9 @@ class Replay(Resource):
             return
 
         self.tracker_events = self.raw_data["replay.tracker.events"]
-        self.events = sorted(self.tracker_events + self.events, key=lambda e: e.frame)
+        self.events = sorted(
+            self.tracker_events + self.events, key=lambda e: e.frame
+        )
 
     def register_reader(self, data_file, reader, filterfunc=lambda r: True):
         """
@@ -671,7 +700,9 @@ class Replay(Resource):
     # Override points
     def register_default_readers(self):
         """Registers factory default readers."""
-        self.register_reader("replay.details", readers.DetailsReader(), lambda r: True)
+        self.register_reader(
+            "replay.details", readers.DetailsReader(), lambda r: True
+        )
         self.register_reader(
             "replay.initData", readers.InitDataReader(), lambda r: True
         )
@@ -682,13 +713,19 @@ class Replay(Resource):
             "replay.initData.backup", readers.InitDataReader(), lambda r: True
         )
         self.register_reader(
-            "replay.tracker.events", readers.TrackerEventsReader(), lambda r: True
+            "replay.tracker.events",
+            readers.TrackerEventsReader(),
+            lambda r: True,
         )
         self.register_reader(
-            "replay.message.events", readers.MessageEventsReader(), lambda r: True
+            "replay.message.events",
+            readers.MessageEventsReader(),
+            lambda r: True,
         )
         self.register_reader(
-            "replay.attributes.events", readers.AttributesEventsReader(), lambda r: True
+            "replay.attributes.events",
+            readers.AttributesEventsReader(),
+            lambda r: True,
         )
 
         self.register_reader(
@@ -900,7 +937,9 @@ class Replay(Resource):
 class Map(Resource):
     url_template = "http://{0}.depot.battle.net:1119/{1}.s2ma"
 
-    def __init__(self, map_file, filename=None, region=None, map_hash=None, **options):
+    def __init__(
+        self, map_file, filename=None, region=None, map_hash=None, **options
+    ):
         super(Map, self).__init__(map_file, filename, **options)
 
         #: The localized (only enUS supported right now) map name.
@@ -964,7 +1003,9 @@ class Map(Resource):
 
             icon_path_node = doc_info.find("Icon/Value")
             #: (Optional) The path to the icon for the map, relative to the archive root
-            self.icon_path = icon_path_node.text if icon_path_node is not None else None
+            self.icon_path = (
+                icon_path_node.text if icon_path_node is not None else None
+            )
 
             #: (Optional) The icon image for the map in tga format
             self.icon = (
@@ -1029,7 +1070,9 @@ class GameSummary(Resource):
     localization_urls = dict()
 
     def __init__(self, summary_file, filename=None, lang="enUS", **options):
-        super(GameSummary, self).__init__(summary_file, filename, lang=lang, **options)
+        super(GameSummary, self).__init__(
+            summary_file, filename, lang=lang, **options
+        )
 
         #: A dict of team# -> teams
         self.team = dict()
@@ -1078,11 +1121,14 @@ class GameSummary(Resource):
             self.expansion = ""
 
         self.end_time = datetime.utcfromtimestamp(self.parts[0][8])
-        self.game_speed = LOBBY_PROPERTIES[0xBB8][1][self.parts[0][0][1].decode("utf8")]
+        self.game_speed = LOBBY_PROPERTIES[0xBB8][1][
+            self.parts[0][0][1].decode("utf8")
+        ]
         self.game_length = utils.Length(seconds=self.parts[0][7])
         self.real_length = utils.Length(
             seconds=int(
-                self.parts[0][7] / GAME_SPEED_FACTOR[self.expansion][self.game_speed]
+                self.parts[0][7]
+                / GAME_SPEED_FACTOR[self.expansion][self.game_speed]
             )
         )
         self.start_time = datetime.utcfromtimestamp(
@@ -1118,7 +1164,10 @@ class GameSummary(Resource):
         self.id_map = dict()
         for mapping in self.parts[1][0]:
             if isinstance(mapping[2][0], dict):
-                self.id_map[mapping[1][1]] = (mapping[2][0][1], mapping[2][0][2])
+                self.id_map[mapping[1][1]] = (
+                    mapping[2][0][1],
+                    mapping[2][0][2],
+                )
 
         # The id mappings for lobby and player properties are stored
         # separately in the parts[0][5] entry.
@@ -1168,7 +1217,9 @@ class GameSummary(Resource):
 
             sheets = list()
             for depot_file in files:
-                sheets.append(self.factory.load_localization(depot_file, **self.opt))
+                sheets.append(
+                    self.factory.load_localization(depot_file, **self.opt)
+                )
 
             translation = dict()
             for uid, (sheet, item) in self.id_map.items():
@@ -1234,11 +1285,15 @@ class GameSummary(Resource):
                 if requirement.is_lobby:
                     values = [setting]
                 else:
-                    values = [setting[player]] if player is not None else setting
+                    values = (
+                        [setting[player]] if player is not None else setting
+                    )
 
                 # Because of the above complication we resort to a set intersection of
                 # the applicable values and the set of required values.
-                if not set(requirement.values[val][0] for val in values) & set(req[1]):
+                if not set(requirement.values[val][0] for val in values) & set(
+                    req[1]
+                ):
                     break
 
             else:
@@ -1260,7 +1315,9 @@ class GameSummary(Resource):
                 for index, player_setting in enumerate(settings[uid]):
                     if use_property(prop, index):
                         value = prop.values[player_setting][0]
-                        self.player_settings[index][name] = translation[(uid, value)]
+                        self.player_settings[index][name] = translation[
+                            (uid, value)
+                        ]
 
     def load_player_stats(self):
         translation = self.translations[self.opt["lang"]]
@@ -1301,7 +1358,9 @@ class GameSummary(Resource):
                         else:
                             value = value[0][0]
 
-                        self.player_stats.setdefault(pid, dict())[stat_name] = value
+                        self.player_stats.setdefault(pid, dict())[
+                            stat_name
+                        ] = value
                 else:
                     # Each build item represents one ability and contains
                     # a list of all the uses of that ability by each player
@@ -1390,7 +1449,9 @@ class GameSummary(Resource):
             player.workers_active_graph = stats.get("Workers Active", None)
             player.enemies_destroyed = stats.get("Enemies Destroyed:", None)
             player.time_supply_capped = stats.get("Time Supply Capped", None)
-            player.idle_production_time = stats.get("Idle Production Time", None)
+            player.idle_production_time = stats.get(
+                "Idle Production Time", None
+            )
             player.resources_spent = stats.get("Resources Spent:", None)
             player.apm = stats.get("APM", None)
 
@@ -1404,7 +1465,9 @@ class GameSummary(Resource):
                 player.resource_collection_graph = None
                 player.income_graph = None
 
-            player.avg_unspent_resources = stats.get("Average Unspent Resources", None)
+            player.avg_unspent_resources = stats.get(
+                "Average Unspent Resources", None
+            )
             player.workers_created = stats.get("Workers Created", None)
 
             # Build Orders Tab
@@ -1418,7 +1481,8 @@ class GameSummary(Resource):
             self.start_time,
             self.game_length,
             "v".join(
-                "".join(p.play_race[0] for p in team.players) for team in self.teams
+                "".join(p.play_race[0] for p in team.players)
+                for team in self.teams
             ),
         )
 

@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 # TODO: Dry this up a bit!
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    division,
+)
 
 from sc2reader.log_utils import loggable
 from sc2reader.utils import Length
@@ -60,7 +65,9 @@ class ContextLoader(object):
         if event.other_unit_id in replay.objects:
             event.other_unit = replay.objects[event.other_unit_id]
         elif event.other_unit_id is not None:
-            self.logger.error("Other unit {0} not found".format(event.other_unit_id))
+            self.logger.error(
+                "Other unit {0} not found".format(event.other_unit_id)
+            )
 
     def handleTargetUnitCommandEvent(self, event, replay):
         self.last_target_ability_event[event.player.pid] = event
@@ -127,9 +134,13 @@ class ContextLoader(object):
                 if unit_id in replay.objects:
                     unit = replay.objects[unit_id]
                     if not unit.is_type(unit_type):
-                        replay.datapack.change_type(unit, unit_type, event.frame)
+                        replay.datapack.change_type(
+                            unit, unit_type, event.frame
+                        )
                 else:
-                    unit = replay.datapack.create_unit(unit_id, unit_type, event.frame)
+                    unit = replay.datapack.create_unit(
+                        unit_id, unit_type, event.frame
+                    )
                     replay.objects[unit_id] = unit
 
             # If we have tracker events, the unit must already exist and must already
@@ -139,7 +150,9 @@ class ContextLoader(object):
 
             # Except when it doesn't.
             else:
-                unit = replay.datapack.create_unit(unit_id, unit_type, event.frame)
+                unit = replay.datapack.create_unit(
+                    unit_id, unit_type, event.frame
+                )
                 replay.objects[unit_id] = unit
 
             # Selection events hold flags on units (like hallucination)
@@ -200,7 +213,9 @@ class ContextLoader(object):
             else:
                 self.logger.error(
                     "Unable to delete unit index {0} at {1} [{2}], index not active.".format(
-                        event.killer_pid, Length(seconds=event.second), event.frame
+                        event.killer_pid,
+                        Length(seconds=event.second),
+                        event.frame,
                     )
                 )
         else:
@@ -211,14 +226,20 @@ class ContextLoader(object):
             )
 
         if event.killing_player_id in replay.player:
-            event.killing_player = event.killer = replay.player[event.killing_player_id]
+            event.killing_player = event.killer = replay.player[
+                event.killing_player_id
+            ]
             if event.unit:
-                event.unit.killing_player = event.unit.killed_by = event.killing_player
+                event.unit.killing_player = (
+                    event.unit.killed_by
+                ) = event.killing_player
                 event.killing_player.killed_units.append(event.unit)
         elif event.killing_player_id:
             self.logger.error(
                 "Unknown killing player id {0} at {1} [{2}]".format(
-                    event.killing_player_id, Length(seconds=event.second), event.frame
+                    event.killing_player_id,
+                    Length(seconds=event.second),
+                    event.frame,
                 )
             )
 
@@ -230,7 +251,9 @@ class ContextLoader(object):
         elif event.killing_unit_id:
             self.logger.error(
                 "Unknown killing unit id {0} at {1} [{2}]".format(
-                    event.killing_unit_id, Length(seconds=event.second), event.frame
+                    event.killing_unit_id,
+                    Length(seconds=event.second),
+                    event.frame,
                 )
             )
 
@@ -262,7 +285,9 @@ class ContextLoader(object):
 
         if event.unit_id in replay.objects:
             event.unit = replay.objects[event.unit_id]
-            replay.datapack.change_type(event.unit, event.unit_type_name, event.frame)
+            replay.datapack.change_type(
+                event.unit, event.unit_type_name, event.frame
+            )
         else:
             self.logger.error(
                 "Unit {0} type changed at {1} [{2}] before it was born!".format(
@@ -325,7 +350,9 @@ class ContextLoader(object):
             else:
                 self.logger.error(
                     "Unit at active_unit index {0} moved at {1} [{2}] but it doesn't exist!".format(
-                        event.killer_pid, Length(seconds=event.second), event.frame
+                        event.killer_pid,
+                        Length(seconds=event.second),
+                        event.frame,
                     )
                 )
 

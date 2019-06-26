@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    division,
+)
 
 from io import BytesIO
 
@@ -63,7 +68,9 @@ class ByteDecoder(object):
         self._unpack_int = struct.Struct(str(self.endian + "I")).unpack
         self._unpack_short = struct.Struct(str(self.endian + "H")).unpack
         self._unpack_longlong = struct.Struct(str(self.endian + "Q")).unpack
-        self._unpack_bytes = lambda bytes: bytes if self.endian == ">" else bytes[::-1]
+        self._unpack_bytes = (
+            lambda bytes: bytes if self.endian == ">" else bytes[::-1]
+        )
 
     def done(self):
         """ Returns true when all bytes have been decoded """
@@ -265,7 +272,9 @@ class BitPackedDecoder(object):
             lo_mask, hi_mask = self._bit_masks[self._bit_shift]
             for next_byte in struct.unpack(str("B") * count, data):
                 temp_buffer.write(
-                    struct.pack(str("B"), prev_byte & hi_mask | next_byte & lo_mask)
+                    struct.pack(
+                        str("B"), prev_byte & hi_mask | next_byte & lo_mask
+                    )
                 )
                 prev_byte = next_byte
 

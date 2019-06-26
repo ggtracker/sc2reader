@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    division,
+)
 
 import logging
 
@@ -47,7 +52,9 @@ def setup():
 
 
 def log_to_file(filename, level="WARN", format=None, datefmt=None, **options):
-    add_log_handler(logging.FileHandler(filename, **options), level, format, datefmt)
+    add_log_handler(
+        logging.FileHandler(filename, **options), level, format, datefmt
+    )
 
 
 def log_to_console(level="WARN", format=None, datefmt=None, **options):

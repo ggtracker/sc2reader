@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    division,
+)
 
 import hashlib
 import math
@@ -201,7 +206,9 @@ class Player(object):
 
         #: The race the player played the game with.
         #: One of Protoss, Terran, Zerg
-        self.play_race = LOCALIZED_RACES.get(detail_data["race"], detail_data["race"])
+        self.play_race = LOCALIZED_RACES.get(
+            detail_data["race"], detail_data["race"]
+        )
 
         #: The co-op commander the player picked
         #: Kerrigan, Raynor, etc.
@@ -249,9 +256,7 @@ class User(object):
     """
 
     #: The Battle.net profile url template
-    URL_TEMPLATE = (
-        "http://{region}.battle.net/sc2/en/profile/{toon_id}/{subregion}/{name}/"
-    )
+    URL_TEMPLATE = "http://{region}.battle.net/sc2/en/profile/{toon_id}/{subregion}/{name}/"
 
     def __init__(self, uid, init_data):
         #: The user's unique in-game user id
@@ -327,7 +332,9 @@ class Computer(Entity, Player):
         self.name = detail_data["name"]
 
     def __str__(self):
-        return "Player {0} - {1} ({2})".format(self.pid, self.name, self.play_race)
+        return "Player {0} - {1} ({2})".format(
+            self.pid, self.name, self.play_race
+        )
 
     def __repr__(self):
         return str(self)
@@ -353,7 +360,9 @@ class Participant(Entity, User, Player):
         Player.__init__(self, pid, slot_data, detail_data, attribute_data)
 
     def __str__(self):
-        return "Player {0} - {1} ({2})".format(self.pid, self.name, self.play_race)
+        return "Player {0} - {1} ({2})".format(
+            self.pid, self.name, self.play_race
+        )
 
     def __repr__(self):
         return str(self)
@@ -472,7 +481,9 @@ class MapInfoPlayer(object):
     Describes the player data as found in the MapInfo document of SC2Map archives.
     """
 
-    def __init__(self, pid, control, color, race, unknown, start_point, ai, decal):
+    def __init__(
+        self, pid, control, color, race, unknown, start_point, ai, decal
+    ):
         #: The pid of the player
         self.pid = pid
 
@@ -745,7 +756,9 @@ class MapInfo(object):
         #    }
         # }
         #: A bit array of flags mapping out the player enemies.
-        self.enemy_flags = data.read_uint(int(math.ceil(self.enemy_flags_length / 8.0)))
+        self.enemy_flags = data.read_uint(
+            int(math.ceil(self.enemy_flags_length / 8.0))
+        )
 
         if data.length != data.tell():
             self.logger.warn("Not all of the MapInfo file was read!")

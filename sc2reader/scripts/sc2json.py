@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    division,
+)
 
 import sc2reader
 from sc2reader.factories.plugins.replay import toJSON
@@ -9,7 +14,9 @@ from sc2reader.factories.plugins.replay import toJSON
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description="Prints replay data to a json string.")
+    parser = argparse.ArgumentParser(
+        description="Prints replay data to a json string."
+    )
     parser.add_argument(
         "--indent",
         "-i",

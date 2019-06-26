@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    division,
+)
 
 import collections
 from sc2reader.events import *
@@ -157,7 +162,10 @@ class GameEngine(object):
                 # Remove the plugin and reset the handlers.
                 plugins.remove(event.plugin)
                 handlers.clear()
-                replay.plugin_result[event.plugin.name] = (event.code, event.details)
+                replay.plugin_result[event.plugin.name] = (
+                    event.code,
+                    event.details,
+                )
                 if event.code != 0:
                     replay.plugin_failures.append(event.plugin.name)
 
@@ -187,7 +195,9 @@ class GameEngine(object):
                         raise  # Maybe??
                     else:
                         new_event = PluginExit(
-                            event_handler.__self__, code=1, details=dict(error=e)
+                            event_handler.__self__,
+                            code=1,
+                            details=dict(error=e),
                         )
                         new_events.append(new_event)
             event_queue.extendleft(new_events)
@@ -199,20 +209,30 @@ class GameEngine(object):
 
     def _get_event_handlers(self, event, plugins):
         return sum(
-            [self._get_plugin_event_handlers(plugin, event) for plugin in plugins], []
+            [
+                self._get_plugin_event_handlers(plugin, event)
+                for plugin in plugins
+            ],
+            [],
         )
 
     def _get_plugin_event_handlers(self, plugin, event):
         handlers = list()
         if isinstance(event, Event) and hasattr(plugin, "handleEvent"):
             handlers.append(getattr(plugin, "handleEvent", None))
-        if isinstance(event, MessageEvent) and hasattr(plugin, "handleMessageEvent"):
+        if isinstance(event, MessageEvent) and hasattr(
+            plugin, "handleMessageEvent"
+        ):
             handlers.append(getattr(plugin, "handleMessageEvent", None))
         if isinstance(event, GameEvent) and hasattr(plugin, "handleGameEvent"):
             handlers.append(getattr(plugin, "handleGameEvent", None))
-        if isinstance(event, TrackerEvent) and hasattr(plugin, "handleTrackerEvent"):
+        if isinstance(event, TrackerEvent) and hasattr(
+            plugin, "handleTrackerEvent"
+        ):
             handlers.append(getattr(plugin, "handleTrackerEvent", None))
-        if isinstance(event, CommandEvent) and hasattr(plugin, "handleCommandEvent"):
+        if isinstance(event, CommandEvent) and hasattr(
+            plugin, "handleCommandEvent"
+        ):
             handlers.append(getattr(plugin, "handleCommandEvent", None))
         if isinstance(event, ControlGroupEvent) and hasattr(
             plugin, "handleControlGroupEvent"

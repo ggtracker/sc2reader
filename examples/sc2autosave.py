@@ -391,7 +391,8 @@ def reset(args):
 def setup(args):
     args.team_compare, args.player_compare = create_compare_funcs(args)
     args.action = sc2reader.utils.AttributeDict(
-        type=args.action, run=shutil.copy if args.action == "COPY" else shutil.move
+        type=args.action,
+        run=shutil.copy if args.action == "COPY" else shutil.move,
     )
     if not os.path.exists(args.source):
         msg = "Source does not exist: {0}.\n\nScript Aborted."
@@ -432,13 +433,19 @@ def main():
     parser = argparse.ArgumentParser(
         description="Automatically copy new replays to directory",
         fromfile_prefix_chars="@",
-        formatter_class=sc2reader.scripts.utils.Formatter.new(max_help_position=35),
+        formatter_class=sc2reader.scripts.utils.Formatter.new(
+            max_help_position=35
+        ),
         epilog="And that's all folks",
     )
 
     required = parser.add_argument_group("Required Arguments")
-    required.add_argument("source", type=str, help="The source directory to poll")
-    required.add_argument("dest", type=str, help="The destination directory to copy to")
+    required.add_argument(
+        "source", type=str, help="The source directory to poll"
+    )
+    required.add_argument(
+        "dest", type=str, help="The destination directory to copy to"
+    )
 
     general = parser.add_argument_group("General Options")
     general.add_argument(

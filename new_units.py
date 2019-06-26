@@ -25,7 +25,9 @@ print("")
 print("")
 
 ABIL_LOOKUP = dict()
-for entry in pkgutil.get_data("sc2reader.data", "ability_lookup.csv").split("\n"):
+for entry in pkgutil.get_data("sc2reader.data", "ability_lookup.csv").split(
+    "\n"
+):
     if not entry:
         continue
     str_id, abilities = entry.split(",", 1)

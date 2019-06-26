@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
+from __future__ import (
+    absolute_import,
+    print_function,
+    unicode_literals,
+    division,
+)
 
 import json
 import pkgutil
@@ -18,7 +23,9 @@ except NameError:
 
 ABIL_LOOKUP = dict()
 for entry in (
-    pkgutil.get_data("sc2reader.data", "ability_lookup.csv").decode("utf8").split("\n")
+    pkgutil.get_data("sc2reader.data", "ability_lookup.csv")
+    .decode("utf8")
+    .split("\n")
 ):
     if not entry:
         continue
@@ -27,7 +34,9 @@ for entry in (
 
 UNIT_LOOKUP = dict()
 for entry in (
-    pkgutil.get_data("sc2reader.data", "unit_lookup.csv").decode("utf8").split("\n")
+    pkgutil.get_data("sc2reader.data", "unit_lookup.csv")
+    .decode("utf8")
+    .split("\n")
 ):
     if not entry:
         continue
@@ -37,7 +46,9 @@ for entry in (
 unit_data = pkgutil.get_data("sc2reader.data", "unit_info.json").decode("utf8")
 unit_lookup = json.loads(unit_data)
 
-command_data = pkgutil.get_data("sc2reader.data", "train_commands.json").decode("utf8")
+command_data = pkgutil.get_data("sc2reader.data", "train_commands.json").decode(
+    "utf8"
+)
 train_commands = json.loads(command_data)
 
 
@@ -275,7 +286,13 @@ class Ability(object):
     """ Represents an in-game ability """
 
     def __init__(
-        self, id, name=None, title=None, is_build=False, build_time=0, build_unit=None
+        self,
+        id,
+        name=None,
+        title=None,
+        is_build=False,
+        build_time=0,
+        build_unit=None,
     ):
         #: The internal integer id representing this ability.
         self.id = id
@@ -432,7 +449,9 @@ def load_build(expansion, version):
         int_id_base = int(int_id_base, 10) << 5
 
         abils = ABIL_LOOKUP[str_id]
-        real_abils = [(i, abil) for i, abil in enumerate(abils) if abil.strip() != ""]
+        real_abils = [
+            (i, abil) for i, abil in enumerate(abils) if abil.strip() != ""
+        ]
 
         if len(real_abils) == 0:
             real_abils = [(0, str_id)]
@@ -469,7 +488,20 @@ hots_builds["38215"].id = "38215"
 
 # Load LotV Data
 lotv_builds = dict()
-for version in ("base", "44401", "47185", "48258", "53644", "54724", "59587", "70154"):
+for version in (
+    "base",
+    "44401",
+    "47185",
+    "48258",
+    "53644",
+    "54724",
+    "59587",
+    "70154",
+):
     lotv_builds[version] = load_build("LotV", version)
 
-datapacks = builds = {"WoL": wol_builds, "HotS": hots_builds, "LotV": lotv_builds}
+datapacks = builds = {
+    "WoL": wol_builds,
+    "HotS": hots_builds,
+    "LotV": lotv_builds,
+}
