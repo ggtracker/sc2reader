@@ -22,7 +22,8 @@ jobs:
   Python3:
     docker:
       - image: circleci/python:3.7
-    steps: *steps
+    steps:
+      << : *steps
       - run: pip install black
       - run: black . --check
 
