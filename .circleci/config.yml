@@ -13,6 +13,10 @@ my-steps: &steps
   - run: python -m unittest discover test_s2gs
   - run: python -m unittest discover test_replays
 
+black_check: &black_check_steps
+  - run: pip install black
+  - run: black . --check
+
 jobs:
   Python2:
     docker:
@@ -23,9 +27,8 @@ jobs:
     docker:
       - image: circleci/python:3.7
     steps:
-      << : *steps
-      - run: pip install black
-      - run: black . --check
+      - *steps
+      - *black_check_steps
 
 workflows:
   version: 2
