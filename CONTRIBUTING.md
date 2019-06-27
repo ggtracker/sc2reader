@@ -18,3 +18,18 @@ Please submit patches by pull request where possible. Patches should add a test 
 
 If you are having trouble running/add/fixing tests for your patch let me know and I'll see if I can help.
 
+
+Coding Style
+==============
+
+We'd like our code to follow PEP8 coding style in this project.
+We use [python/black](https://github.com/python/black) in order to make our lives easier.
+We propose you do the same within this project, otherwise you might be asked to
+reformat your pull requests.
+
+It's really simple just:
+
+    pip install black
+    black .
+
+And there are plug ins for many editors.
