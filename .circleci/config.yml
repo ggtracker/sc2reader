@@ -1,4 +1,4 @@
-version: 2.0
+version: 2.1
 
 my-steps: &steps
   - checkout
@@ -12,23 +12,25 @@ my-steps: &steps
   #- run: pytest # test_s2gs test_replays
   - run: python -m unittest discover test_s2gs
   - run: python -m unittest discover test_replays
-
-black_check: &black_check_steps
-  - run: pip install black
-  - run: black . --check
+  - when:
+    condition: << perform_black_check >>
+    steps:
+      run:
+        - pip install black
+        - black . --check
 
 jobs:
   Python2:
+    perform_black_check: false
     docker:
       - image: circleci/python:2.7.15
     steps: *steps
 
   Python3:
+    perform_black_check: true
     docker:
       - image: circleci/python:3.7
-    steps:
-      - *steps
-      - *black_check_steps
+    steps: *steps
 
 workflows:
   version: 2
