@@ -32,4 +32,4 @@ It's really simple just:
     pip install black
     black .
 
-And there are plug ins for many editors.
+And [there are plugins for many editors](https://black.readthedocs.io/en/stable/editor_integration.html).
