@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import (
-    absolute_import,
-    print_function,
-    unicode_literals,
-    division,
-)
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 from collections import defaultdict
 from io import BytesIO
@@ -111,9 +106,7 @@ class SC2Factory(object):
 
     def load_maps(self, sources, options=None, **new_options):
         """Loads a collection of s2ma files, returns a generator."""
-        return self.load_all(
-            Map, sources, options, extension="s2ma", **new_options
-        )
+        return self.load_all(Map, sources, options, extension="s2ma", **new_options)
 
     def load_game_summary(self, source, options=None, **new_options):
         """Loads a single s2gs file. Accepts file path, url, or file object."""
@@ -151,9 +144,7 @@ class SC2Factory(object):
 
     def load_all(self, cls, sources, options=None, **new_options):
         options = options or self._get_options(cls, **new_options)
-        for resource, filename in self._load_resources(
-            sources, options=options
-        ):
+        for resource, filename in self._load_resources(sources, options=options):
             yield self._load(cls, resource, filename=filename, options=options)
 
     # Internal Functions
@@ -207,16 +198,12 @@ class SC2Factory(object):
 
         if isinstance(resource, basestring):
             if re.match(r"https?://", resource):
-                contents = self.load_remote_resource_contents(
-                    resource, **options
-                )
+                contents = self.load_remote_resource_contents(resource, **options)
 
             else:
                 directory = options.get("directory", "")
                 location = os.path.join(directory, resource)
-                contents = self.load_local_resource_contents(
-                    location, **options
-                )
+                contents = self.load_local_resource_contents(location, **options)
 
             # BytesIO implements a fuller file-like object
             resource_name = resource
@@ -248,9 +235,9 @@ class CachedSC2Factory(SC2Factory):
     def load_remote_resource_contents(self, remote_resource, **options):
         cache_key = self.get_remote_cache_key(remote_resource)
         if not self.cache_has(cache_key):
-            resource = super(
-                CachedSC2Factory, self
-            ).load_remote_resource_contents(remote_resource, **options)
+            resource = super(CachedSC2Factory, self).load_remote_resource_contents(
+                remote_resource, **options
+            )
             self.cache_set(cache_key, resource)
         else:
             resource = self.cache_get(cache_key)
@@ -280,9 +267,7 @@ class FileCachedSC2Factory(CachedSC2Factory):
         self.cache_dir = os.path.abspath(cache_dir)
         if not os.path.isdir(self.cache_dir):
             raise ValueError(
-                "cache_dir ({0}) must be an existing directory.".format(
-                    self.cache_dir
-                )
+                "cache_dir ({0}) must be an existing directory.".format(self.cache_dir)
             )
         elif not os.access(self.cache_dir, os.F_OK | os.W_OK | os.R_OK):
             raise ValueError(
@@ -295,9 +280,7 @@ class FileCachedSC2Factory(CachedSC2Factory):
         return os.path.exists(self.cache_path(cache_key))
 
     def cache_get(self, cache_key, **options):
-        return self.load_local_resource_contents(
-            self.cache_path(cache_key), **options
-        )
+        return self.load_local_resource_contents(self.cache_path(cache_key), **options)
 
     def cache_set(self, cache_key, value):
         cache_path = self.cache_path(cache_key)
@@ -330,9 +313,7 @@ class DictCachedSC2Factory(CachedSC2Factory):
 
     def cache_set(self, cache_key, value):
         if self.cache_max_size and len(self.cache_dict) >= self.cache_max_size:
-            oldest_cache_key = min(self.cache_used.items(), key=lambda e: e[1])[
-                0
-            ]
+            oldest_cache_key = min(self.cache_used.items(), key=lambda e: e[1])[0]
             del self.cache_used[oldest_cache_key]
             del self.cache_dict[oldest_cache_key]
         self.cache_dict[cache_key] = value

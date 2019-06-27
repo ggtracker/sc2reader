@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import (
-    absolute_import,
-    print_function,
-    unicode_literals,
-    division,
-)
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 
 class SelectionTracker(object):
@@ -84,17 +79,13 @@ class SelectionTracker(object):
             # Deselect objects according to deselect mask
             sfilter = lambda bit_u: not bit_u[0]
             mask = data + [False] * (selection_size - data_size)
-            new_selection = [
-                u for (bit, u) in filter(sfilter, zip(mask, selection))
-            ]
+            new_selection = [u for (bit, u) in filter(sfilter, zip(mask, selection))]
             error = data_size > selection_size
 
         elif mode == "OneIndices":
             # Deselect objects according to indexes
             clean_data = list(filter(lambda i: i < selection_size, data))
-            new_selection = [
-                u for i, u in enumerate(selection) if i < selection_size
-            ]
+            new_selection = [u for i, u in enumerate(selection) if i < selection_size]
             error = len(list(filter(lambda i: i >= selection_size, data))) != 0
 
         elif mode == "ZeroIndices":

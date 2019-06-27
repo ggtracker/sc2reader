@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import (
-    absolute_import,
-    print_function,
-    unicode_literals,
-    division,
-)
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 
 class SC2ReaderError(Exception):
@@ -32,9 +27,7 @@ class MultipleMatchingFilesError(SC2ReaderError):
 
 
 class ReadError(SC2ReaderError):
-    def __init__(
-        self, msg, type, location, replay=None, game_events=[], buffer=None
-    ):
+    def __init__(self, msg, type, location, replay=None, game_events=[], buffer=None):
         self.__dict__.update(locals())
         super(ReadError, self).__init__(msg)
 

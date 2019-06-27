@@ -32,19 +32,13 @@ def generate_build_data(balance_data_path):
                         command_index = int(command_index_str)
 
                         # Pad potential gaps in command indices with empty strings
-                        while (
-                            len(ability_lookup[ability_name]) <= command_index
-                        ):
+                        while len(ability_lookup[ability_name]) <= command_index:
                             ability_lookup[ability_name].append("")
 
                         command_name = (
-                            command_id
-                            if command_id != "Execute"
-                            else ability_name
+                            command_id if command_id != "Execute" else ability_name
                         )
-                        ability_lookup[ability_name][
-                            command_index
-                        ] = command_name
+                        ability_lookup[ability_name][command_index] = command_name
 
         unit_id = root.get("id")
 
@@ -80,9 +74,7 @@ def generate_build_data(balance_data_path):
                     command_index = int(command_index_str)
 
                     # Pad potential gaps in command indices with empty strings
-                    while (
-                        len(ability_lookup[build_ability_name]) <= command_index
-                    ):
+                    while len(ability_lookup[build_ability_name]) <= command_index:
                         ability_lookup[build_ability_name].append("")
 
                     build_command_name = "Build{}".format(built_unit_id)
@@ -126,8 +118,7 @@ def generate_build_data(balance_data_path):
 
                             # Pad potential gaps in command indices with empty strings
                             while (
-                                len(ability_lookup[train_ability_name])
-                                <= command_index
+                                len(ability_lookup[train_ability_name]) <= command_index
                             ):
                                 ability_lookup[train_ability_name].append("")
 
@@ -142,14 +133,11 @@ def generate_build_data(balance_data_path):
 
                             # Pad potential gaps in command indices with empty strings
                             while (
-                                len(ability_lookup[train_ability_name])
-                                <= command_index
+                                len(ability_lookup[train_ability_name]) <= command_index
                             ):
                                 ability_lookup[train_ability_name].append("")
 
-                            train_command_name = "Train{}".format(
-                                trained_unit_name
-                            )
+                            train_command_name = "Train{}".format(trained_unit_name)
                             ability_lookup[train_ability_name][
                                 command_index
                             ] = train_command_name
@@ -172,15 +160,10 @@ def generate_build_data(balance_data_path):
                     command_index = int(command_index_str)
 
                     # Pad potential gaps in command indices with empty strings
-                    while (
-                        len(ability_lookup[research_ability_name])
-                        <= command_index
-                    ):
+                    while len(ability_lookup[research_ability_name]) <= command_index:
                         ability_lookup[research_ability_name].append("")
 
-                    research_command_name = "Research{}".format(
-                        researched_upgrade_id
-                    )
+                    research_command_name = "Research{}".format(researched_upgrade_id)
                     ability_lookup[research_ability_name][
                         command_index
                     ] = research_command_name
@@ -192,9 +175,7 @@ def generate_build_data(balance_data_path):
         sorted(abilities.items(), key=lambda x: int(x[0]))
     )
 
-    unit_lookup = dict(
-        (unit_name, unit_name) for _, unit_name in sorted_units.items()
-    )
+    unit_lookup = dict((unit_name, unit_name) for _, unit_name in sorted_units.items())
 
     return sorted_units, sorted_abilities, unit_lookup, ability_lookup
 

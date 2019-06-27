@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import (
-    absolute_import,
-    print_function,
-    unicode_literals,
-    division,
-)
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 import os
 import argparse
@@ -32,9 +27,7 @@ def printReplay(filepath, arguments):
             for team in replay.teams:
                 print(
                     "      Team {0}\t{1} ({2})".format(
-                        team.number,
-                        team.players[0].name,
-                        team.players[0].pick_race[0],
+                        team.number, team.players[0].name, team.players[0].pick_race[0]
                     )
                 )
                 for player in team.players[1:]:
@@ -69,10 +62,7 @@ def printReplay(filepath, arguments):
         print("\tPrevious Event: {0}".format(prev.name))
         print("\t\t" + prev.bytes.encode("hex"))
         print("\tFollowing Bytes:")
-        print(
-            "\t\t"
-            + e.buffer.read_range(e.location, e.location + 30).encode("hex")
-        )
+        print("\t\t" + e.buffer.read_range(e.location, e.location + 30).encode("hex"))
         print("Error with '{0}': ".format(filepath))
         print(e)
     except Exception as e:
@@ -137,10 +127,7 @@ def main():
 
     shared_args = parser.add_argument_group("Shared Arguments")
     shared_args.add_argument(
-        "--date",
-        action="store_true",
-        default=True,
-        help="print game date [default on]",
+        "--date", action="store_true", default=True, help="print game date [default on]"
     )
     shared_args.add_argument(
         "--length",
@@ -149,10 +136,7 @@ def main():
         help="print game duration mm:ss in game time (not real time) [default off]",
     )
     shared_args.add_argument(
-        "--map",
-        action="store_true",
-        default=True,
-        help="print map name [default on]",
+        "--map", action="store_true", default=True, help="print map name [default on]"
     )
     shared_args.add_argument(
         "--teams",
@@ -193,16 +177,12 @@ def main():
             name, ext = os.path.splitext(filepath)
             if ext.lower() == ".sc2replay":
                 print(
-                    "\n--------------------------------------\n{0}\n".format(
-                        filepath
-                    )
+                    "\n--------------------------------------\n{0}\n".format(filepath)
                 )
                 printReplay(filepath, arguments)
             elif ext.lower() == ".s2gs":
                 print(
-                    "\n--------------------------------------\n{0}\n".format(
-                        filepath
-                    )
+                    "\n--------------------------------------\n{0}\n".format(filepath)
                 )
                 printGameSummary(filepath, arguments)
 

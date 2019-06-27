@@ -7,9 +7,7 @@ setuptools.setup(
     version="1.3.1",
     keywords=["starcraft 2", "sc2", "replay", "parser"],
     description="Utility for parsing Starcraft II replay files",
-    long_description=open("README.rst").read()
-    + "\n\n"
-    + open("CHANGELOG.rst").read(),
+    long_description=open("README.rst").read() + "\n\n" + open("CHANGELOG.rst").read(),
     author="Kevin Leung",
     author_email="kkleung89@gmail.com",
     url="https://github.com/ggtracker/sc2reader",
@@ -44,13 +42,7 @@ setuptools.setup(
             "sc2json = sc2reader.scripts.sc2json:main",
         ]
     },
-    install_requires=[
-        "mpyq>=0.2.3",
-        "argparse",
-        "ordereddict",
-        "unittest2",
-        "pil",
-    ]
+    install_requires=["mpyq>=0.2.3", "argparse", "ordereddict", "unittest2", "pil"]
     if float(sys.version[:3]) < 2.7
     else ["mpyq>=0.2.4"],
     packages=setuptools.find_packages(),

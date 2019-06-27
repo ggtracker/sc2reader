@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import (
-    absolute_import,
-    print_function,
-    unicode_literals,
-    division,
-)
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 import json
 from collections import defaultdict
@@ -64,9 +59,7 @@ def toDict(replay):
         players.append(
             {
                 "avg_apm": getattr(player, "avg_apm", None),
-                "color": player.color.__dict__
-                if hasattr(player, "color")
-                else None,
+                "color": player.color.__dict__ if hasattr(player, "color") else None,
                 "handicap": getattr(player, "handicap", None),
                 "name": getattr(player, "name", None),
                 "pick_race": getattr(player, "pick_race", None),
@@ -100,14 +93,10 @@ def toDict(replay):
         "build": getattr(replay, "build", None),
         "release": getattr(replay, "release_string", None),
         "game_fps": getattr(replay, "game_fps", None),
-        "game_length": getattr(
-            getattr(replay, "game_length", None), "seconds", None
-        ),
+        "game_length": getattr(getattr(replay, "game_length", None), "seconds", None),
         "players": players,
         "observers": observers,
-        "real_length": getattr(
-            getattr(replay, "real_length", None), "seconds", None
-        ),
+        "real_length": getattr(getattr(replay, "real_length", None), "seconds", None),
         "real_type": getattr(replay, "real_type", None),
         "time_zone": getattr(replay, "time_zone", None),
         "versions": getattr(replay, "versions", None),
@@ -165,9 +154,7 @@ def SelectionTracker(replay):
             if event.name == "SelectionEvent":
                 selections = player_selections[event.frame]
                 control_group = selections[event.control_group].copy()
-                error = not control_group.deselect(
-                    event.mask_type, event.mask_data
-                )
+                error = not control_group.deselect(event.mask_type, event.mask_data)
                 control_group.select(event.new_units)
                 selections[event.control_group] = control_group
                 if debug:
@@ -186,35 +173,27 @@ def SelectionTracker(replay):
                 if debug:
                     logger.info(
                         "[{0}] {1} set hotkey {2} to current selection".format(
-                            Length(seconds=event.second),
-                            person.name,
-                            event.hotkey,
+                            Length(seconds=event.second), person.name, event.hotkey
                         )
                     )
 
             elif event.name == "AddToControlGroupEvent":
                 selections = player_selections[event.frame]
                 control_group = selections[event.control_group].copy()
-                error = not control_group.deselect(
-                    event.mask_type, event.mask_data
-                )
+                error = not control_group.deselect(event.mask_type, event.mask_data)
                 control_group.select(selections[0x0A].objects)
                 selections[event.control_group] = control_group
                 if debug:
                     logger.info(
                         "[{0}] {1} added current selection to hotkey {2}".format(
-                            Length(seconds=event.second),
-                            person.name,
-                            event.hotkey,
+                            Length(seconds=event.second), person.name, event.hotkey
                         )
                     )
 
             elif event.name == "GetControlGroupEvent":
                 selections = player_selections[event.frame]
                 control_group = selections[event.control_group].copy()
-                error = not control_group.deselect(
-                    event.mask_type, event.mask_data
-                )
+                error = not control_group.deselect(event.mask_type, event.mask_data)
                 selections[0xA] = control_group
                 if debug:
                     logger.info(

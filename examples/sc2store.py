@@ -150,9 +150,7 @@ class Player(Base):
 
     def __init__(self, player, db):
         try:
-            self.person = (
-                db.query(Person).filter(Person.name == player.name).one()
-            )
+            self.person = db.query(Person).filter(Person.name == player.name).one()
         except NoResultFound as e:
             self.person = Person()
             self.person.name = player.name

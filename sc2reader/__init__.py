@@ -18,12 +18,7 @@
     :copyright: (c) 2011 by Graylin Kim.
     :license: MIT, see LICENSE for more details.
 """
-from __future__ import (
-    absolute_import,
-    print_function,
-    unicode_literals,
-    division,
-)
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 __version__ = "0.8.0"
 
@@ -100,9 +95,7 @@ def useDoubleCache(cache_dir, cache_max_size=0, **options):
     A limited number of remote resources are cached in memory for faster access times.
     All remote resources are saved to the file system for faster access times.
     """
-    setFactory(
-        factories.DoubleCachedSC2Factory(cache_dir, cache_max_size, **options)
-    )
+    setFactory(factories.DoubleCachedSC2Factory(cache_dir, cache_max_size, **options))
 
 
 # Allow environment variables to activate caching

@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import (
-    absolute_import,
-    print_function,
-    unicode_literals,
-    division,
-)
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 import sys
 from sc2reader.engine.engine import GameEngine

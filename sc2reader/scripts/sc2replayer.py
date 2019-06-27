@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import (
-    absolute_import,
-    print_function,
-    unicode_literals,
-    division,
-)
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 try:
     # Assume that we are on *nix or Mac
@@ -55,9 +50,7 @@ def main():
         key to advance through the events in sequential order."""
     )
 
-    parser.add_argument(
-        "FILE", type=str, help="The file you would like to replay"
-    )
+    parser.add_argument("FILE", type=str, help="The file you would like to replay")
     parser.add_argument(
         "--player",
         default=0,
@@ -88,9 +81,7 @@ def main():
         replay = sc2reader.load_replay(filename, debug=True)
         print("Release {0}".format(replay.release_string))
         print(
-            "{0} on {1} at {2}".format(
-                replay.type, replay.map_name, replay.start_time
-            )
+            "{0} on {1} at {2}".format(replay.type, replay.map_name, replay.start_time)
         )
         print("")
         for team in replay.teams:

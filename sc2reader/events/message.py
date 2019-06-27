@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import (
-    absolute_import,
-    print_function,
-    unicode_literals,
-    division,
-)
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 from sc2reader.events.base import Event
 from sc2reader.utils import Length
@@ -31,12 +26,8 @@ class MessageEvent(Event):
         self.name = self.__class__.__name__
 
     def _str_prefix(self):
-        player_name = (
-            self.player.name if getattr(self, "pid", 16) != 16 else "Global"
-        )
-        return "{0}\t{1:<15} ".format(
-            Length(seconds=int(self.frame / 16)), player_name
-        )
+        player_name = self.player.name if getattr(self, "pid", 16) != 16 else "Global"
+        return "{0}\t{1:<15} ".format(Length(seconds=int(self.frame / 16)), player_name)
 
     def __str__(self):
         return self._str_prefix() + self.name

@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import (
-    absolute_import,
-    print_function,
-    unicode_literals,
-    division,
-)
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 from sc2reader.utils import Length
 from sc2reader.events.base import Event
@@ -53,9 +48,7 @@ class GameEvent(Event):
             player_name = self.player.name
         else:
             player_name = "no name"
-        return "{0}\t{1:<15} ".format(
-            Length(seconds=int(self.frame / 16)), player_name
-        )
+        return "{0}\t{1:<15} ".format(Length(seconds=int(self.frame / 16)), player_name)
 
     def __str__(self):
         return self._str_prefix() + self.name
@@ -211,9 +204,7 @@ class CommandEvent(GameEvent):
         self.has_ability = data["ability"] is not None
 
         #: Link the the ability group
-        self.ability_link = (
-            data["ability"]["ability_link"] if self.has_ability else 0
-        )
+        self.ability_link = data["ability"]["ability_link"] if self.has_ability else 0
 
         #: The index of the ability in the ability group
         self.command_index = (
@@ -343,14 +334,10 @@ class TargetUnitCommandEvent(CommandEvent):
 
         #: Integer player id of the controlling player. Available for TargetUnit type events starting in 19595.
         #: When the targetted unit is under fog of war this id is zero.
-        self.control_player_id = self.ability_type_data.get(
-            "control_player_id", None
-        )
+        self.control_player_id = self.ability_type_data.get("control_player_id", None)
 
         #: Integer player id of the player paying upkeep. Available for TargetUnit type events.
-        self.upkeep_player_id = self.ability_type_data.get(
-            "upkeep_player_id", None
-        )
+        self.upkeep_player_id = self.ability_type_data.get("upkeep_player_id", None)
 
         #: The x coordinate of the target. Available for TargetPoint and TargetUnit type events.
         self.x = self.ability_type_data["point"].get("x", 0) / 4096.0
@@ -510,13 +497,9 @@ class SelectionEvent(GameEvent):
 
     def __str__(self):
         if self.new_units:
-            return GameEvent.__str__(self) + str(
-                [str(u) for u in self.new_units]
-            )
+            return GameEvent.__str__(self) + str([str(u) for u in self.new_units])
         else:
-            return GameEvent.__str__(self) + str(
-                [str(u) for u in self.new_unit_info]
-            )
+            return GameEvent.__str__(self) + str([str(u) for u in self.new_unit_info])
 
 
 def create_control_group_event(frame, pid, data):
@@ -612,14 +595,10 @@ class CameraEvent(GameEvent):
         super(CameraEvent, self).__init__(frame, pid)
 
         #: The x coordinate of the center of the camera
-        self.x = (
-            data["target"]["x"] if data["target"] is not None else 0
-        ) / 256.0
+        self.x = (data["target"]["x"] if data["target"] is not None else 0) / 256.0
 
         #: The y coordinate of the center of the camera
-        self.y = (
-            data["target"]["y"] if data["target"] is not None else 0
-        ) / 256.0
+        self.y = (data["target"]["y"] if data["target"] is not None else 0) / 256.0
 
         #: The location of the center of the camera
         self.location = (self.x, self.y)
@@ -674,17 +653,11 @@ class ResourceTradeEvent(GameEvent):
         self.terrazon = self.resources[2] if len(self.resources) >= 3 else None
 
         #: Amount custom resource sent
-        self.custom_resource = (
-            self.resources[3] if len(self.resources) >= 4 else None
-        )
+        self.custom_resource = self.resources[3] if len(self.resources) >= 4 else None
 
     def __str__(self):
         return self._str_prefix() + " transfer {0} minerals, {1} gas, {2} terrazine, and {3} custom to {4}".format(
-            self.minerals,
-            self.vespene,
-            self.terrazine,
-            self.custom,
-            self.recipient,
+            self.minerals, self.vespene, self.terrazine, self.custom, self.recipient
         )
 
 
@@ -709,9 +682,7 @@ class ResourceRequestEvent(GameEvent):
         self.terrazon = self.resources[2] if len(self.resources) >= 3 else None
 
         #: Amount custom resource sent
-        self.custom_resource = (
-            self.resources[3] if len(self.resources) >= 4 else None
-        )
+        self.custom_resource = self.resources[3] if len(self.resources) >= 4 else None
 
     def __str__(self):
         return self._str_prefix() + " requests {0} minerals, {1} gas, {2} terrazine, and {3} custom".format(

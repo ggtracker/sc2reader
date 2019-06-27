@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import (
-    absolute_import,
-    print_function,
-    unicode_literals,
-    division,
-)
+from __future__ import absolute_import, print_function, unicode_literals, division
 
 import binascii
 import os
@@ -175,8 +170,7 @@ def get_files(
     # If an extension is supplied, use it to do a type check
     if extension:
         type_check = (
-            lambda path: os.path.splitext(path)[1][1:].lower()
-            == extension.lower()
+            lambda path: os.path.splitext(path)[1][1:].lower() == extension.lower()
         )
     else:
         type_check = lambda n: True
@@ -189,9 +183,7 @@ def get_files(
             pass  # return and halt the generator
 
     else:
-        for root, directories, filenames in os.walk(
-            path, followlinks=followlinks
-        ):
+        for root, directories, filenames in os.walk(path, followlinks=followlinks):
             # Exclude the indicated directories by removing them from `directories`
             for directory in list(directories):
                 if directory in exclude or depth == 0:
@@ -226,9 +218,7 @@ class Length(timedelta):
 
     def __str__(self):
         if self.hours:
-            return "{0:0>2}.{1:0>2}.{2:0>2}".format(
-                self.hours, self.mins, self.secs
-            )
+            return "{0:0>2}.{1:0>2}.{2:0>2}".format(self.hours, self.mins, self.secs)
         else:
             return "{0:0>2}.{1:0>2}".format(self.mins, self.secs)
 
@@ -282,9 +272,7 @@ def toDict(replay):
         players.append(
             {
                 "avg_apm": getattr(player, "avg_apm", None),
-                "color": player.color.__dict__
-                if hasattr(player, "color")
-                else None,
+                "color": player.color.__dict__ if hasattr(player, "color") else None,
                 "handicap": getattr(player, "handicap", None),
                 "name": getattr(player, "name", None),
                 "pick_race": getattr(player, "pick_race", None),
@@ -318,14 +306,10 @@ def toDict(replay):
         "build": getattr(replay, "build", None),
         "release": getattr(replay, "release_string", None),
         "game_fps": getattr(replay, "game_fps", None),
-        "game_length": getattr(
-            getattr(replay, "game_length", None), "seconds", None
-        ),
+        "game_length": getattr(getattr(replay, "game_length", None), "seconds", None),
         "players": players,
         "observers": observers,
-        "real_length": getattr(
-            getattr(replay, "real_length", None), "seconds", None
-        ),
+        "real_length": getattr(getattr(replay, "real_length", None), "seconds", None),
         "real_type": getattr(replay, "real_type", None),
         "time_zone": getattr(replay, "time_zone", None),
         "versions": getattr(replay, "versions", None),
