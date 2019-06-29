@@ -3,4 +3,4 @@ from __future__ import absolute_import, print_function, unicode_literals, divisi
 
 
 class Event(object):
-    name = 'Event'
+    name = "Event"

@@ -112,6 +112,7 @@ class GameEngine(object):
                 message = "RequiredPlugin failed with code: {0}. Cannot continue.".format(code)
                 yield PluginExit(self, code=1, details=dict(msg=message))
     """
+
     def __init__(self, plugins=[]):
         self._plugins = list()
         self.register_plugins(*plugins)
@@ -124,7 +125,7 @@ class GameEngine(object):
             self.register_plugin(plugin)
 
     def plugins(self):
-      return self._plugins
+        return self._plugins
 
     def run(self, replay):
         # A map of [event.name] => event handlers in plugin registration order
@@ -152,7 +153,7 @@ class GameEngine(object):
         while len(event_queue) > 0:
             event = event_queue.popleft()
 
-            if event.name == 'PluginExit':
+            if event.name == "PluginExit":
                 # Remove the plugin and reset the handlers.
                 plugins.remove(event.plugin)
                 handlers.clear()
@@ -174,18 +175,20 @@ class GameEngine(object):
             new_events = collections.deque()
             for event_handler in event_handlers:
                 try:
-                    for new_event in (event_handler(event, replay) or []):
-                        if new_event.name == 'PluginExit':
+                    for new_event in event_handler(event, replay) or []:
+                        if new_event.name == "PluginExit":
                             new_events.append(new_event)
                             break
                         else:
                             new_events.appendleft(new_event)
                 except Exception as e:
-                    if event_handler.__self__.name in ['ContextLoader']:
+                    if event_handler.__self__.name in ["ContextLoader"]:
                         # Certain built in plugins should probably still cause total failure
                         raise  # Maybe??
                     else:
-                        new_event = PluginExit(event_handler.__self__, code=1, details=dict(error=e))
+                        new_event = PluginExit(
+                            event_handler.__self__, code=1, details=dict(error=e)
+                        )
                         new_events.append(new_event)
             event_queue.extendleft(new_events)
 
@@ -195,22 +198,26 @@ class GameEngine(object):
             replay.plugin_result[plugin.name] = (0, dict())
 
     def _get_event_handlers(self, event, plugins):
-        return sum([self._get_plugin_event_handlers(plugin, event) for plugin in plugins], [])
+        return sum(
+            [self._get_plugin_event_handlers(plugin, event) for plugin in plugins], []
+        )
 
     def _get_plugin_event_handlers(self, plugin, event):
         handlers = list()
-        if isinstance(event, Event) and hasattr(plugin, 'handleEvent'):
-            handlers.append(getattr(plugin, 'handleEvent', None))
-        if isinstance(event, MessageEvent) and hasattr(plugin, 'handleMessageEvent'):
-            handlers.append(getattr(plugin, 'handleMessageEvent', None))
-        if isinstance(event, GameEvent) and hasattr(plugin, 'handleGameEvent'):
-            handlers.append(getattr(plugin, 'handleGameEvent', None))
-        if isinstance(event, TrackerEvent) and hasattr(plugin, 'handleTrackerEvent'):
-            handlers.append(getattr(plugin, 'handleTrackerEvent', None))
-        if isinstance(event, CommandEvent) and hasattr(plugin, 'handleCommandEvent'):
-            handlers.append(getattr(plugin, 'handleCommandEvent', None))
-        if isinstance(event, ControlGroupEvent) and hasattr(plugin, 'handleControlGroupEvent'):
-            handlers.append(getattr(plugin, 'handleControlGroupEvent', None))
-        if hasattr(plugin, 'handle'+event.name):
-            handlers.append(getattr(plugin, 'handle'+event.name, None))
+        if isinstance(event, Event) and hasattr(plugin, "handleEvent"):
+            handlers.append(getattr(plugin, "handleEvent", None))
+        if isinstance(event, MessageEvent) and hasattr(plugin, "handleMessageEvent"):
+            handlers.append(getattr(plugin, "handleMessageEvent", None))
+        if isinstance(event, GameEvent) and hasattr(plugin, "handleGameEvent"):
+            handlers.append(getattr(plugin, "handleGameEvent", None))
+        if isinstance(event, TrackerEvent) and hasattr(plugin, "handleTrackerEvent"):
+            handlers.append(getattr(plugin, "handleTrackerEvent", None))
+        if isinstance(event, CommandEvent) and hasattr(plugin, "handleCommandEvent"):
+            handlers.append(getattr(plugin, "handleCommandEvent", None))
+        if isinstance(event, ControlGroupEvent) and hasattr(
+            plugin, "handleControlGroupEvent"
+        ):
+            handlers.append(getattr(plugin, "handleControlGroupEvent", None))
+        if hasattr(plugin, "handle" + event.name):
+            handlers.append(getattr(plugin, "handle" + event.name, None))
         return handlers
