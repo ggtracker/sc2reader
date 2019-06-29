@@ -3,11 +3,10 @@ version: 2.0
 build_and_test: &build_and_test_steps
   - checkout
   - run: sudo pip install -r requirements.txt
+  - run: pip install --user .
   - run: sudo pip install pytest
   - run: python --version ; pip --version ; pwd ; ls -l
-  #- run: pytest # test_s2gs test_replays
-  - run: python -m unittest discover test_s2gs
-  - run: python -m unittest discover test_replays
+  - run: pytest
 
 
 jobs:
