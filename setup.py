@@ -42,9 +42,9 @@ setuptools.setup(
             "sc2json = sc2reader.scripts.sc2json:main",
         ]
     },
-    install_requires=['mpyq>=0.2.3', 'argparse', 'ordereddict', 'unittest2', 'pil']
+    install_requires=["mpyq>=0.2.3", "argparse", "ordereddict", "unittest2", "pil"]
     if float(sys.version[:3]) < 2.7
-    else ['mpyq>=0.2.4'],
+    else ["mpyq>=0.2.4"],
     tests_require=["pytest"],
     packages=setuptools.find_packages(),
     include_package_data=True,
