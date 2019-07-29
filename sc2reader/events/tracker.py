@@ -482,7 +482,7 @@ class UnitTypeChangeEvent(TrackerEvent):
         self.unit_type_name = data[2].decode("utf8")
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Unit {0} type changed to {1}".format(
+        return self._str_prefix() + "{0: >15} - Unit {1} type changed to {2}".format(
             str(self.unit.owner), self.unit, self.unit_type_name
         )
 
