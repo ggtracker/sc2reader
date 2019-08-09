@@ -1,32 +1,44 @@
 version: 2.0
 
-my-steps: &steps
+build_and_test: &build_and_test_steps
   - checkout
   - run: sudo pip install -r requirements.txt
-  - run: sudo pip install flake8 pytest
+  - run: pip install --user .
+  - run: sudo pip install pytest
   - run: python --version ; pip --version ; pwd ; ls -l
-  # stop the build if there are Python syntax errors or undefined names
-  - run: flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
-  # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
-  - run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-  #- run: pytest # test_s2gs test_replays
-  - run: python -m unittest discover test_s2gs
-  - run: python -m unittest discover test_replays
+  - run: pytest
+
 
 jobs:
+  StyleCheck:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+      - run: sudo pip install flake8 black
+      - run: python --version ; pip --version ; pwd ; ls -l
+      # stop the build if there are Python syntax errors or undefined names
+      - run: flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
+      # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
+      - run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - run: black . --check
+
+
   Python2:
     docker:
       - image: circleci/python:2.7.15
-    steps: *steps
+    steps: *build_and_test_steps
 
   Python3:
     docker:
       - image: circleci/python:3.7
-    steps: *steps
+    steps: *build_and_test_steps
+
 
 workflows:
   version: 2
   build:
     jobs:
+      - StyleCheck
       - Python2
       - Python3

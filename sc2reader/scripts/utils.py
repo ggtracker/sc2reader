@@ -35,29 +35,29 @@ class Formatter(argparse.RawTextHelpFormatter):
 
     def _split_lines(self, text, width):
         lines = list()
-        main_indent = len(re.match(r'( *)', text).group(1))
+        main_indent = len(re.match(r"( *)", text).group(1))
         # Wrap each line individually to allow for partial formatting
         for line in text.splitlines():
 
             # Get this line's indent and figure out what indent to use
             # if the line wraps. Account for lists of small variety.
-            indent = len(re.match(r'( *)', line).group(1))
-            list_match = re.match(r'( *)(([*-+>]+|\w+\)|\w+\.) +)', line)
-            if(list_match):
+            indent = len(re.match(r"( *)", line).group(1))
+            list_match = re.match(r"( *)(([*-+>]+|\w+\)|\w+\.) +)", line)
+            if list_match:
                 sub_indent = indent + len(list_match.group(2))
             else:
                 sub_indent = indent
 
             # Textwrap will do all the hard work for us
-            line = self._whitespace_matcher.sub(' ', line).strip()
+            line = self._whitespace_matcher.sub(" ", line).strip()
             new_lines = textwrap.wrap(
                 text=line,
                 width=width,
-                initial_indent=' '*(indent-main_indent),
-                subsequent_indent=' '*(sub_indent-main_indent),
+                initial_indent=" " * (indent - main_indent),
+                subsequent_indent=" " * (sub_indent - main_indent),
             )
 
             # Blank lines get eaten by textwrap, put it back with [' ']
-            lines.extend(new_lines or [' '])
+            lines.extend(new_lines or [" "])
 
         return lines

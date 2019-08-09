@@ -23,7 +23,8 @@ class GameHeartNormalizer(object):
     * They are all 1v1's.
     * You can't random in GameHeart
     """
-    name = 'GameHeartNormalizer'
+
+    name = "GameHeartNormalizer"
 
     PRIMARY_BUILDINGS = dict(Hatchery="Zerg", Nexus="Protoss", CommandCenter="Terran")
 
@@ -38,14 +39,20 @@ class GameHeartNormalizer(object):
         for event in replay.tracker_events:
             if start_frame != -1 and event.frame > start_frame + 5:  # fuzz it a little
                 break
-            if event.name == 'UnitBornEvent' and event.control_pid and event.unit_type_name in self.PRIMARY_BUILDINGS:
+            if (
+                event.name == "UnitBornEvent"
+                and event.control_pid
+                and event.unit_type_name in self.PRIMARY_BUILDINGS
+            ):
                 # In normal replays, starting units are born on frame zero.
                 if event.frame == 0:
                     yield PluginExit(self, code=0, details=dict())
                     return
                 else:
                     start_frame = event.frame
-                    actual_players[event.control_pid] = self.PRIMARY_BUILDINGS[event.unit_type_name]
+                    actual_players[event.control_pid] = self.PRIMARY_BUILDINGS[
+                        event.unit_type_name
+                    ]
 
         self.fix_entities(replay, actual_players)
         self.fix_events(replay, start_frame)
@@ -53,8 +60,12 @@ class GameHeartNormalizer(object):
         replay.frames -= start_frame
         replay.game_length = Length(seconds=replay.frames / 16)
         replay.real_type = get_real_type(replay.teams)
-        replay.real_length = Length(seconds=int(replay.game_length.seconds/GAME_SPEED_FACTOR[replay.speed]))
-        replay.start_time = datetime.utcfromtimestamp(replay.unix_timestamp-replay.real_length.seconds)
+        replay.real_length = Length(
+            seconds=int(replay.game_length.seconds / GAME_SPEED_FACTOR[replay.speed])
+        )
+        replay.start_time = datetime.utcfromtimestamp(
+            replay.unix_timestamp - replay.real_length.seconds
+        )
 
     def fix_events(self, replay, start_frame):
         # Set back the game clock for all events
@@ -70,8 +81,8 @@ class GameHeartNormalizer(object):
         # Change the players that aren't playing into observers
         for p in [p for p in replay.players if p.pid not in actual_players]:
             # Fix the slot data to be accurate
-            p.slot_data['observe'] = 1
-            p.slot_data['team_id'] = None
+            p.slot_data["observe"] = 1
+            p.slot_data["team_id"] = None
             obs = Observer(p.sid, p.slot_data, p.uid, p.init_data, p.pid)
 
             # Because these obs start the game as players the client
@@ -103,7 +114,7 @@ class GameHeartNormalizer(object):
         replay.team = dict()
         replay.teams = list()
         for index, player in enumerate(replay.players):
-            team_id = index+1
+            team_id = index + 1
             team = Team(team_id)
             replay.team[team_id] = team
             replay.teams.append(team)
@@ -113,5 +124,5 @@ class GameHeartNormalizer(object):
             player.play_race = player.pick_race
             team.players = [player]
             team.result = player.result
-            if team.result == 'Win':
+            if team.result == "Win":
                 replay.winner = team

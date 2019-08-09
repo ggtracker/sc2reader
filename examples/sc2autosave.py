@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-'''sc2autosave is a utility for reorganizing and renaming Starcraft II files.
+"""sc2autosave is a utility for reorganizing and renaming Starcraft II files.
 
 Overview
 ==============
@@ -158,7 +158,7 @@ Complete Reference Guide
 
 POST-Parse filtering vs preparse filtering?
 POST-Parse, how to do it?!?!?!?!
-'''
+"""
 import argparse
 import cPickle
 import os
@@ -169,91 +169,91 @@ import time
 import sc2reader
 
 try:
-    raw_input          # Python 2
+    raw_input  # Python 2
 except NameError:
     raw_input = input  # Python 3
 
 
 def run(args):
-    #Reset wipes the destination clean so we can start over.
+    # Reset wipes the destination clean so we can start over.
     if args.reset:
         reset(args)
 
-    #Set up validates the destination and source directories.
-    #It also loads the previous state or creates one as necessary.
+    # Set up validates the destination and source directories.
+    # It also loads the previous state or creates one as necessary.
     state = setup(args)
 
-    #We break out of this loop in batch mode and on KeyboardInterrupt
+    # We break out of this loop in batch mode and on KeyboardInterrupt
     while True:
 
-        #The file scan uses the arguments and the state to filter down to
-        #only new (since the last sync time) files.
+        # The file scan uses the arguments and the state to filter down to
+        # only new (since the last sync time) files.
         for path in scan(args, state):
             try:
-                #Read the file and expose useful aspects for renaming/filtering
+                # Read the file and expose useful aspects for renaming/filtering
                 replay = sc2reader.load_replay(path, load_level=2)
             except KeyboardInterrupt:
                 raise
             except:
-                #Failure to parse
+                # Failure to parse
                 file_name = os.path.basename(path)
-                directory = make_directory(args, ('parse_error',))
+                directory = make_directory(args, ("parse_error",))
                 new_path = os.path.join(directory, file_name)
-                source_path = path[len(args.source):]
+                source_path = path[len(args.source) :]
                 args.log.write("Error parsing replay: {0}".format(source_path))
                 if not args.dryrun:
                     args.action.run(path, new_path)
 
-                #Skip to the next replay
+                # Skip to the next replay
                 continue
 
             aspects = generate_aspects(args, replay)
 
-            #Use the filter args to select files based on replay attributes
+            # Use the filter args to select files based on replay attributes
             if filter_out_replay(args, replay):
                 continue
 
-            #Apply the aspects to the rename formatting.
+            # Apply the aspects to the rename formatting.
             #'/' is a special character for creation of subdirectories.
-            #TODO: Handle duplicate replay names, its possible..
-            path_parts = args.rename.format(**aspects).split('/')
-            filename = path_parts.pop()+'.SC2Replay'
+            # TODO: Handle duplicate replay names, its possible..
+            path_parts = args.rename.format(**aspects).split("/")
+            filename = path_parts.pop() + ".SC2Replay"
 
-            #Construct the directory and file paths; create needed directories
+            # Construct the directory and file paths; create needed directories
             directory = make_directory(args, path_parts)
             new_path = os.path.join(directory, filename)
 
-            #Find the source relative to the source directory for reporting
-            dest_path = new_path[len(args.dest):]
-            source_path = path[len(args.source):]
+            # Find the source relative to the source directory for reporting
+            dest_path = new_path[len(args.dest) :]
+            source_path = path[len(args.source) :]
 
-            #Log the action and run it if we are live
+            # Log the action and run it if we are live
             msg = "{0}:\n\tSource: {1}\n\tDest: {2}\n"
             args.log.write(msg.format(args.action.type, source_path, dest_path))
             if not args.dryrun:
                 args.action.run(path, new_path)
 
-        #After every batch completes, save the state and flush the log
-        #TODO: modify the state to include a list of remaining files
+        # After every batch completes, save the state and flush the log
+        # TODO: modify the state to include a list of remaining files
         args.log.flush()
         save_state(state, args)
 
-        #We only run once in batch mode!
-        if args.mode == 'BATCH':
+        # We only run once in batch mode!
+        if args.mode == "BATCH":
             break
 
-        #Since new replays come in fairly infrequently, reduce system load
-        #by sleeping for an acceptable response time before the next scan.
+        # Since new replays come in fairly infrequently, reduce system load
+        # by sleeping for an acceptable response time before the next scan.
         time.sleep(args.period)
 
-    args.log.write('Batch Completed')
+    args.log.write("Batch Completed")
 
 
 def filter_out_replay(args, replay):
     player_names = set([player.name for player in replay.players])
     filter_out_player = not set(args.filter_player) & player_names
 
-    if args.filter_rule == 'ALLOW':
+    if args.filter_rule == "ALLOW":
         return filter_out_player
     else:
         return not filter_out_player
@@ -268,8 +268,8 @@ def create_compare_funcs(args):
         # Normalize the player names and generate our key metrics
         player1_name = player1.name.lower()
         player2_name = player2.name.lower()
-        player1_favored = (player1_name in favored_set)
-        player2_favored = (player2_name in favored_set)
+        player1_favored = player1_name in favored_set
+        player2_favored = player2_name in favored_set
 
         # The favored player always comes first in the ordering
         if player1_favored and not player2_favored:
@@ -286,7 +286,7 @@ def create_compare_funcs(args):
         # If neither is favored, we'll order by number for now
         # TODO: Allow command line specification of other orderings (maybe?)
         else:
-            return player1.pid-player2.pid
+            return player1.pid - player2.pid
 
     def team_compare(team1, team2):
         # Normalize the team name lists and generate our key metrics
@@ -310,7 +310,7 @@ def create_compare_funcs(args):
         # If neither is favored, we'll order by number for now
         # TODO: Allow command line specification of other orderings (maybe?)
         else:
-            return team1.number-team2.number
+            return team1.number - team2.number
 
     return team_compare, player_compare
 
@@ -321,8 +321,8 @@ def generate_aspects(args, replay):
     for team in teams:
         team.players = sorted(team.players, args.player_compare)
         composition = sorted(p.play_race[0].upper() for p in team.players)
-        matchups.append(''.join(composition))
-        string = ', '.join(p.format(args.player_format) for p in team.players)
+        matchups.append("".join(composition))
+        string = ", ".join(p.format(args.player_format) for p in team.players)
         team_strings.append(string)
 
     return sc2reader.utils.AttributeDict(
@@ -331,8 +331,8 @@ def generate_aspects(args, replay):
         map=replay.map,
         type=replay.type,
         date=replay.date.strftime(args.date_format),
-        matchup='v'.join(matchups),
-        teams=' vs '.join(team_strings)
+        matchup="v".join(matchups),
+        teams=" vs ".join(team_strings),
     )
 
 
@@ -341,11 +341,11 @@ def make_directory(args, path_parts):
     for part in path_parts:
         directory = os.path.join(directory, part)
         if not os.path.exists(directory):
-            args.log.write('Creating subfolder: {0}\n'.format(directory))
+            args.log.write("Creating subfolder: {0}\n".format(directory))
             if not args.dryrun:
                 os.mkdir(directory)
         elif not os.path.isdir(directory):
-            exit('Cannot create subfolder. Path is occupied: {0}', directory)
+            exit("Cannot create subfolder. Path is occupied: {0}", directory)
 
     return directory
 
@@ -358,12 +358,13 @@ def scan(args, state):
         allow=False,
         exclude=args.exclude_dirs,
         depth=args.depth,
-        followlinks=args.follow_links)
+        followlinks=args.follow_links,
+    )
     return filter(lambda f: os.path.getctime(f) > state.last_sync, files)
 
 
 def exit(msg, *args, **kwargs):
-    sys.exit(msg.format(*args, **kwargs)+"\n\nScript Aborted.")
+    sys.exit(msg.format(*args, **kwargs) + "\n\nScript Aborted.")
 
 
 def reset(args):
@@ -372,10 +373,14 @@ def reset(args):
     elif not os.path.isdir(args.dest):
         exit("Cannot reset, destination must be directory: {0}", args.dest)
 
-    print('About to reset directory: {0}\nAll files and subdirectories will be removed.'.format(args.dest))
-    choice = raw_input('Proceed anyway? (y/n) ')
-    if choice.lower() == 'y':
-        args.log.write('Removing old directory: {0}\n'.format(args.dest))
+    print(
+        "About to reset directory: {0}\nAll files and subdirectories will be removed.".format(
+            args.dest
+        )
+    )
+    choice = raw_input("Proceed anyway? (y/n) ")
+    if choice.lower() == "y":
+        args.log.write("Removing old directory: {0}\n".format(args.dest))
         if not args.dryrun:
             print(args.dest)
             shutil.rmtree(args.dest)
@@ -385,25 +390,27 @@ def reset(args):
 
 def setup(args):
     args.team_compare, args.player_compare = create_compare_funcs(args)
-    args.action = sc2reader.utils.AttributeDict(type=args.action, run=shutil.copy if args.action == 'COPY' else shutil.move)
+    args.action = sc2reader.utils.AttributeDict(
+        type=args.action, run=shutil.copy if args.action == "COPY" else shutil.move
+    )
     if not os.path.exists(args.source):
-        msg = 'Source does not exist: {0}.\n\nScript Aborted.'
+        msg = "Source does not exist: {0}.\n\nScript Aborted."
         sys.exit(msg.format(args.source))
     elif not os.path.isdir(args.source):
-        msg = 'Source is not a directory: {0}.\n\nScript Aborted.'
+        msg = "Source is not a directory: {0}.\n\nScript Aborted."
         sys.exit(msg.format(args.source))
 
     if not os.path.exists(args.dest):
         if not args.dryrun:
             os.mkdir(args.dest)
         else:
-            args.log.write('Creating destination: {0}\n'.format(args.dest))
+            args.log.write("Creating destination: {0}\n".format(args.dest))
     elif not os.path.isdir(args.dest):
-        sys.exit('Destination must be a directory.\n\nScript Aborted')
+        sys.exit("Destination must be a directory.\n\nScript Aborted")
 
-    data_file = os.path.join(args.dest, 'sc2autosave.dat')
+    data_file = os.path.join(args.dest, "sc2autosave.dat")
 
-    args.log.write('Loading state from file: {0}\n'.format(data_file))
+    args.log.write("Loading state from file: {0}\n".format(data_file))
     if os.path.isfile(data_file) and not args.reset:
         with open(data_file) as file:
             return cPickle.load(file)
@@ -413,67 +420,115 @@ def setup(args):
 
 def save_state(state, args):
     state.last_sync = time.time()
-    data_file = os.path.join(args.dest, 'sc2autosave.dat')
+    data_file = os.path.join(args.dest, "sc2autosave.dat")
     if not args.dryrun:
-        with open(data_file, 'w') as file:
+        with open(data_file, "w") as file:
             cPickle.dump(state, file)
     else:
-        args.log.write('Writing state to file: {0}\n'.format(data_file))
+        args.log.write("Writing state to file: {0}\n".format(data_file))
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Automatically copy new replays to directory',
-        fromfile_prefix_chars='@',
+        description="Automatically copy new replays to directory",
+        fromfile_prefix_chars="@",
         formatter_class=sc2reader.scripts.utils.Formatter.new(max_help_position=35),
-        epilog="And that's all folks")
+        epilog="And that's all folks",
+    )
 
-    required = parser.add_argument_group('Required Arguments')
-    required.add_argument('source', type=str,
-        help='The source directory to poll')
-    required.add_argument('dest', type=str,
-        help='The destination directory to copy to')
+    required = parser.add_argument_group("Required Arguments")
+    required.add_argument("source", type=str, help="The source directory to poll")
+    required.add_argument("dest", type=str, help="The destination directory to copy to")
 
-    general = parser.add_argument_group('General Options')
-    general.add_argument('--mode', dest='mode',
-        type=str, choices=['BATCH', 'CYCLE'], default='BATCH',
-        help='The operating mode for the organizer')
+    general = parser.add_argument_group("General Options")
+    general.add_argument(
+        "--mode",
+        dest="mode",
+        type=str,
+        choices=["BATCH", "CYCLE"],
+        default="BATCH",
+        help="The operating mode for the organizer",
+    )
 
-    general.add_argument('--action', dest='action',
-        choices=['COPY', 'MOVE'], default="COPY", type=str,
-        help='Have the organizer move your files instead of copying')
-    general.add_argument('--period',
-        dest='period', type=int, default=0,
-        help='The period of time to wait between scans.')
-    general.add_argument('--log', dest='log', metavar='LOGFILE',
-        type=argparse.FileType('w'), default=sys.stdout,
-        help='Destination file for log information')
-    general.add_argument('--dryrun',
-        dest='dryrun', action="store_true",
-        help="Don't do anything. Only simulate the output")
-    general.add_argument('--reset',
-        dest='reset', action='store_true', default=False,
-        help='Wipe the destination directory clean and start over.')
+    general.add_argument(
+        "--action",
+        dest="action",
+        choices=["COPY", "MOVE"],
+        default="COPY",
+        type=str,
+        help="Have the organizer move your files instead of copying",
+    )
+    general.add_argument(
+        "--period",
+        dest="period",
+        type=int,
+        default=0,
+        help="The period of time to wait between scans.",
+    )
+    general.add_argument(
+        "--log",
+        dest="log",
+        metavar="LOGFILE",
+        type=argparse.FileType("w"),
+        default=sys.stdout,
+        help="Destination file for log information",
+    )
+    general.add_argument(
+        "--dryrun",
+        dest="dryrun",
+        action="store_true",
+        help="Don't do anything. Only simulate the output",
+    )
+    general.add_argument(
+        "--reset",
+        dest="reset",
+        action="store_true",
+        default=False,
+        help="Wipe the destination directory clean and start over.",
+    )
 
-    fileargs = parser.add_argument_group('File Options')
-    fileargs.add_argument('--depth',
-        dest='depth', type=int, default=-1,
-        help='Maximum recussion depth. -1 (default) is unlimited.')
-    fileargs.add_argument('--exclude-dirs', dest='exclude_dirs',
-        type=str, metavar='NAME', nargs='+', default=[],
-        help='A list of directory names to exclude during recursion')
-    fileargs.add_argument('--exclude-files', dest='exclude_files',
-        type=str, metavar='REGEX', default="",
-        help='An expression to match excluded files')
-    fileargs.add_argument('--follow-links',
-        dest='follow_links', action="store_true", default=False,
-        help="Enable following of symbolic links while scanning")
+    fileargs = parser.add_argument_group("File Options")
+    fileargs.add_argument(
+        "--depth",
+        dest="depth",
+        type=int,
+        default=-1,
+        help="Maximum recussion depth. -1 (default) is unlimited.",
+    )
+    fileargs.add_argument(
+        "--exclude-dirs",
+        dest="exclude_dirs",
+        type=str,
+        metavar="NAME",
+        nargs="+",
+        default=[],
+        help="A list of directory names to exclude during recursion",
+    )
+    fileargs.add_argument(
+        "--exclude-files",
+        dest="exclude_files",
+        type=str,
+        metavar="REGEX",
+        default="",
+        help="An expression to match excluded files",
+    )
+    fileargs.add_argument(
+        "--follow-links",
+        dest="follow_links",
+        action="store_true",
+        default=False,
+        help="Enable following of symbolic links while scanning",
+    )
 
-    renaming = parser.add_argument_group('Renaming Options')
-    renaming.add_argument('--rename',
-        dest='rename', type=str, metavar='FORMAT', nargs='?',
+    renaming = parser.add_argument_group("Renaming Options")
+    renaming.add_argument(
+        "--rename",
+        dest="rename",
+        type=str,
+        metavar="FORMAT",
+        nargs="?",
         default="{length} {type} on {map}",
-        help='''\
+        help="""\
             The renaming format string. can have the following values:
 
                 * {length} - The length of the replay ([H:]MM:SS)
@@ -482,41 +537,73 @@ def main():
                 * {match} - Race matchup in team order, alphabetically by race.
                 * {date} - The date the replay was played on
                 * {teams} - The player line up
-        ''')
+        """,
+    )
 
-    renaming.add_argument('--length-format',
-        dest='length_format', type=str, metavar='FORMAT', default='%M.%S',
-        help='The length format string. See the python time module for details')
-    renaming.add_argument('--player-format',
-        dest='player_format', type=str, metavar='FORMAT', default='{name} ({play_race})',
-        help='The player format string used to render the :teams content item.')
-    renaming.add_argument('--date-format',
-        dest='date_format', type=str, metavar='FORMAT', default='%m-%d-%Y',
-        help='The date format string used to render the :date content item.')
-    '''
+    renaming.add_argument(
+        "--length-format",
+        dest="length_format",
+        type=str,
+        metavar="FORMAT",
+        default="%M.%S",
+        help="The length format string. See the python time module for details",
+    )
+    renaming.add_argument(
+        "--player-format",
+        dest="player_format",
+        type=str,
+        metavar="FORMAT",
+        default="{name} ({play_race})",
+        help="The player format string used to render the :teams content item.",
+    )
+    renaming.add_argument(
+        "--date-format",
+        dest="date_format",
+        type=str,
+        metavar="FORMAT",
+        default="%m-%d-%Y",
+        help="The date format string used to render the :date content item.",
+    )
+    """
     renaming.add_argument('--team-order-by',
         dest='team_order', type=str, metavar='FIELD', default='NUMBER',
         help='The field by which teams are ordered.')
     renaming.add_argument('--player-order-by',
         dest='player_order', type=str, metavar='FIELD', default='NAME',
         help='The field by which players are ordered on teams.')
-    '''
-    renaming.add_argument('--favored', dest='favored',
-        type=str, default=[], metavar='NAME', nargs='+',
-        help='A list of the players to favor in ordering teams and players')
+    """
+    renaming.add_argument(
+        "--favored",
+        dest="favored",
+        type=str,
+        default=[],
+        metavar="NAME",
+        nargs="+",
+        help="A list of the players to favor in ordering teams and players",
+    )
 
-    filterargs = parser.add_argument_group('Filtering Options')
-    filterargs.add_argument('--filter-rule', dest='filter_rule',
-        choices=["ALLOW","DENY"],
-        help="The filters can either be used as a white list or a black list")
-    filterargs.add_argument('--filter-player', metavar='NAME',
-        dest='filter_player', nargs='+', type=str, default=[],
-        help="A list of players to filter on")
+    filterargs = parser.add_argument_group("Filtering Options")
+    filterargs.add_argument(
+        "--filter-rule",
+        dest="filter_rule",
+        choices=["ALLOW", "DENY"],
+        help="The filters can either be used as a white list or a black list",
+    )
+    filterargs.add_argument(
+        "--filter-player",
+        metavar="NAME",
+        dest="filter_player",
+        nargs="+",
+        type=str,
+        default=[],
+        help="A list of players to filter on",
+    )
 
     try:
         run(parser.parse_args())
     except KeyboardInterrupt:
         print("\n\nScript Interupted. Process Aborting")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

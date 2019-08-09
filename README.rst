@@ -259,21 +259,36 @@ Please review the `CONTRIBUTING.md`_ file and get in touch with us before doing 
 Testing
 -------------------
 
-We use the built in ``unittest`` module for testing. If you are still on Python 2.6 you will need to install ``unittest2`` because our test suite requires newer features than are included in the main distribution.
+We use ``pytest`` for testing. If you don't have it just ``pip install pytest``.
 
-To run the tests just use::
+To run the tests, just do::
 
-    python test_replays/test_all.py
-    python test_s2gs/test_all.py
+    pytest
 
-When repeatedly running tests it can be very helpful to make sure you've set a local cache directory to prevent long fetch times from battle.net::
 
-    SC2READER_CACHE_DIR=local_cache PYTHONPATH=. python -m unittest test_replays.test_all
+When repeatedly running tests it can be very helpful to make sure you've set a local cache directory to prevent long fetch times from battle.net.
+So make some local cache folder::
+
+    mkdir cache
+
+And then run the tests like this::
+
+    SC2READER_CACHE_DIR=./cache pytest
 
 To run just one test:
 
-    SC2READER_CACHE_DIR=local_cache PYTHONPATH=. python -m unittest test_replays.test_all.TestReplays.test_38749
+    SC2READER_CACHE_DIR=./cache pytest test_replays/test_replays.py::TestReplays::test_38749
 
+If you'd like to see which are the 10 slowest tests (to find performance issues maybe)::
+
+    pytest --durations=10
+
+If you want ``pytest`` to stop after the first failing test::
+
+    pytest -x
+
+
+Have a look at the very fine ``pytest`` docs for more information.
 
 Good luck, have fun!
 

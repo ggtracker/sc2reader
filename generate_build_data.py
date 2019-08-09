@@ -35,7 +35,9 @@ def generate_build_data(balance_data_path):
                         while len(ability_lookup[ability_name]) <= command_index:
                             ability_lookup[ability_name].append("")
 
-                        command_name = command_id if command_id != "Execute" else ability_name
+                        command_name = (
+                            command_id if command_id != "Execute" else ability_name
+                        )
                         ability_lookup[ability_name][command_index] = command_name
 
         unit_id = root.get("id")
@@ -76,7 +78,9 @@ def generate_build_data(balance_data_path):
                         ability_lookup[build_ability_name].append("")
 
                     build_command_name = "Build{}".format(built_unit_id)
-                    ability_lookup[build_ability_name][command_index] = build_command_name
+                    ability_lookup[build_ability_name][
+                        command_index
+                    ] = build_command_name
 
         train_unit_elements = root.findall("./trains/unit")
         if train_unit_elements:
@@ -90,43 +94,53 @@ def generate_build_data(balance_data_path):
                 ability_lookup[train_ability_name] = []
 
             for element in train_unit_elements:
-                    element_ability_index = element.get("ability")
-                    trained_unit_name = element.get("id")
+                element_ability_index = element.get("ability")
+                trained_unit_name = element.get("id")
 
-                    if trained_unit_name:
-                        # Handle cases where a unit can train other units using multiple ability indices.
-                        # The Nexus is currently the only known example.
-                        if element_ability_index != train_ability_index:
-                            train_ability_index = element_ability_index
+                if trained_unit_name:
+                    # Handle cases where a unit can train other units using multiple ability indices.
+                    # The Nexus is currently the only known example.
+                    if element_ability_index != train_ability_index:
+                        train_ability_index = element_ability_index
 
-                            train_ability_name = "{}Train{}".format(unit_id, trained_unit_name)
-                            abilities[train_ability_index] = train_ability_name
+                        train_ability_name = "{}Train{}".format(
+                            unit_id, trained_unit_name
+                        )
+                        abilities[train_ability_index] = train_ability_name
 
-                            if train_ability_name not in ability_lookup:
-                                ability_lookup[train_ability_name] = []
+                        if train_ability_name not in ability_lookup:
+                            ability_lookup[train_ability_name] = []
 
-                            command_index_str = element.get("index")
+                        command_index_str = element.get("index")
 
-                            if command_index_str:
-                                command_index = int(command_index_str)
+                        if command_index_str:
+                            command_index = int(command_index_str)
 
-                                # Pad potential gaps in command indices with empty strings
-                                while len(ability_lookup[train_ability_name]) <= command_index:
-                                    ability_lookup[train_ability_name].append("")
+                            # Pad potential gaps in command indices with empty strings
+                            while (
+                                len(ability_lookup[train_ability_name]) <= command_index
+                            ):
+                                ability_lookup[train_ability_name].append("")
 
-                                ability_lookup[train_ability_name][command_index] = train_ability_name
-                        else:
-                            command_index_str = element.get("index")
+                            ability_lookup[train_ability_name][
+                                command_index
+                            ] = train_ability_name
+                    else:
+                        command_index_str = element.get("index")
 
-                            if command_index_str:
-                                command_index = int(command_index_str)
+                        if command_index_str:
+                            command_index = int(command_index_str)
 
-                                # Pad potential gaps in command indices with empty strings
-                                while len(ability_lookup[train_ability_name]) <= command_index:
-                                    ability_lookup[train_ability_name].append("")
+                            # Pad potential gaps in command indices with empty strings
+                            while (
+                                len(ability_lookup[train_ability_name]) <= command_index
+                            ):
+                                ability_lookup[train_ability_name].append("")
 
-                                train_command_name = "Train{}".format(trained_unit_name)
-                                ability_lookup[train_ability_name][command_index] = train_command_name
+                            train_command_name = "Train{}".format(trained_unit_name)
+                            ability_lookup[train_ability_name][
+                                command_index
+                            ] = train_command_name
 
         research_upgrade_elements = root.findall("./researches/upgrade")
         if research_upgrade_elements:
@@ -150,17 +164,25 @@ def generate_build_data(balance_data_path):
                         ability_lookup[research_ability_name].append("")
 
                     research_command_name = "Research{}".format(researched_upgrade_id)
-                    ability_lookup[research_ability_name][command_index] = research_command_name
+                    ability_lookup[research_ability_name][
+                        command_index
+                    ] = research_command_name
 
-    sorted_units = collections.OrderedDict(sorted(units.items(), key=lambda x: int(x[0])))
-    sorted_abilities = collections.OrderedDict(sorted(abilities.items(), key=lambda x: int(x[0])))
+    sorted_units = collections.OrderedDict(
+        sorted(units.items(), key=lambda x: int(x[0]))
+    )
+    sorted_abilities = collections.OrderedDict(
+        sorted(abilities.items(), key=lambda x: int(x[0]))
+    )
 
     unit_lookup = dict((unit_name, unit_name) for _, unit_name in sorted_units.items())
 
     return sorted_units, sorted_abilities, unit_lookup, ability_lookup
 
 
-def combine_lookups(old_unit_lookup, old_ability_lookup, new_unit_lookup, new_ability_lookup):
+def combine_lookups(
+    old_unit_lookup, old_ability_lookup, new_unit_lookup, new_ability_lookup
+):
     unit_lookup = collections.OrderedDict(old_unit_lookup)
     ability_lookup = collections.OrderedDict(old_ability_lookup)
 
@@ -190,21 +212,42 @@ def combine_lookups(old_unit_lookup, old_ability_lookup, new_unit_lookup, new_ab
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Generate and install new [BUILD_VERSION]_abilities.csv, '
-                                                 '[BUILD_VERSION]_units.csv, and update ability_lookup.csv and '
-                                                 'unit_lookup.csv files with any new units and ability commands.')
-    parser.add_argument('expansion', metavar='EXPANSION', type=str, choices=['WoL', 'HotS', 'LotV'],
-                        help='the expansion level of the balance data export, one of \'WoL\', \'HotS\', or \'LotV\'')
-    parser.add_argument('build_version', metavar='BUILD_VERSION', type=int,
-                        help='the build version of the balance data export')
-    parser.add_argument('balance_data_path', metavar='BALANCE_DATA_PATH', type=str,
-                        help='the path to the balance data export')
-    parser.add_argument('project_path', metavar='SC2READER_PROJECT_PATH', type=str,
-                        help='the path to the root of the sc2reader project directory')
+    parser = argparse.ArgumentParser(
+        description="Generate and install new [BUILD_VERSION]_abilities.csv, "
+        "[BUILD_VERSION]_units.csv, and update ability_lookup.csv and "
+        "unit_lookup.csv files with any new units and ability commands."
+    )
+    parser.add_argument(
+        "expansion",
+        metavar="EXPANSION",
+        type=str,
+        choices=["WoL", "HotS", "LotV"],
+        help="the expansion level of the balance data export, one of 'WoL', 'HotS', or 'LotV'",
+    )
+    parser.add_argument(
+        "build_version",
+        metavar="BUILD_VERSION",
+        type=int,
+        help="the build version of the balance data export",
+    )
+    parser.add_argument(
+        "balance_data_path",
+        metavar="BALANCE_DATA_PATH",
+        type=str,
+        help="the path to the balance data export",
+    )
+    parser.add_argument(
+        "project_path",
+        metavar="SC2READER_PROJECT_PATH",
+        type=str,
+        help="the path to the root of the sc2reader project directory",
+    )
 
     args = parser.parse_args()
 
-    units, abilities, new_unit_lookup, new_ability_lookup = generate_build_data(args.balance_data_path)
+    units, abilities, new_unit_lookup, new_ability_lookup = generate_build_data(
+        args.balance_data_path
+    )
 
     if not units or not abilities:
         parser.print_help()
@@ -212,46 +255,67 @@ def main():
 
         raise ValueError("No balance data found at provided balance data path.")
 
-    unit_lookup_path = os.path.join(args.project_path, 'sc2reader', 'data', 'unit_lookup.csv')
-    with open(unit_lookup_path, 'r') as file:
-        csv_reader = csv.reader(file, delimiter=',', lineterminator=os.linesep)
-        old_unit_lookup = collections.OrderedDict([(row[0], row[1]) for row in csv_reader if len(row) > 1])
+    unit_lookup_path = os.path.join(
+        args.project_path, "sc2reader", "data", "unit_lookup.csv"
+    )
+    with open(unit_lookup_path, "r") as file:
+        csv_reader = csv.reader(file, delimiter=",", lineterminator=os.linesep)
+        old_unit_lookup = collections.OrderedDict(
+            [(row[0], row[1]) for row in csv_reader if len(row) > 1]
+        )
 
-    ability_lookup_path = os.path.join(args.project_path, 'sc2reader', 'data', 'ability_lookup.csv')
-    with open(ability_lookup_path, 'r') as file:
-        csv_reader = csv.reader(file, delimiter=',', lineterminator=os.linesep)
-        old_ability_lookup = collections.OrderedDict([(row[0], row[1:]) for row in csv_reader if len(row) > 0])
+    ability_lookup_path = os.path.join(
+        args.project_path, "sc2reader", "data", "ability_lookup.csv"
+    )
+    with open(ability_lookup_path, "r") as file:
+        csv_reader = csv.reader(file, delimiter=",", lineterminator=os.linesep)
+        old_ability_lookup = collections.OrderedDict(
+            [(row[0], row[1:]) for row in csv_reader if len(row) > 0]
+        )
 
     if not old_unit_lookup or not old_ability_lookup:
         parser.print_help()
         print("\n")
 
-        raise ValueError("Could not find existing unit or ability lookups. Is the sc2reader project path correct?")
+        raise ValueError(
+            "Could not find existing unit or ability lookups. Is the sc2reader project path correct?"
+        )
 
     unit_lookup, ability_lookup = combine_lookups(
-        old_unit_lookup, old_ability_lookup, new_unit_lookup, new_ability_lookup)
+        old_unit_lookup, old_ability_lookup, new_unit_lookup, new_ability_lookup
+    )
 
     units_file_path = os.path.join(
-        args.project_path, 'sc2reader', 'data', args.expansion, '{}_units.csv'.format(args.build_version))
-    with open(units_file_path, 'w') as file:
-        csv_writer = csv.writer(file, delimiter=',', lineterminator=os.linesep)
+        args.project_path,
+        "sc2reader",
+        "data",
+        args.expansion,
+        "{}_units.csv".format(args.build_version),
+    )
+    with open(units_file_path, "w") as file:
+        csv_writer = csv.writer(file, delimiter=",", lineterminator=os.linesep)
         for unit_index, unit_name in units.items():
             csv_writer.writerow([unit_index, unit_name])
 
     abilities_file_path = os.path.join(
-        args.project_path, 'sc2reader', 'data', args.expansion, '{}_abilities.csv'.format(args.build_version))
-    with open(abilities_file_path, 'w') as file:
-        csv_writer = csv.writer(file, delimiter=',', lineterminator=os.linesep)
+        args.project_path,
+        "sc2reader",
+        "data",
+        args.expansion,
+        "{}_abilities.csv".format(args.build_version),
+    )
+    with open(abilities_file_path, "w") as file:
+        csv_writer = csv.writer(file, delimiter=",", lineterminator=os.linesep)
         for ability_index, ability_name in abilities.items():
             csv_writer.writerow([ability_index, ability_name])
 
-    with open(unit_lookup_path, 'w') as file:
-        csv_writer = csv.writer(file, delimiter=',', lineterminator=os.linesep)
+    with open(unit_lookup_path, "w") as file:
+        csv_writer = csv.writer(file, delimiter=",", lineterminator=os.linesep)
         for entry in unit_lookup.items():
             csv_writer.writerow(list(entry))
 
-    with open(ability_lookup_path, 'w') as file:
-        csv_writer = csv.writer(file, delimiter=',', lineterminator=os.linesep)
+    with open(ability_lookup_path, "w") as file:
+        csv_writer = csv.writer(file, delimiter=",", lineterminator=os.linesep)
         for ability_name, commands in ability_lookup.items():
             csv_writer.writerow([ability_name] + commands)
 

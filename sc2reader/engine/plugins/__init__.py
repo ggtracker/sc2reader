@@ -7,4 +7,3 @@ from sc2reader.engine.plugins.context import ContextLoader
 from sc2reader.engine.plugins.supply import SupplyTracker
 from sc2reader.engine.plugins.creeptracker import CreepTracker
 from sc2reader.engine.plugins.gameheart import GameHeartNormalizer
-

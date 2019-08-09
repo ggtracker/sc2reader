@@ -64,8 +64,8 @@ class SC2Factory(object):
     _resource_name_map = dict(replay=Replay, map=Map)
 
     default_options = {
-        Resource: {'debug': False},
-        Replay: {'load_level': 4, 'load_map': False},
+        Resource: {"debug": False},
+        Replay: {"load_level": 4, "load_map": False},
     }
 
     def __init__(self, **options):
@@ -86,7 +86,9 @@ class SC2Factory(object):
 
     def load_replays(self, sources, options=None, **new_options):
         """Loads a collection of sc2replay files, returns a generator."""
-        return self.load_all(Replay, sources, options, extension='SC2Replay', **new_options)
+        return self.load_all(
+            Replay, sources, options, extension="SC2Replay", **new_options
+        )
 
     def load_localization(self, source, options=None, **new_options):
         """Loads a single s2ml file. Accepts file path, url, or file object."""
@@ -94,7 +96,9 @@ class SC2Factory(object):
 
     def load_localizations(self, sources, options=None, **new_options):
         """Loads a collection of s2ml files, returns a generator."""
-        return self.load_all(Localization, sources, options, extension='s2ml', **new_options)
+        return self.load_all(
+            Localization, sources, options, extension="s2ml", **new_options
+        )
 
     def load_map(self, source, options=None, **new_options):
         """Loads a single s2ma file. Accepts file path, url, or file object."""
@@ -102,7 +106,7 @@ class SC2Factory(object):
 
     def load_maps(self, sources, options=None, **new_options):
         """Loads a collection of s2ma files, returns a generator."""
-        return self.load_all(Map, sources, options, extension='s2ma', **new_options)
+        return self.load_all(Map, sources, options, extension="s2ma", **new_options)
 
     def load_game_summary(self, source, options=None, **new_options):
         """Loads a single s2gs file. Accepts file path, url, or file object."""
@@ -110,7 +114,9 @@ class SC2Factory(object):
 
     def load_game_summaries(self, sources, options=None, **new_options):
         """Loads a collection of s2gs files, returns a generator."""
-        return self.load_all(GameSummary, sources, options, extension='s2gs', **new_options)
+        return self.load_all(
+            GameSummary, sources, options, extension="s2gs", **new_options
+        )
 
     def configure(self, cls=None, **options):
         """ Configures the factory to use the supplied options. If cls is specified
@@ -144,7 +150,7 @@ class SC2Factory(object):
     # Internal Functions
     def _load(self, cls, resource, filename, options):
         obj = cls(resource, filename=filename, factory=self, **options)
-        for plugin in options.get('plugins', self._get_plugins(cls)):
+        for plugin in options.get("plugins", self._get_plugins(cls)):
             obj = plugin(obj)
         return obj
 
@@ -180,7 +186,7 @@ class SC2Factory(object):
 
     def load_local_resource_contents(self, location, **options):
         # Extract the contents so we can close the file
-        with open(location, 'rb') as resource_file:
+        with open(location, "rb") as resource_file:
             return resource_file.read()
 
     def _load_resource(self, resource, options=None, **new_options):
@@ -191,11 +197,11 @@ class SC2Factory(object):
             resource = resource.url
 
         if isinstance(resource, basestring):
-            if re.match(r'https?://', resource):
+            if re.match(r"https?://", resource):
                 contents = self.load_remote_resource_contents(resource, **options)
 
             else:
-                directory = options.get('directory', '')
+                directory = options.get("directory", "")
                 location = os.path.join(directory, resource)
                 contents = self.load_local_resource_contents(location, **options)
 
@@ -206,31 +212,32 @@ class SC2Factory(object):
         else:
             # Totally not designed for large files!!
             # We need a multiread resource, so wrap it in BytesIO
-            if not hasattr(resource, 'seek'):
+            if not hasattr(resource, "seek"):
                 resource = BytesIO(resource.read())
 
-            resource_name = getattr(resource, 'name', 'Unknown')
+            resource_name = getattr(resource, "name", "Unknown")
 
-        if options.get('verbose', None):
+        if options.get("verbose", None):
             print(resource_name)
 
         return (resource, resource_name)
 
 
 class CachedSC2Factory(SC2Factory):
-
     def get_remote_cache_key(self, remote_resource):
         # Strip the port and use the domain as the bucket
         # and use the full path as the key
         parseresult = urlparse(remote_resource)
-        bucket = re.sub(r':.*', '', parseresult.netloc)
-        key = parseresult.path.strip('/')
+        bucket = re.sub(r":.*", "", parseresult.netloc)
+        key = parseresult.path.strip("/")
         return (bucket, key)
 
     def load_remote_resource_contents(self, remote_resource, **options):
         cache_key = self.get_remote_cache_key(remote_resource)
         if not self.cache_has(cache_key):
-            resource = super(CachedSC2Factory, self).load_remote_resource_contents(remote_resource, **options)
+            resource = super(CachedSC2Factory, self).load_remote_resource_contents(
+                remote_resource, **options
+            )
             self.cache_set(cache_key, resource)
         else:
             resource = self.cache_get(cache_key)
@@ -254,13 +261,20 @@ class FileCachedSC2Factory(CachedSC2Factory):
 
     Caches remote depot resources on the file system in the ``cache_dir``.
     """
+
     def __init__(self, cache_dir, **options):
         super(FileCachedSC2Factory, self).__init__(**options)
         self.cache_dir = os.path.abspath(cache_dir)
         if not os.path.isdir(self.cache_dir):
-            raise ValueError("cache_dir ({0}) must be an existing directory.".format(self.cache_dir))
+            raise ValueError(
+                "cache_dir ({0}) must be an existing directory.".format(self.cache_dir)
+            )
         elif not os.access(self.cache_dir, os.F_OK | os.W_OK | os.R_OK):
-            raise ValueError("Must have read/write access to {0} for local file caching.".format(self.cache_dir))
+            raise ValueError(
+                "Must have read/write access to {0} for local file caching.".format(
+                    self.cache_dir
+                )
+            )
 
     def cache_has(self, cache_key):
         return os.path.exists(self.cache_path(cache_key))
@@ -274,7 +288,7 @@ class FileCachedSC2Factory(CachedSC2Factory):
         if not os.path.exists(bucket_dir):
             os.makedirs(bucket_dir)
 
-        with open(cache_path, 'wb') as out:
+        with open(cache_path, "wb") as out:
             out.write(value)
 
     def cache_path(self, cache_key):
@@ -290,6 +304,7 @@ class DictCachedSC2Factory(CachedSC2Factory):
     Caches remote depot resources in memory. Does not write to the file system.
     The cache is effectively cleared when the process exits.
     """
+
     def __init__(self, cache_max_size=0, **options):
         super(DictCachedSC2Factory, self).__init__(**options)
         self.cache_dict = dict()
@@ -322,8 +337,11 @@ class DoubleCachedSC2Factory(DictCachedSC2Factory, FileCachedSC2Factory):
     Caches remote depot resources to the file system AND holds a subset of them
     in memory for more efficient access.
     """
+
     def __init__(self, cache_dir, cache_max_size=0, **options):
-        super(DoubleCachedSC2Factory, self).__init__(cache_max_size, cache_dir=cache_dir, **options)
+        super(DoubleCachedSC2Factory, self).__init__(
+            cache_max_size, cache_dir=cache_dir, **options
+        )
 
     def load_remote_resource_contents(self, remote_resource, **options):
         cache_key = self.get_remote_cache_key(remote_resource)
@@ -332,7 +350,9 @@ class DoubleCachedSC2Factory(DictCachedSC2Factory, FileCachedSC2Factory):
             return DictCachedSC2Factory.cache_get(self, cache_key)
 
         if not FileCachedSC2Factory.cache_has(self, cache_key):
-            resource = SC2Factory.load_remote_resource_contents(self, remote_resource, **options)
+            resource = SC2Factory.load_remote_resource_contents(
+                self, remote_resource, **options
+            )
             FileCachedSC2Factory.cache_set(self, cache_key, resource)
         else:
             resource = FileCachedSC2Factory.cache_get(self, cache_key)
