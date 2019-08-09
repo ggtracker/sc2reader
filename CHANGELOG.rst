@@ -1,6 +1,13 @@
 CHANGELOG
 ============
 
+1.3.2 - August 9, 2019
+----------------------
+* Allow pytest #84
+* Format code with black #87
+* Fix UnitTypeChangeEvent.__str__ #92
+* Add Stetmann #93
+
 1.3.1 - November 29, 2018
 -------------------------
 * Parse backup if data is missing #69
