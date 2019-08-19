@@ -1,6 +1,10 @@
 CHANGELOG
 ============
 
+1.4.0 - August 19, 2019
+-----------------------
+* Add support for protocol 75689 #95
+
 1.3.2 - August 9, 2019
 ----------------------
 * Allow pytest #84
