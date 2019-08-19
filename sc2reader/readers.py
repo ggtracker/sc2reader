@@ -238,6 +238,9 @@ class InitDataReader(object):
                         ]
                         if replay.base_build >= 42932
                         else None,
+                        trophy_id=data.read_uint32()
+                        if replay.base_build >= 75689
+                        else None,
                         reward_overrides=[
                             [
                                 data.read_uint32(),
