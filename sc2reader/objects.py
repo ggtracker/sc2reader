@@ -217,6 +217,10 @@ class Player(object):
         #: >0 or None
         self.commander_mastery_level = slot_data["commander_mastery_talents"]
 
+        #: Trophy ID
+        #: >0 or None
+        self.trophy_id = slot_data["trophy_id"]
+
         #: The mastery talents picked for the co-op commander
         #: list of longs of length 6, each between 0 and 30
         self.commander_mastery_talents = slot_data["commander_mastery_talents"]
