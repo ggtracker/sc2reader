@@ -14,3 +14,6 @@ At the time of writing, the latest build version is 53644.
 e.g. `python3 sc2reader/generate_build_data.py LotV 53644 balance_data/ sc2reader/`
 This will generate the necessary data files to support the new build version (namely, `53644_abilities.csv`, `53644_units.csv`, and updated versions of `ability_lookup.csv` and `unit_lookup.csv`).
 4. Finally, modify `sc2reader/data/__init__.py` and `sc2reader/resources.py` to register support for the new build version.
+
+If you are not able to see the correct expansion for the balance data, you may need to authenticate. See the instructions at
+https://github.com/ggtracker/sc2reader/issues/98#issuecomment-542554588 on how to do that

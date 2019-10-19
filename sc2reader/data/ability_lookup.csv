@@ -127,7 +127,7 @@ FactoryLand,LandFactory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 FactoryLiftOff,LiftFactory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 FactoryReactorMorph,BuildReactorFactory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 FactoryTechLabMorph,BuildTechLabFactory,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-FactoryTechLabResearch,ResearchSiegeTech,ResearchInfernalPreIgniter,Research250mmStrikeCannons,ResearchTransformationServos,ResearchDrillingClaws,,ResearchSmartServos,,ResearchCycloneRapidFireLaunchers,,,,,,,,,,,,,,,,,,,,,,CancelFactoryTechLabResearch,
+FactoryTechLabResearch,ResearchSiegeTech,ResearchInfernalPreIgniter,Research250mmStrikeCannons,ResearchTransformationServos,ResearchDrillingClaws,,ResearchSmartServos,,ResearchCycloneRapidFireLaunchers,ResearchCycloneLockOnDamageUpgrade,,,,,,,,,,,,,,,,,,,,,CancelFactoryTechLabResearch,
 FactoryTrain,,BuildSiegeTank,,,BuildThor,BuildHellion,BuildBattleHellion,TrainCyclone,,,,,BuildWarHound,,,,,,,,,,,,BuildWidowMine,,,,,,CancelFactoryTrain,
 Feedback,Feedback,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 FighterMode,FighterMode,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
@@ -140,7 +140,7 @@ FungalGrowth,FungalGrowth,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 FusionCoreResearch,ResearchWeaponRefit,ResearchBehemothReactor,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CancelFusionCoreResearch,
 GatewayTrain,TrainZealot,TrainStalker,,TrainHighTemplar,TrainDarkTemplar,TrainSentry,TrainAdept,,,,,,,,,,,,,,,,,,,,,,,,CancelGatewayTrain,
 GenerateCreep,GenerateCreep,StopGenerateCreep,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-GhostAcademyResearch,ResearchPersonalCloaking,ResearchMoebiusReactor,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CancelGhostAcademyResearch,
+GhostAcademyResearch,ResearchPersonalCloaking,ResearchMoebiusReactor,ResearchEnhancedShockwaves,,,,,,,,,,,,,,,,,,,,,,,,,,,,CancelGhostAcademyResearch,
 GhostCloak,CloakGhost,DecloakGhost,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 GhostHoldFire,HoldFireGhost,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 GhostWeaponsFree,GWeaponsFreeGhost,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
@@ -329,7 +329,7 @@ TrainQueen,TrainQueen,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CancelTrainQueen,
 Transfusion,QueenTransfusion,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 TransportMode,TransportMode,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 TwilightCouncilResearch,ResearchCharge,ResearchBlink,ResearchAdeptPiercingAttack,,,,,,,,,,,,,,,,,,,,,,,,,,,,CancelTwilightCouncilResearch,
-UltraliskCavernResearch,,,EvolveChitinousPlating,EvolveBurrowCharge,,,,,,,,,,,,,,,,,,,,,,,,,,,CancelUltraliskCavernResearch,
+UltraliskCavernResearch,ResearchAnabolicSynthesis,,EvolveChitinousPlating,EvolveBurrowCharge,,,,,,,,,,,,,,,,,,,,,,,,,,,CancelUltraliskCavernResearch,
 UltraliskWeaponCooldown,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 Unsiege,TankMode,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 UpgradeToGreaterSpire,MorphToGreaterSpire,CancelMorphToGreaterSpire,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
@@ -861,3 +861,6 @@ NexusMassRecall,NexusMassRecall
 OverlordSingleTransport,Load,,UnloadAt
 ParasiticBombRelayDodge,ParasiticBombRelayDodge
 ViperParasiticBombRelay,ViperParasiticBombRelay
+BattlecruiserStop,Stop
+BattlecruiserAttack,BattlecruiserAttack
+BattlecruiserMove,Move,Patrol,HoldPos
