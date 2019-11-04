@@ -431,7 +431,8 @@ class Replay(Resource):
         self.game_length = self.length
         self.real_length = utils.Length(
             seconds=int(
-                self.length.seconds / GAME_SPEED_FACTOR[self.expansion].get(self.speed, 1)
+                self.length.seconds
+                / GAME_SPEED_FACTOR[self.expansion].get(self.speed, 1)
             )
         )
         self.start_time = datetime.utcfromtimestamp(
