@@ -371,9 +371,9 @@ class Replay(Resource):
                 self.attributes[attr.player][attr.name] = attr.value
 
             # Populate replay with attributes
-            self.speed = self.attributes[16]["Game Speed"]
-            self.category = self.attributes[16]["Game Mode"]
-            self.type = self.game_type = self.attributes[16]["Teams"]
+            self.speed = self.attributes[16].get("Game Speed", 1.0)
+            self.category = self.attributes[16].get("Game Mode", "")
+            self.type = self.game_type = self.attributes[16].get("Teams", "")
             self.is_ladder = self.category == "Ladder"
             self.is_private = self.category == "Private"
 
