@@ -210,7 +210,13 @@ class InitDataReader(object):
                         licenses=[
                             data.read_uint32()
                             for i in range(
-                                data.read_bits(13 if replay.base_build >= 70154 else 9)
+                                data.read_bits(
+                                    16
+                                    if replay.base_build >= 77379
+                                    else 13
+                                    if replay.base_build >= 70154
+                                    else 9
+                                )
                             )
                         ]
                         if replay.base_build >= 19132
@@ -249,6 +255,20 @@ class InitDataReader(object):
                             for j in range(data.read_bits(17))
                         ]
                         if replay.base_build >= 47185
+                        else None,
+                        brutal_plus_difficulty=data.read_uint32()
+                        if replay.base_build >= 77379
+                        else None,
+                        retry_mutation_indexes=[
+                            data.read_uint32() for i in range(data.read_bits(3))
+                        ]
+                        if replay.base_build >= 77379
+                        else None,
+                        ac_enemy_race=data.read_uint32()
+                        if replay.base_build >= 77379
+                        else None,
+                        ac_enemy_wave_type=data.read_uint32()
+                        if replay.base_build >= 77379
                         else None,
                     )
                     for i in range(data.read_bits(5))
