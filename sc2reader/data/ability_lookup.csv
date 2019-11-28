@@ -137,7 +137,7 @@ ForceField,ForceField,CancelForceField,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 ForgeResearch,UpgradeGroundWeapons1,UpgradeGroundWeapons2,UpgradeGroundWeapons3,UpgradeGroundArmor1,UpgradeGroundArmor2,UpgradeGroundArmor3,UpgradeShields1,UpgradeShields2,UpgradesShields3,,,,,,,,,,,,,,,,,,,,,,CancelForgeResearch,
 Frenzy,Frenzy,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 FungalGrowth,FungalGrowth,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-FusionCoreResearch,ResearchWeaponRefit,ResearchBehemothReactor,,,,,,,,,,,,,,,,,,,,,,,,,,,,,CancelFusionCoreResearch,
+FusionCoreResearch,ResearchWeaponRefit,ResearchBehemothReactor,ResearchMedivacIncreaseSpeedBoost,,,,,,,,,,,,,,,,,,,,,,,,,,,,CancelFusionCoreResearch,
 GatewayTrain,TrainZealot,TrainStalker,,TrainHighTemplar,TrainDarkTemplar,TrainSentry,TrainAdept,,,,,,,,,,,,,,,,,,,,,,,,CancelGatewayTrain,
 GenerateCreep,GenerateCreep,StopGenerateCreep,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 GhostAcademyResearch,ResearchPersonalCloaking,ResearchMoebiusReactor,ResearchEnhancedShockwaves,,,,,,,,,,,,,,,,,,,,,,,,,,,,CancelGhostAcademyResearch,
@@ -161,7 +161,7 @@ HangarQueue5,CancelLast,CancelSlot,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 HerdInteract,Herd,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 HoldFire,Stop,HoldFire,Cheer,Dance,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 HydraliskDenResearch,ResearchEvolveGroovedSpines,ResearchEvolveMuscularAugments,EvolveGroovedSpines,EvolveMuscularAugments,,,,,,,,,,,,,,,,,,,,,,,,,,,CancelHydraliskDenResearch,
-InfestationPitResearch,,,EvolvePathogenGlands,EvolveNeuralParasite,EvolveEnduringLocusts,,,,,,,,,,,,,,,,,,,,,,,,,,CancelInfestationPitResearch,
+InfestationPitResearch,,,EvolvePathogenGlands,EvolveNeuralParasite,EvolveEnduringLocusts,ResearchMicrobialShroud,,,,,,,,,,,,,,,,,,,,,,,,,CancelInfestationPitResearch,
 InfestedTerrans,SpawnInfestedTerran,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 InfestedTerransLayEgg,SpawnInfestedTerran,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 InvulnerabilityShield,InvulnerabilityShield,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
@@ -864,3 +864,4 @@ ViperParasiticBombRelay,ViperParasiticBombRelay
 BattlecruiserStop,Stop
 BattlecruiserAttack,BattlecruiserAttack
 BattlecruiserMove,Move,Patrol,HoldPos
+AmorphousArmorcloud,AmorphousArmorcloud
