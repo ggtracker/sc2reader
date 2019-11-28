@@ -701,6 +701,13 @@ class TestReplays(unittest.TestCase):
             replay = factory.load_replay(replayfilename)
             self.assertEqual(replay.players[0].trophy_id, 13)
 
+    def test_77379(self):
+        replay = sc2reader.load_replay(
+            "test_replays/4.11.0.77379/Oblivion Express.SC2Replay"
+        )
+        self.assertEqual(replay.players[0].commander, "Mengsk")
+        self.assertEqual(replay.players[1].commander, "Stetmann")
+
     def test_anonymous_replay(self):
         replayfilename = "test_replays/4.1.2.60604/1.SC2Replay"
         factory = sc2reader.factories.SC2Factory()
