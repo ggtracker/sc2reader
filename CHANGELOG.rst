@@ -1,8 +1,8 @@
 CHANGELOG
 ============
 
-1.5.0 - January 18, 2019
------------------------
+1.5.0 - January 18, 2020
+------------------------
 * Add support for protocol 77379 #106 #107
 * Workaround for missing data #102 #104
 
