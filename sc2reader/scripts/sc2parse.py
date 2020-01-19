@@ -27,7 +27,7 @@ sc2reader.log_utils.log_to_console("INFO")
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Recursively parses replay files, inteded for debugging parse issues."
+        description="Recursively parses replay files, intended for debugging parse issues."
     )
     parser.add_argument(
         "--one_each",
