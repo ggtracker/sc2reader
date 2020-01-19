@@ -73,7 +73,7 @@ class Replay(Resource):
     #: Deprecated, use :attr:`game_type` or :attr:`real_type` instead
     type = str()
 
-    #: The game type choosen at game creation: 1v1, 2v2, 3v3, 4v4, FFA
+    #: The game type chosen at game creation: 1v1, 2v2, 3v3, 4v4, FFA
     game_type = str()
 
     #: The real type of the replay as observed by counting players on teams.
@@ -1237,7 +1237,7 @@ class GameSummary(Resource):
 
                 # Lobby properties can require on player properties.
                 # How does this work? I assume that one player satisfying the
-                # property requirments is sufficient
+                # property requirements is sufficient
                 if requirement.is_lobby:
                     values = [setting]
                 else:

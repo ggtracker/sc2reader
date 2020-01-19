@@ -159,7 +159,7 @@ Changed Stuff (non-backwards compatible!):
 --------------------
 
 * Fixes several game event parsing issues for older replays.
-* Propperly maps ability ids for armory vehicle & ship armor upgrades.
+* Properly maps ability ids for armory vehicle & ship armor upgrades.
 * Uses the US depot for SEA battle.net depot dependencies.
 * ``PlayerStatEvent.food_used`` and ``food_made`` are now properly divided by 4096
 * ``AbilityEvent.flags`` are now processed into a dictionary mapping flag name to True/False (``AbilityEvent.flag``)

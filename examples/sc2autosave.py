@@ -37,7 +37,7 @@ Renaming Replays
 --------------------
 
 The --rename option allows you to specify a renaming format string. The string
-is constructed the pythonic (3.0) way with {:field} indicating the substition
+is constructed the pythonic (3.0) way with {:field} indicating the substitution
 of a field. The forward slash (/) is a special character here which terminates
 a folder name and allows for organization into subdirectories. All other string
 characters form the template into which the fields are inserted.
@@ -138,7 +138,7 @@ Complete Reference Guide
         files every SECONDS seconds.
     --rename FORMAT
         :map - Inserts the map name.
-        :date - Inserts a string formated datetime object using --date-format.
+        :date - Inserts a string formatted datetime object using --date-format.
         :length - Inserts a string formatted time object using --length-format.
         :teams - Inserts a comma separated player list. Teams are separated
             with a ' vs ' string. Format the player with --player-format.
@@ -602,7 +602,7 @@ def main():
     try:
         run(parser.parse_args())
     except KeyboardInterrupt:
-        print("\n\nScript Interupted. Process Aborting")
+        print("\n\nScript Interrupted. Process Aborting")
 
 
 if __name__ == "__main__":
