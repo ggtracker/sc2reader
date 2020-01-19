@@ -1074,7 +1074,7 @@ class GameEventsReader_16561(GameEventsReader_15405):
 
     def decrement_game_time_remaining_event(self, data):
         # really this should be set to 19, and a new GameEventsReader_41743 should be introduced that specifies 32 bits.
-        # but I dont care about ability to read old replays.
+        # but I don't care about ability to read old replays.
         return dict(decrement_ms=data.read_bits(32))
 
 
