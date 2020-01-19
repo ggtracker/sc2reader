@@ -117,7 +117,7 @@ class creep_tracker:
             self.creep_spread_image_by_minute = dict()
         ## This list contains all the active cgus in every time frame
         self.creep_gen_units = dict()
-        ## Thist list corresponds to creep_gen_units storing the time of each CGU
+        ## This list corresponds to creep_gen_units storing the time of each CGU
         self.creep_gen_units_times = dict()
         ## convert all possible cgu radii into a sets of coordinates centred around the origin,
         ## in order to use this with the CGUs, the centre point will be
@@ -168,7 +168,7 @@ class creep_tracker:
         ## this function converts all radius into map coordinates
         ## centred around  the origin that the creep can exist
         ## the cgu_radius_to_map_position function will simply
-        ## substract every coordinate with the centre point of the tumour
+        ## subtract every coordinate with the centre point of the tumour
         output_coordinates = list()
         # Sample a square area using the radius
         for x in range(-radius, radius):
