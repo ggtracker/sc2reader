@@ -21,7 +21,7 @@ class SelectionTracker(object):
                 control_group_9 = selection[9]
                 active_selection = selection[10]
 
-        # TODO: list a few error inducing sitations
+        # TODO: list a few error inducing situations
     """
 
     name = "SelectionTracker"
