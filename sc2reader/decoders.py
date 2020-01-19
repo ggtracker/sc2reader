@@ -20,7 +20,7 @@ class ByteDecoder(object):
     Used to unpack parse byte aligned files.
     """
 
-    #: The Bytes object used internaly for reading from the
+    #: The Bytes object used internally for reading from the
     #: decoder contents. cStringIO is faster than managing our
     #: own string access in python. For PyPy installations a
     #: managed string implementation might be faster.
