@@ -87,7 +87,7 @@ class SupplyTracker(object):
                 )
 
     def handleInitGame(self, event, replay):
-        ## This dictionary contains te supply of every unit
+        ## This dictionary contains the supply of every unit
         self.unit_name_to_supply = {
             # Zerg
             "Drone": (1, 17),
