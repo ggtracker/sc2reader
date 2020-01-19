@@ -84,7 +84,7 @@ class Unit(object):
 
         #: The unique in-game id for this unit. The id can sometimes be zero because
         #: TargetUnitCommandEvents will create a new unit with id zero when a unit
-        #: behind the fog of war is targetted.
+        #: behind the fog of war is targeted.
         self.id = unit_id
 
         #: A reference to the unit type this unit is current in.
@@ -301,11 +301,11 @@ class Build(object):
     """
     :param build_id: The build number identifying this dataset.
 
-    The datapack for a particualr group of builds. Maps internal integer ids
+    The datapack for a particular group of builds. Maps internal integer ids
     to :class:`Unit` and :class:`Ability` types. Also contains builder methods
     for creating new units and changing their types.
 
-    All build data is valid for standard games only. For arcade maps milage
+    All build data is valid for standard games only. For arcade maps mileage
     may vary.
     """
 
