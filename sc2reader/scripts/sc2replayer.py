@@ -31,7 +31,7 @@ try:
 
 except ImportError as e:
     try:
-        # Opps, we might be on windows, try this one
+        # Oops, we might be on windows, try this one
         from msvcrt import getch
     except ImportError as e:
         # We can't make getch happen, just dump events to the screen
