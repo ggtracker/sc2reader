@@ -18,7 +18,7 @@ class Team(object):
     objects with some metadata. As such, it implements iterable and can be
     looped over like a list.
 
-    :param interger number: The team number as recorded in the replay
+    :param integer number: The team number as recorded in the replay
     """
 
     #: A unique hash identifying the team of players
@@ -140,7 +140,7 @@ class Entity(object):
         #: The Battle.net subregion the entity is registered to
         self.subregion = int(parts[2])
 
-        #: The Battle.net acount identifier. Used to construct the
+        #: The Battle.net account identifier. Used to construct the
         #: bnet profile url. This value can be zero for games
         #: played offline when a user was not logged in to battle.net.
         self.toon_id = int(parts[3])
@@ -240,7 +240,7 @@ class Player(object):
         #: The Battle.net subregion the entity is registered to
         self.subregion = detail_data["bnet"]["subregion"]
 
-        #: The Battle.net acount identifier. Used to construct the
+        #: The Battle.net account identifier. Used to construct the
         #: bnet profile url. This value can be zero for games
         #: played offline when a user was not logged in to battle.net.
         self.toon_id = detail_data["bnet"]["uid"]
@@ -604,8 +604,8 @@ class MapInfo(object):
         #: The map base height (what is that?). This value is 4096*Base Height in the editor (giving a decimal value).
         self.base_height = data.read_uint32() / 4096
 
-        # Leave early so we dont barf. Turns out ggtracker doesnt need
-        # any of the map data thats loaded below.
+        # Leave early so we don't barf. Turns out ggtracker doesn't need
+        # any of the map data that is loaded below.
         return
 
         #: Load screen type: 0 = default, 1 = custom
