@@ -50,7 +50,7 @@ def main():
     global decisions
 
     parser = argparse.ArgumentParser(
-        description="Recursively parses replay files, inteded for debugging parse issues."
+        description="Recursively parses replay files, intended for debugging parse issues."
     )
     parser.add_argument(
         "folders", metavar="folder", type=str, nargs="+", help="Path to a folder"
