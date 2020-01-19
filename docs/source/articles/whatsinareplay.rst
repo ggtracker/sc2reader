@@ -35,7 +35,7 @@ The last file provides a record of important events from the game.
 
 * replay.tracker.events - Records important game events and game state updates.
 
-This file was introduced in 2.0.4 and is unncessary for the Starcraft II to reproduce the game. Instead, it records interesting game events and game state for community developers to use when analyzing replays.
+This file was introduced in 2.0.4 and is unnecessary for the Starcraft II to reproduce the game. Instead, it records interesting game events and game state for community developers to use when analyzing replays.
 
 
 What isn't in a replay?
