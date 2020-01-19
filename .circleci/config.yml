@@ -15,8 +15,9 @@ jobs:
       - image: circleci/python:3.8
     steps:
       - checkout
-      - run: sudo pip install flake8 black
+      - run: sudo pip install black codespell flake8
       - run: python --version ; pip --version ; pwd ; ls -l
+      - run: codespell
       # stop the build if there are Python syntax errors or undefined names
       - run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
       # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
