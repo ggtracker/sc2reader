@@ -13,5 +13,6 @@ Contributors:
     Kevin Leung - @StoicLoofah on github
     Daniele Zannotti (Durrza)
     Mike Anderson
+    Christian Clauss - @cclauss on github
 
 Special thanks to ggtracker, inc (ggtracker.com) for sponsoring sc2reader's continued development.
