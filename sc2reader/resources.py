@@ -773,7 +773,12 @@ class Replay(Resource):
         self.register_reader(
             "replay.game.events",
             readers.GameEventsReader_65895(),
-            lambda r: 65895 <= r.base_build,
+            lambda r: 65895 <= r.base_build < 80669,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_80669(),
+            lambda r: 80669 <= r.base_build,
         )
         self.register_reader(
             "replay.game.events",
