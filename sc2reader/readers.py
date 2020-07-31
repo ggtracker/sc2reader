@@ -167,7 +167,9 @@ class InitDataReader(object):
                         ai_build=data.read_bits(8 if replay.base_build >= 38749 else 7)
                         if replay.base_build >= 23925
                         else None,
-                        handicap=data.read_bits(7),
+                        handicap=data.read_bits(
+                            32 if replay.base_build >= 80669 else 7
+                        ),
                         observe=data.read_bits(2),
                         logo_index=data.read_uint32()
                         if replay.base_build >= 32283
@@ -269,6 +271,9 @@ class InitDataReader(object):
                         else None,
                         ac_enemy_wave_type=data.read_uint32()
                         if replay.base_build >= 77379
+                        else None,
+                        selected_commander_prestige=data.read_uint32()
+                        if replay.base_build >= 80871
                         else None,
                     )
                     for i in range(data.read_bits(5))
@@ -2194,6 +2199,65 @@ class GameEventsReader_65895(GameEventsReader_64469):
 
     def set_sync_playing(self, data):
         return dict(sync_load=data.read_uint32())
+
+
+class GameEventsReader_80669(GameEventsReader_65895):
+    # this is almost the same as `command_event` from previous build
+    # the only addition is introduction of extra command flag:
+    # > https://news.blizzard.com/en-us/starcraft2/23471116/starcraft-ii-4-13-0-ptr-patch-notes
+    # > New order command flag: Attack Once
+    # > When issuing an attack order, it is now allowed to issue an “attack once” order with order command flags.
+    # > const int c_cmdAttackOnce = 26;
+    # ideally this part of the code should be more generic so it doesn't have to copy-pasted as a whole
+    # every time there's a tiny change in one of the sub-structs
+    def command_event(self, data):
+        return dict(
+            flags=data.read_bits(27),
+            ability=dict(
+                ability_link=data.read_uint16(),
+                ability_command_index=data.read_bits(5),
+                ability_command_data=data.read_uint8() if data.read_bool() else None,
+            )
+            if data.read_bool()
+            else None,
+            data={  # Choice
+                0: lambda: ("None", None),
+                1: lambda: (
+                    "TargetPoint",
+                    dict(
+                        point=dict(
+                            x=data.read_bits(20),
+                            y=data.read_bits(20),
+                            z=data.read_uint32() - 2147483648,
+                        )
+                    ),
+                ),
+                2: lambda: (
+                    "TargetUnit",
+                    dict(
+                        flags=data.read_uint16(),
+                        timer=data.read_uint8(),
+                        unit_tag=data.read_uint32(),
+                        unit_link=data.read_uint16(),
+                        control_player_id=data.read_bits(4)
+                        if data.read_bool()
+                        else None,
+                        upkeep_player_id=data.read_bits(4)
+                        if data.read_bool()
+                        else None,
+                        point=dict(
+                            x=data.read_bits(20),
+                            y=data.read_bits(20),
+                            z=data.read_uint32() - 2147483648,
+                        ),
+                    ),
+                ),
+                3: lambda: ("Data", dict(data=data.read_uint32())),
+            }[data.read_bits(2)](),
+            sequence=data.read_uint32() + 1,
+            other_unit_tag=data.read_uint32() if data.read_bool() else None,
+            unit_group=data.read_uint32() if data.read_bool() else None,
+        )
 
 
 class TrackerEventsReader(object):

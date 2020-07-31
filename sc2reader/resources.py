@@ -773,7 +773,12 @@ class Replay(Resource):
         self.register_reader(
             "replay.game.events",
             readers.GameEventsReader_65895(),
-            lambda r: 65895 <= r.base_build,
+            lambda r: 65895 <= r.base_build < 80669,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_80669(),
+            lambda r: 80669 <= r.base_build,
         )
         self.register_reader(
             "replay.game.events",
@@ -865,7 +870,11 @@ class Replay(Resource):
         )
         self.register_datapack(
             datapacks["LotV"]["77379"],
-            lambda r: r.expansion == "LotV" and 77379 <= r.build,
+            lambda r: r.expansion == "LotV" and 77379 <= r.build < 80949,
+        )
+        self.register_datapack(
+            datapacks["LotV"]["80949"],
+            lambda r: r.expansion == "LotV" and 80949 <= r.build,
         )
 
     # Internal Methods

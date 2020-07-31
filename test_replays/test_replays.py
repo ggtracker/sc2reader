@@ -708,6 +708,11 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(replay.players[0].commander, "Mengsk")
         self.assertEqual(replay.players[1].commander, "Stetmann")
 
+    def test_80949(self):
+        replay = sc2reader.load_replay(
+            "test_replays/5.0.0.80949/2020-07-28 - (T)Ocrucius VS (Z)Rairden.SC2Replay"
+        )
+
     def test_anonymous_replay(self):
         replayfilename = "test_replays/4.1.2.60604/1.SC2Replay"
         factory = sc2reader.factories.SC2Factory()
