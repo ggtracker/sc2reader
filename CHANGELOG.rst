@@ -1,6 +1,11 @@
 CHANGELOG
 ============
 
+1.6.0 - July 30, 2020
+---------------------
+* Add support for protocol 80949 (StarCraft 5.0) #122
+* Fix toJson script #118
+
 1.5.0 - January 18, 2020
 ------------------------
 * Add support for protocol 77379 #106 #107
