@@ -7,110 +7,111 @@ from sc2reader.engine.events import InitGameEvent, EndGameEvent, PluginExit
 
 
 class GameEngine(object):
-    """ GameEngine Specification
-        --------------------------
+    """
+    GameEngine Specification
+    --------------------------
 
-        The game engine runs through all the events for a given replay in
-        chronological order. For each event, event handlers from registered
-        plugins are executed in order of plugin registration from most general
-        to most specific.
+    The game engine runs through all the events for a given replay in
+    chronological order. For each event, event handlers from registered
+    plugins are executed in order of plugin registration from most general
+    to most specific.
 
-        Example Usage::
+    Example Usage::
 
-            class Plugin1():
-                def handleCommandEvent(self, event, replay):
-                    pass
+        class Plugin1():
+            def handleCommandEvent(self, event, replay):
+                pass
 
-            class Plugin2():
-                def handleEvent(self, event, replay):
-                    pass
+        class Plugin2():
+            def handleEvent(self, event, replay):
+                pass
 
-                def handleTargetUnitCommandEvent(self, event, replay):
-                    pass
+            def handleTargetUnitCommandEvent(self, event, replay):
+                pass
 
+        ...
+
+        engine = GameEngine(plugins=[Plugin1(), Plugin2()], **options)
+        engine.register_plugins(Plugin3(), Plugin(4))
+        engine.reigster_plugin(Plugin(5))
+        engine.run(replay)
+
+    Calls functions in the following order for a ``TargetUnitCommandEvent``::
+
+        Plugin1.handleCommandEvent(event, replay)
+        Plugin2.handleEvent(event, replay)
+        Plugin2.handleTargetUnitCommandEvent(event, replay)
+
+
+    Plugin Specification
+    -------------------------
+
+    Plugins can opt in to handle events with methods in the format:
+
+        def handleEventName(self, event, replay)
+
+    In addition to handling specific event types, plugins can also
+    handle events more generally by handling built-in parent classes
+    from the list below::
+
+        * handleEvent - called for every single event of all types
+        * handleMessageEvent - called for events in replay.message.events
+        * handleGameEvent - called for events in replay.game.events
+        * handleTrackerEvent - called for events in replay.tracker.events
+        * handleCommandEvent - called for all types of command events
+        * handleControlGroupEvent - called for all player control group events
+
+    Plugins may also handle optional ``InitGame`` and ``EndGame`` events generated
+    by the GameEngine before and after processing all the events:
+
+      * handleInitGame - is called prior to processing a new replay to provide
+        an opportunity for the plugin to clear internal state and set up any
+        replay state necessary.
+
+      * handleEndGame - is called after all events have been processed and
+        can be used to perform post processing on aggrated data or clean up
+        intermediate data caches.
+
+    Event handlers can choose to ``yield`` additional events which will be injected
+    into the event stream directly after the event currently being processed. This
+    feature allows for message passing between plugins. An ExpansionTracker plugin
+    could notify all other plugins of a new ExpansionEvent that they could opt to
+    process::
+
+        def handleUnitDoneEvent(self, event, replay):
+            if event.unit.name == 'Nexus':
+                yield ExpansionEvent(event.frame, event.unit)
+            ....
+
+    If a plugin wishes to stop processing a replay it can yield a PluginExit event before returning::
+
+        def handleEvent(self, event, replay):
+            if len(replay.tracker_events) == 0:
+                yield PluginExit(self, code=0, details=dict(msg="tracker events required"))
+                return
             ...
 
-            engine = GameEngine(plugins=[Plugin1(), Plugin2()], **options)
-            engine.register_plugins(Plugin3(), Plugin(4))
-            engine.reigster_plugin(Plugin(5))
-            engine.run(replay)
+        def handleCommandEvent(self, event, replay):
+            try:
+                possibly_throwing_error()
+            catch Error as e:
+                logger.error(e)
+                yield PluginExit(self, code=0, details=dict(msg="Unexpected exception"))
 
-        Calls functions in the following order for a ``TargetUnitCommandEvent``::
+    The GameEngine will intercept this event and remove the plugin from the list of
+    active plugins for this replay. The exit code and details will be available from the
+    replay::
 
-            Plugin1.handleCommandEvent(event, replay)
-            Plugin2.handleEvent(event, replay)
-            Plugin2.handleTargetUnitCommandEvent(event, replay)
+        code, details = replay.plugins['MyPlugin']
 
+    If your plugin depends on another plugin, it is a good idea to implement handlePluginExit
+    and be alerted if the plugin that you require fails. This way you can exit gracefully. You
+    can also check to see if the plugin name is in ``replay.plugin_failures``::
 
-        Plugin Specification
-        -------------------------
-
-        Plugins can opt in to handle events with methods in the format:
-
-            def handleEventName(self, event, replay)
-
-        In addition to handling specific event types, plugins can also
-        handle events more generally by handling built-in parent classes
-        from the list below::
-
-            * handleEvent - called for every single event of all types
-            * handleMessageEvent - called for events in replay.message.events
-            * handleGameEvent - called for events in replay.game.events
-            * handleTrackerEvent - called for events in replay.tracker.events
-            * handleCommandEvent - called for all types of command events
-            * handleControlGroupEvent - called for all player control group events
-
-        Plugins may also handle optional ``InitGame`` and ``EndGame`` events generated
-        by the GameEngine before and after processing all the events:
-
-          * handleInitGame - is called prior to processing a new replay to provide
-            an opportunity for the plugin to clear internal state and set up any
-            replay state necessary.
-
-          * handleEndGame - is called after all events have been processed and
-            can be used to perform post processing on aggrated data or clean up
-            intermediate data caches.
-
-        Event handlers can choose to ``yield`` additional events which will be injected
-        into the event stream directly after the event currently being processed. This
-        feature allows for message passing between plugins. An ExpansionTracker plugin
-        could notify all other plugins of a new ExpansionEvent that they could opt to
-        process::
-
-            def handleUnitDoneEvent(self, event, replay):
-                if event.unit.name == 'Nexus':
-                    yield ExpansionEvent(event.frame, event.unit)
-                ....
-
-        If a plugin wishes to stop processing a replay it can yield a PluginExit event before returning::
-
-            def handleEvent(self, event, replay):
-                if len(replay.tracker_events) == 0:
-                    yield PluginExit(self, code=0, details=dict(msg="tracker events required"))
-                    return
-                ...
-
-            def handleCommandEvent(self, event, replay):
-                try:
-                    possibly_throwing_error()
-                catch Error as e:
-                    logger.error(e)
-                    yield PluginExit(self, code=0, details=dict(msg="Unexpected exception"))
-
-        The GameEngine will intercept this event and remove the plugin from the list of
-        active plugins for this replay. The exit code and details will be available from the
-        replay::
-
-            code, details = replay.plugins['MyPlugin']
-
-        If your plugin depends on another plugin, it is a good idea to implement handlePluginExit
-        and be alerted if the plugin that you require fails. This way you can exit gracefully. You
-        can also check to see if the plugin name is in ``replay.plugin_failures``::
-
-            if 'RequiredPlugin' in replay.plugin_failures:
-                code, details = replay.plugins['RequiredPlugin']
-                message = "RequiredPlugin failed with code: {0}. Cannot continue.".format(code)
-                yield PluginExit(self, code=1, details=dict(msg=message))
+        if 'RequiredPlugin' in replay.plugin_failures:
+            code, details = replay.plugins['RequiredPlugin']
+            message = "RequiredPlugin failed with code: {0}. Cannot continue.".format(code)
+            yield PluginExit(self, code=1, details=dict(msg=message))
     """
 
     def __init__(self, plugins=[]):

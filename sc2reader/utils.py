@@ -93,12 +93,16 @@ class Color(object):
 
     @property
     def rgba(self):
-        """ Returns a tuple containing the color's (r,g,b,a) """
+        """
+        Returns a tuple containing the color's (r,g,b,a)
+        """
         return (self.r, self.g, self.b, self.a)
 
     @property
     def hex(self):
-        """The hexadecimal representation of the color"""
+        """
+        The hexadecimal representation of the color
+        """
         return "{0.r:02X}{0.g:02X}{0.b:02X}".format(self)
 
     def __str__(self):
@@ -197,23 +201,30 @@ def get_files(
 
 
 class Length(timedelta):
-    """ Extends the builtin timedelta class. See python docs for more info on
-        what capabilities this gives you.
+    """
+    Extends the builtin timedelta class. See python docs for more info on
+    what capabilities this gives you.
     """
 
     @property
     def hours(self):
-        """ The number of hours in represented. """
+        """
+        The number of hours in represented.
+        """
         return self.seconds // 3600
 
     @property
     def mins(self):
-        """ The number of minutes in excess of the hours. """
+        """
+        The number of minutes in excess of the hours.
+        """
         return self.seconds // 60 % 60
 
     @property
     def secs(self):
-        """ The number of seconds in excess of the minutes. """
+        """
+        The number of seconds in excess of the minutes.
+        """
         return self.seconds % 60
 
     def __str__(self):

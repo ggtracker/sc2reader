@@ -67,12 +67,12 @@ def add_log_handler(handler, level="WARN", format=None, datefmt=None):
 
 def get_logger(entity):
     """
-        Retrieves loggers from the enties fully scoped name.
+    Retrieves loggers from the enties fully scoped name.
 
-            get_logger(Replay)     -> sc2reader.replay.Replay
-            get_logger(get_logger) -> sc2reader.utils.get_logger
+        get_logger(Replay)     -> sc2reader.replay.Replay
+        get_logger(get_logger) -> sc2reader.utils.get_logger
 
-        :param entity: The entity for which we want a logger.
+    :param entity: The entity for which we want a logger.
     """
     try:
         return logging.getLogger(entity.__module__ + "." + entity.__name__)

@@ -3,25 +3,26 @@ from __future__ import absolute_import, print_function, unicode_literals, divisi
 
 
 class SelectionTracker(object):
-    """ Tracks a player's active selection as an input into other plugins.
+    """
+    Tracks a player's active selection as an input into other plugins.
 
-        In some situations selection tracking isn't perfect. The plugin will
-        detect these situations and report errors. For a player will a high
-        level of selection errors, it may be best to ignore the selection
-        results as they could have been severely compromised.
+    In some situations selection tracking isn't perfect. The plugin will
+    detect these situations and report errors. For a player will a high
+    level of selection errors, it may be best to ignore the selection
+    results as they could have been severely compromised.
 
-        Exposes the following interface, directly integrated into the player:
+    Exposes the following interface, directly integrated into the player:
 
-            for person in replay.entities:
-                total_errors = person.selection_errors
+        for person in replay.entities:
+            total_errors = person.selection_errors
 
-                selection = person.selection
-                control_group_0 = selection[0]
-                ...
-                control_group_9 = selection[9]
-                active_selection = selection[10]
+            selection = person.selection
+            control_group_0 = selection[0]
+            ...
+            control_group_9 = selection[9]
+            active_selection = selection[10]
 
-        # TODO: list a few error inducing situations
+    # TODO: list a few error inducing situations
     """
 
     name = "SelectionTracker"
@@ -69,7 +70,9 @@ class SelectionTracker(object):
         return sorted(set(selection + units))
 
     def _deselect(self, selection, mode, data):
-        """Returns false if there was a data error when deselecting"""
+        """
+        Returns false if there was a data error when deselecting
+        """
         if mode == "None":
             return selection, False
 

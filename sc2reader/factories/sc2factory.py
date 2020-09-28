@@ -28,7 +28,8 @@ from sc2reader.resources import Resource, Replay, Map, GameSummary, Localization
 
 @log_utils.loggable
 class SC2Factory(object):
-    """The SC2Factory class acts as a generic loader interface for all
+    """
+    The SC2Factory class acts as a generic loader interface for all
     available to sc2reader resources. At current time this includes
     :class:`~sc2reader.resources.Replay` and :class:`~sc2reader.resources.Map` resources. These resources can be
     loaded in both singular and plural contexts with:
@@ -81,57 +82,79 @@ class SC2Factory(object):
 
     # Primary Interface
     def load_replay(self, source, options=None, **new_options):
-        """Loads a single sc2replay file. Accepts file path, url, or file object."""
+        """
+        Loads a single sc2replay file. Accepts file path, url, or file object.
+        """
         return self.load(Replay, source, options, **new_options)
 
     def load_replays(self, sources, options=None, **new_options):
-        """Loads a collection of sc2replay files, returns a generator."""
+        """
+        Loads a collection of sc2replay files, returns a generator.
+        """
         return self.load_all(
             Replay, sources, options, extension="SC2Replay", **new_options
         )
 
     def load_localization(self, source, options=None, **new_options):
-        """Loads a single s2ml file. Accepts file path, url, or file object."""
+        """
+        Loads a single s2ml file. Accepts file path, url, or file object.
+        """
         return self.load(Localization, source, options, **new_options)
 
     def load_localizations(self, sources, options=None, **new_options):
-        """Loads a collection of s2ml files, returns a generator."""
+        """
+        Loads a collection of s2ml files, returns a generator.
+        """
         return self.load_all(
             Localization, sources, options, extension="s2ml", **new_options
         )
 
     def load_map(self, source, options=None, **new_options):
-        """Loads a single s2ma file. Accepts file path, url, or file object."""
+        """
+        Loads a single s2ma file. Accepts file path, url, or file object.
+        """
         return self.load(Map, source, options, **new_options)
 
     def load_maps(self, sources, options=None, **new_options):
-        """Loads a collection of s2ma files, returns a generator."""
+        """
+        Loads a collection of s2ma files, returns a generator.
+        """
         return self.load_all(Map, sources, options, extension="s2ma", **new_options)
 
     def load_game_summary(self, source, options=None, **new_options):
-        """Loads a single s2gs file. Accepts file path, url, or file object."""
+        """
+        Loads a single s2gs file. Accepts file path, url, or file object.
+        """
         return self.load(GameSummary, source, options, **new_options)
 
     def load_game_summaries(self, sources, options=None, **new_options):
-        """Loads a collection of s2gs files, returns a generator."""
+        """
+        Loads a collection of s2gs files, returns a generator.
+        """
         return self.load_all(
             GameSummary, sources, options, extension="s2gs", **new_options
         )
 
     def configure(self, cls=None, **options):
-        """ Configures the factory to use the supplied options. If cls is specified
-            the options will only be applied when loading that class"""
+        """
+        Configures the factory to use the supplied options. If cls is specified
+        the options will only be applied when loading that class
+        """
         if isinstance(cls, basestring):
             cls = self._resource_name_map.get[cls.lower()]
         cls = cls or Resource
         self.options[cls].update(options)
 
     def reset(self):
-        "Resets the options to factory defaults"
+        """
+        Resets the options to factory defaults
+        """
         self.options = defaultdict(dict)
 
     def register_plugin(self, cls, plugin):
-        "Registers the given Plugin to be run on classes of the supplied name."
+        """
+        Registers the given Plugin to be run on classes of the supplied name.
+        """
         if isinstance(cls, basestring):
             cls = self._resource_name_map.get(cls.lower(), Resource)
         self.plugins.append((cls, plugin))
@@ -170,7 +193,9 @@ class SC2Factory(object):
         return options
 
     def _load_resources(self, resources, options=None, **new_options):
-        """Collections of resources or a path to a directory"""
+        """
+        Collections of resources or a path to a directory
+        """
         options = options or self._get_options(Resource, **new_options)
 
         # Path to a folder, retrieve all relevant files as the collection
@@ -190,7 +215,9 @@ class SC2Factory(object):
             return resource_file.read()
 
     def _load_resource(self, resource, options=None, **new_options):
-        """http links, filesystem locations, and file-like objects"""
+        """
+        http links, filesystem locations, and file-like objects
+        """
         options = options or self._get_options(Resource, **new_options)
 
         if isinstance(resource, utils.DepotFile):
