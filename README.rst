@@ -1,3 +1,5 @@
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4007376.svg
+   :target: https://doi.org/10.5281/zenodo.4007376
 
 What is sc2reader?
 ====================
@@ -16,7 +18,7 @@ sc2reader is currently powering:
 * Tools: `The Core`_
 * Experiments: `Midi Conversion`_
 
-If you use sc2reader and you would like your tool, site, project, or implementation listed above, drop us a line on our `mailing list`_ or stop by our #sc2reader IRC channel and say hi!
+If you use sc2reader and you would like your tool, site, project, or implementation listed above, drop us a line on our `mailing list`_.
 
 
 .. _gggreplays.com: http://gggreplays.com
