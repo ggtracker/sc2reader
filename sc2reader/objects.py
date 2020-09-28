@@ -283,14 +283,17 @@ class User(object):
 
     @property
     def url(self):
-        """The player's formatted Battle.net profile url"""
+        """
+        The player's formatted Battle.net profile url
+        """
         return self.URL_TEMPLATE.format(
             **self.__dict__
         )  # region=self.region, toon_id=self.toon_id, subregion=self.subregion, name=self.name.('utf8'))
 
 
 class Observer(Entity, User):
-    """ Extends :class:`Entity` and :class:`User`.
+    """
+    Extends :class:`Entity` and :class:`User`.
 
     :param integer sid: The entity's unique slot id.
     :param dict slot_data: The slot data associated with this entity
@@ -314,7 +317,8 @@ class Observer(Entity, User):
 
 
 class Computer(Entity, Player):
-    """ Extends :class:`Entity` and :class:`Player`
+    """
+    Extends :class:`Entity` and :class:`Player`
 
     :param integer sid: The entity's unique slot id.
     :param dict slot_data: The slot data associated with this entity
@@ -338,7 +342,8 @@ class Computer(Entity, Player):
 
 
 class Participant(Entity, User, Player):
-    """ Extends :class:`Entity`, :class:`User`, and :class:`Player`
+    """
+    Extends :class:`Entity`, :class:`User`, and :class:`Player`
 
     :param integer sid: The entity's unique slot id.
     :param dict slot_data: The slot data associated with this entity

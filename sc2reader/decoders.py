@@ -31,7 +31,8 @@ class ByteDecoder(object):
     _contents = ""
 
     def __init__(self, contents, endian):
-        """ Accepts both strings and files implementing ``read()`` and
+        """
+        Accepts both strings and files implementing ``read()`` and
         decodes them in the specified endian format.
         """
         if hasattr(contents, "read"):
@@ -66,40 +67,58 @@ class ByteDecoder(object):
         self._unpack_bytes = lambda bytes: bytes if self.endian == ">" else bytes[::-1]
 
     def done(self):
-        """ Returns true when all bytes have been decoded """
+        """
+        Returns true when all bytes have been decoded
+        """
         return self.tell() == self.length
 
     def read_range(self, start, end):
-        """ Returns the raw byte string from the indicated address range """
+        """
+        Returns the raw byte string from the indicated address range
+        """
         return self._contents[start:end]
 
     def peek(self, count):
-        """ Returns the raw byte string for the next ``count`` bytes """
+        """
+        Returns the raw byte string for the next ``count`` bytes
+        """
         start = self.tell()
         return self._contents[start : start + count]
 
     def read_uint8(self):
-        """ Returns the next byte as an unsigned integer """
+        """
+        Returns the next byte as an unsigned integer
+        """
         return ord(self.read(1))
 
     def read_uint16(self):
-        """ Returns the next two bytes as an unsigned integer """
+        """
+        Returns the next two bytes as an unsigned integer
+        """
         return self._unpack_short(self.read(2))[0]
 
     def read_uint32(self):
-        """ Returns the next four bytes as an unsigned integer """
+        """
+        Returns the next four bytes as an unsigned integer
+        """
         return self._unpack_int(self.read(4))[0]
 
     def read_uint64(self):
-        """ Returns the next eight bytes as an unsigned integer """
+        """
+        Returns the next eight bytes as an unsigned integer
+        """
         return self._unpack_longlong(self.read(8))[0]
 
     def read_bytes(self, count):
-        """ Returns the next ``count`` bytes as a byte string """
+        """
+        Returns the next ``count`` bytes as a byte string
+        """
         return self._unpack_bytes(self.read(count))
 
     def read_uint(self, count):
-        """ Returns the next ``count`` bytes as an unsigned integer """
+        """
+        Returns the next ``count`` bytes as an unsigned integer
+        """
         unpack = struct.Struct(str(self.endian + "B" * count)).unpack
         uint = 0
         for byte in unpack(self.read(count)):
@@ -107,11 +126,15 @@ class ByteDecoder(object):
         return uint
 
     def read_string(self, count, encoding="utf8"):
-        """ Read a string in given encoding (default utf8) that is ``count`` bytes long """
+        """
+        Read a string in given encoding (default utf8) that is ``count`` bytes long
+        """
         return self.read_bytes(count).decode(encoding)
 
     def read_cstring(self, encoding="utf8"):
-        """ Read a NULL byte terminated character string decoded with given encoding (default utf8). Ignores endian. """
+        """
+        Read a NULL byte terminated character string decoded with given encoding (default utf8). Ignores endian.
+        """
         cstring = BytesIO()
         while True:
             c = self.read(1)
@@ -170,16 +193,22 @@ class BitPackedDecoder(object):
         self.read_bool = functools.partial(self.read_bits, 1)
 
     def done(self):
-        """ Returns true when all bytes in the buffer have been used"""
+        """
+        Returns true when all bytes in the buffer have been used
+        """
         return self.tell() == self.length
 
     def byte_align(self):
-        """ Moves cursor to the beginning of the next byte """
+        """
+        Moves cursor to the beginning of the next byte
+        """
         self._next_byte = None
         self._bit_shift = 0
 
     def read_uint8(self):
-        """ Returns the next 8 bits as an unsigned integer """
+        """
+        Returns the next 8 bits as an unsigned integer
+        """
         data = ord(self._buffer.read(1))
 
         if self._bit_shift != 0:
@@ -192,7 +221,9 @@ class BitPackedDecoder(object):
         return data
 
     def read_uint16(self):
-        """ Returns the next 16 bits as an unsigned integer """
+        """
+        Returns the next 16 bits as an unsigned integer
+        """
         data = self._buffer.read_uint16()
 
         if self._bit_shift != 0:
@@ -206,7 +237,9 @@ class BitPackedDecoder(object):
         return data
 
     def read_uint32(self):
-        """ Returns the next 32 bits as an unsigned integer """
+        """
+        Returns the next 32 bits as an unsigned integer
+        """
         data = self._buffer.read_uint32()
 
         if self._bit_shift != 0:
@@ -220,7 +253,9 @@ class BitPackedDecoder(object):
         return data
 
     def read_uint64(self):
-        """ Returns the next 64 bits as an unsigned integer """
+        """Returns
+        the next 64 bits as an unsigned integer
+        """
         data = self._buffer.read_uint64()
 
         if self._bit_shift != 0:
@@ -234,7 +269,9 @@ class BitPackedDecoder(object):
         return data
 
     def read_vint(self):
-        """ Reads a signed integer of variable length """
+        """
+        Reads a signed integer of variable length
+        """
         byte = ord(self._buffer.read(1))
         negative = byte & 0x01
         result = (byte & 0x7F) >> 1
@@ -246,17 +283,23 @@ class BitPackedDecoder(object):
         return -result if negative else result
 
     def read_aligned_bytes(self, count):
-        """ Skips to the beginning of the next byte and returns the next ``count`` bytes as a byte string """
+        """
+        Skips to the beginning of the next byte and returns the next ``count`` bytes as a byte string
+        """
         self.byte_align()
         return self._buffer.read_bytes(count)
 
     def read_aligned_string(self, count, encoding="utf8"):
-        """ Skips to the beginning of the next byte and returns the next ``count`` bytes decoded with encoding (default utf8) """
+        """
+        Skips to the beginning of the next byte and returns the next ``count`` bytes decoded with encoding (default utf8)
+        """
         self.byte_align()
         return self._buffer.read_string(count, encoding)
 
     def read_bytes(self, count):
-        """ Returns the next ``count*8`` bits as a byte string """
+        """
+        Returns the next ``count*8`` bits as a byte string
+        """
         data = self._buffer.read_bytes(count)
 
         if self._bit_shift != 0:
@@ -276,7 +319,9 @@ class BitPackedDecoder(object):
         return data
 
     def read_bits(self, count):
-        """ Returns the next ``count`` bits as an unsigned integer """
+        """Returns
+        the next ``count`` bits as an unsigned integer
+        """
         result = 0
         bits = count
         bit_shift = self._bit_shift
@@ -325,7 +370,9 @@ class BitPackedDecoder(object):
         return result
 
     def read_frames(self):
-        """ Reads a frame count as an unsigned integer """
+        """
+        Reads a frame count as an unsigned integer
+        """
         byte = self.read_uint8()
         time, additional_bytes = byte >> 2, byte & 0x03
         if additional_bytes == 0:
@@ -338,8 +385,9 @@ class BitPackedDecoder(object):
             return time << 24 | self.read_uint16() << 8 | self.read_uint8()
 
     def read_struct(self, datatype=None):
-        """ Reads a nested data structure. If the type is not specified the
-        first byte is used as the type identifier.
+        """
+        Reads a nested data structure. If the type is not specified
+        the first byte is used as the type identifier.
         """
         self.byte_align()
         datatype = ord(self._buffer.read(1)) if datatype is None else datatype

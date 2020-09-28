@@ -9,7 +9,7 @@ from sc2reader.log_utils import loggable
 @loggable
 class MessageEvent(Event):
     """
-        Parent class for all message events.
+    Parent class for all message events.
     """
 
     def __init__(self, frame, pid):
@@ -36,7 +36,7 @@ class MessageEvent(Event):
 @loggable
 class ChatEvent(MessageEvent):
     """
-        Records in-game chat events.
+    Records in-game chat events.
     """
 
     def __init__(self, frame, pid, target, text):
@@ -60,7 +60,7 @@ class ChatEvent(MessageEvent):
 @loggable
 class ProgressEvent(MessageEvent):
     """
-        Sent during the load screen to update load process for other clients.
+    Sent during the load screen to update load process for other clients.
     """
 
     def __init__(self, frame, pid, progress):
@@ -73,7 +73,7 @@ class ProgressEvent(MessageEvent):
 @loggable
 class PingEvent(MessageEvent):
     """
-        Records pings made by players in game.
+    Records pings made by players in game.
     """
 
     def __init__(self, frame, pid, target, x, y):

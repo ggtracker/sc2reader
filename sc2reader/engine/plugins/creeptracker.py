@@ -86,8 +86,8 @@ class CreepTracker(object):
             for player in replay.players:
                 if player.play_race[0] == "Z":
                     self.creepTracker.reduce_cgu_per_minute(player.pid)
-                    player.creep_spread_by_minute = self.creepTracker.get_creep_spread_area(
-                        player.pid
+                    player.creep_spread_by_minute = (
+                        self.creepTracker.get_creep_spread_area(player.pid)
                     )
                     # note that player.max_creep_spread may be a tuple or an int
                     if player.creep_spread_by_minute:
