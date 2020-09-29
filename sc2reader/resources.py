@@ -1196,7 +1196,7 @@ class GameSummary(Resource):
 
             translation = dict()
             for uid, (sheet, item) in self.id_map.items():
-                if sheet and sheet < len(sheets) and item in sheets[sheet]:
+                if sheet is not None and sheet < len(sheets) and item in sheets[sheet]:
                     translation[uid] = sheets[sheet][item]
                 elif self.opt["debug"]:
                     msg = "No {0} translation for sheet {1}, item {2}"
