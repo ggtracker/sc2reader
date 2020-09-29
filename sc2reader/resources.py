@@ -1118,7 +1118,7 @@ class GameSummary(Resource):
 
         # the game type is probably co-op because it uses a different
         # game summary format than other games
-        self.game_type = self.settings.get("Teams", 'Unknown').replace(" ", "")
+        self.game_type = self.settings.get("Teams", "Unknown").replace(" ", "")
         self.real_type = utils.get_real_type(self.teams)
 
         # The s2gs file also keeps reference to a series of s2mv files
