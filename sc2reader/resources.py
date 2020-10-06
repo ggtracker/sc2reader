@@ -1014,6 +1014,12 @@ class Localization(Resource, dict):
 
 
 class GameSummary(Resource):
+    """
+    Data extracted from the post-game Game Summary with units killed,
+    etc. This code does not work as reliably for Co-op games, which
+    have a completely different format for the report, which means
+    that the data is not necessarily in the places we expect.
+    """
 
     url_template = "http://{0}.depot.battle.net:1119/{1}.s2gs"
 
@@ -1110,7 +1116,9 @@ class GameSummary(Resource):
         self.load_player_stats()
         self.load_players()
 
-        self.game_type = self.settings["Teams"].replace(" ", "")
+        # the game type is probably co-op because it uses a different
+        # game summary format than other games
+        self.game_type = self.settings.get("Teams", "Unknown").replace(" ", "")
         self.real_type = utils.get_real_type(self.teams)
 
         # The s2gs file also keeps reference to a series of s2mv files
@@ -1149,8 +1157,8 @@ class GameSummary(Resource):
             self.id_map[uid] = (sheet, entry)
 
             for value in item[1]:
-                sheet = value[1][0][1]
-                entry = value[1][0][2]
+                sheet = value[1][0][1] if value[1][0] else None
+                entry = value[1][0][2] if value[1][0] else None
                 self.id_map[(uid, value[0])] = (sheet, entry)
 
         # Each localization is a pairing of a language id, e.g. enUS
@@ -1188,7 +1196,7 @@ class GameSummary(Resource):
 
             translation = dict()
             for uid, (sheet, item) in self.id_map.items():
-                if sheet < len(sheets) and item in sheets[sheet]:
+                if sheet is not None and sheet < len(sheets) and item in sheets[sheet]:
                     translation[uid] = sheets[sheet][item]
                 elif self.opt["debug"]:
                     msg = "No {0} translation for sheet {1}, item {2}"

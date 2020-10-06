@@ -77,7 +77,11 @@ class Attribute(object):
             self.value = None
         else:
             self.name, lookup = LOBBY_PROPERTIES[self.id]
-            self.value = lookup[value.strip("\x00 ")[::-1]]
+            try:
+                self.value = lookup[value.strip("\x00 ")[::-1]]
+            except KeyError:
+                self.logger.info("Missing attribute value: {0}".format(value))
+                self.value = None
 
     def __repr__(self):
         return str(self)
