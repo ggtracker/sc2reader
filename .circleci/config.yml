@@ -12,7 +12,7 @@ build_and_test: &build_and_test_steps
 jobs:
   StyleCheck:
     docker:
-      - image: circleci/python:3.8
+      - image: circleci/python:3.9
     steps:
       - checkout
       - run: sudo pip install black codespell flake8
@@ -27,12 +27,12 @@ jobs:
 
   Python2:
     docker:
-      - image: circleci/python:2.7.15
+      - image: circleci/python:2.7.18
     steps: *build_and_test_steps
 
   Python3:
     docker:
-      - image: circleci/python:3.8
+      - image: circleci/python:3.9
     steps: *build_and_test_steps
 
 
