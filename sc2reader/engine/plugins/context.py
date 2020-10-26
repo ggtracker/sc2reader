@@ -250,7 +250,7 @@ class ContextLoader(object):
                 )
             )
 
-        if event.unit_upkeeper:
+        if event.unit_upkeeper and event.unit:
             if event.unit.owner:
                 event.unit.owner.units.remove(event.unit)
             event.unit.owner = event.unit_upkeeper
