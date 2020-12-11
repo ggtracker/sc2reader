@@ -305,6 +305,17 @@ class TestReplays(unittest.TestCase):
         replay = sc2reader.load_replay(
             "test_replays/2.0.4.24944/Backwater Complex (15).SC2Replay"
         )
+        trade_events = [
+            event
+            for event in replay.events
+            if event.name == "ResourceTradeEvent"
+        ]        
+        self.assertEqual(len(trade_events), 5)
+        self.assertEqual(trade_events[0].sender.name, "Guardian")
+        self.assertEqual(trade_events[0].recipient.name, "Sturmkind")
+        self.assertEqual(trade_events[0].recipient_id, 2)
+        self.assertEqual(trade_events[0].minerals, 0)
+        self.assertEqual(trade_events[0].vespene, 750)
 
     def test_cn_replays(self):
         replay = sc2reader.load_replay("test_replays/2.0.5.25092/cn1.SC2Replay")

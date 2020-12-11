@@ -151,7 +151,7 @@ class ContextLoader(object):
 
     def handleResourceTradeEvent(self, event, replay):
         event.sender = event.player
-        event.recipient = replay.players[event.recipient_id]
+        event.recipient = replay.players[event.recipient_id-1]
 
     def handleHijackReplayGameEvent(self, event, replay):
         replay.resume_from_replay = True

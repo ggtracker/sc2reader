@@ -650,14 +650,14 @@ class ResourceTradeEvent(GameEvent):
         self.vespene = self.resources[1] if len(self.resources) >= 2 else None
 
         #: Amount terrazine sent
-        self.terrazon = self.resources[2] if len(self.resources) >= 3 else None
+        self.terrazine = self.resources[2] if len(self.resources) >= 3 else None
 
         #: Amount custom resource sent
         self.custom_resource = self.resources[3] if len(self.resources) >= 4 else None
 
     def __str__(self):
         return self._str_prefix() + " transfer {0} minerals, {1} gas, {2} terrazine, and {3} custom to {4}".format(
-            self.minerals, self.vespene, self.terrazine, self.custom, self.recipient
+            self.minerals, self.vespene, self.terrazine, self.custom_resource, self.recipient
         )
 
 
@@ -685,11 +685,8 @@ class ResourceRequestEvent(GameEvent):
         self.custom_resource = self.resources[3] if len(self.resources) >= 4 else None
 
     def __str__(self):
-        return (
-            self._str_prefix()
-            + " requests {0} minerals, {1} gas, {2} terrazine, and {3} custom".format(
-                self.minerals, self.vespene, self.terrazine, self.custom
-            )
+        return self._str_prefix() + " requests {0} minerals, {1} gas, {2} terrazine, and {3} custom".format(
+            self.minerals, self.vespene, self.terrazine, self.custom
         )
 
 
