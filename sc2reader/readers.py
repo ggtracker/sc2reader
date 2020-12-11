@@ -421,7 +421,7 @@ class GameEventsReader_Base(object):
             28: (SelectionEvent, self.selection_delta_event),
             29: (create_control_group_event, self.control_group_update_event),
             30: (None, self.selection_sync_check_event),
-            31: (None, self.resource_trade_event),
+            31: (ResourceTradeEvent, self.resource_trade_event),
             32: (None, self.trigger_chat_message_event),
             33: (None, self.ai_communicate_event),
             34: (None, self.set_absolute_game_speed_event),
