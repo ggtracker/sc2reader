@@ -686,7 +686,7 @@ class ResourceRequestEvent(GameEvent):
 
     def __str__(self):
         return self._str_prefix() + " requests {0} minerals, {1} gas, {2} terrazine, and {3} custom".format(
-            self.minerals, self.vespene, self.terrazine, self.custom
+            self.minerals, self.vespene, self.terrazine, self.custom_resource
         )
 
 
