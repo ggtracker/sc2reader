@@ -306,10 +306,8 @@ class TestReplays(unittest.TestCase):
             "test_replays/2.0.4.24944/Backwater Complex (15).SC2Replay"
         )
         trade_events = [
-            event
-            for event in replay.events
-            if event.name == "ResourceTradeEvent"
-        ]        
+            event for event in replay.events if event.name == "ResourceTradeEvent"
+        ]
         self.assertEqual(len(trade_events), 5)
         self.assertEqual(trade_events[0].sender.name, "Guardian")
         self.assertEqual(trade_events[0].recipient.name, "Sturmkind")
