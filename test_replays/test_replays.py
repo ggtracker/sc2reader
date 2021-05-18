@@ -321,7 +321,7 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(replay.expansion, "WoL")
 
     def test_unit_types(self):
-        """ sc2reader#136 regression test """
+        """sc2reader#136 regression test"""
         replay = sc2reader.load_replay("test_replays/2.0.8.25604/issue136.SC2Replay")
         hellion_times = [
             u.started_at for u in replay.players[0].units if u.name == "Hellion"

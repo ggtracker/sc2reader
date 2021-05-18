@@ -1,6 +1,15 @@
 CHANGELOG
 ============
 
+1.7.0 - May 17, 2021
+--------------------
+* Add DOI to the README #128
+* Add various missing attributes for co-op replays #129
+* Add support for python 3.8, 3.9 #132 #136
+* Fix owner on an event with no unit #133
+* Add support for ResourceTradeEvent #135
+* Fix depot URL template #139
+
 1.6.0 - July 30, 2020
 ---------------------
 * Add support for protocol 80949 (StarCraft 5.0) #122

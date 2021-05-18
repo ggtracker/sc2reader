@@ -89,7 +89,7 @@ class UnitSelection(object):
             return True
 
         elif mode == "Mask":
-            """ Deselect objects according to deselect mask """
+            """Deselect objects according to deselect mask"""
             mask = data
             if len(mask) < size:
                 # pad to the right
@@ -105,7 +105,7 @@ class UnitSelection(object):
             return len(mask) <= size
 
         elif mode == "OneIndices":
-            """ Deselect objects according to indexes """
+            """Deselect objects according to indexes"""
             clean_data = list(filter(lambda i: i < size, data))
             self.objects = [
                 self.objects[i] for i in range(len(self.objects)) if i not in clean_data
@@ -113,7 +113,7 @@ class UnitSelection(object):
             return len(clean_data) == len(data)
 
         elif mode == "ZeroIndices":
-            """ Deselect objects according to indexes """
+            """Deselect objects according to indexes"""
             clean_data = list(filter(lambda i: i < size, data))
             self.objects = [self.objects[i] for i in clean_data]
             return len(clean_data) == len(data)

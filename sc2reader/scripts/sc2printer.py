@@ -11,7 +11,7 @@ from sc2reader.exceptions import ReadError
 
 
 def printReplay(filepath, arguments):
-    """ Prints summary information about SC2 replay file """
+    """Prints summary information about SC2 replay file"""
     try:
         replay = sc2reader.load_replay(filepath, debug=True)
 

@@ -38,7 +38,7 @@ class DepotFile(object):
 
     @property
     def url(self):
-        """ Returns url of the depot file. """
+        """Returns url of the depot file."""
         return self.url_template.format(self.server, self.hash, self.type)
 
     def __hash__(self):

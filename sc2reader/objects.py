@@ -473,7 +473,7 @@ class Graph:
             self.values = y
 
     def as_points(self):
-        """ Get the graph as a list of (x, y) tuples """
+        """Get the graph as a list of (x, y) tuples"""
         return list(zip(self.times, self.values))
 
     def __str__(self):
