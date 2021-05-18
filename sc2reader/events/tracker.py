@@ -36,7 +36,7 @@ class TrackerEvent(Event):
 
 
 class PlayerSetupEvent(TrackerEvent):
-    """ Sent during game setup to help us organize players better """
+    """Sent during game setup to help us organize players better"""
 
     def __init__(self, frames, data, build):
         super(PlayerSetupEvent, self).__init__(frames)

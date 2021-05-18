@@ -151,42 +151,42 @@ class Unit(object):
 
     @property
     def type(self):
-        """ The internal type id of the current unit type of this unit. None if no type is assigned"""
+        """The internal type id of the current unit type of this unit. None if no type is assigned"""
         return self._type_class.id if self._type_class else None
 
     @property
     def race(self):
-        """ The race of this unit. One of Terran, Protoss, Zerg, Neutral, or None"""
+        """The race of this unit. One of Terran, Protoss, Zerg, Neutral, or None"""
         return self._type_class.race if self._type_class else None
 
     @property
     def minerals(self):
-        """ The mineral cost of the unit. None if no type is assigned"""
+        """The mineral cost of the unit. None if no type is assigned"""
         return self._type_class.minerals if self._type_class else None
 
     @property
     def vespene(self):
-        """ The vespene cost of the unit. None if no type is assigned"""
+        """The vespene cost of the unit. None if no type is assigned"""
         return self._type_class.vespene if self._type_class else None
 
     @property
     def supply(self):
-        """ The supply used by this unit. Negative for supply providers. None if no type is assigned """
+        """The supply used by this unit. Negative for supply providers. None if no type is assigned"""
         return self._type_class.supply if self._type_class else None
 
     @property
     def is_worker(self):
-        """ Boolean flagging units as worker units. SCV, MULE, Drone, Probe """
+        """Boolean flagging units as worker units. SCV, MULE, Drone, Probe"""
         return self._type_class.is_worker if self._type_class else False
 
     @property
     def is_building(self):
-        """ Boolean flagging units as buildings. """
+        """Boolean flagging units as buildings."""
         return self._type_class.is_building if self._type_class else False
 
     @property
     def is_army(self):
-        """ Boolean flagging units as army units. """
+        """Boolean flagging units as army units."""
         return self._type_class.is_army if self._type_class else False
 
     def __str__(self):
@@ -221,7 +221,7 @@ class Unit(object):
 
 
 class UnitType(object):
-    """ Represents an in game unit type """
+    """Represents an in game unit type"""
 
     def __init__(
         self,
@@ -272,7 +272,7 @@ class UnitType(object):
 
 
 class Ability(object):
-    """ Represents an in-game ability """
+    """Represents an in-game ability"""
 
     def __init__(
         self, id, name=None, title=None, is_build=False, build_time=0, build_unit=None
