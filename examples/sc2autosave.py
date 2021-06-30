@@ -37,7 +37,7 @@ Renaming Replays
 --------------------
 
 The --rename option allows you to specify a renaming format string. The string
-is constructed the pythonic (3.0) way with {:field} indicating the substition
+is constructed the pythonic (3.0) way with {:field} indicating the substitution
 of a field. The forward slash (/) is a special character here which terminates
 a folder name and allows for organization into subdirectories. All other string
 characters form the template into which the fields are inserted.

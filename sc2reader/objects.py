@@ -129,7 +129,7 @@ class Entity(object):
         #: The Battle.net subregion the entity is registered to
         self.subregion = int(parts[2])
 
-        #: The Battle.net acount identifier. Used to construct the
+        #: The Battle.net account identifier. Used to construct the
         #: bnet profile url. This value can be zero for games
         #: played offline when a user was not logged in to battle.net.
         self.toon_id = int(parts[3])
@@ -200,7 +200,7 @@ class Player(object):
         #: The Battle.net subregion the entity is registered to
         self.subregion = detail_data['bnet']['subregion']
 
-        #: The Battle.net acount identifier. Used to construct the
+        #: The Battle.net account identifier. Used to construct the
         #: bnet profile url. This value can be zero for games
         #: played offline when a user was not logged in to battle.net.
         self.toon_id = detail_data['bnet']['uid']

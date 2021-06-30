@@ -923,7 +923,7 @@ class GameSummary(Resource):
 
                 # Lobby properties can require on player properties.
                 # How does this work? I assume that one player satisfying the
-                # property requirments is sufficient
+                # property requirements is sufficient
                 if requirement.is_lobby:
                     values = [setting]
                 else:
