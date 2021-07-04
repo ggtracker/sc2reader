@@ -162,6 +162,18 @@
       "vespene": 0,
       "supply": 0
     },
+    "lurker": {
+      "is_army": true,
+      "minerals": 150,
+      "vespene": 150,
+      "supply": 3
+    },
+    "lurkerden": {
+      "minerals": 250,
+      "vespene": 250,
+      "supply": 0,
+      "is_building": true
+    },
     "mutalisk": {
       "is_army": true,
       "minerals": 100,
@@ -208,6 +220,12 @@
       "is_army": true,
       "minerals": 150,
       "vespene": 0,
+      "supply": 2
+    },
+    "ravager": {
+      "is_army": true,
+      "minerals": 75,
+      "vespene": 25,
       "supply": 2
     },
     "roach": {
@@ -314,6 +332,12 @@
     }
   },
   "Protoss": {
+    "adept": {
+      "is_army": true,
+      "minerals": 100,
+      "vespene": 25,
+      "supply": 2
+    },
     "archon": {
       "is_army": true,
       "minerals": 175,
@@ -356,6 +380,12 @@
       "vespene": 125,
       "supply": 2
     },
+    "disruptor": {
+      "is_army": true,
+      "minerals": 150,
+      "vespene": 150,
+      "supply": 3
+    },
     "fleetbeacon": {
       "minerals": 300,
       "vespene": 200,
@@ -385,6 +415,12 @@
       "minerals": 250,
       "vespene": 100,
       "supply": 4
+    },
+    "interceptor": {
+      "is_army": true,
+      "minerals": 10,
+      "vespene": 0,
+      "supply": 0
     },
     "mothership": {
       "is_army": true,
@@ -440,13 +476,19 @@
       "supply": 0,
       "is_building": true
     },
+    "reactor": {
+      "minerals": 50,
+      "vespene": 50,
+      "supply": 0,
+      "is_building": true
+    },
     "roboticsbay": {
       "minerals": 200,
       "vespene": 200,
       "supply": 0,
       "is_building": true
     },
-    "robiticsfacility": {
+    "roboticsfacility": {
       "minerals": 200,
       "vespene": 100,
       "supply": 0,
@@ -476,7 +518,7 @@
       "vespene": 200,
       "supply": 4
     },
-    "templararchives": {
+    "templararchive": {
       "minerals": 150,
       "vespene": 200,
       "supply": 0,
@@ -526,6 +568,12 @@
       "supply": 0,
       "is_building": true
     },
+    "autoturret": {
+      "is_army": true,
+      "minerals": 0,
+      "vespene": 0,
+      "supply": 0
+    },
     "banshee": {
       "is_army": true,
       "minerals": 150,
@@ -535,6 +583,18 @@
     "barracks": {
       "minerals": 150,
       "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "barrackstechlab": {
+      "minerals": 50,
+      "vespene": 25,
+      "supply": 0,
+      "is_building": true
+    },
+    "barracksreactor": {
+      "minerals": 50,
+      "vespene": 50,
       "supply": 0,
       "is_building": true
     },
@@ -574,6 +634,12 @@
       "supply": 0,
       "is_building": true
     },
+    "cyclone": {
+      "is_army": true,
+      "minerals": 150,
+      "vespene": 100,
+      "supply": 3
+    },
     "engineeringbay": {
       "minerals": 125,
       "vespene": 0,
@@ -589,6 +655,18 @@
     "factoryflying": {
       "minerals": 150,
       "vespene": 100,
+      "supply": 0,
+      "is_building": true
+    },
+    "factoryreactor": {
+      "minerals": 50,
+      "vespene": 50,
+      "supply": 0,
+      "is_building": true
+    },
+    "factorytechlab": {
+      "minerals": 50,
+      "vespene": 25,
       "supply": 0,
       "is_building": true
     },
@@ -639,6 +717,12 @@
       "vespene": 0,
       "supply": 0,
       "is_building": true
+    },
+    "mule": {
+      "minerals": 0,
+      "vespene": 0,
+      "supply": 0,
+      "is_worker": true
     },
     "orbitalcommand": {
       "minerals": 550,
@@ -712,6 +796,18 @@
       "supply": 0,
       "is_building": true
     },
+    "starportreactor": {
+      "minerals": 50,
+      "vespene": 50,
+      "supply": 0,
+      "is_building": true
+    },
+    "starporttechlab": {
+      "minerals": 50,
+      "vespene": 25,
+      "supply": 0,
+      "is_building": true
+    },
     "supplydepot": {
       "minerals": 100,
       "vespene": 0,
@@ -721,6 +817,12 @@
     "supplydepotlowered": {
       "minerals": 100,
       "vespene": 0,
+      "supply": 0,
+      "is_building": true
+    },
+    "techlab": {
+      "minerals": 50,
+      "vespene": 25,
       "supply": 0,
       "is_building": true
     },

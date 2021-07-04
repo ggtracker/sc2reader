@@ -16,7 +16,16 @@ from sc2reader import readers
 from sc2reader import exceptions
 from sc2reader.data import datapacks
 from sc2reader.exceptions import SC2ReaderLocalizationError, CorruptTrackerFileError
-from sc2reader.objects import Participant, Observer, Computer, Team, PlayerSummary, Graph, BuildEntry, MapInfo
+from sc2reader.objects import (
+    Participant,
+    Observer,
+    Computer,
+    Team,
+    PlayerSummary,
+    Graph,
+    BuildEntry,
+    MapInfo,
+)
 from sc2reader.constants import GAME_SPEED_FACTOR, LOBBY_PROPERTIES
 
 
@@ -25,9 +34,9 @@ class Resource(object):
         self.factory = factory
         self.opt = options
         self.logger = log_utils.get_logger(self.__class__)
-        self.filename = filename or getattr(file_object, 'name', 'Unavailable')
+        self.filename = filename or getattr(file_object, "name", "Unavailable")
 
-        if hasattr(file_object, 'seek'):
+        if hasattr(file_object, "seek"):
             file_object.seek(0)
             self.filehash = hashlib.sha256(file_object.read()).hexdigest()
             file_object.seek(0)
@@ -64,7 +73,7 @@ class Replay(Resource):
     #: Deprecated, use :attr:`game_type` or :attr:`real_type` instead
     type = str()
 
-    #: The game type choosen at game creation: 1v1, 2v2, 3v3, 4v4, FFA
+    #: The game type chosen at game creation: 1v1, 2v2, 3v3, 4v4, FFA
     game_type = str()
 
     #: The real type of the replay as observed by counting players on teams.
@@ -181,7 +190,7 @@ class Replay(Resource):
     people_hash = str()
 
     #: SC2 Expansion. One of 'WoL', 'HotS'
-    expasion = str()
+    expansion = str()
 
     #: True of the game was resumed from a replay
     resume_from_replay = False
@@ -192,7 +201,15 @@ class Replay(Resource):
     #: Lists info for each user that is resuming from replay.
     resume_user_info = None
 
-    def __init__(self, replay_file, filename=None, load_level=4, engine=sc2reader.engine, do_tracker_events=True, **options):
+    def __init__(
+        self,
+        replay_file,
+        filename=None,
+        load_level=4,
+        engine=sc2reader.engine,
+        do_tracker_events=True,
+        **options
+    ):
         super(Replay, self).__init__(replay_file, filename, **options)
         self.datapack = None
         self.raw_data = dict()
@@ -254,32 +271,45 @@ class Replay(Resource):
             except Exception as e:
                 raise exceptions.MPQError("Unable to construct the MPQArchive", e)
 
-            header_content = self.archive.header['user_data_header']['content']
+            header_content = self.archive.header["user_data_header"]["content"]
             header_data = BitPackedDecoder(header_content).read_struct()
             self.versions = list(header_data[1].values())
             self.frames = header_data[3]
             self.build = self.versions[4]
             self.base_build = self.versions[5]
             self.release_string = "{0}.{1}.{2}.{3}".format(*self.versions[1:5])
-            self.game_length = utils.Length(seconds=self.frames/16)
-            self.length = self.real_length = utils.Length(seconds=int(self.frames/self.game_fps))
+            fps = self.game_fps
+            if 34784 <= self.build:  # lotv replay, adjust time
+                fps = self.game_fps * 1.4
+
+            self.length = self.game_length = self.real_length = utils.Length(
+                seconds=int(self.frames / fps)
+            )
 
         # Load basic details if requested
+        # .backup files are read in case the main files are missing or removed
         if load_level >= 1:
             self.load_level = 1
-            for data_file in ['replay.initData', 'replay.details', 'replay.attributes.events']:
+            files = [
+                "replay.initData.backup",
+                "replay.details.backup",
+                "replay.attributes.events",
+                "replay.initData",
+                "replay.details",
+            ]
+            for data_file in files:
                 self._read_data(data_file, self._get_reader(data_file))
-            self.load_details()
+            self.load_all_details()
             self.datapack = self._get_datapack()
 
             # Can only be effective if map data has been loaded
-            if options.get('load_map', False):
+            if options.get("load_map", False):
                 self.load_map()
 
         # Load players if requested
         if load_level >= 2:
             self.load_level = 2
-            for data_file in ['replay.message.events']:
+            for data_file in ["replay.message.events"]:
                 self._read_data(data_file, self._get_reader(data_file))
             self.load_message_events()
             self.load_players()
@@ -287,91 +317,151 @@ class Replay(Resource):
         # Load tracker events if requested
         if load_level >= 3 and do_tracker_events:
             self.load_level = 3
-            for data_file in ['replay.tracker.events']:
+            for data_file in ["replay.tracker.events"]:
                 self._read_data(data_file, self._get_reader(data_file))
             self.load_tracker_events()
 
         # Load events if requested
         if load_level >= 4:
             self.load_level = 4
-            for data_file in ['replay.game.events']:
+            for data_file in ["replay.game.events"]:
                 self._read_data(data_file, self._get_reader(data_file))
             self.load_game_events()
 
         # Run this replay through the engine as indicated
         if engine:
-            resume_events = [ev for ev in self.game_events if ev.name == 'HijackReplayGameEvent']
-            if self.base_build <= 26490 and self.tracker_events and len(resume_events) > 0:
+            resume_events = [
+                ev for ev in self.game_events if ev.name == "HijackReplayGameEvent"
+            ]
+            if (
+                self.base_build <= 26490
+                and self.tracker_events
+                and len(resume_events) > 0
+            ):
                 raise CorruptTrackerFileError(
-                    "Cannot run engine on resumed games with tracker events. Run again with the " +
-                    "do_tracker_events=False option to generate context without tracker events.")
+                    "Cannot run engine on resumed games with tracker events. Run again with the "
+                    + "do_tracker_events=False option to generate context without tracker events."
+                )
 
             engine.run(self)
 
-    def load_details(self):
-        if 'replay.attributes.events' in self.raw_data:
+    def load_init_data(self):
+        if "replay.initData" in self.raw_data:
+            initData = self.raw_data["replay.initData"]
+        elif "replay.initData.backup" in self.raw_data:
+            initData = self.raw_data["replay.initData.backup"]
+        else:
+            return
+
+        options = initData["game_description"]["game_options"]
+        self.amm = options["amm"]
+        self.ranked = options["ranked"]
+        self.competitive = options["competitive"]
+        self.practice = options["practice"]
+        self.cooperative = options["cooperative"]
+        self.battle_net = options["battle_net"]
+        self.hero_duplicates_allowed = options["hero_duplicates_allowed"]
+
+    def load_attribute_events(self):
+        if "replay.attributes.events" in self.raw_data:
             # Organize the attribute data to be useful
             self.attributes = defaultdict(dict)
-            attributesEvents = self.raw_data['replay.attributes.events']
+            attributesEvents = self.raw_data["replay.attributes.events"]
             for attr in attributesEvents:
                 self.attributes[attr.player][attr.name] = attr.value
 
             # Populate replay with attributes
-            self.speed = self.attributes[16]['Game Speed']
-            self.category = self.attributes[16]['Game Mode']
-            self.type = self.game_type = self.attributes[16]['Teams']
-            self.is_ladder = (self.category == "Ladder")
-            self.is_private = (self.category == "Private")
+            self.speed = self.attributes[16].get("Game Speed", 1.0)
+            self.category = self.attributes[16].get("Game Mode", "")
+            self.type = self.game_type = self.attributes[16].get("Teams", "")
+            self.is_ladder = self.category == "Ladder"
+            self.is_private = self.category == "Private"
 
-        if 'replay.details' in self.raw_data:
-            details = self.raw_data['replay.details']
+    def load_details(self):
+        if "replay.details" in self.raw_data:
+            details = self.raw_data["replay.details"]
+        elif "replay.details.backup" in self.raw_data:
+            details = self.raw_data["replay.details.backup"]
+        else:
+            return
 
-            self.map_name = details['map_name']
+        self.map_name = details["map_name"]
+        self.region = details["cache_handles"][0].server.lower()
+        self.map_hash = details["cache_handles"][-1].hash
+        self.map_file = details["cache_handles"][-1]
 
-            self.region = details['cache_handles'][0].server.lower()
-            self.map_hash = details['cache_handles'][-1].hash
-            self.map_file = details['cache_handles'][-1]
+        # Expand this special case mapping
+        if self.region == "sg":
+            self.region = "sea"
 
-            # Expand this special case mapping
-            if self.region == 'sg':
-                self.region = 'sea'
+        dependency_hashes = [d.hash for d in details["cache_handles"]]
+        if (
+            hashlib.sha256("Standard Data: Void.SC2Mod".encode("utf8")).hexdigest()
+            in dependency_hashes
+        ):
+            self.expansion = "LotV"
+        elif (
+            hashlib.sha256("Standard Data: Swarm.SC2Mod".encode("utf8")).hexdigest()
+            in dependency_hashes
+        ):
+            self.expansion = "HotS"
+        elif (
+            hashlib.sha256("Standard Data: Liberty.SC2Mod".encode("utf8")).hexdigest()
+            in dependency_hashes
+        ):
+            self.expansion = "WoL"
+        else:
+            self.expansion = ""
 
-            dependency_hashes = [d.hash for d in details['cache_handles']]
-            if hashlib.sha256('Standard Data: Swarm.SC2Mod'.encode('utf8')).hexdigest() in dependency_hashes:
-                self.expansion = 'HotS'
-            elif hashlib.sha256('Standard Data: Liberty.SC2Mod'.encode('utf8')).hexdigest() in dependency_hashes:
-                self.expansion = 'WoL'
-            else:
-                self.expansion = ''
+        self.windows_timestamp = details["file_time"]
+        self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
+        self.end_time = datetime.utcfromtimestamp(self.unix_timestamp)
 
-            self.windows_timestamp = details['file_time']
-            self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
-            self.end_time = datetime.utcfromtimestamp(self.unix_timestamp)
+        # The utc_adjustment is either the adjusted windows timestamp OR
+        # the value required to get the adjusted timestamp. We know the upper
+        # limit for any adjustment number so use that to distinguish between
+        # the two cases.
+        if details["utc_adjustment"] < 10 ** 7 * 60 * 60 * 24:
+            self.time_zone = details["utc_adjustment"] / (10 ** 7 * 60 * 60)
+        else:
+            self.time_zone = (details["utc_adjustment"] - details["file_time"]) / (
+                10 ** 7 * 60 * 60
+            )
 
-            # The utc_adjustment is either the adjusted windows timestamp OR
-            # the value required to get the adjusted timestamp. We know the upper
-            # limit for any adjustment number so use that to distinguish between
-            # the two cases.
-            if details['utc_adjustment'] < 10**7*60*60*24:
-                self.time_zone = details['utc_adjustment']/(10**7*60*60)
-            else:
-                self.time_zone = (details['utc_adjustment']-details['file_time'])/(10**7*60*60)
+        self.game_length = self.length
+        self.real_length = utils.Length(
+            seconds=self.length.seconds
+            // GAME_SPEED_FACTOR[self.expansion].get(self.speed, 1.0)
+        )
+        self.start_time = datetime.utcfromtimestamp(
+            self.unix_timestamp - self.real_length.seconds
+        )
+        self.date = self.end_time  # backwards compatibility
 
-            self.game_length = self.length
-            self.real_length = utils.Length(seconds=int(self.length.seconds/GAME_SPEED_FACTOR[self.speed]))
-            self.start_time = datetime.utcfromtimestamp(self.unix_timestamp-self.real_length.seconds)
-            self.date = self.end_time  # backwards compatibility
+    def load_all_details(self):
+        self.load_init_data()
+        self.load_attribute_events()
+        self.load_details()
 
     def load_map(self):
         self.map = self.factory.load_map(self.map_file, **self.opt)
 
     def load_players(self):
         # If we don't at least have details and attributes_events we can go no further
-        if 'replay.details' not in self.raw_data:
+        # We can use the backup detail files if the main files have been removed
+        if "replay.details" in self.raw_data:
+            details = self.raw_data["replay.details"]
+        elif "replay.details.backup" in self.raw_data:
+            details = self.raw_data["replay.details.backup"]
+        else:
             return
-        if 'replay.attributes.events' not in self.raw_data:
+        if "replay.attributes.events" not in self.raw_data:
             return
-        if 'replay.initData' not in self.raw_data:
+        if "replay.initData" in self.raw_data:
+            initData = self.raw_data["replay.initData"]
+        elif "replay.initData.backup" in self.raw_data:
+            initData = self.raw_data["replay.initData.backup"]
+        else:
             return
 
         self.clients = list()
@@ -381,35 +471,60 @@ class Replay(Resource):
         # information. detail_id marks the current index into this data.
         detail_id = 0
         player_id = 1
-        details = self.raw_data['replay.details']
-        initData = self.raw_data['replay.initData']
 
         # Assume that the first X map slots starting at 1 are player slots
         # so that we can assign player ids without the map
         self.entities = list()
-        for slot_id, slot_data in enumerate(initData['lobby_state']['slots']):
-            user_id = slot_data['user_id']
+        for slot_id, slot_data in enumerate(initData["lobby_state"]["slots"]):
+            user_id = slot_data["user_id"]
 
-            if slot_data['control'] == 2:
-                if slot_data['observe'] == 0:
-                    self.entities.append(Participant(slot_id, slot_data, user_id, initData['user_initial_data'][user_id], player_id, details['players'][detail_id], self.attributes.get(player_id, dict())))
+            if slot_data["control"] == 2:
+                if slot_data["observe"] == 0:
+                    self.entities.append(
+                        Participant(
+                            slot_id,
+                            slot_data,
+                            user_id,
+                            initData["user_initial_data"][user_id],
+                            player_id,
+                            details["players"][detail_id],
+                            self.attributes.get(player_id, dict()),
+                        )
+                    )
                     detail_id += 1
                     player_id += 1
 
                 else:
-                    self.entities.append(Observer(slot_id, slot_data, user_id, initData['user_initial_data'][user_id], player_id))
+                    self.entities.append(
+                        Observer(
+                            slot_id,
+                            slot_data,
+                            user_id,
+                            initData["user_initial_data"][user_id],
+                            player_id,
+                        )
+                    )
                     player_id += 1
 
-            elif slot_data['control'] == 3:
-                self.entities.append(Computer(slot_id, slot_data, player_id, details['players'][detail_id], self.attributes.get(player_id, dict())))
+            elif slot_data["control"] == 3 and detail_id < len(details["players"]):
+                # detail_id check needed for coop
+                self.entities.append(
+                    Computer(
+                        slot_id,
+                        slot_data,
+                        player_id,
+                        details["players"][detail_id],
+                        self.attributes.get(player_id, dict()),
+                    )
+                )
                 detail_id += 1
                 player_id += 1
 
         def get_team(team_id):
             if team_id is not None and team_id not in self.team:
-                    team = Team(team_id)
-                    self.team[team_id] = team
-                    self.teams.append(team)
+                team = Team(team_id)
+                self.team[team_id] = team
+                self.teams.append(team)
             return self.team[team_id]
 
         # Set up all our cross reference data structures
@@ -438,11 +553,13 @@ class Replay(Resource):
             results = set([p.result for p in team.players])
             if len(results) == 1:
                 team.result = list(results)[0]
-                if team.result == 'Win':
+                if team.result == "Win":
                     self.winner = team
             else:
-                self.logger.warn("Conflicting results for Team {0}: {1}".format(team.number, results))
-                team.result = 'Unknown'
+                self.logger.warn(
+                    "Conflicting results for Team {0}: {1}".format(team.number, results)
+                )
+                team.result = "Unknown"
 
         self.teams.sort(key=lambda t: t.number)
 
@@ -466,8 +583,8 @@ class Replay(Resource):
         self.recorder = None
 
         entity_names = sorted(map(lambda p: p.name, self.entities))
-        hash_input = self.region+":"+','.join(entity_names)
-        self.people_hash = hashlib.sha256(hash_input.encode('utf8')).hexdigest()
+        hash_input = self.region + ":" + ",".join(entity_names)
+        self.people_hash = hashlib.sha256(hash_input.encode("utf8")).hexdigest()
 
         # The presence of observers and/or computer players makes this not actually ladder
         # This became an issue in HotS where Training, vs AI, Unranked, and Ranked
@@ -476,35 +593,39 @@ class Replay(Resource):
             self.is_ladder = False
 
     def load_message_events(self):
-        if 'replay.message.events' not in self.raw_data:
+        if "replay.message.events" not in self.raw_data:
             return
 
-        self.messages = self.raw_data['replay.message.events']['messages']
-        self.pings = self.raw_data['replay.message.events']['pings']
-        self.packets = self.raw_data['replay.message.events']['packets']
+        self.messages = self.raw_data["replay.message.events"]["messages"]
+        self.pings = self.raw_data["replay.message.events"]["pings"]
+        self.packets = self.raw_data["replay.message.events"]["packets"]
 
-        self.message_events = self.messages+self.pings+self.packets
+        self.message_events = self.messages + self.pings + self.packets
         self.events = sorted(self.events + self.message_events, key=lambda e: e.frame)
 
     def load_game_events(self):
         # Copy the events over
         # TODO: the events need to be fixed both on the reader and processor side
-        if 'replay.game.events' not in self.raw_data:
+        if "replay.game.events" not in self.raw_data:
             return
 
-        self.game_events = self.raw_data['replay.game.events']
-        self.events = sorted(self.events+self.game_events, key=lambda e: e.frame)
+        self.game_events = self.raw_data["replay.game.events"]
+        self.events = sorted(self.events + self.game_events, key=lambda e: e.frame)
 
         # hideous hack for HotS 2.0.0.23925, see https://github.com/GraylinKim/sc2reader/issues/87
-        if self.base_build == 23925 and self.events and self.events[-1].frame > self.frames:
+        if (
+            self.base_build == 23925
+            and self.events
+            and self.events[-1].frame > self.frames
+        ):
             self.frames = self.events[-1].frame
-            self.length = utils.Length(seconds=int(self.frames/self.game_fps))
+            self.length = utils.Length(seconds=int(self.frames / self.game_fps))
 
     def load_tracker_events(self):
-        if 'replay.tracker.events' not in self.raw_data:
+        if "replay.tracker.events" not in self.raw_data:
             return
 
-        self.tracker_events = self.raw_data['replay.tracker.events']
+        self.tracker_events = self.raw_data["replay.tracker.events"]
         self.events = sorted(self.tracker_events + self.events, key=lambda e: e.frame)
 
     def register_reader(self, data_file, reader, filterfunc=lambda r: True):
@@ -549,36 +670,212 @@ class Replay(Resource):
     # Override points
     def register_default_readers(self):
         """Registers factory default readers."""
-        self.register_reader('replay.details', readers.DetailsReader(), lambda r: True)
-        self.register_reader('replay.initData', readers.InitDataReader(), lambda r: True)
-        self.register_reader('replay.tracker.events', readers.TrackerEventsReader(), lambda r: True)
-        self.register_reader('replay.message.events', readers.MessageEventsReader(), lambda r: True)
-        self.register_reader('replay.attributes.events', readers.AttributesEventsReader(), lambda r: True)
+        self.register_reader("replay.details", readers.DetailsReader(), lambda r: True)
+        self.register_reader(
+            "replay.initData", readers.InitDataReader(), lambda r: True
+        )
+        self.register_reader(
+            "replay.details.backup", readers.DetailsReader(), lambda r: True
+        )
+        self.register_reader(
+            "replay.initData.backup", readers.InitDataReader(), lambda r: True
+        )
+        self.register_reader(
+            "replay.tracker.events", readers.TrackerEventsReader(), lambda r: True
+        )
+        self.register_reader(
+            "replay.message.events", readers.MessageEventsReader(), lambda r: True
+        )
+        self.register_reader(
+            "replay.attributes.events", readers.AttributesEventsReader(), lambda r: True
+        )
 
-        self.register_reader('replay.game.events', readers.GameEventsReader_15405(), lambda r: 15405 <= r.base_build < 16561)
-        self.register_reader('replay.game.events', readers.GameEventsReader_16561(), lambda r: 16561 <= r.base_build < 17326)
-        self.register_reader('replay.game.events', readers.GameEventsReader_17326(), lambda r: 17326 <= r.base_build < 18574)
-        self.register_reader('replay.game.events', readers.GameEventsReader_18574(), lambda r: 18574 <= r.base_build < 19595)
-        self.register_reader('replay.game.events', readers.GameEventsReader_19595(), lambda r: 19595 <= r.base_build < 22612)
-        self.register_reader('replay.game.events', readers.GameEventsReader_22612(), lambda r: 22612 <= r.base_build < 23260)
-        self.register_reader('replay.game.events', readers.GameEventsReader_23260(), lambda r: 23260 <= r.base_build < 24247)
-        self.register_reader('replay.game.events', readers.GameEventsReader_24247(), lambda r: 24247 <= r.base_build < 26490)
-        self.register_reader('replay.game.events', readers.GameEventsReader_26490(), lambda r: 26490 <= r.base_build < 27950)
-        self.register_reader('replay.game.events', readers.GameEventsReader_27950(), lambda r: 27950 <= r.base_build)
-        self.register_reader('replay.game.events', readers.GameEventsReader_HotSBeta(), lambda r: r.versions[1] == 2 and r.build < 24247)
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_15405(),
+            lambda r: 15405 <= r.base_build < 16561,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_16561(),
+            lambda r: 16561 <= r.base_build < 17326,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_17326(),
+            lambda r: 17326 <= r.base_build < 18574,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_18574(),
+            lambda r: 18574 <= r.base_build < 19595,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_19595(),
+            lambda r: 19595 <= r.base_build < 22612,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_22612(),
+            lambda r: 22612 <= r.base_build < 23260,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_23260(),
+            lambda r: 23260 <= r.base_build < 24247,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_24247(),
+            lambda r: 24247 <= r.base_build < 26490,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_26490(),
+            lambda r: 26490 <= r.base_build < 27950,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_27950(),
+            lambda r: 27950 <= r.base_build < 34784,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_34784(),
+            lambda r: 34784 <= r.base_build < 36442,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_36442(),
+            lambda r: 36442 <= r.base_build < 38215,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_38215(),
+            lambda r: 38215 <= r.base_build < 38749,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_38749(),
+            lambda r: 38749 <= r.base_build < 38996,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_38996(),
+            lambda r: 38996 <= r.base_build < 64469,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_64469(),
+            lambda r: 64469 <= r.base_build < 65895,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_65895(),
+            lambda r: 65895 <= r.base_build < 80669,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_80669(),
+            lambda r: 80669 <= r.base_build,
+        )
+        self.register_reader(
+            "replay.game.events",
+            readers.GameEventsReader_HotSBeta(),
+            lambda r: r.versions[1] == 2 and r.build < 24247,
+        )
 
     def register_default_datapacks(self):
         """Registers factory default datapacks."""
-        self.register_datapack(datapacks['WoL']['16117'], lambda r: r.expansion == 'WoL' and 16117 <= r.build < 17326)
-        self.register_datapack(datapacks['WoL']['17326'], lambda r: r.expansion == 'WoL' and 17326 <= r.build < 18092)
-        self.register_datapack(datapacks['WoL']['18092'], lambda r: r.expansion == 'WoL' and 18092 <= r.build < 19458)
-        self.register_datapack(datapacks['WoL']['19458'], lambda r: r.expansion == 'WoL' and 19458 <= r.build < 22612)
-        self.register_datapack(datapacks['WoL']['22612'], lambda r: r.expansion == 'WoL' and 22612 <= r.build < 24944)
-        self.register_datapack(datapacks['WoL']['24944'], lambda r: r.expansion == 'WoL' and 24944 <= r.build)
-        self.register_datapack(datapacks['HotS']['base'], lambda r: r.expansion == 'HotS' and r.build < 23925)
-        self.register_datapack(datapacks['HotS']['23925'], lambda r: r.expansion == 'HotS' and 23925 <= r.build < 24247)
-        self.register_datapack(datapacks['HotS']['24247'], lambda r: r.expansion == 'HotS' and 24247 <= r.build <= 24764)
-        self.register_datapack(datapacks['HotS']['24764'], lambda r: r.expansion == 'HotS' and 24764 <= r.build)
+        self.register_datapack(
+            datapacks["WoL"]["16117"],
+            lambda r: r.expansion == "WoL" and 16117 <= r.build < 17326,
+        )
+        self.register_datapack(
+            datapacks["WoL"]["17326"],
+            lambda r: r.expansion == "WoL" and 17326 <= r.build < 18092,
+        )
+        self.register_datapack(
+            datapacks["WoL"]["18092"],
+            lambda r: r.expansion == "WoL" and 18092 <= r.build < 19458,
+        )
+        self.register_datapack(
+            datapacks["WoL"]["19458"],
+            lambda r: r.expansion == "WoL" and 19458 <= r.build < 22612,
+        )
+        self.register_datapack(
+            datapacks["WoL"]["22612"],
+            lambda r: r.expansion == "WoL" and 22612 <= r.build < 24944,
+        )
+        self.register_datapack(
+            datapacks["WoL"]["24944"],
+            lambda r: r.expansion == "WoL" and 24944 <= r.build,
+        )
+        self.register_datapack(
+            datapacks["HotS"]["base"],
+            lambda r: r.expansion == "HotS" and r.build < 23925,
+        )
+        self.register_datapack(
+            datapacks["HotS"]["23925"],
+            lambda r: r.expansion == "HotS" and 23925 <= r.build < 24247,
+        )
+        self.register_datapack(
+            datapacks["HotS"]["24247"],
+            lambda r: r.expansion == "HotS" and 24247 <= r.build < 24764,
+        )
+        self.register_datapack(
+            datapacks["HotS"]["24764"],
+            lambda r: r.expansion == "HotS" and 24764 <= r.build < 38215,
+        )
+        self.register_datapack(
+            datapacks["HotS"]["38215"],
+            lambda r: r.expansion == "HotS" and 38215 <= r.build,
+        )
+        self.register_datapack(
+            datapacks["LotV"]["base"],
+            lambda r: r.expansion == "LotV" and 34784 <= r.build,
+        )
+        self.register_datapack(
+            datapacks["LotV"]["44401"],
+            lambda r: r.expansion == "LotV" and 44401 <= r.build < 47185,
+        )
+        self.register_datapack(
+            datapacks["LotV"]["47185"],
+            lambda r: r.expansion == "LotV" and 47185 <= r.build < 48258,
+        )
+        self.register_datapack(
+            datapacks["LotV"]["48258"],
+            lambda r: r.expansion == "LotV" and 48258 <= r.build < 53644,
+        )
+        self.register_datapack(
+            datapacks["LotV"]["53644"],
+            lambda r: r.expansion == "LotV" and 53644 <= r.build < 54724,
+        )
+        self.register_datapack(
+            datapacks["LotV"]["54724"],
+            lambda r: r.expansion == "LotV" and 54724 <= r.build < 59587,
+        )
+        self.register_datapack(
+            datapacks["LotV"]["59587"],
+            lambda r: r.expansion == "LotV" and 59587 <= r.build < 70154,
+        )
+        self.register_datapack(
+            datapacks["LotV"]["70154"],
+            lambda r: r.expansion == "LotV" and 70154 <= r.build < 76114,
+        )
+        self.register_datapack(
+            datapacks["LotV"]["76114"],
+            lambda r: r.expansion == "LotV" and 76114 <= r.build < 77379,
+        )
+        self.register_datapack(
+            datapacks["LotV"]["77379"],
+            lambda r: r.expansion == "LotV" and 77379 <= r.build < 80949,
+        )
+        self.register_datapack(
+            datapacks["LotV"]["80949"],
+            lambda r: r.expansion == "LotV" and 80949 <= r.build,
+        )
 
     # Internal Methods
     def _get_reader(self, data_file):
@@ -586,7 +883,11 @@ class Replay(Resource):
             if callback(self):
                 return reader
         else:
-            raise ValueError("Valid {0} reader could not found for build {1}".format(data_file, self.build))
+            raise ValueError(
+                "Valid {0} reader could not found for build {1}".format(
+                    data_file, self.build
+                )
+            )
 
     def _get_datapack(self):
         for callback, datapack in self.registered_datapacks:
@@ -599,18 +900,21 @@ class Replay(Resource):
         data = utils.extract_data_file(data_file, self.archive)
         if data:
             self.raw_data[data_file] = reader(data, self)
-        elif self.opt['debug'] and data_file not in ['replay.message.events', 'replay.tracker.events']:
+        elif self.opt["debug"] and data_file not in [
+            "replay.message.events",
+            "replay.tracker.events",
+        ]:
             raise ValueError("{0} not found in archive".format(data_file))
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        del state['registered_readers']
-        del state['registered_datapacks']
+        del state["registered_readers"]
+        del state["registered_datapacks"]
         return state
 
 
 class Map(Resource):
-    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2ma'
+    url_template = "http://{0}.depot.battle.net:1119/{1}.s2ma"
 
     def __init__(self, map_file, filename=None, region=None, map_hash=None, **options):
         super(Map, self).__init__(map_file, filename, **options)
@@ -640,48 +944,54 @@ class Map(Resource):
         self.archive = mpyq.MPQArchive(map_file)
 
         #: A byte string representing the minimap in tga format.
-        self.minimap = self.archive.read_file('Minimap.tga')
+        self.minimap = self.archive.read_file("Minimap.tga")
 
         # This will only populate the fields for maps with enUS localizations.
         # Clearly this isn't a great solution but we can't be throwing exceptions
         # just because US English wasn't a concern of the map author.
         # TODO: Make this work regardless of the localizations available.
-        game_strings_file = self.archive.read_file('enUS.SC2Data\LocalizedData\GameStrings.txt')
+        game_strings_file = self.archive.read_file(
+            "enUS.SC2Data\LocalizedData\GameStrings.txt"
+        )
         if game_strings_file:
-            for line in game_strings_file.decode('utf8').split('\r\n'):
+            for line in game_strings_file.decode("utf8").split("\r\n"):
                 if len(line) == 0:
                     continue
 
-                key, value = line.split('=', 1)
-                if key == 'DocInfo/Name':
+                key, value = line.split("=", 1)
+                if key == "DocInfo/Name":
                     self.name = value
-                elif key == 'DocInfo/Author':
+                elif key == "DocInfo/Author":
                     self.author = value
-                elif key == 'DocInfo/DescLong':
+                elif key == "DocInfo/DescLong":
                     self.description = value
-                elif key == 'DocInfo/Website':
+                elif key == "DocInfo/Website":
                     self.website = value
 
         #: A reference to the map's :class:`~sc2reader.objects.MapInfo` object
         self.map_info = None
-        map_info_file = self.archive.read_file('MapInfo')
+        map_info_file = self.archive.read_file("MapInfo")
         if map_info_file:
             self.map_info = MapInfo(map_info_file)
 
-        doc_info_file = self.archive.read_file('DocumentInfo')
+        doc_info_file = self.archive.read_file("DocumentInfo")
         if doc_info_file:
-            doc_info = ElementTree.fromstring(doc_info_file.decode('utf8'))
+            doc_info = ElementTree.fromstring(doc_info_file.decode("utf8"))
 
-            icon_path_node = doc_info.find('Icon/Value')
+            icon_path_node = doc_info.find("Icon/Value")
             #: (Optional) The path to the icon for the map, relative to the archive root
             self.icon_path = icon_path_node.text if icon_path_node is not None else None
 
             #: (Optional) The icon image for the map in tga format
-            self.icon = self.archive.read_file(self.icon_path) if self.icon_path is not None else None
+            self.icon = (
+                self.archive.read_file(self.icon_path)
+                if self.icon_path is not None
+                else None
+            )
 
             #: A list of module names this map depends on
             self.dependencies = list()
-            for dependency_node in doc_info.findall('Dependencies/Value'):
+            for dependency_node in doc_info.findall("Dependencies/Value"):
                 self.dependencies.append(dependency_node.text)
 
     @classmethod
@@ -689,24 +999,29 @@ class Map(Resource):
         """Builds a download URL for the map from its components."""
         if region and map_hash:
             # it seems like sea maps are stored on us depots.
-            region = 'us' if region == 'sea' else region
+            region = "us" if region == "sea" else region
             return cls.url_template.format(region, map_hash)
         else:
             return None
 
 
 class Localization(Resource, dict):
-
     def __init__(self, s2ml_file, **options):
         Resource.__init__(self, s2ml_file, **options)
         xml = ElementTree.parse(s2ml_file)
-        for entry in xml.findall('e'):
-            self[int(entry.attrib['id'])] = entry.text
+        for entry in xml.findall("e"):
+            self[int(entry.attrib["id"])] = entry.text
 
 
 class GameSummary(Resource):
+    """
+    Data extracted from the post-game Game Summary with units killed,
+    etc. This code does not work as reliably for Co-op games, which
+    have a completely different format for the report, which means
+    that the data is not necessarily in the places we expect.
+    """
 
-    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2gs'
+    url_template = "http://{0}.depot.battle.net:1119/{1}.s2gs"
 
     #: Game speed
     game_speed = str()
@@ -735,7 +1050,7 @@ class GameSummary(Resource):
     #: Map localization urls
     localization_urls = dict()
 
-    def __init__(self, summary_file, filename=None, lang='enUS', **options):
+    def __init__(self, summary_file, filename=None, lang="enUS", **options):
         super(GameSummary, self).__init__(summary_file, filename, lang=lang, **options)
 
         #: A dict of team# -> teams
@@ -775,33 +1090,43 @@ class GameSummary(Resource):
         while not buffer.done():
             self.parts.append(buffer.read_struct())
 
-        self.end_time = datetime.utcfromtimestamp(self.parts[0][8])
-        self.game_speed = LOBBY_PROPERTIES[0xBB8][1][self.parts[0][0][1].decode('utf8')]
-        self.game_length = utils.Length(seconds=self.parts[0][7])
-        self.real_length = utils.Length(seconds=int(self.parts[0][7]/GAME_SPEED_FACTOR[self.game_speed]))
-        self.start_time = datetime.utcfromtimestamp(self.parts[0][8] - self.real_length.seconds)
-
         self.load_translations()
+        dependencies = [sheet[1] for sheet in self.lang_sheets["enUS"]]
+        if "Swarm (Mod)" in dependencies:
+            self.expansion = "HotS"
+        elif "Liberty (Mod)" in dependencies:
+            self.expansion = "WoL"
+        else:
+            self.expansion = ""
+
+        self.end_time = datetime.utcfromtimestamp(self.parts[0][8])
+        self.game_speed = LOBBY_PROPERTIES[0xBB8][1][self.parts[0][0][1].decode("utf8")]
+        self.game_length = utils.Length(seconds=self.parts[0][7])
+        self.real_length = utils.Length(
+            seconds=int(
+                self.parts[0][7] / GAME_SPEED_FACTOR[self.expansion][self.game_speed]
+            )
+        )
+        self.start_time = datetime.utcfromtimestamp(
+            self.parts[0][8] - self.real_length.seconds
+        )
+
         self.load_map_info()
         self.load_settings()
         self.load_player_stats()
         self.load_players()
 
-        dependencies = [sheet[1] for sheet in self.lang_sheets['enUS']]
-        if 'Swarm (Mod)' in dependencies:
-            self.expansion = 'HotS'
-        elif 'Liberty (Mod)' in dependencies:
-            self.expansion = 'WoL'
-        else:
-            self.expansion = ''
-
-        self.game_type = self.settings['Teams'].replace(" ", "")
+        # the game type is probably co-op because it uses a different
+        # game summary format than other games
+        self.game_type = self.settings.get("Teams", "Unknown").replace(" ", "")
         self.real_type = utils.get_real_type(self.teams)
 
         # The s2gs file also keeps reference to a series of s2mv files
         # Some of these appear to be encoded bytes and others appear to be
         # the preview images that authors may bundle with their maps.
-        self.s2mv_urls = [str(utils.DepotFile(file_hash)) for file_hash in self.parts[0][6][7]]
+        self.s2mv_urls = [
+            str(utils.DepotFile(file_hash)) for file_hash in self.parts[0][6][7]
+        ]
 
     def load_translations(self):
         # This section of the file seems to map numerical ids to their
@@ -832,8 +1157,8 @@ class GameSummary(Resource):
             self.id_map[uid] = (sheet, entry)
 
             for value in item[1]:
-                sheet = value[1][0][1]
-                entry = value[1][0][2]
+                sheet = value[1][0][1] if value[1][0] else None
+                entry = value[1][0][2] if value[1][0] else None
                 self.id_map[(uid, value[0])] = (sheet, entry)
 
         # Each localization is a pairing of a language id, e.g. enUS
@@ -842,11 +1167,11 @@ class GameSummary(Resource):
         #
         # Sometimes these byte strings are all NULLed out and need to be ignored.
         for localization in self.parts[0][6][8]:
-            language = localization[0].decode('utf8')
+            language = localization[0].decode("utf8")
 
             files = list()
             for file_hash in localization[1]:
-                if file_hash[:4].decode('utf8') != '\x00\x00\x00\x00':
+                if file_hash[:4].decode("utf8") != "\x00\x00\x00\x00":
                     files.append(utils.DepotFile(file_hash))
             self.localization_urls[language] = files
 
@@ -862,7 +1187,7 @@ class GameSummary(Resource):
         self.lang_sheets = dict()
         self.translations = dict()
         for lang, files in self.localization_urls.items():
-            if lang != self.opt['lang']:
+            if lang != self.opt["lang"]:
                 continue
 
             sheets = list()
@@ -871,11 +1196,13 @@ class GameSummary(Resource):
 
             translation = dict()
             for uid, (sheet, item) in self.id_map.items():
-                if sheet < len(sheets) and item in sheets[sheet]:
+                if sheet is not None and sheet < len(sheets) and item in sheets[sheet]:
                     translation[uid] = sheets[sheet][item]
-                elif self.opt['debug']:
+                elif self.opt["debug"]:
                     msg = "No {0} translation for sheet {1}, item {2}"
-                    raise SC2ReaderLocalizationError(msg.format(self.opt['lang'], sheet, item))
+                    raise SC2ReaderLocalizationError(
+                        msg.format(self.opt["lang"], sheet, item)
+                    )
                 else:
                     translation[uid] = "Unknown"
 
@@ -883,17 +1210,21 @@ class GameSummary(Resource):
             self.translations[lang] = translation
 
     def load_map_info(self):
-        map_strings = self.lang_sheets[self.opt['lang']][-1]
+        map_strings = self.lang_sheets[self.opt["lang"]][-1]
         self.map_name = map_strings[1]
         self.map_description = map_strings[2]
         self.map_tileset = map_strings[3]
 
     def load_settings(self):
-        Property = namedtuple('Property', ['id', 'values', 'requirements', 'defaults', 'is_lobby'])
+        Property = namedtuple(
+            "Property", ["id", "values", "requirements", "defaults", "is_lobby"]
+        )
 
         properties = dict()
         for p in self.parts[0][5]:
-            properties[p[0][1]] = Property(p[0][1], p[1], p[3], p[8], isinstance(p[8], dict))
+            properties[p[0][1]] = Property(
+                p[0][1], p[1], p[3], p[8], isinstance(p[8], dict)
+            )
 
         settings = dict()
         for setting in self.parts[0][6][6]:
@@ -942,7 +1273,7 @@ class GameSummary(Resource):
             activated[(prop.id, player)] = use
             return use
 
-        translation = self.translations[self.opt['lang']]
+        translation = self.translations[self.opt["lang"]]
         for uid, prop in properties.items():
             name = translation.get(uid, "Unknown")
             if prop.is_lobby:
@@ -956,7 +1287,7 @@ class GameSummary(Resource):
                         self.player_settings[index][name] = translation[(uid, value)]
 
     def load_player_stats(self):
-        translation = self.translations[self.opt['lang']]
+        translation = self.translations[self.opt["lang"]]
 
         stat_items = sum([p[0] for p in self.parts[3:]], [])
 
@@ -977,7 +1308,12 @@ class GameSummary(Resource):
                         if not value:
                             continue
 
-                        if stat_name in ('Army Value', 'Resource Collection Rate', 'Upgrade Spending', 'Workers Active'):
+                        if stat_name in (
+                            "Army Value",
+                            "Resource Collection Rate",
+                            "Upgrade Spending",
+                            "Workers Active",
+                        ):
                             # Each point entry for the graph is laid out as follows
                             #
                             #   {0:Value, 1:0, 2:Time}
@@ -996,13 +1332,15 @@ class GameSummary(Resource):
                     # up to the first 64 successful actions in the game.
                     for pindex, commands in enumerate(item[1]):
                         for command in commands:
-                            self.build_orders[pindex].append(BuildEntry(
-                                supply=command[0],
-                                total_supply=command[1] & 0xff,
-                                time=int((command[2] >> 8) / 16),
-                                order=stat_name,
-                                build_index=command[1] >> 16
-                            ))
+                            self.build_orders[pindex].append(
+                                BuildEntry(
+                                    supply=command[0],
+                                    total_supply=command[1] & 0xFF,
+                                    time=int((command[2] >> 8) / 16),
+                                    order=stat_name,
+                                    build_index=command[1] >> 16,
+                                )
+                            )
             elif stat_id != 83886080:  # We know this one is always bad.
                 self.logger.warn("Untranslatable key = {0}".format(stat_id))
 
@@ -1028,7 +1366,7 @@ class GameSummary(Resource):
                 player.unknown2 = struct[0][1][1]
 
             # Either a referee or a spectator, nothing else to do
-            if settings.get('Participant Role', '') != 'Participant':
+            if settings.get("Participant Role", "") != "Participant":
                 self.observers.append(player)
                 continue
 
@@ -1038,7 +1376,7 @@ class GameSummary(Resource):
             if player.is_winner:
                 self.winners.append(player.pid)
 
-            team_id = int(settings['Team'].split(' ')[1])
+            team_id = int(settings["Team"].split(" ")[1])
             if team_id not in self.team:
                 self.team[team_id] = Team(team_id)
                 self.teams.append(self.team[team_id])
@@ -1047,49 +1385,51 @@ class GameSummary(Resource):
             self.team[team_id].players.append(player)
 
             # We can just copy these settings right over
-            player.color = utils.Color(name=settings.get('Color', None))
-            player.pick_race = settings.get('Race', None)
-            player.handicap = settings.get('Handicap', None)
+            player.color = utils.Color(name=settings.get("Color", None))
+            player.pick_race = settings.get("Race", None)
+            player.handicap = settings.get("Handicap", None)
 
             # Overview Tab
-            player.resource_score = stats.get('Resources', None)
-            player.structure_score = stats.get('Structures', None)
-            player.unit_score = stats.get('Units', None)
-            player.overview_score = stats.get('Overview', None)
+            player.resource_score = stats.get("Resources", None)
+            player.structure_score = stats.get("Structures", None)
+            player.unit_score = stats.get("Units", None)
+            player.overview_score = stats.get("Overview", None)
 
             # Units Tab
-            player.units_killed = stats.get('Killed Unit Count', None)
-            player.structures_built = stats.get('Structures Built', None)
-            player.units_trained = stats.get('Units Trained', None)
-            player.structures_razed = stats.get('Structures Razed Count', None)
+            player.units_killed = stats.get("Killed Unit Count", None)
+            player.structures_built = stats.get("Structures Built", None)
+            player.units_trained = stats.get("Units Trained", None)
+            player.structures_razed = stats.get("Structures Razed Count", None)
 
             # Graphs Tab
             # Keep income_graph for backwards compatibility
-            player.army_graph = stats.get('Army Value')
-            player.resource_collection_graph = stats.get('Resource Collection Rate', None)
+            player.army_graph = stats.get("Army Value")
+            player.resource_collection_graph = stats.get(
+                "Resource Collection Rate", None
+            )
             player.income_graph = player.resource_collection_graph
 
             # HotS Stats
-            player.upgrade_spending_graph = stats.get('Upgrade Spending', None)
-            player.workers_active_graph = stats.get('Workers Active', None)
-            player.enemies_destroyed = stats.get('Enemies Destroyed:', None)
-            player.time_supply_capped = stats.get('Time Supply Capped', None)
-            player.idle_production_time = stats.get('Idle Production Time', None)
-            player.resources_spent = stats.get('Resources Spent:', None)
-            player.apm = stats.get('APM', None)
+            player.upgrade_spending_graph = stats.get("Upgrade Spending", None)
+            player.workers_active_graph = stats.get("Workers Active", None)
+            player.enemies_destroyed = stats.get("Enemies Destroyed:", None)
+            player.time_supply_capped = stats.get("Time Supply Capped", None)
+            player.idle_production_time = stats.get("Idle Production Time", None)
+            player.resources_spent = stats.get("Resources Spent:", None)
+            player.apm = stats.get("APM", None)
 
             # Economic Breakdown Tab
             if isinstance(player.income_graph, Graph):
                 values = player.income_graph.values
-                player.resource_collection_rate = int(sum(values)/len(values))
+                player.resource_collection_rate = int(sum(values) / len(values))
             else:
                 # In old s2gs files the field with this name was actually a number not a graph
                 player.resource_collection_rate = player.income_graph
                 player.resource_collection_graph = None
                 player.income_graph = None
 
-            player.avg_unspent_resources = stats.get('Average Unspent Resources', None)
-            player.workers_created = stats.get('Workers Created', None)
+            player.avg_unspent_resources = stats.get("Average Unspent Resources", None)
+            player.workers_created = stats.get("Workers Created", None)
 
             # Build Orders Tab
             player.build_order = self.build_orders.get(index, None)
@@ -1098,15 +1438,21 @@ class GameSummary(Resource):
             self.player[player.pid] = player
 
     def __str__(self):
-        return "{0} - {1} {2}".format(self.start_time, self.game_length, 'v'.join(''.join(p.play_race[0] for p in team.players) for team in self.teams))
+        return "{0} - {1} {2}".format(
+            self.start_time,
+            self.game_length,
+            "v".join(
+                "".join(p.play_race[0] for p in team.players) for team in self.teams
+            ),
+        )
 
 
 class MapHeader(Resource):
     """**Experimental**"""
 
-    base_url_template = 'http://{0}.depot.battle.net:1119/{1}.{2}'
-    url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mh'
-    image_url_template = 'http://{0}.depot.battle.net:1119/{1}.s2mv'
+    base_url_template = "http://{0}.depot.battle.net:1119/{1}.{2}"
+    url_template = "http://{0}.depot.battle.net:1119/{1}.s2mh"
+    image_url_template = "http://{0}.depot.battle.net:1119/{1}.s2mv"
 
     #: The name of the map
     name = str()
@@ -1137,20 +1483,26 @@ class MapHeader(Resource):
         self.name = self.data[0][1]
 
         # Blizzard
-        self.blizzard = (self.data[0][11] == 'BLIZ')
+        self.blizzard = self.data[0][11] == "BLIZ"
 
         # Parse image hash
         parsed_hash = utils.parse_hash(self.data[0][1])
-        self.image_hash = parsed_hash['hash']
-        self.image_url = self.image_url_template.format(parsed_hash['server'], parsed_hash['hash'])
+        self.image_hash = parsed_hash["hash"]
+        self.image_url = self.image_url_template.format(
+            parsed_hash["server"], parsed_hash["hash"]
+        )
 
         # Parse map hash
         parsed_hash = utils.parse_hash(self.data[0][2])
-        self.map_hash = parsed_hash['hash']
-        self.map_url = self.base_url_template.format(parsed_hash['server'], parsed_hash['hash'], parsed_hash['type'])
+        self.map_hash = parsed_hash["hash"]
+        self.map_url = self.base_url_template.format(
+            parsed_hash["server"], parsed_hash["hash"], parsed_hash["type"]
+        )
 
         # Parse localization hashes
         l18n_struct = self.data[0][4][8]
         for l in l18n_struct:
             parsed_hash = utils.parse_hash(l[1][0])
-            self.localization_urls[l[0]] = self.base_url_template.format(parsed_hash['server'], parsed_hash['hash'], parsed_hash['type'])
+            self.localization_urls[l[0]] = self.base_url_template.format(
+                parsed_hash["server"], parsed_hash["hash"], parsed_hash["type"]
+            )

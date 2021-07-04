@@ -20,7 +20,7 @@
 """
 from __future__ import absolute_import, print_function, unicode_literals, division
 
-__version__ = "0.7.0-pre"
+__version__ = "1.7.0"
 
 import os
 import sys
@@ -99,8 +99,8 @@ def useDoubleCache(cache_dir, cache_max_size=0, **options):
 
 
 # Allow environment variables to activate caching
-cache_dir = os.getenv('SC2READER_CACHE_DIR')
-cache_max_size = os.getenv('SC2READER_CACHE_MAX_SIZE')
+cache_dir = os.getenv("SC2READER_CACHE_DIR")
+cache_max_size = os.getenv("SC2READER_CACHE_MAX_SIZE")
 if cache_dir and cache_max_size:
     useDoubleCache(cache_dir, cache_max_size)
 elif cache_dir:

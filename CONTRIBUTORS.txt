@@ -1,8 +1,10 @@
-Author and Maintainer:
+Maintainer:
+    David Joerg - @dsjoerg on github
+
+Author:
     Graylin Kim - graylinkim @ github
 
 Contributors:
-    David Joerg - @dsjoerg on github
     Alexander Hanhikoski - @alexhanh on github
     Bas Peschier (fizzgig) - @bpeschier on github
     Jason Dana - @sheutka on github
@@ -11,5 +13,6 @@ Contributors:
     Kevin Leung - @StoicLoofah on github
     Daniele Zannotti (Durrza)
     Mike Anderson
+    Christian Clauss - @cclauss on github
 
 Special thanks to ggtracker, inc (ggtracker.com) for sponsoring sc2reader's continued development.

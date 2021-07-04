@@ -1,9 +1,82 @@
 CHANGELOG
 ============
 
+1.7.0 - May 17, 2021
+--------------------
+* Add DOI to the README #128
+* Add various missing attributes for co-op replays #129
+* Add support for python 3.8, 3.9 #132 #136
+* Fix owner on an event with no unit #133
+* Add support for ResourceTradeEvent #135
+* Fix depot URL template #139
+
+1.6.0 - July 30, 2020
+---------------------
+* Add support for protocol 80949 (StarCraft 5.0) #122
+* Fix toJson script #118
+
+1.5.0 - January 18, 2020
+------------------------
+* Add support for protocol 77379 #106 #107
+* Workaround for missing data #102 #104
+
+1.4.0 - August 19, 2019
+-----------------------
+* Add support for protocol 75689 #95
+
+1.3.2 - August 9, 2019
+----------------------
+* Allow pytest #84
+* Format code with black #87
+* Fix UnitTypeChangeEvent.__str__ #92
+* Add Stetmann #93
+
+1.3.1 - November 29, 2018
+-------------------------
+* Parse backup if data is missing #69
+
+1.3.0 - November 16, 2018
+-------------------------
+* Added support for protocol 70154 (StarCraft 4.7.0)
+* Added support for Zeratul
+* Updated CircleCI build for Python 3.7
+* Fixed a bug with printing TrackerEvent
+
+1.2.0 - October 7, 2018
+-----------------------
+* Added support for Tychus
+* Verified that StarCraft 4.6.1 replays work
+
+1.1.0 - June 26, 2018
+---------------------
+* Added support for protocol 65895 (StarCraft 4.4.0)
+
+1.0.0 - May 18, 2018
+--------------------
+* Added support for protocol 48258 through 64469
+* Update game data and scripts for generating game data
+* Fix ggtracker/sc2reader CircleCI build for python 3
+* Added support for parsing Co-op replays
+
+0.8.0 - December 16, 2016
+---------------------------
+* Merged into ggtracker/sc2reader, which mostly means that we have a bunch of parsing fixes.  Thanks @StoicLoofah!
+
 0.7.0 -
 ---------------------------
 
+* Deprecated unit.killed_by in favor of unit.killing_player
+* Added unit.killed_units
+* Added unit.killing_unit
+* Added UnitDiedEvent.killing_player
+* Added UnitDiedEvent.killing_unit
+* Deprecated UnitDiedEvent.killer_pid in favor of UnitDiedEvent.killing_player_id
+* Deprecated UnitDiedEvent.killer in favor of UnitDiedEvent.killing_player
+* Use generic UnitType and Ability classes for data. This means no more unit._type_class.__class__.__name__. But hopefully people were not doing that anyway.
+* Now a CorruptTrackerFileError is raised when the tracker file is corrupted (generally only older resume_from_replay replays)
+* Removed the defunct replay.player_names attribute.
+* Removed the defunct replay.events_by_type attribute.
+* Removed the defunct replay.other_people attribute.
 * Replays can now be pickled and stored for later consumption.
 * All references to the gateway attribute have been replaced in favor of region; e.g. replay.region
 * Use generic UnitType and Ability classes for data. This means no more unit._type_class.__class__.__name__. But hopefully people were not doing that anyway.
@@ -100,7 +173,7 @@ Changed Stuff (non-backwards compatible!):
 --------------------
 
 * Fixes several game event parsing issues for older replays.
-* Propperly maps ability ids for armory vehicle & ship armor upgrades.
+* Properly maps ability ids for armory vehicle & ship armor upgrades.
 * Uses the US depot for SEA battle.net depot dependencies.
 * ``PlayerStatEvent.food_used`` and ``food_made`` are now properly divided by 4096
 * ``AbilityEvent.flags`` are now processed into a dictionary mapping flag name to True/False (``AbilityEvent.flag``)

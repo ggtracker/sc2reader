@@ -55,7 +55,7 @@ Many attributes in sc2reader are prefixed with ``game_`` and ``real_``. Game ref
 GameEngine
 ----------------
 
-The game engine is used to process replay events and augument the replay with new statistics and game state. It implements a plugin system that allows developers
+The game engine is used to process replay events and augment the replay with new statistics and game state. It implements a plugin system that allows developers
 to inject their own logic into the game loop. It also allows plugins to ``yield`` new
 events to the event stream. This allows for basic message passing between plugins.
 

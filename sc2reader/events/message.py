@@ -9,8 +9,9 @@ from sc2reader.log_utils import loggable
 @loggable
 class MessageEvent(Event):
     """
-        Parent class for all message events.
+    Parent class for all message events.
     """
+
     def __init__(self, frame, pid):
         #: The user id (or player id for older replays) of the person that generated the event.
         self.pid = pid
@@ -25,7 +26,7 @@ class MessageEvent(Event):
         self.name = self.__class__.__name__
 
     def _str_prefix(self):
-        player_name = self.player.name if getattr(self, 'pid', 16) != 16 else "Global"
+        player_name = self.player.name if getattr(self, "pid", 16) != 16 else "Global"
         return "{0}\t{1:<15} ".format(Length(seconds=int(self.frame / 16)), player_name)
 
     def __str__(self):
@@ -35,8 +36,9 @@ class MessageEvent(Event):
 @loggable
 class ChatEvent(MessageEvent):
     """
-        Records in-game chat events.
+    Records in-game chat events.
     """
+
     def __init__(self, frame, pid, target, text):
         super(ChatEvent, self).__init__(frame, pid)
         #: The numerical target type. 0 = to all; 2 = to allies; 4 = to observers.
@@ -46,20 +48,21 @@ class ChatEvent(MessageEvent):
         self.text = text
 
         #: Flag marked true of message was to all.
-        self.to_all = (self.target == 0)
+        self.to_all = self.target == 0
 
         #: Flag marked true of message was to allies.
-        self.to_allies = (self.target == 2)
+        self.to_allies = self.target == 2
 
         #: Flag marked true of message was to observers.
-        self.to_observers = (self.target == 4)
+        self.to_observers = self.target == 4
 
 
 @loggable
 class ProgressEvent(MessageEvent):
     """
-        Sent during the load screen to update load process for other clients.
+    Sent during the load screen to update load process for other clients.
     """
+
     def __init__(self, frame, pid, progress):
         super(ProgressEvent, self).__init__(frame, pid)
 
@@ -70,8 +73,9 @@ class ProgressEvent(MessageEvent):
 @loggable
 class PingEvent(MessageEvent):
     """
-        Records pings made by players in game.
+    Records pings made by players in game.
     """
+
     def __init__(self, frame, pid, target, x, y):
         super(PingEvent, self).__init__(frame, pid)
 
@@ -79,13 +83,13 @@ class PingEvent(MessageEvent):
         self.target = target
 
         #: Flag marked true of message was to all.
-        self.to_all = (self.target == 0)
+        self.to_all = self.target == 0
 
         #: Flag marked true of message was to allies.
-        self.to_allies = (self.target == 2)
+        self.to_allies = self.target == 2
 
         #: Flag marked true of message was to observers.
-        self.to_observers = (self.target == 4)
+        self.to_observers = self.target == 4
 
         #: The x coordinate of the target location
         self.x = x

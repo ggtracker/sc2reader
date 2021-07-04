@@ -13,10 +13,11 @@ class TrackerEvent(Event):
     """
     Parent class for all tracker events.
     """
+
     def __init__(self, frames):
         #: The frame of the game this event was applied
         #: Ignore all but the lowest 32 bits of the frame
-        self.frame = frames % 2**32
+        self.frame = frames % 2 ** 32
 
         #: The second of the game (game time not real time) this event was applied
         self.second = self.frame >> 4
@@ -35,7 +36,8 @@ class TrackerEvent(Event):
 
 
 class PlayerSetupEvent(TrackerEvent):
-    """ Sent during game setup to help us organize players better """
+    """Sent during game setup to help us organize players better"""
+
     def __init__(self, frames, data, build):
         super(PlayerSetupEvent, self).__init__(frames)
 
@@ -64,6 +66,7 @@ class PlayerStatsEvent(TrackerEvent):
     In 1v1 games, the above behavior can cause the losing player to have 2 events generated at the
     end of the game. One for leaving and one for the  end of the game.
     """
+
     def __init__(self, frames, data, build):
         super(PlayerStatsEvent, self).__init__(frames)
 
@@ -101,7 +104,11 @@ class PlayerStatsEvent(TrackerEvent):
         self.minerals_used_in_progress_technology = clamp(self.stats[7])
 
         #: The total mineral cost of all things in progress
-        self.minerals_used_in_progress = self.minerals_used_in_progress_army + self.minerals_used_in_progress_economy + self.minerals_used_in_progress_technology
+        self.minerals_used_in_progress = (
+            self.minerals_used_in_progress_army
+            + self.minerals_used_in_progress_economy
+            + self.minerals_used_in_progress_technology
+        )
 
         #: The total vespene cost of army units (buildings?) currently being built/queued
         self.vespene_used_in_progress_army = clamp(self.stats[8])
@@ -113,10 +120,16 @@ class PlayerStatsEvent(TrackerEvent):
         self.vespene_used_in_progress_technology = clamp(self.stats[10])
 
         #: The total vespene cost of all things in progress
-        self.vespene_used_in_progress = self.vespene_used_in_progress_army + self.vespene_used_in_progress_economy + self.vespene_used_in_progress_technology
+        self.vespene_used_in_progress = (
+            self.vespene_used_in_progress_army
+            + self.vespene_used_in_progress_economy
+            + self.vespene_used_in_progress_technology
+        )
 
         #: The total cost of all things in progress
-        self.resources_used_in_progress = self.minerals_used_in_progress + self.vespene_used_in_progress
+        self.resources_used_in_progress = (
+            self.minerals_used_in_progress + self.vespene_used_in_progress
+        )
 
         #: The total mineral cost of current army units (buildings?)
         self.minerals_used_current_army = clamp(self.stats[11])
@@ -128,7 +141,11 @@ class PlayerStatsEvent(TrackerEvent):
         self.minerals_used_current_technology = clamp(self.stats[13])
 
         #: The total mineral cost of all current things
-        self.minerals_used_current = self.minerals_used_current_army + self.minerals_used_current_economy + self.minerals_used_current_technology
+        self.minerals_used_current = (
+            self.minerals_used_current_army
+            + self.minerals_used_current_economy
+            + self.minerals_used_current_technology
+        )
 
         #: The total vespene cost of current army units (buildings?)
         self.vespene_used_current_army = clamp(self.stats[14])
@@ -140,10 +157,16 @@ class PlayerStatsEvent(TrackerEvent):
         self.vespene_used_current_technology = clamp(self.stats[16])
 
         #: The total vepsene cost of all current things
-        self.vespene_used_current = self.vespene_used_current_army + self.vespene_used_current_economy + self.vespene_used_current_technology
+        self.vespene_used_current = (
+            self.vespene_used_current_army
+            + self.vespene_used_current_economy
+            + self.vespene_used_current_technology
+        )
 
         #: The total cost of all things current
-        self.resources_used_current = self.minerals_used_current + self.vespene_used_current
+        self.resources_used_current = (
+            self.minerals_used_current + self.vespene_used_current
+        )
 
         #: The total mineral cost of all army units (buildings?) lost
         self.minerals_lost_army = clamp(self.stats[17])
@@ -155,7 +178,11 @@ class PlayerStatsEvent(TrackerEvent):
         self.minerals_lost_technology = clamp(self.stats[19])
 
         #: The total mineral cost of all lost things
-        self.minerals_lost = self.minerals_lost_army + self.minerals_lost_economy + self.minerals_lost_technology
+        self.minerals_lost = (
+            self.minerals_lost_army
+            + self.minerals_lost_economy
+            + self.minerals_lost_technology
+        )
 
         #: The total vespene cost of all army units (buildings?) lost
         self.vespene_lost_army = clamp(self.stats[20])
@@ -167,7 +194,11 @@ class PlayerStatsEvent(TrackerEvent):
         self.vespene_lost_technology = clamp(self.stats[22])
 
         #: The total vepsene cost of all lost things
-        self.vespene_lost = self.vespene_lost_army + self.vespene_lost_economy + self.vespene_lost_technology
+        self.vespene_lost = (
+            self.vespene_lost_army
+            + self.vespene_lost_economy
+            + self.vespene_lost_technology
+        )
 
         #: The total resource cost of all lost things
         self.resources_lost = self.minerals_lost + self.vespene_lost
@@ -182,7 +213,11 @@ class PlayerStatsEvent(TrackerEvent):
         self.minerals_killed_technology = clamp(self.stats[25])
 
         #: The total mineral value of all killed things
-        self.minerals_killed = self.minerals_killed_army + self.minerals_killed_economy + self.minerals_killed_technology
+        self.minerals_killed = (
+            self.minerals_killed_army
+            + self.minerals_killed_economy
+            + self.minerals_killed_technology
+        )
 
         #: The total vespene value of enemy army units (buildings?) killed
         self.vespene_killed_army = clamp(self.stats[26])
@@ -194,7 +229,11 @@ class PlayerStatsEvent(TrackerEvent):
         self.vespene_killed_technology = clamp(self.stats[28])
 
         #: The total vespene cost of all killed things
-        self.vespene_killed = self.vespene_killed_army + self.vespene_killed_economy + self.vespene_killed_technology
+        self.vespene_killed = (
+            self.vespene_killed_army
+            + self.vespene_killed_economy
+            + self.vespene_killed_technology
+        )
 
         #: The total resource cost of all killed things
         self.resources_killed = self.minerals_killed + self.vespene_killed
@@ -215,10 +254,14 @@ class PlayerStatsEvent(TrackerEvent):
         self.ff_minerals_lost_army = clamp(self.stats[33]) if build >= 26490 else None
 
         #: Minerals of economy value lost to friendly fire
-        self.ff_minerals_lost_economy = clamp(self.stats[34]) if build >= 26490 else None
+        self.ff_minerals_lost_economy = (
+            clamp(self.stats[34]) if build >= 26490 else None
+        )
 
         #: Minerals of technology value lost to friendly fire
-        self.ff_minerals_lost_technology = clamp(self.stats[35]) if build >= 26490 else None
+        self.ff_minerals_lost_technology = (
+            clamp(self.stats[35]) if build >= 26490 else None
+        )
 
         #: Vespene of army value lost to friendly fire
         self.ff_vespene_lost_army = clamp(self.stats[36]) if build >= 26490 else None
@@ -227,10 +270,12 @@ class PlayerStatsEvent(TrackerEvent):
         self.ff_vespene_lost_economy = clamp(self.stats[37]) if build >= 26490 else None
 
         #: Vespene of technology value lost to friendly fire
-        self.ff_vespene_lost_technology = clamp(self.stats[38]) if build >= 26490 else None
+        self.ff_vespene_lost_technology = (
+            clamp(self.stats[38]) if build >= 26490 else None
+        )
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Stats Update".format(self.player)
+        return self._str_prefix() + "{0: >15} - Stats Update".format(str(self.player))
 
 
 class UnitBornEvent(TrackerEvent):
@@ -244,6 +289,7 @@ class UnitBornEvent(TrackerEvent):
     :class:`~sc2reader.event.game.CommandEvent` game events where the command is a train unit
     command.
     """
+
     def __init__(self, frames, data, build):
         super(UnitBornEvent, self).__init__(frames)
 
@@ -260,7 +306,7 @@ class UnitBornEvent(TrackerEvent):
         self.unit = None
 
         #: The unit type name of the unit being born
-        self.unit_type_name = data[2].decode('utf8')
+        self.unit_type_name = data[2].decode("utf8")
 
         #: The id of the player that controls this unit.
         self.control_pid = data[3]
@@ -291,7 +337,9 @@ class UnitBornEvent(TrackerEvent):
             self.location = (self.x, self.y)
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Unit born {1}".format(self.unit_upkeeper, self.unit)
+        return self._str_prefix() + "{0: >15} - Unit born {1}".format(
+            str(self.unit_upkeeper), self.unit
+        )
 
 
 class UnitDiedEvent(TrackerEvent):
@@ -299,6 +347,7 @@ class UnitDiedEvent(TrackerEvent):
     Generated when a unit dies or is removed from the game for any reason. Reasons include
     morphing, merging, and getting killed.
     """
+
     def __init__(self, frames, data, build):
         super(UnitDiedEvent, self).__init__(frames)
 
@@ -358,10 +407,14 @@ class UnitDiedEvent(TrackerEvent):
             self.killing_unit_index = data[5]
             self.killing_unit_recycle = data[6]
             if self.killing_unit_index:
-                self.killing_unit_id = self.killing_unit_index << 18 | self.killing_unit_recycle
+                self.killing_unit_id = (
+                    self.killing_unit_index << 18 | self.killing_unit_recycle
+                )
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Unit died {1}.".format(self.unit.owner, self.unit)
+        return self._str_prefix() + "{0: >15} - Unit died {1}.".format(
+            str(self.unit.owner), self.unit
+        )
 
 
 class UnitOwnerChangeEvent(TrackerEvent):
@@ -369,6 +422,7 @@ class UnitOwnerChangeEvent(TrackerEvent):
     Generated when either ownership or control of a unit is changed. Neural Parasite is an example
     of an action that would generate this event.
     """
+
     def __init__(self, frames, data, build):
         super(UnitOwnerChangeEvent, self).__init__(frames)
 
@@ -397,7 +451,9 @@ class UnitOwnerChangeEvent(TrackerEvent):
         self.unit_controller = None
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} took {1}".format(self.unit_upkeeper, self.unit)
+        return self._str_prefix() + "{0: >15} took {1}".format(
+            str(self.unit_upkeeper), self.unit
+        )
 
 
 class UnitTypeChangeEvent(TrackerEvent):
@@ -406,6 +462,7 @@ class UnitTypeChangeEvent(TrackerEvent):
     Lair, Hive) and mode switches (Sieging Tanks, Phasing prisms, Burrowing roaches). There may
     be some other situations where a unit transformation is a type change and not a new unit.
     """
+
     def __init__(self, frames, data, build):
         super(UnitTypeChangeEvent, self).__init__(frames)
 
@@ -422,16 +479,19 @@ class UnitTypeChangeEvent(TrackerEvent):
         self.unit = None
 
         #: The the new unit type name
-        self.unit_type_name = data[2].decode('utf8')
+        self.unit_type_name = data[2].decode("utf8")
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Unit {0} type changed to {1}".format(self.unit.owner, self.unit, self.unit_type_name)
+        return self._str_prefix() + "{0: >15} - Unit {1} type changed to {2}".format(
+            str(self.unit.owner), self.unit, self.unit_type_name
+        )
 
 
 class UpgradeCompleteEvent(TrackerEvent):
     """
     Generated when a player completes an upgrade.
     """
+
     def __init__(self, frames, data, build):
         super(UpgradeCompleteEvent, self).__init__(frames)
 
@@ -442,13 +502,15 @@ class UpgradeCompleteEvent(TrackerEvent):
         self.player = None
 
         #: The name of the upgrade
-        self.upgrade_type_name = data[1].decode('utf8')
+        self.upgrade_type_name = data[1].decode("utf8")
 
         #: The number of times this upgrade as been researched
         self.count = data[2]
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - {1}upgrade completed".format(self.player, self.upgrade_type_name)
+        return self._str_prefix() + "{0: >15} - {1} upgrade completed".format(
+            str(self.player), self.upgrade_type_name
+        )
 
 
 class UnitInitEvent(TrackerEvent):
@@ -457,6 +519,7 @@ class UnitInitEvent(TrackerEvent):
     initiated. This applies only to units which are started in game before they are finished.
     Primary examples being buildings and warp-in units.
     """
+
     def __init__(self, frames, data, build):
         super(UnitInitEvent, self).__init__(frames)
 
@@ -473,7 +536,7 @@ class UnitInitEvent(TrackerEvent):
         self.unit = None
 
         #: The the new unit type name
-        self.unit_type_name = data[2].decode('utf8')
+        self.unit_type_name = data[2].decode("utf8")
 
         #: The id of the player that controls this unit.
         self.control_pid = data[3]
@@ -504,7 +567,9 @@ class UnitInitEvent(TrackerEvent):
             self.location = (self.x, self.y)
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Unit initiated {1}".format(self.unit_upkeeper, self.unit)
+        return self._str_prefix() + "{0: >15} - Unit initiated {1}".format(
+            str(self.unit_upkeeper), self.unit
+        )
 
 
 class UnitDoneEvent(TrackerEvent):
@@ -512,6 +577,7 @@ class UnitDoneEvent(TrackerEvent):
     The counter part to the :class:`UnitInitEvent`, generated by the game engine when an initiated
     unit is completed. E.g. warp-in finished, building finished, morph complete.
     """
+
     def __init__(self, frames, data, build):
         super(UnitDoneEvent, self).__init__(frames)
 
@@ -528,7 +594,9 @@ class UnitDoneEvent(TrackerEvent):
         self.unit = None
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Unit {1} done".format(self.unit.owner, self.unit)
+        return self._str_prefix() + "{0: >15} - Unit {1} done".format(
+            str(self.unit.owner), self.unit
+        )
 
 
 class UnitPositionsEvent(TrackerEvent):
@@ -537,6 +605,7 @@ class UnitPositionsEvent(TrackerEvent):
     the last interval. If more than 255 units were damaged, then the first 255 are reported and
     the remaining units are carried into the next interval.
     """
+
     def __init__(self, frames, data, build):
         super(UnitPositionsEvent, self).__init__(frames)
 

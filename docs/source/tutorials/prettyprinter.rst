@@ -93,7 +93,7 @@ Many of the replay attributes are nested data structures which are generally all
 
 Each of these nested structures can be found either on its own reference page or lumped together with the other minor structures on the Misc Structures page.
 
-So now all we need to do is build the ouput using the available replay attributes. Lets start with the header portion. We'll use a block string formatting method that makes this clean and easy:
+So now all we need to do is build the output using the available replay attributes. Lets start with the header portion. We'll use a block string formatting method that makes this clean and easy:
 
 ::
 
@@ -199,7 +199,7 @@ With this in mind, lets make a slight change to our main function to support any
 Any time that you start dealing with directories or collections of files you run into dangers with recursion and annoyances of tedium. sc2reader provides options to mitigate these concerns.
 
 * directory: Default ''. The directory string when supplied, becomes the base of all the file paths sent into sc2reader and can save you the hassle of fully qualifying your file paths each time.
-* depth: Default -1. When handling directory inputs, sc2reader searches the directory recursively until all .SC2Replay files have been loaded. By setting the maxium depth value this behavior can be mitigated.
+* depth: Default -1. When handling directory inputs, sc2reader searches the directory recursively until all .SC2Replay files have been loaded. By setting the maximum depth value this behavior can be mitigated.
 * exclude: Default []. When recursing directories you can choose to exclude  directories from the file search by directory name (not full path).
 * followlinks: Default false. When recursing directories, enables or disables the follow symlinks behavior.
 
