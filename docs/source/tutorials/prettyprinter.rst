@@ -182,7 +182,7 @@ So lets put it all together into the final script, ``prettyPrinter.py``:
 Making Improvements
 ---------------------------
 
-So our script works fine for single files, but what if you want to handle  multiple files or directories? sc2reader provides two functions for loading replays: :meth:`~sc2reader.factories.SC2Factory.load_replay` and :meth:`~sc2reader.factories.SC2Factory.load_replays` which return a single replay and  a list respectively. :meth:`~sc2reader.factories.SC2Factory.load_replay` was used above for convenience but :meth:`~sc2reader.factories.SC2Factory.load_replays` is much more versitile. Here's the difference:
+So our script works fine for single files, but what if you want to handle  multiple files or directories? sc2reader provides two functions for loading replays: :meth:`~sc2reader.factories.SC2Factory.load_replay` and :meth:`~sc2reader.factories.SC2Factory.load_replays` which return a single replay and  a list respectively. :meth:`~sc2reader.factories.SC2Factory.load_replay` was used above for convenience but :meth:`~sc2reader.factories.SC2Factory.load_replays` is much more versatile. Here's the difference:
 
 * :meth:`~sc2reader.factories.SC2Factory.load_replay`: accepts a file path or an opened file object.
 * :meth:`~sc2reader.factories.SC2Factory.load_replays`: accepts a collection of opened file objects or file paths. Can also accept a single path to a directory; files will be pulled from the directory using :func:`~sc2reader.utils.get_files` and the given options.

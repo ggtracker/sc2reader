@@ -52,7 +52,7 @@ Plugins may also handle special ``InitGame`` and ``EndGame`` events. These handl
   replay state necessary.
 
 * handleEndGame - is called after all events have been processed and
-  can be used to perform post processing on aggrated data or clean up
+  can be used to perform post processing on aggregated data or clean up
   intermediate data caches.
 
 Message Passing

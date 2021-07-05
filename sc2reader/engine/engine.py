@@ -69,7 +69,7 @@ class GameEngine(object):
         replay state necessary.
 
       * handleEndGame - is called after all events have been processed and
-        can be used to perform post processing on aggrated data or clean up
+        can be used to perform post processing on aggregated data or clean up
         intermediate data caches.
 
     Event handlers can choose to ``yield`` additional events which will be injected
