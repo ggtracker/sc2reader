@@ -26,9 +26,9 @@ class DepotFile(object):
         #: The server the file is hosted on
         self.server = bytes[4:8].decode("utf-8").strip("\x00 ")
 
-        # Used to make it possible to load maps from CN. 
+        # Used to make it possible to load maps from CN.
         # This isn't needed for any other region and so is blank by default.
-        self.url_suffix = "" 
+        self.url_suffix = ""
 
         # There is no SEA depot, use US instead
         if self.server == "SEA":
