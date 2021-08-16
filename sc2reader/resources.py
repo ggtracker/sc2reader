@@ -914,7 +914,7 @@ class Replay(Resource):
 
 
 class Map(Resource):
-    url_template = "http://{0}.depot.battle.net:1119/{1}.s2ma"
+    url_template = "https://{}-s2-depot.classic.blizzard.com/{}.s2ma"
 
     def __init__(self, map_file, filename=None, region=None, map_hash=None, **options):
         super(Map, self).__init__(map_file, filename, **options)
@@ -1021,7 +1021,7 @@ class GameSummary(Resource):
     that the data is not necessarily in the places we expect.
     """
 
-    url_template = "http://{0}.depot.battle.net:1119/{1}.s2gs"
+    url_template = "https://{}-s2-depot.classic.blizzard.com/{}.s2gs"
 
     #: Game speed
     game_speed = str()
@@ -1450,9 +1450,9 @@ class GameSummary(Resource):
 class MapHeader(Resource):
     """**Experimental**"""
 
-    base_url_template = "http://{0}.depot.battle.net:1119/{1}.{2}"
-    url_template = "http://{0}.depot.battle.net:1119/{1}.s2mh"
-    image_url_template = "http://{0}.depot.battle.net:1119/{1}.s2mv"
+    base_url_template = "https://{}-s2-depot.classic.blizzard.com/{}.{}"
+    url_template = "https://{}-s2-depot.classic.blizzard.com/{}.s2mh"
+    image_url_template = "https://{}-s2-depot.classic.blizzard.com/{}.s2mv"
 
     #: The name of the map
     name = str()
