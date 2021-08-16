@@ -20,7 +20,7 @@ class DepotFile(object):
     """
 
     #: The url template for all DepotFiles
-    url_template = "https://{0}-s2-depot.classic.blizzard.com{1}/{2}.{3}"
+    url_template = "https://{}-s2-depot.classic.blizzard.com{}/{}.{}"
 
     def __init__(self, bytes):
         #: The server the file is hosted on
