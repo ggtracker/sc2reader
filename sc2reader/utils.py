@@ -25,8 +25,11 @@ class DepotFile(object):
     def __init__(self, bytes):
         #: The server the file is hosted on
         self.server = bytes[4:8].decode("utf-8").strip("\x00 ")
-        #: Used to make it possible to load maps from CN. This isn't needed for any other region and so is blank by default.
+
+        # Used to make it possible to load maps from CN. 
+        # This isn't needed for any other region and so is blank by default.
         self.url_suffix = "" 
+
         # There is no SEA depot, use US instead
         if self.server == "SEA":
             self.server = "US"
@@ -42,7 +45,9 @@ class DepotFile(object):
     @property
     def url(self):
         """Returns url of the depot file."""
-        return self.url_template.format(self.server, self.url_suffix, self.hash, self.type)
+        return self.url_template.format(
+            self.server, self.url_suffix, self.hash, self.type
+        )
 
     def __hash__(self):
         return hash(self.url)
