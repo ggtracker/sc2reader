@@ -20,7 +20,7 @@ class DepotFile(object):
     """
 
     #: The url template for all DepotFiles
-    url_template = "https://{}-s2-depot.classic.blizzard.com{}/{}.{}"
+    url_template = "{}://{}-s2-depot.{}/{}.{}"
 
     def __init__(self, bytes):
         #: The server the file is hosted on
@@ -28,13 +28,15 @@ class DepotFile(object):
 
         # Used to make it possible to load maps from CN.
         # This isn't needed for any other region and so is blank by default.
-        self.url_suffix = ""
+        self.scheme = "https"
+        self.domain = "classic.blizzard.com"
 
         # There is no SEA depot, use US instead
         if self.server == "SEA":
             self.server = "US"
         elif self.server == "CN":
-            self.url_suffix = ".cn"
+            self.scheme = "http"
+            self.domain = "battlenet.com.cn"
 
         #: The unique content based hash of the file
         self.hash = binascii.b2a_hex(bytes[8:]).decode("utf8")
@@ -46,7 +48,7 @@ class DepotFile(object):
     def url(self):
         """Returns url of the depot file."""
         return self.url_template.format(
-            self.server, self.url_suffix, self.hash, self.type
+            self.scheme, self.server, self.domain, self.hash, self.type
         )
 
     def __hash__(self):
