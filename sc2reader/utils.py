@@ -19,22 +19,9 @@ class DepotFile(object):
     and assembles them into a URL so that the dependency can be fetched.
     """
 
-    #: The url template for all DepotFiles
-    url_template = "https://{}-s2-depot.classic.blizzard.com{}/{}.{}"
-
     def __init__(self, bytes):
         #: The server the file is hosted on
-        self.server = bytes[4:8].decode("utf-8").strip("\x00 ")
-
-        # Used to make it possible to load maps from CN.
-        # This isn't needed for any other region and so is blank by default.
-        self.url_suffix = ""
-
-        # There is no SEA depot, use US instead
-        if self.server == "SEA":
-            self.server = "US"
-        elif self.server == "CN":
-            self.url_suffix = ".cn"
+        self.server = bytes[4:8].decode("utf-8").strip("\x00 ").lower()
 
         #: The unique content based hash of the file
         self.hash = binascii.b2a_hex(bytes[8:]).decode("utf8")
@@ -45,9 +32,7 @@ class DepotFile(object):
     @property
     def url(self):
         """Returns url of the depot file."""
-        return self.url_template.format(
-            self.server, self.url_suffix, self.hash, self.type
-        )
+        return get_resource_url(self.server, self.hash, self.type)
 
     def __hash__(self):
         return hash(self.url)
@@ -206,6 +191,19 @@ def get_files(
                 yield os.path.join(root, filename)
 
             depth -= 1
+
+
+def get_resource_url(region, hash, type):
+    url_template = "{}://{}-s2-depot.{}/{}.{}"
+    scheme = "https"
+    domain = "classic.blizzard.com"
+
+    if region == "sea":
+        region = "us"
+    elif region == "cn":
+        scheme = "http"
+        domain = "battlenet.com.cn"
+    return url_template.format(scheme, region, domain, hash, type)
 
 
 class Length(timedelta):

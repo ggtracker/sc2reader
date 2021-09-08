@@ -914,8 +914,6 @@ class Replay(Resource):
 
 
 class Map(Resource):
-    url_template = "https://{}-s2-depot.classic.blizzard.com/{}.s2ma"
-
     def __init__(self, map_file, filename=None, region=None, map_hash=None, **options):
         super(Map, self).__init__(map_file, filename, **options)
 
@@ -998,9 +996,7 @@ class Map(Resource):
     def get_url(cls, region, map_hash):
         """Builds a download URL for the map from its components."""
         if region and map_hash:
-            # it seems like sea maps are stored on us depots.
-            region = "us" if region == "sea" else region
-            return cls.url_template.format(region, map_hash)
+            return utils.get_resource_url(region, hash, "s2ma")
         else:
             return None
 
@@ -1020,8 +1016,6 @@ class GameSummary(Resource):
     have a completely different format for the report, which means
     that the data is not necessarily in the places we expect.
     """
-
-    url_template = "https://{}-s2-depot.classic.blizzard.com/{}.s2gs"
 
     #: Game speed
     game_speed = str()
@@ -1450,10 +1444,6 @@ class GameSummary(Resource):
 class MapHeader(Resource):
     """**Experimental**"""
 
-    base_url_template = "https://{}-s2-depot.classic.blizzard.com/{}.{}"
-    url_template = "https://{}-s2-depot.classic.blizzard.com/{}.s2mh"
-    image_url_template = "https://{}-s2-depot.classic.blizzard.com/{}.s2mv"
-
     #: The name of the map
     name = str()
 
@@ -1488,14 +1478,14 @@ class MapHeader(Resource):
         # Parse image hash
         parsed_hash = utils.parse_hash(self.data[0][1])
         self.image_hash = parsed_hash["hash"]
-        self.image_url = self.image_url_template.format(
-            parsed_hash["server"], parsed_hash["hash"]
+        self.image_url = utils.get_resource_url(
+            parsed_hash["server"], parsed_hash["hash"], "s2mv"
         )
 
         # Parse map hash
         parsed_hash = utils.parse_hash(self.data[0][2])
         self.map_hash = parsed_hash["hash"]
-        self.map_url = self.base_url_template.format(
+        self.map_url = utils.get_resource_url(
             parsed_hash["server"], parsed_hash["hash"], parsed_hash["type"]
         )
 
@@ -1503,6 +1493,6 @@ class MapHeader(Resource):
         l18n_struct = self.data[0][4][8]
         for l in l18n_struct:
             parsed_hash = utils.parse_hash(l[1][0])
-            self.localization_urls[l[0]] = self.base_url_template.format(
+            self.localization_urls[l[0]] = utils.get_resource_url(
                 parsed_hash["server"], parsed_hash["hash"], parsed_hash["type"]
             )
