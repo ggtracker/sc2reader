@@ -1,5 +1,7 @@
 *~
 *.pyc
+*.ipynb
+*-checkpoint*
 dist
 build
 sc2reader.egg-info
