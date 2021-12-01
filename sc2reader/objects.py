@@ -241,6 +241,9 @@ class Player(object):
         #: The Battle.net region the entity is registered to
         self.region = GATEWAY_LOOKUP[detail_data["bnet"]["region"]]
 
+        #: The Battle.net region id the entity is registered to
+        self.region_id = detail_data["bnet"]["region"]
+
         #: The Battle.net subregion the entity is registered to
         self.subregion = detail_data["bnet"]["subregion"]
 
@@ -258,7 +261,7 @@ class User(object):
 
     #: The Battle.net profile url template
     URL_TEMPLATE = (
-        "http://{region}.battle.net/sc2/en/profile/{toon_id}/{subregion}/{name}/"
+        "https://starcraft2.com/en-us/profile/{region_id}/{subregion}/{toon_id}"
     )
 
     def __init__(self, uid, init_data):
