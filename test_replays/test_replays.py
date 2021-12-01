@@ -79,12 +79,8 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(emperor.result, "Win")
         self.assertEqual(boom.result, "Loss")
 
-        self.assertEqual(
-            emperor.url, "https://starcraft2.com/en-us/profile/2/1/520049"
-        )
-        self.assertEqual(
-            boom.url, "https://starcraft2.com/en-us/profile/2/1/1694745"
-        )
+        self.assertEqual(emperor.url, "https://starcraft2.com/en-us/profile/2/1/520049")
+        self.assertEqual(boom.url, "https://starcraft2.com/en-us/profile/2/1/1694745")
 
         self.assertEqual(len(replay.messages), 12)
         self.assertEqual(replay.messages[0].text, "hf")
@@ -178,12 +174,8 @@ class TestReplays(unittest.TestCase):
         self.assertEqual(replay.expansion, "WoL")
         first = [player for player in replay.players if player.name == "명지대학교"][0]
         second = [player for player in replay.players if player.name == "티에스엘사기수"][0]
-        self.assertEqual(
-            first.url, "https://starcraft2.com/en-us/profile/3/1/258945"
-        )
-        self.assertEqual(
-            second.url, "https://starcraft2.com/en-us/profile/3/1/102472"
-        )
+        self.assertEqual(first.url, "https://starcraft2.com/en-us/profile/3/1/258945")
+        self.assertEqual(second.url, "https://starcraft2.com/en-us/profile/3/1/102472")
         self.assertEqual(replay.messages[0].text, "sc2.replays.net")
         self.assertEqual(replay.messages[5].text, "sc2.replays.net")
 
