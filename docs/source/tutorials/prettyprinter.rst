@@ -89,7 +89,7 @@ Many of the replay attributes are nested data structures which are generally all
     >>> replay.teams[0].players[0].color.hex
     'B4141E'
     >>> replay.player.name('Remedy').url
-    'http://us.battle.net/sc2/en/profile/2198663/1/Remedy/'
+    'https://starcraft2.com/en-us/profile/1/1/2198663'
 
 Each of these nested structures can be found either on its own reference page or lumped together with the other minor structures on the Misc Structures page.
 
