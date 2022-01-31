@@ -1,11 +1,15 @@
 STYLE GUIDE
 ==============
 
-As a rough style guide, please lint your code with pep8::
+As a rough style guide, please lint your code with black, codespell, and flake8::
 
-    pip install pep8
-    pep8 --ignore E501,E226,E241 sc2reader
+    pip install black codespell flake8
+    codespell -L queenland,uint
+    flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    black . --check
 
+More up-to-date checks may be detailed in `.circleci/config.yml`.
 
 All files should start with the following::
 
@@ -18,10 +22,7 @@ All files should start with the following::
 All imports should be absolute.
 
 
-All string formatting sound be done in the following style::
+All string formatting should be done in the following style::
 
     "my {0} formatted {1} string {2}".format("super", "python", "example")
     "the {x} style of {y} is also {z}".format(x="dict", y="arguments", z="acceptable")
-
-The format argument index numbers are important for 2.6 support. ``%`` formatting is not allowed for 3.x support
-
