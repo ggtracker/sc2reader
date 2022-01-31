@@ -421,11 +421,11 @@ class Replay(Resource):
         # the value required to get the adjusted timestamp. We know the upper
         # limit for any adjustment number so use that to distinguish between
         # the two cases.
-        if details["utc_adjustment"] < 10 ** 7 * 60 * 60 * 24:
-            self.time_zone = details["utc_adjustment"] / (10 ** 7 * 60 * 60)
+        if details["utc_adjustment"] < 10**7 * 60 * 60 * 24:
+            self.time_zone = details["utc_adjustment"] / (10**7 * 60 * 60)
         else:
             self.time_zone = (details["utc_adjustment"] - details["file_time"]) / (
-                10 ** 7 * 60 * 60
+                10**7 * 60 * 60
             )
 
         self.game_length = self.length

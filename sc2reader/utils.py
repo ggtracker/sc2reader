@@ -45,7 +45,7 @@ def windows_to_unix(windows_time):
     # This windows timestamp measures the number of 100 nanosecond periods since
     # January 1st, 1601. First we subtract the number of nanosecond periods from
     # 1601-1970, then we divide by 10^7 to bring it back to seconds.
-    return int((windows_time - 116444735995904000) / 10 ** 7)
+    return int((windows_time - 116444735995904000) / 10**7)
 
 
 @loggable
