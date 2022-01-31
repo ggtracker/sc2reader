@@ -28,7 +28,6 @@ try:
             termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
             fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
 
-
 except ImportError as e:
     try:
         # Oops, we might be on windows, try this one
