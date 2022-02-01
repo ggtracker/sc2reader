@@ -561,7 +561,7 @@ class GameEventsReader_Base(object):
             )
 
     # Don't want to do this more than once
-    SINGLE_BIT_MASKS = [0x1 << i for i in range(2 ** 9)]
+    SINGLE_BIT_MASKS = [0x1 << i for i in range(2**9)]
 
     def read_selection_bitmask(self, data, mask_length):
         bits_left = mask_length

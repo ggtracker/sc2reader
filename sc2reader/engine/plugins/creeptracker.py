@@ -173,7 +173,7 @@ class creep_tracker:
         # Sample a square area using the radius
         for x in range(-radius, radius):
             for y in range(-radius, radius):
-                if (x ** 2 + y ** 2) <= (radius * radius):
+                if (x**2 + y**2) <= (radius * radius):
                     output_coordinates.append((x, y))
         return output_coordinates
 
