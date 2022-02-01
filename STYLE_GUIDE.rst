@@ -21,8 +21,4 @@ All files should start with the following::
 
 All imports should be absolute.
 
-
-All string formatting should be done in the following style::
-
-    "my {0} formatted {1} string {2}".format("super", "python", "example")
-    "the {x} style of {y} is also {z}".format(x="dict", y="arguments", z="acceptable")
+All string formatting should be done with f-strings. See https://docs.python.org/3/reference/lexical_analysis.html#f-strings
