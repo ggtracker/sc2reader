@@ -224,9 +224,15 @@
     },
     "ravager": {
       "is_army": true,
-      "minerals": 75,
-      "vespene": 25,
-      "supply": 2
+      "minerals": 100,
+      "vespene": 100,
+      "supply": 3
+    },
+    "ravagercocoon": {
+        "is_army": true,
+        "minerals": 100,
+        "vespene": 100,
+        "supply": 3
     },
     "roach": {
       "is_army": true,
