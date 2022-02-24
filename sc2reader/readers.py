@@ -1745,7 +1745,7 @@ class GameEventsReader_34784(GameEventsReader_27950):
                     self.command_manager_reset_event,
                 ),  # Re-using this old number
                 61: (None, self.trigger_hotkey_pressed_event),
-                103: (None, self.command_manager_state_event),
+                103: (CommandManagerStateEvent, self.command_manager_state_event),
                 104: (
                     UpdateTargetPointCommandEvent,
                     self.command_update_target_point_event,

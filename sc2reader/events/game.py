@@ -400,6 +400,26 @@ class DataCommandEvent(CommandEvent):
 
 
 @loggable
+class CommandManagerStateEvent(GameEvent):
+    """
+    These events indicated that the last :class:`CommandEvent` called has been
+    called again.  For example, if you add three SCVs to an empty queue on a
+    Command Center, the first add will be generate a :class:`BasicCommandEvent`
+    and the two subsequent adds will each generate a
+    :class:`CommandManagerStateEvent`.
+    """
+
+    def __init__(self, frame, pid, data):
+        super(CommandManagerStateEvent, self).__init__(frame, pid)
+
+        #: Always 1?
+        self.state = data["state"]
+
+        #: An index identifying how many events of this type have been called
+        self.sequence = data["sequence"]
+
+
+@loggable
 class SelectionEvent(GameEvent):
     """
     Selection events are generated when ever the active selection of the
