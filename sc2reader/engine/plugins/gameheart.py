@@ -34,6 +34,11 @@ class GameHeartNormalizer(object):
             yield PluginExit(self, code=0, details=dict())
             return
 
+        # Exit plugin if game is LOTV as LOTV games dont use GameHeart
+        if replay.expansion == "LotV":
+            yield PluginExit(self, code=0, details=dict())
+            return
+
         start_frame = -1
         actual_players = {}
         for event in replay.tracker_events:
