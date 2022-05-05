@@ -1,6 +1,15 @@
 CHANGELOG
 ============
 
+1.8.0 - May 4, 2022
+-------------------
+* Fix various typos in docs #146
+* Fix various URLs for blizzard resources #151 #154 #156
+* Fix Ravager data #161
+* Add CommandManagerStateEvent #162
+* Fix participant state from gameheart #171
+
+
 1.7.0 - May 17, 2021
 --------------------
 * Add DOI to the README #128
