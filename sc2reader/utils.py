@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 import binascii
 import os
 import json
@@ -11,7 +8,7 @@ from sc2reader.exceptions import MPQError
 from sc2reader.constants import COLOR_CODES, COLOR_CODES_INV
 
 
-class DepotFile(object):
+class DepotFile:
     """
     :param bytes: The raw bytes representing the depot file
 
@@ -49,7 +46,7 @@ def windows_to_unix(windows_time):
 
 
 @loggable
-class Color(object):
+class Color:
     """
     Stores a color name and rgba representation of a color. Individual
     color components can be retrieved with the dot operator::
@@ -145,7 +142,7 @@ def extract_data_file(data_file, archive):
         # Python2 and Python3 handle wrapped exceptions with old tracebacks in incompatible ways
         # Python3 handles it by default and Python2's method won't compile in python3
         # Since the underlying traceback isn't important to most people, don't expose it anymore
-        raise MPQError("Unable to extract file: {0}".format(data_file), e)
+        raise MPQError(f"Unable to extract file: {data_file}", e)
 
 
 def get_files(
@@ -162,7 +159,7 @@ def get_files(
     """
     # os.walk and os.path.isfile fail silently. We want to be loud!
     if not os.path.exists(path):
-        raise ValueError("Location `{0}` does not exist".format(path))
+        raise ValueError(f"Location `{path}` does not exist")
 
     # If an extension is supplied, use it to do a type check
     if extension:
@@ -235,9 +232,9 @@ class Length(timedelta):
 
     def __str__(self):
         if self.hours:
-            return "{0:0>2}.{1:0>2}.{2:0>2}".format(self.hours, self.mins, self.secs)
+            return f"{self.hours:0>2}.{self.mins:0>2}.{self.secs:0>2}"
         else:
-            return "{0:0>2}.{1:0>2}".format(self.mins, self.secs)
+            return f"{self.mins:0>2}.{self.secs:0>2}"
 
 
 class JSONDateEncoder(json.JSONEncoder):

@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 from collections import defaultdict
 from io import BytesIO
 import os
@@ -27,7 +24,7 @@ from sc2reader.resources import Resource, Replay, Map, GameSummary, Localization
 
 
 @log_utils.loggable
-class SC2Factory(object):
+class SC2Factory:
     """
     The SC2Factory class acts as a generic loader interface for all
     available to sc2reader resources. At current time this includes
@@ -262,7 +259,7 @@ class CachedSC2Factory(SC2Factory):
     def load_remote_resource_contents(self, remote_resource, **options):
         cache_key = self.get_remote_cache_key(remote_resource)
         if not self.cache_has(cache_key):
-            resource = super(CachedSC2Factory, self).load_remote_resource_contents(
+            resource = super().load_remote_resource_contents(
                 remote_resource, **options
             )
             self.cache_set(cache_key, resource)
@@ -290,15 +287,15 @@ class FileCachedSC2Factory(CachedSC2Factory):
     """
 
     def __init__(self, cache_dir, **options):
-        super(FileCachedSC2Factory, self).__init__(**options)
+        super().__init__(**options)
         self.cache_dir = os.path.abspath(cache_dir)
         if not os.path.isdir(self.cache_dir):
             raise ValueError(
-                "cache_dir ({0}) must be an existing directory.".format(self.cache_dir)
+                f"cache_dir ({self.cache_dir}) must be an existing directory."
             )
         elif not os.access(self.cache_dir, os.F_OK | os.W_OK | os.R_OK):
             raise ValueError(
-                "Must have read/write access to {0} for local file caching.".format(
+                "Must have read/write access to {} for local file caching.".format(
                     self.cache_dir
                 )
             )
@@ -333,7 +330,7 @@ class DictCachedSC2Factory(CachedSC2Factory):
     """
 
     def __init__(self, cache_max_size=0, **options):
-        super(DictCachedSC2Factory, self).__init__(**options)
+        super().__init__(**options)
         self.cache_dict = dict()
         self.cache_used = dict()
         self.cache_max_size = cache_max_size
@@ -366,7 +363,7 @@ class DoubleCachedSC2Factory(DictCachedSC2Factory, FileCachedSC2Factory):
     """
 
     def __init__(self, cache_dir, cache_max_size=0, **options):
-        super(DoubleCachedSC2Factory, self).__init__(
+        super().__init__(
             cache_max_size, cache_dir=cache_dir, **options
         )
 

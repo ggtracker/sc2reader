@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 import struct
 
 from sc2reader.exceptions import ParseError, ReadError
@@ -12,7 +9,7 @@ from sc2reader.utils import DepotFile
 from sc2reader.decoders import BitPackedDecoder, ByteDecoder
 
 
-class InitDataReader(object):
+class InitDataReader:
     def __call__(self, data, replay):
         data = BitPackedDecoder(data)
         result = dict(
@@ -292,11 +289,11 @@ class InitDataReader(object):
             ),
         )
         if not data.done():
-            raise ValueError("{0} bytes left!".format(data.length - data.tell()))
+            raise ValueError(f"{data.length - data.tell()} bytes left!")
         return result
 
 
-class AttributesEventsReader(object):
+class AttributesEventsReader:
     def __call__(self, data, replay):
         data = ByteDecoder(data, endian="LITTLE")
         data.read_bytes(5 if replay.base_build >= 17326 else 4)
@@ -314,7 +311,7 @@ class AttributesEventsReader(object):
         return result
 
 
-class DetailsReader(object):
+class DetailsReader:
     def __call__(self, data, replay):
         details = BitPackedDecoder(data).read_struct()
         return dict(
@@ -363,7 +360,7 @@ class DetailsReader(object):
         )
 
 
-class MessageEventsReader(object):
+class MessageEventsReader:
     def __call__(self, data, replay):
         data = BitPackedDecoder(data)
         pings = list()
@@ -402,7 +399,7 @@ class MessageEventsReader(object):
         return dict(pings=pings, messages=messages, packets=packets)
 
 
-class GameEventsReader_Base(object):
+class GameEventsReader_Base:
     def __init__(self):
         self.EVENT_DISPATCH = {
             0: (None, self.unknown_event),
@@ -523,7 +520,7 @@ class GameEventsReader_Base(object):
                 # Otherwise throw a read error
                 else:
                     raise ReadError(
-                        "Event type {0} unknown at position {1}.".format(
+                        "Event type {} unknown at position {}.".format(
                             hex(event_type), hex(event_start)
                         ),
                         event_type,
@@ -539,7 +536,7 @@ class GameEventsReader_Base(object):
             return game_events
         except ParseError as e:
             raise ReadError(
-                "Parse error '{0}' unknown at position {1}.".format(
+                "Parse error '{}' unknown at position {}.".format(
                     e.msg, hex(event_start)
                 ),
                 event_type,
@@ -550,7 +547,7 @@ class GameEventsReader_Base(object):
             )
         except EOFError as e:
             raise ReadError(
-                "EOFError error '{0}' unknown at position {1}.".format(
+                "EOFError error '{}' unknown at position {}.".format(
                     e.msg, hex(event_start)
                 ),
                 event_type,
@@ -585,7 +582,7 @@ class GameEventsReader_Base(object):
             bits_left -= 8
 
         # Compile the finished mask into a large integer for bit checks
-        bit_mask = sum([c << (i * 8) for i, c in enumerate(mask)])
+        bit_mask = sum(c << (i * 8) for i, c in enumerate(mask))
 
         # Change mask representation from an int to a bit array with
         # True => Deselect, False => Keep
@@ -1097,7 +1094,7 @@ class GameEventsReader_16939(GameEventsReader_16755):
 
 class GameEventsReader_17326(GameEventsReader_16939):
     def __init__(self):
-        super(GameEventsReader_17326, self).__init__()
+        super().__init__()
 
         self.EVENT_DISPATCH.update({59: (None, self.trigger_mouse_moved_event)})
 
@@ -1257,7 +1254,7 @@ class GameEventsReader_21029(GameEventsReader_19595):
 
 class GameEventsReader_22612(GameEventsReader_21029):
     def __init__(self):
-        super(GameEventsReader_22612, self).__init__()
+        super().__init__()
 
         self.EVENT_DISPATCH.update(
             {
@@ -1551,7 +1548,7 @@ class GameEventsReader_HotSBeta(GameEventsReader_23260):
 
 class GameEventsReader_24247(GameEventsReader_HotSBeta):
     def __init__(self):
-        super(GameEventsReader_24247, self).__init__()
+        super().__init__()
 
         self.EVENT_DISPATCH.update(
             {
@@ -1736,7 +1733,7 @@ class GameEventsReader_27950(GameEventsReader_26490):
 
 class GameEventsReader_34784(GameEventsReader_27950):
     def __init__(self):
-        super(GameEventsReader_34784, self).__init__()
+        super().__init__()
 
         self.EVENT_DISPATCH.update(
             {
@@ -1987,7 +1984,7 @@ class GameEventsReader_36442(GameEventsReader_34784):
 
 class GameEventsReader_38215(GameEventsReader_36442):
     def __init__(self):
-        super(GameEventsReader_38215, self).__init__()
+        super().__init__()
 
         self.EVENT_DISPATCH.update(
             {
@@ -2188,7 +2185,7 @@ class GameEventsReader_65895(GameEventsReader_64469):
     """
 
     def __init__(self):
-        super(GameEventsReader_65895, self).__init__()
+        super().__init__()
 
         self.EVENT_DISPATCH.update(
             {116: (None, self.set_sync_loading), 117: (None, self.set_sync_playing)}
@@ -2260,7 +2257,7 @@ class GameEventsReader_80669(GameEventsReader_65895):
         )
 
 
-class TrackerEventsReader(object):
+class TrackerEventsReader:
     def __init__(self):
         self.EVENT_DISPATCH = {
             0: PlayerStatsEvent,

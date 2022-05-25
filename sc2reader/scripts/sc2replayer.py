@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
 
 try:
     # Assume that we are on *nix or Mac
@@ -22,7 +20,7 @@ try:
                 try:
                     sys.stdin.read(1)
                     break
-                except IOError:
+                except OSError:
                     pass
         finally:
             termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
@@ -78,15 +76,15 @@ def main():
 
     for filename in sc2reader.utils.get_files(args.FILE):
         replay = sc2reader.load_replay(filename, debug=True)
-        print("Release {0}".format(replay.release_string))
+        print(f"Release {replay.release_string}")
         print(
-            "{0} on {1} at {2}".format(replay.type, replay.map_name, replay.start_time)
+            f"{replay.type} on {replay.map_name} at {replay.start_time}"
         )
         print("")
         for team in replay.teams:
             print(team)
             for player in team.players:
-                print("  {0}".format(player))
+                print(f"  {player}")
         print("\n--------------------------\n\n")
 
         # Allow picking of the player to 'watch'

@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 import hashlib
 import math
 from collections import namedtuple
@@ -12,7 +9,7 @@ from sc2reader.constants import *
 Location = namedtuple("Location", ["x", "y"])
 
 
-class Team(object):
+class Team:
     """
     The team object primarily a container object for organizing :class:`Player`
     objects with some metadata. As such, it implements iterable and can be
@@ -22,7 +19,7 @@ class Team(object):
     """
 
     #: A unique hash identifying the team of players
-    hash = str()
+    hash = ''
 
     #: The team number as recorded in the replay
     number = int()
@@ -32,7 +29,7 @@ class Team(object):
 
     #: The result of the game for this team.
     #: One of "Win", "Loss", or "Unknown"
-    result = str()
+    result = ''
 
     def __init__(self, number):
         self.number = number
@@ -56,7 +53,7 @@ class Team(object):
         return hashlib.sha256(raw_hash).hexdigest()
 
     def __str__(self):
-        return "Team {0}: {1}".format(
+        return "Team {}: {}".format(
             self.number, ", ".join([str(p) for p in self.players])
         )
 
@@ -65,14 +62,14 @@ class Team(object):
 
 
 @log_utils.loggable
-class Attribute(object):
+class Attribute:
     def __init__(self, header, attr_id, player, value):
         self.header = header
         self.id = attr_id
         self.player = player
 
         if self.id not in LOBBY_PROPERTIES:
-            self.logger.info("Unknown attribute id: {0}".format(self.id))
+            self.logger.info(f"Unknown attribute id: {self.id}")
             self.name = "Unknown"
             self.value = None
         else:
@@ -80,17 +77,17 @@ class Attribute(object):
             try:
                 self.value = lookup[value.strip("\x00 ")[::-1]]
             except KeyError:
-                self.logger.info("Missing attribute value: {0}".format(value))
+                self.logger.info(f"Missing attribute value: {value}")
                 self.value = None
 
     def __repr__(self):
         return str(self)
 
     def __str__(self):
-        return "[{0}] {1}: {2}".format(self.player, self.name, self.value)
+        return f"[{self.player}] {self.name}: {self.value}"
 
 
-class Entity(object):
+class Entity:
     """
     :param integer sid: The entity's unique slot id.
     :param dict slot_data: The slot data associated with this entity
@@ -164,7 +161,7 @@ class Entity(object):
         return format_string.format(**self.__dict__)
 
 
-class Player(object):
+class Player:
     """
     :param integer pid: The player's unique player id.
     :param dict detail_data: The detail data associated with this player
@@ -253,7 +250,7 @@ class Player(object):
         self.toon_id = detail_data["bnet"]["uid"]
 
 
-class User(object):
+class User:
     """
     :param integer uid: The user's unique user id
     :param dict init_data: The init data associated with this user
@@ -317,7 +314,7 @@ class Observer(Entity, User):
         self.pid = pid
 
     def __str__(self):
-        return "Observer {0} - {1}".format(self.uid, self.name)
+        return f"Observer {self.uid} - {self.name}"
 
     def __repr__(self):
         return str(self)
@@ -342,7 +339,7 @@ class Computer(Entity, Player):
         self.name = detail_data["name"]
 
     def __str__(self):
-        return "Player {0} - {1} ({2})".format(self.pid, self.name, self.play_race)
+        return f"Player {self.pid} - {self.name} ({self.play_race})"
 
     def __repr__(self):
         return str(self)
@@ -369,7 +366,7 @@ class Participant(Entity, User, Player):
         Player.__init__(self, pid, slot_data, detail_data, attribute_data)
 
     def __str__(self):
-        return "Player {0} - {1} ({2})".format(self.pid, self.name, self.play_race)
+        return f"Player {self.pid} - {self.name} ({self.play_race})"
 
     def __repr__(self):
         return str(self)
@@ -388,10 +385,10 @@ class PlayerSummary:
     teamid = int()
 
     #: The race the player played in the game.
-    play_race = str()
+    play_race = ''
 
     #: The race the player picked in the lobby.
-    pick_race = str()
+    pick_race = ''
 
     #: If the player is a computer
     is_ai = False
@@ -406,7 +403,7 @@ class PlayerSummary:
     subregion = int()
 
     #: The player's region, such as us, eu, sea
-    region = str()
+    region = ''
 
     #: unknown1
     unknown1 = int()
@@ -429,11 +426,11 @@ class PlayerSummary:
 
     def __str__(self):
         if not self.is_ai:
-            return "User {0}-S2-{1}-{2}".format(
+            return "User {}-S2-{}-{}".format(
                 self.region.upper(), self.subregion, self.bnetid
             )
         else:
-            return "AI ({0})".format(self.play_race)
+            return f"AI ({self.play_race})"
 
     def __repr__(self):
         return str(self)
@@ -441,7 +438,7 @@ class PlayerSummary:
     def get_stats(self):
         s = ""
         for k in self.stats:
-            s += "{0}: {1}\n".format(self.stats_pretty_names[k], self.stats[k])
+            s += f"{self.stats_pretty_names[k]}: {self.stats[k]}\n"
         return s.strip()
 
 
@@ -480,10 +477,10 @@ class Graph:
         return list(zip(self.times, self.values))
 
     def __str__(self):
-        return "Graph with {0} values".format(len(self.times))
+        return f"Graph with {len(self.times)} values"
 
 
-class MapInfoPlayer(object):
+class MapInfoPlayer:
     """
     Describes the player data as found in the MapInfo document of SC2Map archives.
     """
@@ -542,7 +539,7 @@ class MapInfoPlayer(object):
 
 
 @log_utils.loggable
-class MapInfo(object):
+class MapInfo:
     """
     Represents the data encoded into the MapInfo file inside every SC2Map archive
     """
@@ -553,7 +550,7 @@ class MapInfo(object):
         data = ByteDecoder(contents, endian="LITTLE")
         magic = data.read_string(4)
         if magic != "MapI":
-            self.logger.warn("Invalid MapInfo file: {0}".format(magic))
+            self.logger.warn(f"Invalid MapInfo file: {magic}")
             return
 
         #: The map info file format version
@@ -572,7 +569,7 @@ class MapInfo(object):
         self.small_preview_type = data.read_uint32()
 
         #: (Optional) Small map preview path; relative to root of map archive
-        self.small_preview_path = str()
+        self.small_preview_path = ''
         if self.small_preview_type == 2:
             self.small_preview_path = data.read_cstring()
 
@@ -580,7 +577,7 @@ class MapInfo(object):
         self.large_preview_type = data.read_uint32()
 
         #: (Optional) Large map preview path; relative to root of map archive
-        self.large_preview_path = str()
+        self.large_preview_path = ''
         if self.large_preview_type == 2:
             self.large_preview_path = data.read_cstring()
 

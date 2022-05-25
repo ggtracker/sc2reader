@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 import json
 import pkgutil
 
@@ -41,7 +38,7 @@ command_data = pkgutil.get_data("sc2reader.data", "train_commands.json").decode(
 train_commands = json.loads(command_data)
 
 
-class Unit(object):
+class Unit:
     """Represents an in-game unit."""
 
     def __init__(self, unit_id):
@@ -190,7 +187,7 @@ class Unit(object):
         return self._type_class.is_army if self._type_class else False
 
     def __str__(self):
-        return "{0} [{1:X}]".format(self.name, self.id)
+        return f"{self.name} [{self.id:X}]"
 
     def __cmp__(self, other):
         return cmp(self.id, other.id)
@@ -220,7 +217,7 @@ class Unit(object):
         return str(self)
 
 
-class UnitType(object):
+class UnitType:
     """Represents an in game unit type"""
 
     def __init__(
@@ -271,7 +268,7 @@ class UnitType(object):
         self.is_army = is_army
 
 
-class Ability(object):
+class Ability:
     """Represents an in-game ability"""
 
     def __init__(
@@ -297,7 +294,7 @@ class Ability(object):
 
 
 @loggable
-class Build(object):
+class Build:
     """
     :param build_id: The build number identifying this dataset.
 
@@ -342,7 +339,7 @@ class Build(object):
             unit.set_type(unit_type, frame)
         else:
             self.logger.error(
-                "Unable to change type of {0} to {1} [frame {2}]; unit type not found in build {3}".format(
+                "Unable to change type of {} to {} [frame {}]; unit type not found in build {}".format(
                     unit, new_type, frame, self.id
                 )
             )
@@ -402,7 +399,7 @@ class Build(object):
 def load_build(expansion, version):
     build = Build(version)
 
-    unit_file = "{0}/{1}_units.csv".format(expansion, version)
+    unit_file = f"{expansion}/{version}_units.csv"
     for entry in (
         pkgutil.get_data("sc2reader.data", unit_file).decode("utf8").split("\n")
     ):
@@ -421,7 +418,7 @@ def load_build(expansion, version):
 
         build.add_unit_type(**values)
 
-    abil_file = "{0}/{1}_abilities.csv".format(expansion, version)
+    abil_file = f"{expansion}/{version}_abilities.csv"
     build.add_ability(ability_id=0, name="RightClick", title="Right Click")
     for entry in (
         pkgutil.get_data("sc2reader.data", abil_file).decode("utf8").split("\n")

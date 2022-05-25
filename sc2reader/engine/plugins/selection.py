@@ -1,8 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
-
-class SelectionTracker(object):
+class SelectionTracker:
     """
     Tracks a player's active selection as an input into other plugins.
 

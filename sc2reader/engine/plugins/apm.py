@@ -1,10 +1,7 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 from collections import defaultdict
 
 
-class APMTracker(object):
+class APMTracker:
     """
     Builds ``player.aps`` and ``player.apm`` dictionaries where an action is
     any Selection, ControlGroup, or Command event.

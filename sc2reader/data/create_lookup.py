@@ -1,10 +1,10 @@
 abilities = dict()
-with open("hots_abilities.csv", "r") as f:
+with open("hots_abilities.csv") as f:
     for line in f:
         num, ability = line.strip("\r\n ").split(",")
         abilities[ability] = [""] * 32
 
-with open("command_lookup.csv", "r") as f:
+with open("command_lookup.csv") as f:
     for line in f:
         ability, commands = line.strip("\r\n ").split("|", 1)
         abilities[ability] = commands.split("|")

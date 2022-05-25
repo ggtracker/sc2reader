@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Recursively searches for s2gs files in specified paths. Adds
 # new attributes and values and allows the user to choose when
@@ -28,7 +27,6 @@
 # those decisions. The decisions are pickled instead of in json
 # because the data structure is too complex for the json format.
 #
-from __future__ import absolute_import, print_function, unicode_literals, division
 
 import argparse
 import json
@@ -64,7 +62,7 @@ def main():
 
     attributes = dict()
     if os.path.exists(data_path):
-        with open(data_path, "r") as data_file:
+        with open(data_path) as data_file:
             data = json.load(data_file)
             attributes = data.get("attributes", attributes)
             decisions = pickle.loads(data.get("decisions", "(dp0\n."))
@@ -100,7 +98,7 @@ def main():
 
                         attribute_values[str(value_key)] = value_name
 
-                    attributes["{0:0>4}".format(group_key)] = (
+                    attributes[f"{group_key:0>4}"] = (
                         group_name,
                         attribute_values,
                     )
@@ -122,15 +120,15 @@ def get_choice(s2gs_key, old_value, new_value):
     key = frozenset([s2gs_key, old_value, new_value])
     if key not in decisions:
         print(
-            "Naming conflict on {0}: {1} != {2}".format(s2gs_key, old_value, new_value)
+            f"Naming conflict on {s2gs_key}: {old_value} != {new_value}"
         )
         print("Which do you want to use?")
-        print("  (o) Old value '{0}'".format(old_value))
-        print("  (n) New value '{0}'".format(new_value))
+        print(f"  (o) Old value '{old_value}'")
+        print(f"  (n) New value '{new_value}'")
         while True:
             answer = raw_input("Choose 'o' or 'n' then press enter: ").lower()
             if answer not in ("o", "n"):
-                print("Invalid choice `{0}`".format(answer))
+                print(f"Invalid choice `{answer}`")
             else:
                 break
         decisions[key] = {"o": old_value, "n": new_value}[answer]

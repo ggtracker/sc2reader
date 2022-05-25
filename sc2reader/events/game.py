@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 from sc2reader.utils import Length
 from sc2reader.events.base import Event
 from sc2reader.log_utils import loggable
@@ -41,14 +38,14 @@ class GameEvent(Event):
         if getattr(self, "pid", 16) == 16:
             player_name = "Global"
         elif self.player and not self.player.name:
-            player_name = "Player {0} - ({1})".format(
+            player_name = "Player {} - ({})".format(
                 self.player.pid, self.player.play_race
             )
         elif self.player:
             player_name = self.player.name
         else:
             player_name = "no name"
-        return "{0}\t{1:<15} ".format(Length(seconds=int(self.frame / 16)), player_name)
+        return f"{Length(seconds=int(self.frame / 16))}\t{player_name:<15} "
 
     def __str__(self):
         return self._str_prefix() + self.name
@@ -61,7 +58,7 @@ class GameStartEvent(GameEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(GameStartEvent, self).__init__(frame, pid)
+        super().__init__(frame, pid)
 
         #: ???
         self.data = data
@@ -73,7 +70,7 @@ class PlayerLeaveEvent(GameEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(PlayerLeaveEvent, self).__init__(frame, pid)
+        super().__init__(frame, pid)
 
         #: ???
         self.data = data
@@ -86,7 +83,7 @@ class UserOptionsEvent(GameEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(UserOptionsEvent, self).__init__(frame, pid)
+        super().__init__(frame, pid)
         #:
         self.game_fully_downloaded = data["game_fully_downloaded"]
 
@@ -145,7 +142,7 @@ class CommandEvent(GameEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(CommandEvent, self).__init__(frame, pid)
+        super().__init__(frame, pid)
 
         #: Flags on the command???
         self.flags = data["flags"]
@@ -240,19 +237,19 @@ class CommandEvent(GameEvent):
     def __str__(self):
         string = self._str_prefix()
         if self.has_ability:
-            string += "Ability ({0:X})".format(self.ability_id)
+            string += f"Ability ({self.ability_id:X})"
             if self.ability:
-                string += " - {0}".format(self.ability.name)
+                string += f" - {self.ability.name}"
         else:
             string += "Right Click"
 
         if self.ability_type == "TargetUnit":
-            string += "; Target: {0} [{1:0>8X}]".format(
+            string += "; Target: {} [{:0>8X}]".format(
                 self.target.name, self.target_unit_id
             )
 
         if self.ability_type in ("TargetPoint", "TargetUnit"):
-            string += "; Location: {0}".format(str(self.location))
+            string += f"; Location: {str(self.location)}"
 
         return string
 
@@ -268,7 +265,7 @@ class BasicCommandEvent(CommandEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(BasicCommandEvent, self).__init__(frame, pid, data)
+        super().__init__(frame, pid, data)
 
 
 class TargetPointCommandEvent(CommandEvent):
@@ -284,7 +281,7 @@ class TargetPointCommandEvent(CommandEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(TargetPointCommandEvent, self).__init__(frame, pid, data)
+        super().__init__(frame, pid, data)
 
         #: The x coordinate of the target. Available for TargetPoint and TargetUnit type events.
         self.x = self.ability_type_data["point"].get("x", 0) / 4096.0
@@ -312,7 +309,7 @@ class TargetUnitCommandEvent(CommandEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(TargetUnitCommandEvent, self).__init__(frame, pid, data)
+        super().__init__(frame, pid, data)
 
         #: Flags set on the target unit. Available for TargetUnit type events
         self.target_flags = self.ability_type_data.get("flags", None)
@@ -393,7 +390,7 @@ class DataCommandEvent(CommandEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(DataCommandEvent, self).__init__(frame, pid, data)
+        super().__init__(frame, pid, data)
 
         #: Other target data. Available for Data type events.
         self.target_data = self.ability_type_data.get("data", None)
@@ -410,7 +407,7 @@ class CommandManagerStateEvent(GameEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(CommandManagerStateEvent, self).__init__(frame, pid)
+        super().__init__(frame, pid)
 
         #: Always 1?
         self.state = data["state"]
@@ -433,7 +430,7 @@ class SelectionEvent(GameEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(SelectionEvent, self).__init__(frame, pid)
+        super().__init__(frame, pid)
 
         #: The control group being modified. 10 for active selection
         self.control_group = data["control_group_index"]
@@ -554,7 +551,7 @@ class ControlGroupEvent(GameEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(ControlGroupEvent, self).__init__(frame, pid)
+        super().__init__(frame, pid)
 
         #: Index to the control group being modified
         self.control_group = data["control_group_index"]
@@ -612,7 +609,7 @@ class CameraEvent(GameEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(CameraEvent, self).__init__(frame, pid)
+        super().__init__(frame, pid)
 
         #: The x coordinate of the center of the camera
         self.x = (data["target"]["x"] if data["target"] is not None else 0) / 256.0
@@ -633,7 +630,7 @@ class CameraEvent(GameEvent):
         self.yaw = data["yaw"]
 
     def __str__(self):
-        return self._str_prefix() + "{0} at ({1}, {2})".format(
+        return self._str_prefix() + "{} at ({}, {})".format(
             self.name, self.x, self.y
         )
 
@@ -646,7 +643,7 @@ class ResourceTradeEvent(GameEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(ResourceTradeEvent, self).__init__(frame, pid)
+        super().__init__(frame, pid)
 
         #: The id of the player sending the resources
         self.sender_id = pid
@@ -676,7 +673,7 @@ class ResourceTradeEvent(GameEvent):
         self.custom_resource = self.resources[3] if len(self.resources) >= 4 else None
 
     def __str__(self):
-        return self._str_prefix() + " transfer {0} minerals, {1} gas, {2} terrazine, and {3} custom to {4}".format(
+        return self._str_prefix() + " transfer {} minerals, {} gas, {} terrazine, and {} custom to {}".format(
             self.minerals,
             self.vespene,
             self.terrazine,
@@ -691,7 +688,7 @@ class ResourceRequestEvent(GameEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(ResourceRequestEvent, self).__init__(frame, pid)
+        super().__init__(frame, pid)
 
         #: An array of resources sent
         self.resources = data["resources"]
@@ -711,7 +708,7 @@ class ResourceRequestEvent(GameEvent):
     def __str__(self):
         return (
             self._str_prefix()
-            + " requests {0} minerals, {1} gas, {2} terrazine, and {3} custom".format(
+            + " requests {} minerals, {} gas, {} terrazine, and {} custom".format(
                 self.minerals, self.vespene, self.terrazine, self.custom_resource
             )
         )
@@ -723,7 +720,7 @@ class ResourceRequestFulfillEvent(GameEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(ResourceRequestFulfillEvent, self).__init__(frame, pid)
+        super().__init__(frame, pid)
 
         #: The id of the request being fulfilled
         self.request_id = data["request_id"]
@@ -735,7 +732,7 @@ class ResourceRequestCancelEvent(GameEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(ResourceRequestCancelEvent, self).__init__(frame, pid)
+        super().__init__(frame, pid)
 
         #: The id of the request being cancelled
         self.request_id = data["request_id"]
@@ -747,7 +744,7 @@ class HijackReplayGameEvent(GameEvent):
     """
 
     def __init__(self, frame, pid, data):
-        super(HijackReplayGameEvent, self).__init__(frame, pid)
+        super().__init__(frame, pid)
 
         #: The method used. Not sure what 0/1 represent
         self.method = data["method"]

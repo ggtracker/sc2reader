@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     sc2reader
     ~~~~~~~~~~~
@@ -18,7 +17,6 @@
     :copyright: (c) 2011 by Graylin Kim.
     :license: MIT, see LICENSE for more details.
 """
-from __future__ import absolute_import, print_function, unicode_literals, division
 
 __version__ = "1.8.0"
 

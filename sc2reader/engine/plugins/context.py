@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
 # TODO: Dry this up a bit!
-from __future__ import absolute_import, print_function, unicode_literals, division
 
 from sc2reader.log_utils import loggable
 from sc2reader.utils import Length
 
 
 @loggable
-class ContextLoader(object):
+class ContextLoader:
     name = "ContextLoader"
 
     def handleInitGame(self, event, replay):
@@ -45,7 +43,7 @@ class ContextLoader(object):
                         event.logger.error("\t" + player.__str__())
 
             self.logger.error(
-                "{0}\t{1}\tMissing ability {2:X} from {3}".format(
+                "{}\t{}\tMissing ability {:X} from {}".format(
                     event.frame,
                     event.player.name,
                     event.ability_id,
@@ -60,7 +58,7 @@ class ContextLoader(object):
         if event.other_unit_id in replay.objects:
             event.other_unit = replay.objects[event.other_unit_id]
         elif event.other_unit_id is not None:
-            self.logger.error("Other unit {0} not found".format(event.other_unit_id))
+            self.logger.error(f"Other unit {event.other_unit_id} not found")
 
     def handleTargetUnitCommandEvent(self, event, replay):
         self.last_target_ability_event[event.player.pid] = event
@@ -199,13 +197,13 @@ class ContextLoader(object):
                 del replay.active_units[event.unit_id_index]
             else:
                 self.logger.error(
-                    "Unable to delete unit index {0} at {1} [{2}], index not active.".format(
+                    "Unable to delete unit index {} at {} [{}], index not active.".format(
                         event.killer_pid, Length(seconds=event.second), event.frame
                     )
                 )
         else:
             self.logger.error(
-                "Unit {0} died at {1} [{2}] before it was born!".format(
+                "Unit {} died at {} [{}] before it was born!".format(
                     event.unit_id, Length(seconds=event.second), event.frame
                 )
             )
@@ -217,7 +215,7 @@ class ContextLoader(object):
                 event.killing_player.killed_units.append(event.unit)
         elif event.killing_player_id:
             self.logger.error(
-                "Unknown killing player id {0} at {1} [{2}]".format(
+                "Unknown killing player id {} at {} [{}]".format(
                     event.killing_player_id, Length(seconds=event.second), event.frame
                 )
             )
@@ -229,7 +227,7 @@ class ContextLoader(object):
                 event.killing_unit.killed_units.append(event.unit)
         elif event.killing_unit_id:
             self.logger.error(
-                "Unknown killing unit id {0} at {1} [{2}]".format(
+                "Unknown killing unit id {} at {} [{}]".format(
                     event.killing_unit_id, Length(seconds=event.second), event.frame
                 )
             )
@@ -245,7 +243,7 @@ class ContextLoader(object):
             event.unit = replay.objects[event.unit_id]
         else:
             self.logger.error(
-                "Unit {0} owner changed at {1} [{2}] before it was born!".format(
+                "Unit {} owner changed at {} [{}] before it was born!".format(
                     event.unit_id, Length(seconds=event.second), event.frame
                 )
             )
@@ -265,7 +263,7 @@ class ContextLoader(object):
             replay.datapack.change_type(event.unit, event.unit_type_name, event.frame)
         else:
             self.logger.error(
-                "Unit {0} type changed at {1} [{2}] before it was born!".format(
+                "Unit {} type changed at {} [{}] before it was born!".format(
                     event.unit_id, Length(seconds=event.second)
                 )
             )
@@ -308,7 +306,7 @@ class ContextLoader(object):
             event.unit.finished_at = event.frame
         else:
             self.logger.error(
-                "Unit {0} done at {1} [{2}] before it was started!".format(
+                "Unit {} done at {} [{}] before it was started!".format(
                     event.killer_pid, Length(seconds=event.second), event.frame
                 )
             )
@@ -324,7 +322,7 @@ class ContextLoader(object):
                 event.units[unit] = unit.location
             else:
                 self.logger.error(
-                    "Unit at active_unit index {0} moved at {1} [{2}] but it doesn't exist!".format(
+                    "Unit at active_unit index {} moved at {} [{}] but it doesn't exist!".format(
                         event.killer_pid, Length(seconds=event.second), event.frame
                     )
                 )
@@ -338,7 +336,7 @@ class ContextLoader(object):
                 event.player.events.append(event)
             elif event.pid != 16:
                 self.logger.error(
-                    "Bad pid ({0}) for event {1} at {2} [{3}].".format(
+                    "Bad pid ({}) for event {} at {} [{}].".format(
                         event.pid,
                         event.__class__,
                         Length(seconds=event.second),
@@ -354,7 +352,7 @@ class ContextLoader(object):
                 event.player.events.append(event)
             elif event.pid != 16:
                 self.logger.error(
-                    "Bad pid ({0}) for event {1} at {2} [{3}].".format(
+                    "Bad pid ({}) for event {} at {} [{}].".format(
                         event.pid,
                         event.__class__,
                         Length(seconds=event.second),
@@ -369,7 +367,7 @@ class ContextLoader(object):
             event.player = replay.entity[event.pid]
         else:
             self.logger.error(
-                "Bad pid ({0}) for event {1} at {2} [{3}].".format(
+                "Bad pid ({}) for event {} at {} [{}].".format(
                     event.pid,
                     event.__class__,
                     Length(seconds=event.second),
@@ -382,7 +380,7 @@ class ContextLoader(object):
             event.unit_upkeeper = replay.entity[event.upkeep_pid]
         elif event.upkeep_pid != 0:
             self.logger.error(
-                "Bad upkeep_pid ({0}) for event {1} at {2} [{3}].".format(
+                "Bad upkeep_pid ({}) for event {} at {} [{}].".format(
                     event.upkeep_pid,
                     event.__class__,
                     Length(seconds=event.second),
@@ -395,7 +393,7 @@ class ContextLoader(object):
             event.unit_controller = replay.entity[event.control_pid]
         elif event.control_pid != 0:
             self.logger.error(
-                "Bad control_pid ({0}) for event {1} at {2} [{3}].".format(
+                "Bad control_pid ({}) for event {} at {} [{}].".format(
                     event.control_pid,
                     event.__class__,
                     Length(seconds=event.second),

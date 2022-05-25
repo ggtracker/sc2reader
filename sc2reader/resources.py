@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 from collections import defaultdict, namedtuple
 from datetime import datetime
 import hashlib
@@ -29,7 +26,7 @@ from sc2reader.objects import (
 from sc2reader.constants import GAME_SPEED_FACTOR, LOBBY_PROPERTIES
 
 
-class Resource(object):
+class Resource:
     def __init__(self, file_object, filename=None, factory=None, **options):
         self.factory = factory
         self.opt = options
@@ -50,7 +47,7 @@ class Replay(Resource):
     attributes = defaultdict(dict)
 
     #: Fully qualified filename of the replay file represented.
-    filename = str()
+    filename = ''
 
     #: Total number of frames in this game at 16 frames per second.
     frames = int()
@@ -62,27 +59,27 @@ class Replay(Resource):
     base_build = int()
 
     #: The full version release string as seen on Battle.net
-    release_string = str()
+    release_string = ''
 
     #: A tuple of the individual pieces of the release string
     versions = tuple()
 
     #: The game speed: Slower, Slow, Normal, Fast, Faster
-    speed = str()
+    speed = ''
 
     #: Deprecated, use :attr:`game_type` or :attr:`real_type` instead
-    type = str()
+    type = ''
 
     #: The game type chosen at game creation: 1v1, 2v2, 3v3, 4v4, FFA
-    game_type = str()
+    game_type = ''
 
     #: The real type of the replay as observed by counting players on teams.
     #: For outmatched games, the smaller team numbers come first.
     #: Example Values: 1v1, 2v2, 3v3, FFA, 2v4, etc.
-    real_type = str()
+    real_type = ''
 
     #: The category of the game, Ladder and Private
-    category = str()
+    category = ''
 
     #: A flag for public ladder games
     is_ladder = bool()
@@ -91,10 +88,10 @@ class Replay(Resource):
     is_private = bool()
 
     #: The raw hash name of the s2ma resource as hosted on bnet depots
-    map_hash = str()
+    map_hash = ''
 
     #: The name of the map the game was played on
-    map_name = str()
+    map_name = ''
 
     #: A reference to the loaded :class:`Map` resource.
     map = None
@@ -130,7 +127,7 @@ class Replay(Resource):
     real_length = None
 
     #: The region the game was played on: us, eu, sea, etc
-    region = str()
+    region = ''
 
     #: An integrated list of all the game events
     events = list()
@@ -187,10 +184,10 @@ class Replay(Resource):
     #: A sha256 hash uniquely representing the combination of people in the game.
     #: Can be used in conjunction with date times to match different replays
     #: of the game game.
-    people_hash = str()
+    people_hash = ''
 
     #: SC2 Expansion. One of 'WoL', 'HotS'
-    expansion = str()
+    expansion = ''
 
     #: True of the game was resumed from a replay
     resume_from_replay = False
@@ -210,7 +207,7 @@ class Replay(Resource):
         do_tracker_events=True,
         **options
     ):
-        super(Replay, self).__init__(replay_file, filename, **options)
+        super().__init__(replay_file, filename, **options)
         self.datapack = None
         self.raw_data = dict()
 
@@ -277,7 +274,7 @@ class Replay(Resource):
             self.frames = header_data[3]
             self.build = self.versions[4]
             self.base_build = self.versions[5]
-            self.release_string = "{0}.{1}.{2}.{3}".format(*self.versions[1:5])
+            self.release_string = "{}.{}.{}.{}".format(*self.versions[1:5])
             fps = self.game_fps
             if 34784 <= self.build:  # lotv replay, adjust time
                 fps = self.game_fps * 1.4
@@ -396,17 +393,17 @@ class Replay(Resource):
 
         dependency_hashes = [d.hash for d in details["cache_handles"]]
         if (
-            hashlib.sha256("Standard Data: Void.SC2Mod".encode("utf8")).hexdigest()
+            hashlib.sha256(b"Standard Data: Void.SC2Mod").hexdigest()
             in dependency_hashes
         ):
             self.expansion = "LotV"
         elif (
-            hashlib.sha256("Standard Data: Swarm.SC2Mod".encode("utf8")).hexdigest()
+            hashlib.sha256(b"Standard Data: Swarm.SC2Mod").hexdigest()
             in dependency_hashes
         ):
             self.expansion = "HotS"
         elif (
-            hashlib.sha256("Standard Data: Liberty.SC2Mod".encode("utf8")).hexdigest()
+            hashlib.sha256(b"Standard Data: Liberty.SC2Mod").hexdigest()
             in dependency_hashes
         ):
             self.expansion = "WoL"
@@ -550,14 +547,14 @@ class Replay(Resource):
 
         # Pull results up for teams
         for team in self.teams:
-            results = set([p.result for p in team.players])
+            results = {p.result for p in team.players}
             if len(results) == 1:
                 team.result = list(results)[0]
                 if team.result == "Win":
                     self.winner = team
             else:
                 self.logger.warn(
-                    "Conflicting results for Team {0}: {1}".format(team.number, results)
+                    f"Conflicting results for Team {team.number}: {results}"
                 )
                 team.result = "Unknown"
 
@@ -884,7 +881,7 @@ class Replay(Resource):
                 return reader
         else:
             raise ValueError(
-                "Valid {0} reader could not found for build {1}".format(
+                "Valid {} reader could not found for build {}".format(
                     data_file, self.build
                 )
             )
@@ -904,7 +901,7 @@ class Replay(Resource):
             "replay.message.events",
             "replay.tracker.events",
         ]:
-            raise ValueError("{0} not found in archive".format(data_file))
+            raise ValueError(f"{data_file} not found in archive")
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -915,19 +912,19 @@ class Replay(Resource):
 
 class Map(Resource):
     def __init__(self, map_file, filename=None, region=None, map_hash=None, **options):
-        super(Map, self).__init__(map_file, filename, **options)
+        super().__init__(map_file, filename, **options)
 
         #: The localized (only enUS supported right now) map name.
-        self.name = str()
+        self.name = ''
 
         #: The localized (only enUS supported right now) map author.
-        self.author = str()
+        self.author = ''
 
         #: The localized (only enUS supported right now) map description.
-        self.description = str()
+        self.description = ''
 
         #: The localized (only enUS supported right now) map website.
-        self.website = str()
+        self.website = ''
 
         #: The unique hash used to identify this map on bnet's depots.
         self.hash = map_hash
@@ -949,7 +946,7 @@ class Map(Resource):
         # just because US English wasn't a concern of the map author.
         # TODO: Make this work regardless of the localizations available.
         game_strings_file = self.archive.read_file(
-            "enUS.SC2Data\LocalizedData\GameStrings.txt"
+            r"enUS.SC2Data\LocalizedData\GameStrings.txt"
         )
         if game_strings_file:
             for line in game_strings_file.decode("utf8").split("\r\n"):
@@ -1018,7 +1015,7 @@ class GameSummary(Resource):
     """
 
     #: Game speed
-    game_speed = str()
+    game_speed = ''
 
     #: Game length (real-time)
     real_length = int()
@@ -1045,7 +1042,7 @@ class GameSummary(Resource):
     localization_urls = dict()
 
     def __init__(self, summary_file, filename=None, lang="enUS", **options):
-        super(GameSummary, self).__init__(summary_file, filename, lang=lang, **options)
+        super().__init__(summary_file, filename, lang=lang, **options)
 
         #: A dict of team# -> teams
         self.team = dict()
@@ -1072,8 +1069,8 @@ class GameSummary(Resource):
         self.localization_urls = dict()
         self.lobby_properties = dict()
         self.lobby_player_properties = dict()
-        self.game_type = str()
-        self.real_type = str()
+        self.game_type = ''
+        self.real_type = ''
 
         # The first 16 bytes appear to be some sort of compression header
         buffer = BitPackedDecoder(zlib.decompress(summary_file.read()[16:]))
@@ -1256,7 +1253,7 @@ class GameSummary(Resource):
 
                 # Because of the above complication we resort to a set intersection of
                 # the applicable values and the set of required values.
-                if not set(requirement.values[val][0] for val in values) & set(req[1]):
+                if not {requirement.values[val][0] for val in values} & set(req[1]):
                     break
 
             else:
@@ -1283,7 +1280,7 @@ class GameSummary(Resource):
     def load_player_stats(self):
         translation = self.translations[self.opt["lang"]]
 
-        stat_items = sum([p[0] for p in self.parts[3:]], [])
+        stat_items = sum((p[0] for p in self.parts[3:]), [])
 
         for item in stat_items:
             # Each stat item is laid out as follows
@@ -1336,7 +1333,7 @@ class GameSummary(Resource):
                                 )
                             )
             elif stat_id != 83886080:  # We know this one is always bad.
-                self.logger.warn("Untranslatable key = {0}".format(stat_id))
+                self.logger.warn(f"Untranslatable key = {stat_id}")
 
         # Once we've compiled all the build commands we need to make
         # sure they are properly sorted for presentation.
@@ -1432,7 +1429,7 @@ class GameSummary(Resource):
             self.player[player.pid] = player
 
     def __str__(self):
-        return "{0} - {1} {2}".format(
+        return "{} - {} {}".format(
             self.start_time,
             self.game_length,
             "v".join(
@@ -1445,19 +1442,19 @@ class MapHeader(Resource):
     """**Experimental**"""
 
     #: The name of the map
-    name = str()
+    name = ''
 
     #: Hash of map file
-    map_hash = str()
+    map_hash = ''
 
     #: Link to the map file
-    map_url = str()
+    map_url = ''
 
     #: Hash of the map image
-    image_hash = str()
+    image_hash = ''
 
     #: Link to the image of the map (.s2mv)
-    image_url = str()
+    image_url = ''
 
     #: Localization dictionary, {language, url}
     localization_urls = dict()
@@ -1466,7 +1463,7 @@ class MapHeader(Resource):
     blizzard = False
 
     def __init__(self, header_file, filename=None, **options):
-        super(MapHeader, self).__init__(header_file, filename, **options)
+        super().__init__(header_file, filename, **options)
         self.data = BitPackedDecoder(header_file).read_struct()
 
         # Name
