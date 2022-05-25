@@ -630,9 +630,7 @@ class CameraEvent(GameEvent):
         self.yaw = data["yaw"]
 
     def __str__(self):
-        return self._str_prefix() + "{} at ({}, {})".format(
-            self.name, self.x, self.y
-        )
+        return self._str_prefix() + "{} at ({}, {})".format(self.name, self.x, self.y)
 
 
 @loggable
@@ -673,12 +671,15 @@ class ResourceTradeEvent(GameEvent):
         self.custom_resource = self.resources[3] if len(self.resources) >= 4 else None
 
     def __str__(self):
-        return self._str_prefix() + " transfer {} minerals, {} gas, {} terrazine, and {} custom to {}".format(
-            self.minerals,
-            self.vespene,
-            self.terrazine,
-            self.custom_resource,
-            self.recipient,
+        return (
+            self._str_prefix()
+            + " transfer {} minerals, {} gas, {} terrazine, and {} custom to {}".format(
+                self.minerals,
+                self.vespene,
+                self.terrazine,
+                self.custom_resource,
+                self.recipient,
+            )
         )
 
 

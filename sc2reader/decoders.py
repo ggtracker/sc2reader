@@ -410,9 +410,7 @@ class BitPackedDecoder:
 
         elif datatype == 0x05:  # Struct
             entries = self.read_vint()
-            data = {
-                self.read_vint(): self.read_struct() for i in range(entries)
-            }
+            data = {self.read_vint(): self.read_struct() for i in range(entries)}
 
         elif datatype == 0x06:  # u8
             data = ord(self._buffer.read(1))

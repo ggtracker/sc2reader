@@ -211,13 +211,11 @@ class TestReplays(unittest.TestCase):
 
             replay = sc2reader.load_replay(replayfilename)
             self.assertEqual(replay.expansion, "HotS")
-            player_pids = {
-                player.pid for player in replay.players if player.is_human
-            }
+            player_pids = {player.pid for player in replay.players if player.is_human}
             ability_pids = {
-                    event.player.pid
-                    for event in replay.events
-                    if "CommandEvent" in event.name
+                event.player.pid
+                for event in replay.events
+                if "CommandEvent" in event.name
             }
             self.assertEqual(ability_pids, player_pids)
 
@@ -227,9 +225,7 @@ class TestReplays(unittest.TestCase):
         )
         self.assertEqual(replay.expansion, "WoL")
         ability_pids = {
-                event.player.pid
-                for event in replay.events
-                if "CommandEvent" in event.name
+            event.player.pid for event in replay.events if "CommandEvent" in event.name
         }
         player_pids = {player.pid for player in replay.players}
         self.assertEqual(ability_pids, player_pids)
@@ -238,10 +234,10 @@ class TestReplays(unittest.TestCase):
         replay = sc2reader.load_replay("test_replays/2.0.0.24247/molten.SC2Replay")
         player_pids = {player.pid for player in replay.players}
         spawner_pids = {
-                event.player.pid
-                for event in replay.events
-                if "TargetUnitCommandEvent" in event.name
-                and event.ability.name == "SpawnLarva"
+            event.player.pid
+            for event in replay.events
+            if "TargetUnitCommandEvent" in event.name
+            and event.ability.name == "SpawnLarva"
         }
         self.assertTrue(spawner_pids.issubset(player_pids))
 
@@ -400,10 +396,10 @@ class TestReplays(unittest.TestCase):
         replay = sc2reader.load_replay("test_replays/2.0.0.24247/molten.SC2Replay")
         player_pids = {player.pid for player in replay.players}
         spawner_pids = {
-                event.player.pid
-                for event in replay.events
-                if "TargetUnitCommandEvent" in event.name
-                and event.ability.name == "SpawnLarva"
+            event.player.pid
+            for event in replay.events
+            if "TargetUnitCommandEvent" in event.name
+            and event.ability.name == "SpawnLarva"
         }
         self.assertTrue(spawner_pids.issubset(player_pids))
 
@@ -577,9 +573,9 @@ class TestReplays(unittest.TestCase):
         ]
         mineralFieldNames = list(
             {
-                    ou.attributes["UnitType"].value
-                    for ou in itemlist
-                    if "MineralField" in ou.attributes["UnitType"].value
+                ou.attributes["UnitType"].value
+                for ou in itemlist
+                if "MineralField" in ou.attributes["UnitType"].value
             }
         )
         # print(mineralFieldNames)
@@ -595,9 +591,7 @@ class TestReplays(unittest.TestCase):
 
     def test_33(self):
         for replaynum in range(1, 4):
-            replay = sc2reader.load_replay(
-                f"test_replays/3.3.0/{replaynum}.SC2Replay"
-            )
+            replay = sc2reader.load_replay(f"test_replays/3.3.0/{replaynum}.SC2Replay")
             self.assertTrue(replay is not None)
 
     def test_33_shift_click_calldown_mule(self):

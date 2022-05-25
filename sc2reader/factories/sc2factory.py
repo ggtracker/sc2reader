@@ -259,9 +259,7 @@ class CachedSC2Factory(SC2Factory):
     def load_remote_resource_contents(self, remote_resource, **options):
         cache_key = self.get_remote_cache_key(remote_resource)
         if not self.cache_has(cache_key):
-            resource = super().load_remote_resource_contents(
-                remote_resource, **options
-            )
+            resource = super().load_remote_resource_contents(remote_resource, **options)
             self.cache_set(cache_key, resource)
         else:
             resource = self.cache_get(cache_key)
@@ -363,9 +361,7 @@ class DoubleCachedSC2Factory(DictCachedSC2Factory, FileCachedSC2Factory):
     """
 
     def __init__(self, cache_dir, cache_max_size=0, **options):
-        super().__init__(
-            cache_max_size, cache_dir=cache_dir, **options
-        )
+        super().__init__(cache_max_size, cache_dir=cache_dir, **options)
 
     def load_remote_resource_contents(self, remote_resource, **options):
         cache_key = self.get_remote_cache_key(remote_resource)

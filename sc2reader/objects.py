@@ -19,7 +19,7 @@ class Team:
     """
 
     #: A unique hash identifying the team of players
-    hash = ''
+    hash = ""
 
     #: The team number as recorded in the replay
     number = int()
@@ -29,7 +29,7 @@ class Team:
 
     #: The result of the game for this team.
     #: One of "Win", "Loss", or "Unknown"
-    result = ''
+    result = ""
 
     def __init__(self, number):
         self.number = number
@@ -385,10 +385,10 @@ class PlayerSummary:
     teamid = int()
 
     #: The race the player played in the game.
-    play_race = ''
+    play_race = ""
 
     #: The race the player picked in the lobby.
-    pick_race = ''
+    pick_race = ""
 
     #: If the player is a computer
     is_ai = False
@@ -403,7 +403,7 @@ class PlayerSummary:
     subregion = int()
 
     #: The player's region, such as us, eu, sea
-    region = ''
+    region = ""
 
     #: unknown1
     unknown1 = int()
@@ -569,7 +569,7 @@ class MapInfo:
         self.small_preview_type = data.read_uint32()
 
         #: (Optional) Small map preview path; relative to root of map archive
-        self.small_preview_path = ''
+        self.small_preview_path = ""
         if self.small_preview_type == 2:
             self.small_preview_path = data.read_cstring()
 
@@ -577,7 +577,7 @@ class MapInfo:
         self.large_preview_type = data.read_uint32()
 
         #: (Optional) Large map preview path; relative to root of map archive
-        self.large_preview_path = ''
+        self.large_preview_path = ""
         if self.large_preview_type == 2:
             self.large_preview_path = data.read_cstring()
 

@@ -77,9 +77,7 @@ def main():
     for filename in sc2reader.utils.get_files(args.FILE):
         replay = sc2reader.load_replay(filename, debug=True)
         print(f"Release {replay.release_string}")
-        print(
-            f"{replay.type} on {replay.map_name} at {replay.start_time}"
-        )
+        print(f"{replay.type} on {replay.map_name} at {replay.start_time}")
         print("")
         for team in replay.teams:
             print(team)

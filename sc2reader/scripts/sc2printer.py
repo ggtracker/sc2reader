@@ -174,14 +174,10 @@ def main():
         for filepath in utils.get_files(path, depth=depth):
             name, ext = os.path.splitext(filepath)
             if ext.lower() == ".sc2replay":
-                print(
-                    f"\n--------------------------------------\n{filepath}\n"
-                )
+                print(f"\n--------------------------------------\n{filepath}\n")
                 printReplay(filepath, arguments)
             elif ext.lower() == ".s2gs":
-                print(
-                    f"\n--------------------------------------\n{filepath}\n"
-                )
+                print(f"\n--------------------------------------\n{filepath}\n")
                 printGameSummary(filepath, arguments)
 
 

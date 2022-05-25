@@ -57,17 +57,17 @@ def main():
 
                         human_pids = {human.pid for human in replay.humans}
                         event_pids = {
-                                event.player.pid
-                                for event in replay.events
-                                if getattr(event, "player", None)
+                            event.player.pid
+                            for event in replay.events
+                            if getattr(event, "player", None)
                         }
                         player_pids = {
                             player.pid for player in replay.players if player.is_human
                         }
                         ability_pids = {
-                                event.player.pid
-                                for event in replay.events
-                                if "CommandEvent" in event.name
+                            event.player.pid
+                            for event in replay.events
+                            if "CommandEvent" in event.name
                         }
                         if human_pids != event_pids:
                             print(
@@ -99,9 +99,7 @@ def main():
                             )
                             print(
                                 "Units were: {units}".format(
-                                    units={
-                                        obj.name for obj in replay.objects.values()
-                                    }
+                                    units={obj.name for obj in replay.objects.values()}
                                 )
                             )
 

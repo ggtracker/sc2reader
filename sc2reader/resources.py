@@ -47,7 +47,7 @@ class Replay(Resource):
     attributes = defaultdict(dict)
 
     #: Fully qualified filename of the replay file represented.
-    filename = ''
+    filename = ""
 
     #: Total number of frames in this game at 16 frames per second.
     frames = int()
@@ -59,27 +59,27 @@ class Replay(Resource):
     base_build = int()
 
     #: The full version release string as seen on Battle.net
-    release_string = ''
+    release_string = ""
 
     #: A tuple of the individual pieces of the release string
     versions = tuple()
 
     #: The game speed: Slower, Slow, Normal, Fast, Faster
-    speed = ''
+    speed = ""
 
     #: Deprecated, use :attr:`game_type` or :attr:`real_type` instead
-    type = ''
+    type = ""
 
     #: The game type chosen at game creation: 1v1, 2v2, 3v3, 4v4, FFA
-    game_type = ''
+    game_type = ""
 
     #: The real type of the replay as observed by counting players on teams.
     #: For outmatched games, the smaller team numbers come first.
     #: Example Values: 1v1, 2v2, 3v3, FFA, 2v4, etc.
-    real_type = ''
+    real_type = ""
 
     #: The category of the game, Ladder and Private
-    category = ''
+    category = ""
 
     #: A flag for public ladder games
     is_ladder = bool()
@@ -88,10 +88,10 @@ class Replay(Resource):
     is_private = bool()
 
     #: The raw hash name of the s2ma resource as hosted on bnet depots
-    map_hash = ''
+    map_hash = ""
 
     #: The name of the map the game was played on
-    map_name = ''
+    map_name = ""
 
     #: A reference to the loaded :class:`Map` resource.
     map = None
@@ -127,7 +127,7 @@ class Replay(Resource):
     real_length = None
 
     #: The region the game was played on: us, eu, sea, etc
-    region = ''
+    region = ""
 
     #: An integrated list of all the game events
     events = list()
@@ -184,10 +184,10 @@ class Replay(Resource):
     #: A sha256 hash uniquely representing the combination of people in the game.
     #: Can be used in conjunction with date times to match different replays
     #: of the game game.
-    people_hash = ''
+    people_hash = ""
 
     #: SC2 Expansion. One of 'WoL', 'HotS'
-    expansion = ''
+    expansion = ""
 
     #: True of the game was resumed from a replay
     resume_from_replay = False
@@ -205,7 +205,7 @@ class Replay(Resource):
         load_level=4,
         engine=sc2reader.engine,
         do_tracker_events=True,
-        **options
+        **options,
     ):
         super().__init__(replay_file, filename, **options)
         self.datapack = None
@@ -915,16 +915,16 @@ class Map(Resource):
         super().__init__(map_file, filename, **options)
 
         #: The localized (only enUS supported right now) map name.
-        self.name = ''
+        self.name = ""
 
         #: The localized (only enUS supported right now) map author.
-        self.author = ''
+        self.author = ""
 
         #: The localized (only enUS supported right now) map description.
-        self.description = ''
+        self.description = ""
 
         #: The localized (only enUS supported right now) map website.
-        self.website = ''
+        self.website = ""
 
         #: The unique hash used to identify this map on bnet's depots.
         self.hash = map_hash
@@ -1015,7 +1015,7 @@ class GameSummary(Resource):
     """
 
     #: Game speed
-    game_speed = ''
+    game_speed = ""
 
     #: Game length (real-time)
     real_length = int()
@@ -1069,8 +1069,8 @@ class GameSummary(Resource):
         self.localization_urls = dict()
         self.lobby_properties = dict()
         self.lobby_player_properties = dict()
-        self.game_type = ''
-        self.real_type = ''
+        self.game_type = ""
+        self.real_type = ""
 
         # The first 16 bytes appear to be some sort of compression header
         buffer = BitPackedDecoder(zlib.decompress(summary_file.read()[16:]))
@@ -1442,19 +1442,19 @@ class MapHeader(Resource):
     """**Experimental**"""
 
     #: The name of the map
-    name = ''
+    name = ""
 
     #: Hash of map file
-    map_hash = ''
+    map_hash = ""
 
     #: Link to the map file
-    map_url = ''
+    map_url = ""
 
     #: Hash of the map image
-    image_hash = ''
+    image_hash = ""
 
     #: Link to the image of the map (.s2mv)
-    image_url = ''
+    image_url = ""
 
     #: Localization dictionary, {language, url}
     localization_urls = dict()

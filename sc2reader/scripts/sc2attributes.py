@@ -119,9 +119,7 @@ def get_choice(s2gs_key, old_value, new_value):
     # This way old/new values can be swapped and decision is remembered
     key = frozenset([s2gs_key, old_value, new_value])
     if key not in decisions:
-        print(
-            f"Naming conflict on {s2gs_key}: {old_value} != {new_value}"
-        )
+        print(f"Naming conflict on {s2gs_key}: {old_value} != {new_value}")
         print("Which do you want to use?")
         print(f"  (o) Old value '{old_value}'")
         print(f"  (n) New value '{new_value}'")
