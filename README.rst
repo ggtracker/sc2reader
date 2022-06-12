@@ -4,7 +4,7 @@
 What is sc2reader?
 ====================
 
-sc2reader is a python library for extracting information from various different Starcraft II resources. These resources currently include Replays, Maps, and Game Summaries; we have plans to add support for Battle.net profiles and would gladly accept adapters to the more entrenched SCII sites such as sc2ranks.
+sc2reader is a Python 3 library for extracting information from various different Starcraft II resources. These resources currently include Replays, Maps, and Game Summaries; we have plans to add support for Battle.net profiles and would gladly accept adapters to the more entrenched SCII sites such as sc2ranks.
 
 There is a pressing need in the SC2 community for better statistics, better analytics, better tools for organizing and searching replays. Better websites for sharing replays and hosting tournaments. These tools can't be created without first being able to open up Starcraft II game files and analyze the data within. Our goal is to give anyone and everyone the power to construct their own tools, do their own analysis, and hack on their own Starcraft II projects under the open MIT license.
 
@@ -195,7 +195,7 @@ The new GameHeartNormalizerplugin is registered by default.
 Installation
 ================
 
-sc2reader runs on any system with Python 2.6+, 3.2+, or PyPy installed.
+sc2reader runs on any system with Python 3.7+, or PyPy3 installed.
 
 
 From PyPI (stable)
@@ -203,18 +203,14 @@ From PyPI (stable)
 
 Install from the latest release on PyPI with pip::
 
-    pip install sc2reader
-
-or easy_install::
-
-    easy_install sc2reader
+    python3 -m pip install sc2reader
 
 or with setuptools (specify a valid x.x.x)::
 
     wget http://pypi.python.org/packages/source/s/sc2reader/sc2reader-x.x.x.tar.gz
     tar -xzf sc2reader-x.x.x.tar.gz
     cd sc2reader-x.x.x
-    python setup.py install
+    python3 setup.py install
 
 Releases to PyPi can be very delayed (sorry!), for the latest and greatest you are encouraged to install from Github upstream.
 
@@ -235,7 +231,7 @@ or with setuptools::
     wget -O sc2reader-upstream.tar.gz https://github.com/ggtracker/sc2reader/tarball/upstream
     tar -xzf sc2reader-upstream.tar.gz
     cd sc2reader-upstream
-    python setup.py install
+    python3 setup.py install
 
 .. _circle-ci: https://circleci.com/
 .. _coveralls.io: https://coveralls.io
@@ -250,7 +246,7 @@ Contributors should install from an active git repository using setuptools in `d
 
     git clone https://github.com/ggtracker/sc2reader.git
     cd sc2reader
-    python setup.py develop
+    python3 setup.py develop
 
 Please review the `CONTRIBUTING.md`_ file and get in touch with us before doing too much work. It'll make everyone happier in the long run.
 

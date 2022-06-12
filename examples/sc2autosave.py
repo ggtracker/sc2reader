@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """sc2autosave is a utility for reorganizing and renaming Starcraft II files.
 
 Overview
@@ -78,16 +77,16 @@ without renaming to a 'Saved' subdirectory every 10 seconds. The depth 0 option
 keeps the script from looking into the 'Saved' subdirectory.
 
     sc2autosave                                                             \
-        --source ~/My\ Documents/Starcraft\ II/Accounts/.../Mutliplayer     \
-        --dest ~/My\ Documents/Starcraft\ II/Accounts/.../Multiplater/Saved \
+        --source ~/My\\ Documents/Starcraft\\ II/Accounts/.../Mutliplayer     \
+        --dest ~/My\\ Documents/Starcraft\\ II/Accounts/.../Multiplater/Saved \
         --period 10                                                         \
         --depth 0
 
 This next configuration runs in batch mode using the default renaming format.
 
     sc2autosave                                                             \
-        --source ~/My\ Documents/Starcraft\ II/Accounts/.../Mutliplayer     \
-        --dest ~/My\ Documents/Starcraft\ II/Accounts/.../Multiplater/Saved \
+        --source ~/My\\ Documents/Starcraft\\ II/Accounts/.../Mutliplayer     \
+        --dest ~/My\\ Documents/Starcraft\\ II/Accounts/.../Multiplater/Saved \
         --rename
 
     (ZvP) Lost Temple: ShadesofGray(Z) vs Trisfall(P).SC2Replay
@@ -97,8 +96,8 @@ Here is a heavily customized format that organizes replays into subdirectories
 by replay format and favors ShadesofGray in the player and team orderings.
 
     sc2autosave                                                             \
-        --source ~/My\ Documents/Starcraft\ II/Accounts/.../Mutliplayer     \
-        --dest ~/My\ Documents/Starcraft\ II/Accounts/.../Multiplater/Saved \
+        --source ~/My\\ Documents/Starcraft\\ II/Accounts/.../Mutliplayer     \
+        --dest ~/My\\ Documents/Starcraft\\ II/Accounts/.../Multiplater/Saved \
         --rename "{:format}/{:matchup} on {:map}: {:teams}"                 \
         --player-format "{:name}({:play_race})"                             \
         --team-order-by number                                              \
@@ -113,8 +112,8 @@ strict player and team ordering by number with no exceptions and formats game
 length to show both minutes and seconds.
 
     sc2autosave                                                             \
-        --source ~/My\ Documents/Starcraft\ II/Accounts/.../Mutliplayer     \
-        --dest ~/My\ Documents/Starcraft\ II/Accounts/.../Multiplater/Saved \
+        --source ~/My\\ Documents/Starcraft\\ II/Accounts/.../Mutliplayer     \
+        --dest ~/My\\ Documents/Starcraft\\ II/Accounts/.../Multiplater/Saved \
         --rename "{:matchup}/({:length}) {:map}: {:teams}"                  \
         --player-format "{:name}({:play_race})"                             \
         --team-order-by number                                              \
@@ -200,7 +199,7 @@ def run(args):
                 directory = make_directory(args, ("parse_error",))
                 new_path = os.path.join(directory, file_name)
                 source_path = path[len(args.source) :]
-                args.log.write("Error parsing replay: {0}".format(source_path))
+                args.log.write(f"Error parsing replay: {source_path}")
                 if not args.dryrun:
                     args.action.run(path, new_path)
 
@@ -250,7 +249,7 @@ def run(args):
 
 
 def filter_out_replay(args, replay):
-    player_names = set([player.name for player in replay.players])
+    player_names = {player.name for player in replay.players}
     filter_out_player = not set(args.filter_player) & player_names
 
     if args.filter_rule == "ALLOW":
@@ -262,7 +261,7 @@ def filter_out_replay(args, replay):
 # We need to create these compare functions at runtime because the ordering
 # hinges on the --favored PLAYER options passed in from the command line.
 def create_compare_funcs(args):
-    favored_set = set(name.lower() for name in args.favored)
+    favored_set = {name.lower() for name in args.favored}
 
     def player_compare(player1, player2):
         # Normalize the player names and generate our key metrics
@@ -290,8 +289,8 @@ def create_compare_funcs(args):
 
     def team_compare(team1, team2):
         # Normalize the team name lists and generate our key metrics
-        team1_names = set(p.name.lower() for p in team1.players)
-        team2_names = set(p.name.lower() for p in team2.players)
+        team1_names = {p.name.lower() for p in team1.players}
+        team2_names = {p.name.lower() for p in team2.players}
         team1_favored = team1_names & favored_set
         team2_favored = team2_names & favored_set
 
@@ -341,7 +340,7 @@ def make_directory(args, path_parts):
     for part in path_parts:
         directory = os.path.join(directory, part)
         if not os.path.exists(directory):
-            args.log.write("Creating subfolder: {0}\n".format(directory))
+            args.log.write(f"Creating subfolder: {directory}\n")
             if not args.dryrun:
                 os.mkdir(directory)
         elif not os.path.isdir(directory):
@@ -351,7 +350,7 @@ def make_directory(args, path_parts):
 
 
 def scan(args, state):
-    args.log.write("SCANNING: {0}\n".format(args.source))
+    args.log.write(f"SCANNING: {args.source}\n")
     files = sc2reader.utils.get_files(
         path=args.source,
         regex=args.exclude_files,
@@ -374,13 +373,13 @@ def reset(args):
         exit("Cannot reset, destination must be directory: {0}", args.dest)
 
     print(
-        "About to reset directory: {0}\nAll files and subdirectories will be removed.".format(
+        "About to reset directory: {}\nAll files and subdirectories will be removed.".format(
             args.dest
         )
     )
     choice = raw_input("Proceed anyway? (y/n) ")
     if choice.lower() == "y":
-        args.log.write("Removing old directory: {0}\n".format(args.dest))
+        args.log.write(f"Removing old directory: {args.dest}\n")
         if not args.dryrun:
             print(args.dest)
             shutil.rmtree(args.dest)
@@ -404,13 +403,13 @@ def setup(args):
         if not args.dryrun:
             os.mkdir(args.dest)
         else:
-            args.log.write("Creating destination: {0}\n".format(args.dest))
+            args.log.write(f"Creating destination: {args.dest}\n")
     elif not os.path.isdir(args.dest):
         sys.exit("Destination must be a directory.\n\nScript Aborted")
 
     data_file = os.path.join(args.dest, "sc2autosave.dat")
 
-    args.log.write("Loading state from file: {0}\n".format(data_file))
+    args.log.write(f"Loading state from file: {data_file}\n")
     if os.path.isfile(data_file) and not args.reset:
         with open(data_file) as file:
             return cPickle.load(file)
@@ -425,7 +424,7 @@ def save_state(state, args):
         with open(data_file, "w") as file:
             cPickle.dump(state, file)
     else:
-        args.log.write("Writing state to file: {0}\n".format(data_file))
+        args.log.write(f"Writing state to file: {data_file}\n")
 
 
 def main():

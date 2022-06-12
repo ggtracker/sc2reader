@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 import json
 from collections import defaultdict
 
@@ -159,7 +156,7 @@ def SelectionTracker(replay):
                 selections[event.control_group] = control_group
                 if debug:
                     logger.info(
-                        "[{0}] {1} selected {2} units: {3}".format(
+                        "[{}] {} selected {} units: {}".format(
                             Length(seconds=event.second),
                             person.name,
                             len(selections[0x0A].objects),
@@ -172,7 +169,7 @@ def SelectionTracker(replay):
                 selections[event.control_group] = selections[0x0A].copy()
                 if debug:
                     logger.info(
-                        "[{0}] {1} set hotkey {2} to current selection".format(
+                        "[{}] {} set hotkey {} to current selection".format(
                             Length(seconds=event.second), person.name, event.hotkey
                         )
                     )
@@ -185,7 +182,7 @@ def SelectionTracker(replay):
                 selections[event.control_group] = control_group
                 if debug:
                     logger.info(
-                        "[{0}] {1} added current selection to hotkey {2}".format(
+                        "[{}] {} added current selection to hotkey {}".format(
                             Length(seconds=event.second), person.name, event.hotkey
                         )
                     )
@@ -197,7 +194,7 @@ def SelectionTracker(replay):
                 selections[0xA] = control_group
                 if debug:
                     logger.info(
-                        "[{0}] {1} retrieved hotkey {2}, {3} units: {4}".format(
+                        "[{}] {} retrieved hotkey {}, {} units: {}".format(
                             Length(seconds=event.second),
                             person.name,
                             event.control_group,
@@ -216,9 +213,7 @@ def SelectionTracker(replay):
                 person.selection_errors += 1
                 if debug:
                     logger.warn(
-                        "Error detected in deselection mode {0}.".format(
-                            event.mask_type
-                        )
+                        "Error detected in deselection mode {}.".format(event.mask_type)
                     )
 
         person.selection = player_selections

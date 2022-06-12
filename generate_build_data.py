@@ -58,7 +58,7 @@ def generate_build_data(balance_data_path):
             elif unit_id == "Drone":
                 build_ability_name = "ZergBuild"
             else:
-                build_ability_name = "{}Build".format(unit_id)
+                build_ability_name = f"{unit_id}Build"
 
             if build_ability_index:
                 abilities[build_ability_index] = build_ability_name
@@ -77,7 +77,7 @@ def generate_build_data(balance_data_path):
                     while len(ability_lookup[build_ability_name]) <= command_index:
                         ability_lookup[build_ability_name].append("")
 
-                    build_command_name = "Build{}".format(built_unit_id)
+                    build_command_name = f"Build{built_unit_id}"
                     ability_lookup[build_ability_name][
                         command_index
                     ] = build_command_name
@@ -87,7 +87,7 @@ def generate_build_data(balance_data_path):
             train_ability_index = train_unit_elements[0].get("ability")
 
             if train_ability_index:
-                train_ability_name = "{}Train".format(unit_id)
+                train_ability_name = f"{unit_id}Train"
                 abilities[train_ability_index] = train_ability_name
 
             if train_ability_name not in ability_lookup:
@@ -137,7 +137,7 @@ def generate_build_data(balance_data_path):
                             ):
                                 ability_lookup[train_ability_name].append("")
 
-                            train_command_name = "Train{}".format(trained_unit_name)
+                            train_command_name = f"Train{trained_unit_name}"
                             ability_lookup[train_ability_name][
                                 command_index
                             ] = train_command_name
@@ -145,7 +145,7 @@ def generate_build_data(balance_data_path):
         research_upgrade_elements = root.findall("./researches/upgrade")
         if research_upgrade_elements:
             research_ability_index = research_upgrade_elements[0].get("ability")
-            research_ability_name = "{}Research".format(unit_id)
+            research_ability_name = f"{unit_id}Research"
 
             abilities[research_ability_index] = research_ability_name
 
@@ -163,7 +163,7 @@ def generate_build_data(balance_data_path):
                     while len(ability_lookup[research_ability_name]) <= command_index:
                         ability_lookup[research_ability_name].append("")
 
-                    research_command_name = "Research{}".format(researched_upgrade_id)
+                    research_command_name = f"Research{researched_upgrade_id}"
                     ability_lookup[research_ability_name][
                         command_index
                     ] = research_command_name
@@ -175,7 +175,7 @@ def generate_build_data(balance_data_path):
         sorted(abilities.items(), key=lambda x: int(x[0]))
     )
 
-    unit_lookup = dict((unit_name, unit_name) for _, unit_name in sorted_units.items())
+    unit_lookup = {unit_name: unit_name for _, unit_name in sorted_units.items()}
 
     return sorted_units, sorted_abilities, unit_lookup, ability_lookup
 
@@ -258,7 +258,7 @@ def main():
     unit_lookup_path = os.path.join(
         args.project_path, "sc2reader", "data", "unit_lookup.csv"
     )
-    with open(unit_lookup_path, "r") as file:
+    with open(unit_lookup_path) as file:
         csv_reader = csv.reader(file, delimiter=",", lineterminator=os.linesep)
         old_unit_lookup = collections.OrderedDict(
             [(row[0], row[1]) for row in csv_reader if len(row) > 1]
@@ -267,7 +267,7 @@ def main():
     ability_lookup_path = os.path.join(
         args.project_path, "sc2reader", "data", "ability_lookup.csv"
     )
-    with open(ability_lookup_path, "r") as file:
+    with open(ability_lookup_path) as file:
         csv_reader = csv.reader(file, delimiter=",", lineterminator=os.linesep)
         old_ability_lookup = collections.OrderedDict(
             [(row[0], row[1:]) for row in csv_reader if len(row) > 0]
@@ -290,7 +290,7 @@ def main():
         "sc2reader",
         "data",
         args.expansion,
-        "{}_units.csv".format(args.build_version),
+        f"{args.build_version}_units.csv",
     )
     with open(units_file_path, "w") as file:
         csv_writer = csv.writer(file, delimiter=",", lineterminator=os.linesep)
@@ -302,7 +302,7 @@ def main():
         "sc2reader",
         "data",
         args.expansion,
-        "{}_abilities.csv".format(args.build_version),
+        f"{args.build_version}_abilities.csv",
     )
     with open(abilities_file_path, "w") as file:
         csv_writer = csv.writer(file, delimiter=",", lineterminator=os.linesep)

@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 import functools
 
 from sc2reader.events.base import Event
@@ -29,7 +26,7 @@ class TrackerEvent(Event):
         pass
 
     def _str_prefix(self):
-        return "{0}\t ".format(Length(seconds=int(self.frame / 16)))
+        return f"{Length(seconds=int(self.frame / 16))}\t "
 
     def __str__(self):
         return self._str_prefix() + self.name
@@ -39,7 +36,7 @@ class PlayerSetupEvent(TrackerEvent):
     """Sent during game setup to help us organize players better"""
 
     def __init__(self, frames, data, build):
-        super(PlayerSetupEvent, self).__init__(frames)
+        super().__init__(frames)
 
         #: The player id of the player we are setting up
         self.pid = data[0]
@@ -68,7 +65,7 @@ class PlayerStatsEvent(TrackerEvent):
     """
 
     def __init__(self, frames, data, build):
-        super(PlayerStatsEvent, self).__init__(frames)
+        super().__init__(frames)
 
         #: Id of the player the stats are for
         self.pid = data[0]
@@ -275,7 +272,7 @@ class PlayerStatsEvent(TrackerEvent):
         )
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Stats Update".format(str(self.player))
+        return self._str_prefix() + f"{str(self.player): >15} - Stats Update"
 
 
 class UnitBornEvent(TrackerEvent):
@@ -291,7 +288,7 @@ class UnitBornEvent(TrackerEvent):
     """
 
     def __init__(self, frames, data, build):
-        super(UnitBornEvent, self).__init__(frames)
+        super().__init__(frames)
 
         #: The index portion of the unit id
         self.unit_id_index = data[0]
@@ -337,7 +334,7 @@ class UnitBornEvent(TrackerEvent):
             self.location = (self.x, self.y)
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Unit born {1}".format(
+        return self._str_prefix() + "{: >15} - Unit born {}".format(
             str(self.unit_upkeeper), self.unit
         )
 
@@ -349,7 +346,7 @@ class UnitDiedEvent(TrackerEvent):
     """
 
     def __init__(self, frames, data, build):
-        super(UnitDiedEvent, self).__init__(frames)
+        super().__init__(frames)
 
         #: The index portion of the unit id
         self.unit_id_index = data[0]
@@ -412,7 +409,7 @@ class UnitDiedEvent(TrackerEvent):
                 )
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Unit died {1}.".format(
+        return self._str_prefix() + "{: >15} - Unit died {}.".format(
             str(self.unit.owner), self.unit
         )
 
@@ -424,7 +421,7 @@ class UnitOwnerChangeEvent(TrackerEvent):
     """
 
     def __init__(self, frames, data, build):
-        super(UnitOwnerChangeEvent, self).__init__(frames)
+        super().__init__(frames)
 
         #: The index portion of the unit id
         self.unit_id_index = data[0]
@@ -451,7 +448,7 @@ class UnitOwnerChangeEvent(TrackerEvent):
         self.unit_controller = None
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} took {1}".format(
+        return self._str_prefix() + "{: >15} took {}".format(
             str(self.unit_upkeeper), self.unit
         )
 
@@ -464,7 +461,7 @@ class UnitTypeChangeEvent(TrackerEvent):
     """
 
     def __init__(self, frames, data, build):
-        super(UnitTypeChangeEvent, self).__init__(frames)
+        super().__init__(frames)
 
         #: The index portion of the unit id
         self.unit_id_index = data[0]
@@ -482,7 +479,7 @@ class UnitTypeChangeEvent(TrackerEvent):
         self.unit_type_name = data[2].decode("utf8")
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Unit {1} type changed to {2}".format(
+        return self._str_prefix() + "{: >15} - Unit {} type changed to {}".format(
             str(self.unit.owner), self.unit, self.unit_type_name
         )
 
@@ -493,7 +490,7 @@ class UpgradeCompleteEvent(TrackerEvent):
     """
 
     def __init__(self, frames, data, build):
-        super(UpgradeCompleteEvent, self).__init__(frames)
+        super().__init__(frames)
 
         #: The player that completed the upgrade
         self.pid = data[0]
@@ -508,7 +505,7 @@ class UpgradeCompleteEvent(TrackerEvent):
         self.count = data[2]
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - {1} upgrade completed".format(
+        return self._str_prefix() + "{: >15} - {} upgrade completed".format(
             str(self.player), self.upgrade_type_name
         )
 
@@ -521,7 +518,7 @@ class UnitInitEvent(TrackerEvent):
     """
 
     def __init__(self, frames, data, build):
-        super(UnitInitEvent, self).__init__(frames)
+        super().__init__(frames)
 
         #: The index portion of the unit id
         self.unit_id_index = data[0]
@@ -567,7 +564,7 @@ class UnitInitEvent(TrackerEvent):
             self.location = (self.x, self.y)
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Unit initiated {1}".format(
+        return self._str_prefix() + "{: >15} - Unit initiated {}".format(
             str(self.unit_upkeeper), self.unit
         )
 
@@ -579,7 +576,7 @@ class UnitDoneEvent(TrackerEvent):
     """
 
     def __init__(self, frames, data, build):
-        super(UnitDoneEvent, self).__init__(frames)
+        super().__init__(frames)
 
         #: The index portion of the unit id
         self.unit_id_index = data[0]
@@ -594,7 +591,7 @@ class UnitDoneEvent(TrackerEvent):
         self.unit = None
 
     def __str__(self):
-        return self._str_prefix() + "{0: >15} - Unit {1} done".format(
+        return self._str_prefix() + "{: >15} - Unit {} done".format(
             str(self.unit.owner), self.unit
         )
 
@@ -607,7 +604,7 @@ class UnitPositionsEvent(TrackerEvent):
     """
 
     def __init__(self, frames, data, build):
-        super(UnitPositionsEvent, self).__init__(frames)
+        super().__init__(frames)
 
         #: The starting unit index point.
         self.first_unit_index = data[0]

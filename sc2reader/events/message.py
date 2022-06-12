@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 from sc2reader.events.base import Event
 from sc2reader.utils import Length
 from sc2reader.log_utils import loggable
@@ -27,7 +24,7 @@ class MessageEvent(Event):
 
     def _str_prefix(self):
         player_name = self.player.name if getattr(self, "pid", 16) != 16 else "Global"
-        return "{0}\t{1:<15} ".format(Length(seconds=int(self.frame / 16)), player_name)
+        return f"{Length(seconds=int(self.frame / 16))}\t{player_name:<15} "
 
     def __str__(self):
         return self._str_prefix() + self.name
@@ -40,7 +37,7 @@ class ChatEvent(MessageEvent):
     """
 
     def __init__(self, frame, pid, target, text):
-        super(ChatEvent, self).__init__(frame, pid)
+        super().__init__(frame, pid)
         #: The numerical target type. 0 = to all; 2 = to allies; 4 = to observers.
         self.target = target
 
@@ -64,7 +61,7 @@ class ProgressEvent(MessageEvent):
     """
 
     def __init__(self, frame, pid, progress):
-        super(ProgressEvent, self).__init__(frame, pid)
+        super().__init__(frame, pid)
 
         #: Marks the load progress for the player. Scaled 0-100.
         self.progress = progress
@@ -77,7 +74,7 @@ class PingEvent(MessageEvent):
     """
 
     def __init__(self, frame, pid, target, x, y):
-        super(PingEvent, self).__init__(frame, pid)
+        super().__init__(frame, pid)
 
         #: The numerical target type. 0 = to all; 2 = to allies; 4 = to observers.
         self.target = target

@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 import collections
 from sc2reader.events import *
 from sc2reader.engine.events import InitGameEvent, EndGameEvent, PluginExit
 
 
-class GameEngine(object):
+class GameEngine:
     """
     GameEngine Specification
     --------------------------
@@ -200,7 +197,7 @@ class GameEngine(object):
 
     def _get_event_handlers(self, event, plugins):
         return sum(
-            [self._get_plugin_event_handlers(plugin, event) for plugin in plugins], []
+            (self._get_plugin_event_handlers(plugin, event) for plugin in plugins), []
         )
 
     def _get_plugin_event_handlers(self, plugin, event):

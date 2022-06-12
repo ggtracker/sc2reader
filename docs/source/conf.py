@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # sc2reader documentation build configuration file, created by
 # sphinx-quickstart on Sun May 01 12:39:48 2011.

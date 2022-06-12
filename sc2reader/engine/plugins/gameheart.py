@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 from datetime import datetime
 from sc2reader.utils import Length, get_real_type
 from sc2reader.objects import Observer, Team
@@ -8,7 +5,7 @@ from sc2reader.engine.events import PluginExit
 from sc2reader.constants import GAME_SPEED_FACTOR
 
 
-class GameHeartNormalizer(object):
+class GameHeartNormalizer:
     """
     normalize a GameHeart replay to:
     1) reset frames to the game start

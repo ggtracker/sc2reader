@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 from io import BytesIO
 
 import struct
@@ -12,7 +9,7 @@ except ImportError as e:
     from ordereddict import OrderedDict
 
 
-class ByteDecoder(object):
+class ByteDecoder:
     """
     :param contents: The string or file-like object to decode
     :param endian: Either > or <. Indicates the endian the bytes are stored in.
@@ -144,7 +141,7 @@ class ByteDecoder(object):
                 cstring.write(c)
 
 
-class BitPackedDecoder(object):
+class BitPackedDecoder:
     """
     :param contents: The string of file-like object to decode
 
@@ -306,9 +303,9 @@ class BitPackedDecoder(object):
             temp_buffer = BytesIO()
             prev_byte = self._next_byte
             lo_mask, hi_mask = self._bit_masks[self._bit_shift]
-            for next_byte in struct.unpack(str("B") * count, data):
+            for next_byte in struct.unpack("B" * count, data):
                 temp_buffer.write(
-                    struct.pack(str("B"), prev_byte & hi_mask | next_byte & lo_mask)
+                    struct.pack("B", prev_byte & hi_mask | next_byte & lo_mask)
                 )
                 prev_byte = next_byte
 
@@ -357,7 +354,7 @@ class BitPackedDecoder(object):
                 result |= self._buffer.read_uint32() << bits
 
             else:
-                for byte in struct.unpack(str("B") * bytes, self._read(bytes)):
+                for byte in struct.unpack("B" * bytes, self._read(bytes)):
                     bits -= 8
                     result |= byte << bits
 
@@ -413,9 +410,7 @@ class BitPackedDecoder(object):
 
         elif datatype == 0x05:  # Struct
             entries = self.read_vint()
-            data = dict(
-                [(self.read_vint(), self.read_struct()) for i in range(entries)]
-            )
+            data = {self.read_vint(): self.read_struct() for i in range(entries)}
 
         elif datatype == 0x06:  # u8
             data = ord(self._buffer.read(1))
@@ -430,6 +425,6 @@ class BitPackedDecoder(object):
             data = self.read_vint()
 
         else:
-            raise TypeError("Unknown Data Structure: '{0}'".format(datatype))
+            raise TypeError(f"Unknown Data Structure: '{datatype}'")
 
         return data

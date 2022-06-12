@@ -1,5 +1,3 @@
-# -*- coding: UTF-8 -*-
-
 # Newer unittest features aren't built in for python 2.6
 import sys
 

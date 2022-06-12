@@ -25,11 +25,6 @@ jobs:
       - run: black . --check
 
 
-  Python2:
-    docker:
-      - image: circleci/python:2.7.18
-    steps: *build_and_test_steps
-
   Python3:
     docker:
       - image: circleci/python:3.10
@@ -41,5 +36,4 @@ workflows:
   build:
     jobs:
       - StyleCheck
-      - Python2
       - Python3

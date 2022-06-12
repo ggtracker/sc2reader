@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 import logging
 
 try:
@@ -78,7 +75,7 @@ def get_logger(entity):
         return logging.getLogger(entity.__module__ + "." + entity.__name__)
 
     except AttributeError:
-        raise TypeError("Cannot retrieve logger for {0}.".format(entity))
+        raise TypeError(f"Cannot retrieve logger for {entity}.")
 
 
 def loggable(cls):

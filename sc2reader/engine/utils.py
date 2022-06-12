@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 from bisect import bisect_left
 
 
@@ -13,7 +10,7 @@ class GameState(dict):
 
     def __getitem__(self, frame):
         if frame in self:
-            return super(GameState, self).__getitem__(frame)
+            return super().__getitem__(frame)
 
         # Get the previous frame from our sorted frame list
         # bisect_left returns the left most key where an item is
@@ -42,4 +39,4 @@ class GameState(dict):
             self._frames.insert(bisect_left(self._frames, frame), frame)
             self._frameset.add(frame)
 
-        super(GameState, self).__setitem__(frame, value)
+        super().__setitem__(frame, value)

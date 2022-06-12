@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
 from io import BytesIO
 
 try:
@@ -21,7 +18,7 @@ from collections import defaultdict
 from itertools import tee
 
 # The creep tracker plugin
-class CreepTracker(object):
+class CreepTracker:
     """
     The Creep tracker populates player.max_creep_spread and
     player.creep_spread by minute
@@ -41,14 +38,14 @@ class CreepTracker(object):
                 if player.play_race[0] == "Z":
                     self.creepTracker.init_cgu_lists(player.pid)
         except Exception as e:
-            print("Whoa! {}".format(e))
+            print(f"Whoa! {e}")
             pass
 
     def handleUnitDiedEvent(self, event, replay):
         try:
             self.creepTracker.remove_from_list(event.unit_id, event.second)
         except Exception as e:
-            print("Whoa! {}".format(e))
+            print(f"Whoa! {e}")
             pass
 
     def handleUnitInitEvent(self, event, replay):
@@ -62,7 +59,7 @@ class CreepTracker(object):
                     event.second,
                 )
         except Exception as e:
-            print("Whoa! {}".format(e))
+            print(f"Whoa! {e}")
             pass
 
     def handleUnitBornEvent(self, event, replay):
@@ -76,7 +73,7 @@ class CreepTracker(object):
                     event.second,
                 )
         except Exception as e:
-            print("Whoa! {}".format(e))
+            print(f"Whoa! {e}")
             pass
 
     def handleEndGame(self, event, replay):
@@ -98,7 +95,7 @@ class CreepTracker(object):
                         ## Else statement is for players with no creep spread(ie: not Zerg)
                         player.max_creep_spread = 0
         except Exception as e:
-            print("Whoa! {}".format(e))
+            print(f"Whoa! {e}")
             pass
 
 

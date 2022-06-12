@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import datetime
 import json
 from xml.dom import minidom
@@ -214,16 +211,12 @@ class TestReplays(unittest.TestCase):
 
             replay = sc2reader.load_replay(replayfilename)
             self.assertEqual(replay.expansion, "HotS")
-            player_pids = set(
-                [player.pid for player in replay.players if player.is_human]
-            )
-            ability_pids = set(
-                [
-                    event.player.pid
-                    for event in replay.events
-                    if "CommandEvent" in event.name
-                ]
-            )
+            player_pids = {player.pid for player in replay.players if player.is_human}
+            ability_pids = {
+                event.player.pid
+                for event in replay.events
+                if "CommandEvent" in event.name
+            }
             self.assertEqual(ability_pids, player_pids)
 
     def test_wol_pids(self):
@@ -231,27 +224,21 @@ class TestReplays(unittest.TestCase):
             "test_replays/1.5.4.24540/ggtracker_1471849.SC2Replay"
         )
         self.assertEqual(replay.expansion, "WoL")
-        ability_pids = set(
-            [
-                event.player.pid
-                for event in replay.events
-                if "CommandEvent" in event.name
-            ]
-        )
-        player_pids = set([player.pid for player in replay.players])
+        ability_pids = {
+            event.player.pid for event in replay.events if "CommandEvent" in event.name
+        }
+        player_pids = {player.pid for player in replay.players}
         self.assertEqual(ability_pids, player_pids)
 
     def test_hots_hatchfun(self):
         replay = sc2reader.load_replay("test_replays/2.0.0.24247/molten.SC2Replay")
-        player_pids = set([player.pid for player in replay.players])
-        spawner_pids = set(
-            [
-                event.player.pid
-                for event in replay.events
-                if "TargetUnitCommandEvent" in event.name
-                and event.ability.name == "SpawnLarva"
-            ]
-        )
+        player_pids = {player.pid for player in replay.players}
+        spawner_pids = {
+            event.player.pid
+            for event in replay.events
+            if "TargetUnitCommandEvent" in event.name
+            and event.ability.name == "SpawnLarva"
+        }
         self.assertTrue(spawner_pids.issubset(player_pids))
 
     def test_hots_vs_ai(self):
@@ -407,15 +394,13 @@ class TestReplays(unittest.TestCase):
 
         # Not a GameHeart game!
         replay = sc2reader.load_replay("test_replays/2.0.0.24247/molten.SC2Replay")
-        player_pids = set([player.pid for player in replay.players])
-        spawner_pids = set(
-            [
-                event.player.pid
-                for event in replay.events
-                if "TargetUnitCommandEvent" in event.name
-                and event.ability.name == "SpawnLarva"
-            ]
-        )
+        player_pids = {player.pid for player in replay.players}
+        spawner_pids = {
+            event.player.pid
+            for event in replay.events
+            if "TargetUnitCommandEvent" in event.name
+            and event.ability.name == "SpawnLarva"
+        }
         self.assertTrue(spawner_pids.issubset(player_pids))
 
         replay = sc2reader.load_replay("test_replays/gameheart/gameheart.SC2Replay")
@@ -541,8 +526,8 @@ class TestReplays(unittest.TestCase):
 
     def test_31(self):
         for i in range(1, 5):
-            print("DOING {}".format(i))
-            replay = sc2reader.load_replay("test_replays/3.1.0/{}.SC2Replay".format(i))
+            print(f"DOING {i}")
+            replay = sc2reader.load_replay(f"test_replays/3.1.0/{i}.SC2Replay")
 
     def test_30_map(self):
         for replayfilename in ["test_replays/3.0.0.38215/third.SC2Replay"]:
@@ -587,13 +572,11 @@ class TestReplays(unittest.TestCase):
             if "MineralField" in ou.attributes["UnitType"].value
         ]
         mineralFieldNames = list(
-            set(
-                [
-                    ou.attributes["UnitType"].value
-                    for ou in itemlist
-                    if "MineralField" in ou.attributes["UnitType"].value
-                ]
-            )
+            {
+                ou.attributes["UnitType"].value
+                for ou in itemlist
+                if "MineralField" in ou.attributes["UnitType"].value
+            }
         )
         # print(mineralFieldNames)
         self.assertTrue(len(mineralPosStrs) > 0)
@@ -608,9 +591,7 @@ class TestReplays(unittest.TestCase):
 
     def test_33(self):
         for replaynum in range(1, 4):
-            replay = sc2reader.load_replay(
-                "test_replays/3.3.0/{}.SC2Replay".format(replaynum)
-            )
+            replay = sc2reader.load_replay(f"test_replays/3.3.0/{replaynum}.SC2Replay")
             self.assertTrue(replay is not None)
 
     def test_33_shift_click_calldown_mule(self):
@@ -727,7 +708,7 @@ class TestReplays(unittest.TestCase):
         player.play_race = "TestRace"
         event = GameEvent(16, 16)
         event.player = player
-        self.assertEqual("{0}\t{1:<15} ".format(time, "Global"), event._str_prefix())
+        self.assertEqual("{}\t{:<15} ".format(time, "Global"), event._str_prefix())
 
         # Player with name
         player = MockPlayer()
@@ -735,12 +716,12 @@ class TestReplays(unittest.TestCase):
         player.play_race = "TestRace"
         event = GameEvent(16, 1)
         event.player = player
-        self.assertEqual("{0}\t{1:<15} ".format(time, player.name), event._str_prefix())
+        self.assertEqual(f"{time}\t{player.name:<15} ", event._str_prefix())
 
         # No Player
         player = MockPlayer()
         event = GameEvent(16, 1)
-        self.assertEqual("{0}\t{1:<15} ".format(time, "no name"), event._str_prefix())
+        self.assertEqual("{}\t{:<15} ".format(time, "no name"), event._str_prefix())
 
         # Player without name
         player = MockPlayer()
@@ -749,13 +730,13 @@ class TestReplays(unittest.TestCase):
         event = GameEvent(16, 1)
         event.player = player
         self.assertEqual(
-            "{0}\tPlayer {1} - ({2}) ".format(time, player.pid, player.play_race),
+            f"{time}\tPlayer {player.pid} - ({player.play_race}) ",
             event._str_prefix(),
         )
 
 
 class TestGameEngine(unittest.TestCase):
-    class TestEvent(object):
+    class TestEvent:
         name = "TestEvent"
 
         def __init__(self, value):
@@ -764,7 +745,7 @@ class TestGameEngine(unittest.TestCase):
         def __str__(self):
             return self.value
 
-    class TestPlugin1(object):
+    class TestPlugin1:
         name = "TestPlugin1"
 
         def handleInitGame(self, event, replay):
@@ -782,7 +763,7 @@ class TestGameEngine(unittest.TestCase):
         def handleEndGame(self, event, replay):
             yield TestGameEngine.TestEvent("g")
 
-    class TestPlugin2(object):
+    class TestPlugin2:
         name = "TestPlugin2"
 
         def handleInitGame(self, event, replay):
@@ -797,7 +778,7 @@ class TestGameEngine(unittest.TestCase):
         def handleEndGame(self, event, replay):
             yield TestGameEngine.TestEvent("f")
 
-    class MockReplay(object):
+    class MockReplay:
         def __init__(self, events):
             self.events = events
 
@@ -813,7 +794,7 @@ class TestGameEngine(unittest.TestCase):
         self.assertEqual(replay.plugin_result["TestPlugin2"], (0, dict()))
 
 
-class MockPlayer(object):
+class MockPlayer:
     def __init__(self):
         self.name = None
         self.play_race = None

@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
 
 import os
 import argparse
@@ -16,37 +14,37 @@ def printReplay(filepath, arguments):
         replay = sc2reader.load_replay(filepath, debug=True)
 
         if arguments.map:
-            print("   Map:      {0}".format(replay.map_name))
+            print(f"   Map:      {replay.map_name}")
         if arguments.length:
-            print("   Length:   {0} minutes".format(replay.game_length))
+            print(f"   Length:   {replay.game_length} minutes")
         if arguments.date:
-            print("   Date:     {0}".format(replay.start_time))
+            print(f"   Date:     {replay.start_time}")
         if arguments.teams:
             lineups = [team.lineup for team in replay.teams]
-            print("   Teams:    {0}".format("v".join(lineups)))
+            print("   Teams:    {}".format("v".join(lineups)))
             for team in replay.teams:
                 print(
-                    "      Team {0}\t{1} ({2})".format(
+                    "      Team {}\t{} ({})".format(
                         team.number, team.players[0].name, team.players[0].pick_race[0]
                     )
                 )
                 for player in team.players[1:]:
                     print(
-                        "              \t{0} ({1})".format(
+                        "              \t{} ({})".format(
                             player.name, player.pick_race[0]
                         )
                     )
         if arguments.observers:
             print("   Observers:")
             for observer in replay.observers:
-                print("      {0}".format(observer.name))
+                print(f"      {observer.name}")
 
         if arguments.messages:
             print("   Messages:")
             for message in replay.messages:
-                print("   {0}".format(message))
+                print(f"   {message}")
         if arguments.version:
-            print("   Version:  {0}".format(replay.release_string))
+            print(f"   Version:  {replay.release_string}")
 
         print
     except ReadError as e:
@@ -54,19 +52,19 @@ def printReplay(filepath, arguments):
         return
         prev = e.game_events[-1]
         print(
-            "\nVersion {0} replay:\n\t{1}".format(
+            "\nVersion {} replay:\n\t{}".format(
                 e.replay.release_string, e.replay.filepath
             )
         )
-        print("\t{0}, Type={1:X}".format(e.msg, e.type))
-        print("\tPrevious Event: {0}".format(prev.name))
+        print(f"\t{e.msg}, Type={e.type:X}")
+        print(f"\tPrevious Event: {prev.name}")
         print("\t\t" + prev.bytes.encode("hex"))
         print("\tFollowing Bytes:")
         print("\t\t" + e.buffer.read_range(e.location, e.location + 30).encode("hex"))
-        print("Error with '{0}': ".format(filepath))
+        print(f"Error with '{filepath}': ")
         print(e)
     except Exception as e:
-        print("Error with '{0}': ".format(filepath))
+        print(f"Error with '{filepath}': ")
         print(e)
         raise
 
@@ -75,21 +73,21 @@ def printGameSummary(filepath, arguments):
     summary = sc2reader.load_game_summary(filepath)
 
     if arguments.map:
-        print("   Map:      {0}".format(summary.map_name))
+        print(f"   Map:      {summary.map_name}")
     if arguments.length:
-        print("   Length:   {0} minutes".format(summary.game_length))
+        print(f"   Length:   {summary.game_length} minutes")
     if arguments.date:
-        print("   Date:     {0}".format(summary.start_time))
+        print(f"   Date:     {summary.start_time}")
     if arguments.teams:
         lineups = [team.lineup for team in summary.teams]
-        print("   Teams:    {0}".format("v".join(lineups)))
+        print("   Teams:    {}".format("v".join(lineups)))
         for team in summary.teams:
-            print("      Team {0}\t{1}".format(team.number, team.players[0]))
+            print(f"      Team {team.number}\t{team.players[0]}")
             for player in team.players[1:]:
-                print("              \t{0}".format(player))
+                print(f"              \t{player}")
     if arguments.builds:
         for player in summary.players:
-            print("\n== {0} ==\n".format(player))
+            print(f"\n== {player} ==\n")
             for order in summary.build_orders[player.pid]:
                 msg = "  {0:0>2}:{1:0>2}  {2:<35} {3:0>2}/{4}"
                 print(
@@ -176,14 +174,10 @@ def main():
         for filepath in utils.get_files(path, depth=depth):
             name, ext = os.path.splitext(filepath)
             if ext.lower() == ".sc2replay":
-                print(
-                    "\n--------------------------------------\n{0}\n".format(filepath)
-                )
+                print(f"\n--------------------------------------\n{filepath}\n")
                 printReplay(filepath, arguments)
             elif ext.lower() == ".s2gs":
-                print(
-                    "\n--------------------------------------\n{0}\n".format(filepath)
-                )
+                print(f"\n--------------------------------------\n{filepath}\n")
                 printGameSummary(filepath, arguments)
 
 

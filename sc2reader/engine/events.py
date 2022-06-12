@@ -1,16 +1,12 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals, division
-
-
-class InitGameEvent(object):
+class InitGameEvent:
     name = "InitGame"
 
 
-class EndGameEvent(object):
+class EndGameEvent:
     name = "EndGame"
 
 
-class PluginExit(object):
+class PluginExit:
     name = "PluginExit"
 
     def __init__(self, plugin, code=0, details=None):

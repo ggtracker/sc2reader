@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 This script is intended for use debugging parse issues on replays.
 
@@ -16,7 +15,6 @@ are caught and reported. At some point these things should be moved to WARN.
 If there are parse exceptions, this script should be run to generate an info
 for the ticket filed.
 """
-from __future__ import absolute_import, print_function, unicode_literals, division
 
 import argparse
 import sc2reader
@@ -46,7 +44,7 @@ def main():
 
     releases_parsed = set()
     for folder in args.folders:
-        print("dealing with {0}".format(folder))
+        print(f"dealing with {folder}")
         for path in sc2reader.utils.get_files(folder, extension="SC2Replay"):
             try:
                 rs = sc2reader.load_replay(path, load_level=0).release_string
@@ -57,24 +55,20 @@ def main():
                     if not args.one_each or replay.is_ladder:
                         replay = sc2reader.load_replay(path, debug=True)
 
-                        human_pids = set([human.pid for human in replay.humans])
-                        event_pids = set(
-                            [
-                                event.player.pid
-                                for event in replay.events
-                                if getattr(event, "player", None)
-                            ]
-                        )
-                        player_pids = set(
-                            [player.pid for player in replay.players if player.is_human]
-                        )
-                        ability_pids = set(
-                            [
-                                event.player.pid
-                                for event in replay.events
-                                if "CommandEvent" in event.name
-                            ]
-                        )
+                        human_pids = {human.pid for human in replay.humans}
+                        event_pids = {
+                            event.player.pid
+                            for event in replay.events
+                            if getattr(event, "player", None)
+                        }
+                        player_pids = {
+                            player.pid for player in replay.players if player.is_human
+                        }
+                        ability_pids = {
+                            event.player.pid
+                            for event in replay.events
+                            if "CommandEvent" in event.name
+                        }
                         if human_pids != event_pids:
                             print(
                                 "Event Pid problem!  pids={pids} but event pids={event_pids}".format(
@@ -105,9 +99,7 @@ def main():
                             )
                             print(
                                 "Units were: {units}".format(
-                                    units=set(
-                                        [obj.name for obj in replay.objects.values()]
-                                    )
+                                    units={obj.name for obj in replay.objects.values()}
                                 )
                             )
 
@@ -124,7 +116,7 @@ def main():
                 )
                 print("[ERROR] {}", e)
                 for event in e.game_events[-5:]:
-                    print("{0}".format(event))
+                    print(f"{event}")
                 print(e.buffer.read_range(e.location, e.location + 50).encode("hex"))
                 print
             except Exception as e:
@@ -137,13 +129,13 @@ def main():
                             **replay.__dict__
                         )
                     )
-                    print("[ERROR] {0}".format(e))
+                    print(f"[ERROR] {e}")
                     for pid, attributes in replay.attributes.items():
-                        print("{0} {1}".format(pid, attributes))
+                        print(f"{pid} {attributes}")
                     for pid, info in enumerate(replay.players):
-                        print("{0} {1}".format(pid, info))
+                        print(f"{pid} {info}")
                     for message in replay.messages:
-                        print("{0} {1}".format(message.pid, message.text))
+                        print(f"{message.pid} {message.text}")
                     traceback.print_exc()
                     print("")
                 except Exception as e2:
@@ -153,8 +145,8 @@ def main():
                             **replay.__dict__
                         )
                     )
-                    print("[ERROR] {0}".format(e))
-                    print("[ERROR] {0}".format(e2))
+                    print(f"[ERROR] {e}")
+                    print(f"[ERROR] {e2}")
                     traceback.print_exc()
                     print
 
