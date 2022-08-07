@@ -323,7 +323,7 @@ class ContextLoader:
             else:
                 self.logger.error(
                     "Unit at active_unit index {} moved at {} [{}] but it doesn't exist!".format(
-                        event.unit_index, Length(seconds=event.second), event.frame
+                        unit_index, Length(seconds=event.second), event.frame
                     )
                 )
 
