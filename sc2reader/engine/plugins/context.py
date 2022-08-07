@@ -198,7 +198,7 @@ class ContextLoader:
             else:
                 self.logger.error(
                     "Unable to delete unit index {} at {} [{}], index not active.".format(
-                        event.killer_pid, Length(seconds=event.second), event.frame
+                        event.unit_id_index, Length(seconds=event.second), event.frame
                     )
                 )
         else:
