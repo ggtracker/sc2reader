@@ -198,7 +198,7 @@ class ContextLoader:
             else:
                 self.logger.error(
                     "Unable to delete unit index {} at {} [{}], index not active.".format(
-                        event.killer_pid, Length(seconds=event.second), event.frame
+                        event.unit_id_index, Length(seconds=event.second), event.frame
                     )
                 )
         else:
@@ -307,7 +307,7 @@ class ContextLoader:
         else:
             self.logger.error(
                 "Unit {} done at {} [{}] before it was started!".format(
-                    event.killer_pid, Length(seconds=event.second), event.frame
+                    event.unit_id, Length(seconds=event.second), event.frame
                 )
             )
 
@@ -323,7 +323,7 @@ class ContextLoader:
             else:
                 self.logger.error(
                     "Unit at active_unit index {} moved at {} [{}] but it doesn't exist!".format(
-                        event.killer_pid, Length(seconds=event.second), event.frame
+                        unit_index, Length(seconds=event.second), event.frame
                     )
                 )
 
