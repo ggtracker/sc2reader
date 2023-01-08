@@ -26,9 +26,7 @@ def main():
 
     factory = sc2reader.factories.SC2Factory()
     try:
-        factory.register_plugin(
-            "Replay", toJSON(indent=args.indent)
-        )
+        factory.register_plugin("Replay", toJSON(indent=args.indent))
     except TypeError:
         factory.register_plugin("Replay", toJSON(indent=args.indent))
     replay_json = factory.load_replay(args.path[0])
