@@ -184,7 +184,6 @@ def run(args):
 
     # We break out of this loop in batch mode and on KeyboardInterrupt
     while True:
-
         # The file scan uses the arguments and the state to filter down to
         # only new (since the last sync time) files.
         for path in scan(args, state):

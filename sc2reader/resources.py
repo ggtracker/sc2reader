@@ -40,7 +40,6 @@ class Resource:
 
 
 class Replay(Resource):
-
     #: A nested dictionary of player => { attr_name : attr_value } for
     #: known attributes. Player 16 represents the global context and
     #: contains attributes like game speed.

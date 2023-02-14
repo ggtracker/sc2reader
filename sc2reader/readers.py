@@ -2126,7 +2126,6 @@ class GameEventsReader_38996(GameEventsReader_38749):
 
 
 class GameEventsReader_64469(GameEventsReader_38996):
-
     # this function is exactly the same as command_event() from GameEventsReader_38996
     # with the only change being that flags now has 26 bits instead of 25.
     def command_event(self, data):
