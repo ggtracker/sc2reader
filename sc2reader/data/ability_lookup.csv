@@ -518,7 +518,7 @@ LocustMPFlyingSwoopAttack,LocustMPFlyingSwoopAttack
 MorphToTransportOverlord,MorphToTransportOverlord,Cancel
 BypassArmor,BypassArmor
 BypassArmorDroneCU,BypassArmorDroneCU
-ChannelSnipe,ChannelSnipe
+ChannelSnipe,ChannelSnipe,Cancel
 LockOnAir,LockOnAir
 PurificationNovaTargetted,PurificationNovaTargetted
 SnowRefinery_Terran_ExtendingBridgeNEShort8Out,SnowRefinery_Terran_ExtendingBridgeNEShort8Out
@@ -866,3 +866,4 @@ BattlecruiserAttack,BattlecruiserAttack
 BattlecruiserMove,Move,Patrol,HoldPos
 AmorphousArmorcloud,AmorphousArmorcloud
 BatteryOvercharge,BatteryOvercharge
+MorphToBaneling,MorphToBaneling,Cancel

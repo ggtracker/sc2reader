@@ -40,7 +40,6 @@ class Resource:
 
 
 class Replay(Resource):
-
     #: A nested dictionary of player => { attr_name : attr_value } for
     #: known attributes. Player 16 represents the global context and
     #: contains attributes like game speed.
@@ -871,7 +870,11 @@ class Replay(Resource):
         )
         self.register_datapack(
             datapacks["LotV"]["80949"],
-            lambda r: r.expansion == "LotV" and 80949 <= r.build,
+            lambda r: r.expansion == "LotV" and 80949 <= r.build < 89634,
+        )
+        self.register_datapack(
+            datapacks["LotV"]["89720"],
+            lambda r: r.expansion == "LotV" and 89634 <= r.build,
         )
 
     # Internal Methods

@@ -35,7 +35,6 @@ class Formatter(argparse.RawTextHelpFormatter):
         main_indent = len(re.match(r"( *)", text).group(1))
         # Wrap each line individually to allow for partial formatting
         for line in text.splitlines():
-
             # Get this line's indent and figure out what indent to use
             # if the line wraps. Account for lists of small variety.
             indent = len(re.match(r"( *)", line).group(1))

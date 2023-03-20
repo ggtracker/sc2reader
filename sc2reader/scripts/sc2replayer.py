@@ -94,7 +94,6 @@ def main():
         # Allow specification of events to `show`
         # Loop through the events
         for event in events:
-
             if (
                 isinstance(event, CommandEvent)
                 or isinstance(event, SelectionEvent)
