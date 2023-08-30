@@ -291,14 +291,8 @@ class User:
         #: 2. The user has a None value for their 'scaled_rating' key, or
         #: 3. The user has a negative rating, often -36400.
         #: For ease of use, this property will return None in both cases.
-        if (
-            "scaled_rating" in init_data
-            and init_data["scaled_rating"] is not None
-            and init_data["scaled_rating"] > 0
-        ):
-            self.mmr = init_data["scaled_rating"]
-        else:
-            self.mmr = None
+        mmr = int(init_data.get("scaled_rating") or 0)
+        self.mmr = mmr if mmr > 0 else None
 
     @property
     def url(self):
