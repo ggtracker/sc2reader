@@ -139,7 +139,7 @@ class Entity:
         self.region_id = int(parts[0])
 
         #: The Battle.net region the entity is registered to
-        self.region = GATEWAY_LOOKUP[int(parts[0])]
+        self.region = GATEWAY_LOOKUP[self.region_id]
 
         #: The Battle.net subregion the entity is registered to
         self.subregion = int(parts[2])
