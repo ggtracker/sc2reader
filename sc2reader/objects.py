@@ -135,8 +135,11 @@ class Entity:
         toon_handle = self.toon_handle or "0-S2-0-0"
         parts = toon_handle.split("-")
 
+        #: The Battle.net region id the entity is registered to
+        self.region_id = int(parts[0])
+
         #: The Battle.net region the entity is registered to
-        self.region = GATEWAY_LOOKUP[int(parts[0])]
+        self.region = GATEWAY_LOOKUP[self.region_id]
 
         #: The Battle.net subregion the entity is registered to
         self.subregion = int(parts[2])
