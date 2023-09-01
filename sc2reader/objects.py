@@ -285,6 +285,15 @@ class User:
         #: This is deprecated because it doesn't actually work.
         self.recorder = None
 
+        #: The user's mmr at the time of the game
+        #: Currently, there are three cases observed for a user that does not have a current mmr:
+        #: 1. The user has no 'scaled_rating' key in their init_data,
+        #: 2. The user has a None value for their 'scaled_rating' key, or
+        #: 3. The user has a negative rating, often -36400.
+        #: For ease of use, this property will return None in both cases.
+        matchmaking_rating = int(init_data.get("scaled_rating") or 0)
+        self.mmr = matchmaking_rating if matchmaking_rating > 0 else None
+
     @property
     def url(self):
         """
