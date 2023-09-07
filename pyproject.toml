@@ -1,0 +1,72 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = [
+  "setuptools>=61.2",
+]
+
+[project]
+name = "sc2reader"
+description = "Utility for parsing Starcraft II replay files"
+keywords = [
+  "parser",
+  "replay",
+  "sc2",
+  "starcraft 2",
+]
+license = {text = "MIT"}
+authors = [{name = "Kevin Leung", email = "kkleung89@gmail.com"}]
+requires-python = ">=3.7"
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Topic :: Games/Entertainment",
+  "Topic :: Games/Entertainment :: Real Time Strategy",
+  "Topic :: Software Development",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Utilities",
+]
+dynamic = [
+  "readme",
+  "version",
+]
+dependencies = [
+  "mpyq",
+  "pillow",
+]
+[project.optional-dependencies]
+testing = [
+  "pytest",
+]
+[project.urls]
+Homepage = "https://github.com/ggtracker/sc2reader"
+[project.scripts]
+sc2attributes = "sc2reader.scripts.sc2attributes:main"
+sc2json = "sc2reader.scripts.sc2json:main"
+sc2parse = "sc2reader.scripts.sc2parse:main"
+sc2printer = "sc2reader.scripts.sc2printer:main"
+sc2replayer = "sc2reader.scripts.sc2replayer:main"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = true
+platforms = ["any"]
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.rst", "CHANGELOG.rst"]}
+version = {attr = "sc2reader.__version__"}
+
+[tool.setuptools.packages]
+find = {namespaces = false}
