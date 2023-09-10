@@ -562,7 +562,7 @@ class MapInfo:
         data = ByteDecoder(contents, endian="LITTLE")
         magic = data.read_string(4)
         if magic != "MapI":
-            self.logger.warn(f"Invalid MapInfo file: {magic}")
+            self.logger.warning(f"Invalid MapInfo file: {magic}")
             return
 
         #: The map info file format version
@@ -773,7 +773,7 @@ class MapInfo:
         self.enemy_flags = data.read_uint(int(math.ceil(self.enemy_flags_length / 8.0)))
 
         if data.length != data.tell():
-            self.logger.warn("Not all of the MapInfo file was read!")
+            self.logger.warning("Not all of the MapInfo file was read!")
 
     def __str__(self):
         return self.map_name
