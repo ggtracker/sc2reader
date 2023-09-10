@@ -11,8 +11,6 @@ import sc2reader
 
 from pprint import PrettyPrinter
 
-pprint = PrettyPrinter(indent=2).pprint
-
 from sqlalchemy import create_engine
 from sqlalchemy import Column, ForeignKey, distinct, Table
 from sqlalchemy import Integer, String, Sequence, DateTime
@@ -22,6 +20,8 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.associationproxy import association_proxy
+
+pprint = PrettyPrinter(indent=2).pprint
 
 Base = declarative_base()
 
