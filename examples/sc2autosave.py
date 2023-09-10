@@ -192,8 +192,9 @@ def run(args):
                 replay = sc2reader.load_replay(path, load_level=2)
             except KeyboardInterrupt:
                 raise
-            except:
+            except Exception as e:
                 # Failure to parse
+                args.log.write(f"{e!r}")
                 file_name = os.path.basename(path)
                 directory = make_directory(args, ("parse_error",))
                 new_path = os.path.join(directory, file_name)

@@ -1,0 +1,8 @@
+ignore = [
+    "E402",  # Module level import not at top of file
+    "F401",  # module imported but unused; consider using `importlib.util.find_spec` to test for availability
+    "F403",  # Run `removestar` on this codebase
+    "F405",  # Run `removestar` on this codebase
+    "F841",  # Run `ruff --select=F841 --fix .`
+]
+line-length=129

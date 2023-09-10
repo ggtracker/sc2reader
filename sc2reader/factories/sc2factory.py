@@ -266,13 +266,13 @@ class CachedSC2Factory(SC2Factory):
         return resource
 
     def cache_has(self, cache_key):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def cache_get(self, cache_key):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def cache_set(self, cache_key, value):
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class FileCachedSC2Factory(CachedSC2Factory):
