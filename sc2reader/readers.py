@@ -1,10 +1,17 @@
 import struct
 
 from sc2reader.exceptions import ParseError, ReadError
-from sc2reader.objects import *
-from sc2reader.events.game import *
-from sc2reader.events.message import *
-from sc2reader.events.tracker import *
+from sc2reader.objects import Attribute
+from sc2reader.events.game import (CameraEvent, CommandManagerStateEvent, HijackReplayGameEvent,
+                                   PlayerLeaveEvent, ResourceTradeEvent, SelectionEvent,
+                                   UpdateTargetPointCommandEvent, UpdateTargetUnitCommandEvent,
+                                   UserOptionsEvent, create_command_event,
+                                   create_control_group_event)
+from sc2reader.events.message import ChatEvent, PingEvent, ProgressEvent
+from sc2reader.events.tracker import (PlayerSetupEvent, PlayerStatsEvent, UnitBornEvent,
+                                      UnitDiedEvent, UnitDoneEvent, UnitInitEvent,
+                                      UnitOwnerChangeEvent, UnitPositionsEvent, UnitTypeChangeEvent,
+                                      UpgradeCompleteEvent)
 from sc2reader.utils import DepotFile
 from sc2reader.decoders import BitPackedDecoder, ByteDecoder
 
