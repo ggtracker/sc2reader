@@ -1,6 +1,12 @@
 import collections
-from sc2reader.events import (CommandEvent, ControlGroupEvent, Event, GameEvent, MessageEvent,
-                              TrackerEvent)
+from sc2reader.events import (
+    CommandEvent,
+    ControlGroupEvent,
+    Event,
+    GameEvent,
+    MessageEvent,
+    TrackerEvent,
+)
 from sc2reader.engine.events import InitGameEvent, EndGameEvent, PluginExit
 
 
