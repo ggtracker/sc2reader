@@ -1,7 +1,7 @@
 Support
 =========
 
-For real-time support, please visit #sc2reader on the FreeNode.net IRC. For all other support please use the sc2reader@googlegroups.com mailing list or open an issue in the github tracker.
+As of Sept 2023, the best way to get support on sc2reader is on the GitHub project page. Preferably, it would be a new discussion https://github.com/ggtracker/sc2reader/discussions but can also be submitted as n issue
 
 Issues
 =========
@@ -14,7 +14,7 @@ If you can't share your code/replays publicly try to replicate with a smaller sc
 Patches
 =========
 
-Please submit patches by pull request where possible. Patches should add a test to confirm their fix and should not break previously working tests.   Circle CI automatically runs tests on each pull request so please check https://circleci.com/gh/ggtracker/sc2reader to see the results of those tests.
+Please submit patches by pull request where possible. Patches should add a test to confirm their fix and should not break previously working tests.  Circle CI automatically runs tests on each pull request so please check https://circleci.com/gh/ggtracker/sc2reader to see the results of those tests.
 
 If you are having trouble running/add/fixing tests for your patch let me know and I'll see if I can help.
 
@@ -22,7 +22,7 @@ If you are having trouble running/add/fixing tests for your patch let me know an
 Coding Style
 ==============
 
-We'd like our code to follow PEP8 coding style in this project.
+We would like our code to follow [Ruff](https://docs.astral.sh/ruff/) coding style in this project.
 We use [python/black](https://github.com/python/black) in order to make our lives easier.
 We propose you do the same within this project, otherwise you might be asked to
 reformat your pull requests.
