@@ -2,6 +2,7 @@
 
 import sc2reader
 from sc2reader.factories.plugins.replay import toJSON
+import sys
 
 
 def main():
@@ -16,27 +17,30 @@ def main():
         help="The per-line indent to use when printing a human readable json string",
     )
     parser.add_argument(
-        "--encoding",
-        "-e",
-        type=str,
-        default="UTF-8",
-        help="The character encoding use..",
-    )
-    parser.add_argument(
         "path",
         metavar="path",
         type=str,
         nargs=1,
         help="Path to the replay to serialize.",
     )
+    if sys.version_info.major < 3:
+        parser.add_argument(
+            "--encoding",
+            "-e",
+            type=str,
+            default="UTF-8",
+            help="The character encoding use..",
+        )
+
     args = parser.parse_args()
 
     factory = sc2reader.factories.SC2Factory()
-    try:
+
+    if sys.version_info.major < 3:
         factory.register_plugin(
             "Replay", toJSON(encoding=args.encoding, indent=args.indent)
-        )  # legacy Python
-    except TypeError:
+        )
+    else:
         factory.register_plugin("Replay", toJSON(indent=args.indent))
     replay_json = factory.load_replay(args.path[0])
     print(replay_json)
