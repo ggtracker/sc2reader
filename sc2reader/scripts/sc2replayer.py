@@ -38,7 +38,14 @@ except ImportError as e:
 
 import argparse
 import sc2reader
-from sc2reader.events import *
+from sc2reader.events import (
+    CameraEvent,
+    CommandEvent,
+    ControlGroupEvent,
+    GameStartEvent,
+    PlayerLeaveEvent,
+    SelectionEvent,
+)
 
 
 def main():
@@ -100,7 +107,7 @@ def main():
                 or isinstance(event, SelectionEvent)
                 or isinstance(event, PlayerLeaveEvent)
                 or isinstance(event, GameStartEvent)
-                or (args.hotkeys and isinstance(event, HotkeyEvent))
+                or (args.hotkeys and isinstance(event, ControlGroupEvent))
                 or (args.cameras and isinstance(event, CameraEvent))
             ):
                 print(event)
