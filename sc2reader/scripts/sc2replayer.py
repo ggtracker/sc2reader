@@ -32,7 +32,8 @@ except ImportError as e:
         from msvcrt import getch
     except ImportError as e:
         # We can't make getch happen, just dump events to the screen
-        getch = lambda: True
+        def getch():
+            return True
 
 
 import argparse

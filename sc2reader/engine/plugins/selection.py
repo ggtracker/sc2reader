@@ -76,7 +76,9 @@ class SelectionTracker:
 
         if mode == "Mask":
             # Deselect objects according to deselect mask
-            sfilter = lambda bit_u: not bit_u[0]
+            def sfilter(bit_u):
+                return not bit_u[0]
+
             mask = data + [False] * (selection_size - data_size)
             new_selection = [u for (bit, u) in filter(sfilter, zip(mask, selection))]
             error = data_size > selection_size

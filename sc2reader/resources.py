@@ -1491,8 +1491,8 @@ class MapHeader(Resource):
 
         # Parse localization hashes
         l18n_struct = self.data[0][4][8]
-        for l in l18n_struct:
-            parsed_hash = utils.parse_hash(l[1][0])
-            self.localization_urls[l[0]] = utils.get_resource_url(
+        for h in l18n_struct:
+            parsed_hash = utils.parse_hash(h[1][0])
+            self.localization_urls[h[0]] = utils.get_resource_url(
                 parsed_hash["server"], parsed_hash["hash"], parsed_hash["type"]
             )

@@ -1,3 +1,6 @@
+import json
+import pkgutil
+
 # These are found in Repack-MPQ/fileset.{locale}#Mods#Core.SC2Mod#{locale}.SC2Data/LocalizedData/Editor/EditorCategoryStrings.txt
 # EDSTR_CATEGORY_Race
 # EDSTR_PLAYERPROPS_RACE
@@ -100,9 +103,6 @@ SUBREGIONS = {
     "xx": {1: "xx"},
 }
 
-
-import json
-import pkgutil
 
 attributes_json = pkgutil.get_data("sc2reader.data", "attributes.json").decode("utf8")
 attributes_dict = json.loads(attributes_json)

@@ -1,12 +1,11 @@
 STYLE GUIDE
 ==============
 
-As a rough style guide, please lint your code with black, codespell, and flake8::
+As a rough style guide, please lint your code with black, codespell, and ruff::
 
-    pip install black codespell flake8
+    pip install black codespell ruff
     codespell -L queenland,uint
-    flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-    flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    ruff .
     black . --check
 
 More up-to-date checks may be detailed in `.circleci/config.yml`.
