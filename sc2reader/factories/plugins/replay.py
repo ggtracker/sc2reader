@@ -126,7 +126,7 @@ def APMTracker(replay):
             elif event.name == "PlayerLeaveEvent":
                 player.seconds_played = event.second
 
-        if len(player.apm) > 0:
+        if len(player.apm) > 0 and player.seconds_played > 0:
             player.avg_apm = (
                 sum(player.aps.values()) / float(player.seconds_played) * 60
             )
