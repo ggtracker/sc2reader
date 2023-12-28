@@ -33,7 +33,7 @@ except ImportError:
 LEVEL_MAP = dict(
     DEBUG=logging.DEBUG,
     INFO=logging.INFO,
-    WARN=logging.WARN,
+    WARN=logging.WARNING,
     ERROR=logging.ERROR,
     CRITICAL=logging.CRITICAL,
 )

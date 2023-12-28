@@ -32,12 +32,20 @@ except ImportError as e:
         from msvcrt import getch
     except ImportError as e:
         # We can't make getch happen, just dump events to the screen
-        getch = lambda: True
+        def getch():
+            return True
 
 
 import argparse
 import sc2reader
-from sc2reader.events import *
+from sc2reader.events import (
+    CameraEvent,
+    CommandEvent,
+    ControlGroupEvent,
+    GameStartEvent,
+    PlayerLeaveEvent,
+    SelectionEvent,
+)
 
 
 def main():
@@ -94,13 +102,12 @@ def main():
         # Allow specification of events to `show`
         # Loop through the events
         for event in events:
-
             if (
                 isinstance(event, CommandEvent)
                 or isinstance(event, SelectionEvent)
                 or isinstance(event, PlayerLeaveEvent)
                 or isinstance(event, GameStartEvent)
-                or (args.hotkeys and isinstance(event, HotkeyEvent))
+                or (args.hotkeys and isinstance(event, ControlGroupEvent))
                 or (args.cameras and isinstance(event, CameraEvent))
             ):
                 print(event)

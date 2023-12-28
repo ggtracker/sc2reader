@@ -1,10 +1,33 @@
 import struct
 
 from sc2reader.exceptions import ParseError, ReadError
-from sc2reader.objects import *
-from sc2reader.events.game import *
-from sc2reader.events.message import *
-from sc2reader.events.tracker import *
+from sc2reader.objects import Attribute
+from sc2reader.events.game import (
+    CameraEvent,
+    CommandManagerStateEvent,
+    HijackReplayGameEvent,
+    PlayerLeaveEvent,
+    ResourceTradeEvent,
+    SelectionEvent,
+    UpdateTargetPointCommandEvent,
+    UpdateTargetUnitCommandEvent,
+    UserOptionsEvent,
+    create_command_event,
+    create_control_group_event,
+)
+from sc2reader.events.message import ChatEvent, PingEvent, ProgressEvent
+from sc2reader.events.tracker import (
+    PlayerSetupEvent,
+    PlayerStatsEvent,
+    UnitBornEvent,
+    UnitDiedEvent,
+    UnitDoneEvent,
+    UnitInitEvent,
+    UnitOwnerChangeEvent,
+    UnitPositionsEvent,
+    UnitTypeChangeEvent,
+    UpgradeCompleteEvent,
+)
 from sc2reader.utils import DepotFile
 from sc2reader.decoders import BitPackedDecoder, ByteDecoder
 
@@ -2126,7 +2149,6 @@ class GameEventsReader_38996(GameEventsReader_38749):
 
 
 class GameEventsReader_64469(GameEventsReader_38996):
-
     # this function is exactly the same as command_event() from GameEventsReader_38996
     # with the only change being that flags now has 26 bits instead of 25.
     def command_event(self, data):

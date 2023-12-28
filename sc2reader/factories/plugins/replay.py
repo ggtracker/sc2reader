@@ -85,7 +85,6 @@ def toDict(replay):
         "is_ladder": getattr(replay, "is_ladder", False),
         "is_private": getattr(replay, "is_private", False),
         "filename": getattr(replay, "filename", None),
-        "file_time": getattr(replay, "file_time", None),
         "frames": getattr(replay, "frames", None),
         "build": getattr(replay, "build", None),
         "release": getattr(replay, "release_string", None),
@@ -212,8 +211,8 @@ def SelectionTracker(replay):
             if error:
                 person.selection_errors += 1
                 if debug:
-                    logger.warn(
-                        "Error detected in deselection mode {}.".format(event.mask_type)
+                    logger.warning(
+                        f"Error detected in deselection mode {event.mask_type}."
                     )
 
         person.selection = player_selections

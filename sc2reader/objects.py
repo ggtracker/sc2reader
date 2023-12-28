@@ -4,7 +4,7 @@ from collections import namedtuple
 
 from sc2reader import utils, log_utils
 from sc2reader.decoders import ByteDecoder
-from sc2reader.constants import *
+from sc2reader.constants import GATEWAY_LOOKUP, LOBBY_PROPERTIES, LOCALIZED_RACES
 
 Location = namedtuple("Location", ["x", "y"])
 
@@ -135,8 +135,11 @@ class Entity:
         toon_handle = self.toon_handle or "0-S2-0-0"
         parts = toon_handle.split("-")
 
+        #: The Battle.net region id the entity is registered to
+        self.region_id = int(parts[0])
+
         #: The Battle.net region the entity is registered to
-        self.region = GATEWAY_LOOKUP[int(parts[0])]
+        self.region = GATEWAY_LOOKUP[self.region_id]
 
         #: The Battle.net subregion the entity is registered to
         self.subregion = int(parts[2])
@@ -284,6 +287,15 @@ class User:
         #: A flag indicating if this person was the one who recorded the game.
         #: This is deprecated because it doesn't actually work.
         self.recorder = None
+
+        #: The user's mmr at the time of the game
+        #: Currently, there are three cases observed for a user that does not have a current mmr:
+        #: 1. The user has no 'scaled_rating' key in their init_data,
+        #: 2. The user has a None value for their 'scaled_rating' key, or
+        #: 3. The user has a negative rating, often -36400.
+        #: For ease of use, this property will return None in both cases.
+        matchmaking_rating = int(init_data.get("scaled_rating") or 0)
+        self.mmr = matchmaking_rating if matchmaking_rating > 0 else None
 
     @property
     def url(self):
@@ -550,7 +562,7 @@ class MapInfo:
         data = ByteDecoder(contents, endian="LITTLE")
         magic = data.read_string(4)
         if magic != "MapI":
-            self.logger.warn(f"Invalid MapInfo file: {magic}")
+            self.logger.warning(f"Invalid MapInfo file: {magic}")
             return
 
         #: The map info file format version
@@ -761,7 +773,7 @@ class MapInfo:
         self.enemy_flags = data.read_uint(int(math.ceil(self.enemy_flags_length / 8.0)))
 
         if data.length != data.tell():
-            self.logger.warn("Not all of the MapInfo file was read!")
+            self.logger.warning("Not all of the MapInfo file was read!")
 
     def __str__(self):
         return self.map_name

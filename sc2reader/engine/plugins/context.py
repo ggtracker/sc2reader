@@ -263,7 +263,7 @@ class ContextLoader:
             replay.datapack.change_type(event.unit, event.unit_type_name, event.frame)
         else:
             self.logger.error(
-                "Unit {} type changed at {} [{}] before it was born!".format(
+                "Unit {} type changed at {} before it was born!".format(
                     event.unit_id, Length(seconds=event.second)
                 )
             )

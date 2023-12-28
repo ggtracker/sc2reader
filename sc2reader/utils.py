@@ -65,7 +65,7 @@ class Color:
     def __init__(self, name=None, r=0, g=0, b=0, a=255):
         if name:
             if name not in COLOR_CODES_INV:
-                self.logger.warn("Invalid color name: " + name)
+                self.logger.warning(f"Invalid color name: {name}")
             hexstr = COLOR_CODES_INV.get(name, "000000")
             self.r = int(hexstr[0:2], 16)
             self.g = int(hexstr[2:4], 16)
@@ -78,7 +78,7 @@ class Color:
             self.b = b
             self.a = a
             if self.hex not in COLOR_CODES:
-                self.logger.warn("Invalid color hex value: " + self.hex)
+                self.logger.warning(f"Invalid color hex value: {self.hex}")
             self.name = COLOR_CODES.get(self.hex, self.hex)
 
     @property
@@ -163,11 +163,14 @@ def get_files(
 
     # If an extension is supplied, use it to do a type check
     if extension:
-        type_check = (
-            lambda path: os.path.splitext(path)[1][1:].lower() == extension.lower()
-        )
+
+        def type_check(path):
+            return os.path.splitext(path)[1][1:].lower() == extension.lower()
+
     else:
-        type_check = lambda n: True
+
+        def type_check(n):
+            return True
 
     # os.walk can't handle file paths, only directories
     if os.path.isfile(path):
@@ -315,7 +318,6 @@ def toDict(replay):
         "is_ladder": getattr(replay, "is_ladder", False),
         "is_private": getattr(replay, "is_private", False),
         "filename": getattr(replay, "filename", None),
-        "file_time": getattr(replay, "file_time", None),
         "frames": getattr(replay, "frames", None),
         "build": getattr(replay, "build", None),
         "release": getattr(replay, "release_string", None),

@@ -184,7 +184,6 @@ def run(args):
 
     # We break out of this loop in batch mode and on KeyboardInterrupt
     while True:
-
         # The file scan uses the arguments and the state to filter down to
         # only new (since the last sync time) files.
         for path in scan(args, state):
@@ -193,8 +192,9 @@ def run(args):
                 replay = sc2reader.load_replay(path, load_level=2)
             except KeyboardInterrupt:
                 raise
-            except:
+            except Exception as e:
                 # Failure to parse
+                args.log.write(f"{e!r}")
                 file_name = os.path.basename(path)
                 directory = make_directory(args, ("parse_error",))
                 new_path = os.path.join(directory, file_name)

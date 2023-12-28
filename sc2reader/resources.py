@@ -40,7 +40,6 @@ class Resource:
 
 
 class Replay(Resource):
-
     #: A nested dictionary of player => { attr_name : attr_value } for
     #: known attributes. Player 16 represents the global context and
     #: contains attributes like game speed.
@@ -553,7 +552,7 @@ class Replay(Resource):
                 if team.result == "Win":
                     self.winner = team
             else:
-                self.logger.warn(
+                self.logger.warning(
                     f"Conflicting results for Team {team.number}: {results}"
                 )
                 team.result = "Unknown"
@@ -871,7 +870,11 @@ class Replay(Resource):
         )
         self.register_datapack(
             datapacks["LotV"]["80949"],
-            lambda r: r.expansion == "LotV" and 80949 <= r.build,
+            lambda r: r.expansion == "LotV" and 80949 <= r.build < 89634,
+        )
+        self.register_datapack(
+            datapacks["LotV"]["89720"],
+            lambda r: r.expansion == "LotV" and 89634 <= r.build,
         )
 
     # Internal Methods
@@ -1333,7 +1336,7 @@ class GameSummary(Resource):
                                 )
                             )
             elif stat_id != 83886080:  # We know this one is always bad.
-                self.logger.warn(f"Untranslatable key = {stat_id}")
+                self.logger.warning(f"Untranslatable key = {stat_id}")
 
         # Once we've compiled all the build commands we need to make
         # sure they are properly sorted for presentation.
@@ -1488,8 +1491,8 @@ class MapHeader(Resource):
 
         # Parse localization hashes
         l18n_struct = self.data[0][4][8]
-        for l in l18n_struct:
-            parsed_hash = utils.parse_hash(l[1][0])
-            self.localization_urls[l[0]] = utils.get_resource_url(
+        for h in l18n_struct:
+            parsed_hash = utils.parse_hash(h[1][0])
+            self.localization_urls[h[0]] = utils.get_resource_url(
                 parsed_hash["server"], parsed_hash["hash"], parsed_hash["type"]
             )

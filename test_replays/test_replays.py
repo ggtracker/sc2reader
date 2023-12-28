@@ -208,7 +208,6 @@ class TestReplays(unittest.TestCase):
             "test_replays/2.0.0.24247/molten.SC2Replay",
             "test_replays/2.0.0.23925/Akilon Wastes.SC2Replay",
         ]:
-
             replay = sc2reader.load_replay(replayfilename)
             self.assertEqual(replay.expansion, "HotS")
             player_pids = {player.pid for player in replay.players if player.is_human}
