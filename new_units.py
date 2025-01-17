@@ -9,7 +9,7 @@ import pkgutil
 import sys
 
 UNIT_LOOKUP = dict()
-for entry in pkgutil.get_data("sc2reader.data", "unit_lookup.csv").split("\n"):
+for entry in pkgutil.get_data("sc2reader.data", "unit_lookup.csv").splitlines():
     if not entry:
         continue
     str_id, title = entry.strip().split(",")
@@ -25,7 +25,7 @@ print("")
 print("")
 
 ABIL_LOOKUP = dict()
-for entry in pkgutil.get_data("sc2reader.data", "ability_lookup.csv").split("\n"):
+for entry in pkgutil.get_data("sc2reader.data", "ability_lookup.csv").splitlines():
     if not entry:
         continue
     str_id, abilities = entry.split(",", 1)
