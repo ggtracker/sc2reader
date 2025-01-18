@@ -48,7 +48,7 @@ class Team:
         return "".join(sorted(p.play_race[0].upper() for p in self.players))
 
     @property
-    def hash(self):
+    def hash(self):  # noqa: F811
         raw_hash = ",".join(sorted(p.url for p in self.players))
         return hashlib.sha256(raw_hash).hexdigest()
 

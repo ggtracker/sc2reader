@@ -19,7 +19,7 @@ jobs:
       - run: python --version ; pip --version ; pwd ; ls -l
       - run: pip install black codespell ruff
       - run: codespell -L queenland,uint,assertin
-      - run: ruff .
+      - run: ruff check
       - run: black . --check
 
 

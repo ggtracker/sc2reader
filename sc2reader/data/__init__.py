@@ -15,7 +15,7 @@ except NameError:
 
 ABIL_LOOKUP = dict()
 for entry in (
-    pkgutil.get_data("sc2reader.data", "ability_lookup.csv").decode("utf8").split("\n")
+    pkgutil.get_data("sc2reader.data", "ability_lookup.csv").decode("utf8").splitlines()
 ):
     if not entry:
         continue
@@ -24,7 +24,7 @@ for entry in (
 
 UNIT_LOOKUP = dict()
 for entry in (
-    pkgutil.get_data("sc2reader.data", "unit_lookup.csv").decode("utf8").split("\n")
+    pkgutil.get_data("sc2reader.data", "unit_lookup.csv").decode("utf8").splitlines()
 ):
     if not entry:
         continue
@@ -401,7 +401,7 @@ def load_build(expansion, version):
 
     unit_file = f"{expansion}/{version}_units.csv"
     for entry in (
-        pkgutil.get_data("sc2reader.data", unit_file).decode("utf8").split("\n")
+        pkgutil.get_data("sc2reader.data", unit_file).decode("utf8").splitlines()
     ):
         if not entry:
             continue
@@ -421,7 +421,7 @@ def load_build(expansion, version):
     abil_file = f"{expansion}/{version}_abilities.csv"
     build.add_ability(ability_id=0, name="RightClick", title="Right Click")
     for entry in (
-        pkgutil.get_data("sc2reader.data", abil_file).decode("utf8").split("\n")
+        pkgutil.get_data("sc2reader.data", abil_file).decode("utf8").splitlines()
     ):
         if not entry:
             continue
