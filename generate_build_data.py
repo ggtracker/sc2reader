@@ -103,9 +103,7 @@ def generate_build_data(balance_data_path):
                     if element_ability_index != train_ability_index:
                         train_ability_index = element_ability_index
 
-                        train_ability_name = "{}Train{}".format(
-                            unit_id, trained_unit_name
-                        )
+                        train_ability_name = f"{unit_id}Train{trained_unit_name}"
                         abilities[train_ability_index] = train_ability_name
 
                         if train_ability_name not in ability_lookup:

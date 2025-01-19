@@ -24,16 +24,10 @@ def printReplay(filepath, arguments):
             print("   Teams:    {}".format("v".join(lineups)))
             for team in replay.teams:
                 print(
-                    "      Team {}\t{} ({})".format(
-                        team.number, team.players[0].name, team.players[0].pick_race[0]
-                    )
+                    f"      Team {team.number}\t{team.players[0].name} ({team.players[0].pick_race[0]})"
                 )
                 for player in team.players[1:]:
-                    print(
-                        "              \t{} ({})".format(
-                            player.name, player.pick_race[0]
-                        )
-                    )
+                    print(f"              \t{player.name} ({player.pick_race[0]})")
         if arguments.observers:
             print("   Observers:")
             for observer in replay.observers:
@@ -51,11 +45,7 @@ def printReplay(filepath, arguments):
         raise
         return
         prev = e.game_events[-1]
-        print(
-            "\nVersion {} replay:\n\t{}".format(
-                e.replay.release_string, e.replay.filepath
-            )
-        )
+        print(f"\nVersion {e.replay.release_string} replay:\n\t{e.replay.filepath}")
         print(f"\t{e.msg}, Type={e.type:X}")
         print(f"\tPrevious Event: {prev.name}")
         print("\t\t" + prev.bytes.encode("hex"))

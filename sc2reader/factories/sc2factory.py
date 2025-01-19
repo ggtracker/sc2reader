@@ -293,9 +293,7 @@ class FileCachedSC2Factory(CachedSC2Factory):
             )
         elif not os.access(self.cache_dir, os.F_OK | os.W_OK | os.R_OK):
             raise ValueError(
-                "Must have read/write access to {} for local file caching.".format(
-                    self.cache_dir
-                )
+                f"Must have read/write access to {self.cache_dir} for local file caching."
             )
 
     def cache_has(self, cache_key):

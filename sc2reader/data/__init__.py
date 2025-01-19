@@ -339,9 +339,7 @@ class Build:
             unit.set_type(unit_type, frame)
         else:
             self.logger.error(
-                "Unable to change type of {} to {} [frame {}]; unit type not found in build {}".format(
-                    unit, new_type, frame, self.id
-                )
+                f"Unable to change type of {unit} to {new_type} [frame {frame}]; unit type not found in build {self.id}"
             )
 
     def add_ability(

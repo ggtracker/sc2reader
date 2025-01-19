@@ -578,7 +578,7 @@ class Replay(Resource):
         # Pretty sure this just never worked, forget about it for now
         self.recorder = None
 
-        entity_names = sorted(map(lambda p: p.name, self.entities))
+        entity_names = sorted((p.name for p in self.entities))
         hash_input = self.region + ":" + ",".join(entity_names)
         self.people_hash = hashlib.sha256(hash_input.encode("utf8")).hexdigest()
 
@@ -884,9 +884,7 @@ class Replay(Resource):
                 return reader
         else:
             raise ValueError(
-                "Valid {} reader could not found for build {}".format(
-                    data_file, self.build
-                )
+                f"Valid {data_file} reader could not found for build {self.build}"
             )
 
     def _get_datapack(self):

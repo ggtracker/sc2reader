@@ -334,8 +334,9 @@ class UnitBornEvent(TrackerEvent):
             self.location = (self.x, self.y)
 
     def __str__(self):
-        return self._str_prefix() + "{: >15} - Unit born {}".format(
-            str(self.unit_upkeeper), self.unit
+        return (
+            self._str_prefix()
+            + f"{str(self.unit_upkeeper): >15} - Unit born {self.unit}"
         )
 
 
@@ -409,8 +410,8 @@ class UnitDiedEvent(TrackerEvent):
                 )
 
     def __str__(self):
-        return self._str_prefix() + "{: >15} - Unit died {}.".format(
-            str(self.unit.owner), self.unit
+        return (
+            self._str_prefix() + f"{str(self.unit.owner): >15} - Unit died {self.unit}."
         )
 
 
@@ -448,9 +449,7 @@ class UnitOwnerChangeEvent(TrackerEvent):
         self.unit_controller = None
 
     def __str__(self):
-        return self._str_prefix() + "{: >15} took {}".format(
-            str(self.unit_upkeeper), self.unit
-        )
+        return self._str_prefix() + f"{str(self.unit_upkeeper): >15} took {self.unit}"
 
 
 class UnitTypeChangeEvent(TrackerEvent):
@@ -479,8 +478,9 @@ class UnitTypeChangeEvent(TrackerEvent):
         self.unit_type_name = data[2].decode("utf8")
 
     def __str__(self):
-        return self._str_prefix() + "{: >15} - Unit {} type changed to {}".format(
-            str(self.unit.owner), self.unit, self.unit_type_name
+        return (
+            self._str_prefix()
+            + f"{str(self.unit.owner): >15} - Unit {self.unit} type changed to {self.unit_type_name}"
         )
 
 
@@ -505,8 +505,9 @@ class UpgradeCompleteEvent(TrackerEvent):
         self.count = data[2]
 
     def __str__(self):
-        return self._str_prefix() + "{: >15} - {} upgrade completed".format(
-            str(self.player), self.upgrade_type_name
+        return (
+            self._str_prefix()
+            + f"{str(self.player): >15} - {self.upgrade_type_name} upgrade completed"
         )
 
 
@@ -564,8 +565,9 @@ class UnitInitEvent(TrackerEvent):
             self.location = (self.x, self.y)
 
     def __str__(self):
-        return self._str_prefix() + "{: >15} - Unit initiated {}".format(
-            str(self.unit_upkeeper), self.unit
+        return (
+            self._str_prefix()
+            + f"{str(self.unit_upkeeper): >15} - Unit initiated {self.unit}"
         )
 
 
@@ -591,8 +593,8 @@ class UnitDoneEvent(TrackerEvent):
         self.unit = None
 
     def __str__(self):
-        return self._str_prefix() + "{: >15} - Unit {} done".format(
-            str(self.unit.owner), self.unit
+        return (
+            self._str_prefix() + f"{str(self.unit.owner): >15} - Unit {self.unit} done"
         )
 
 

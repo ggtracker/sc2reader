@@ -438,9 +438,7 @@ class PlayerSummary:
 
     def __str__(self):
         if not self.is_ai:
-            return "User {}-S2-{}-{}".format(
-                self.region.upper(), self.subregion, self.bnetid
-            )
+            return f"User {self.region.upper()}-S2-{self.subregion}-{self.bnetid}"
         else:
             return f"AI ({self.play_race})"
 

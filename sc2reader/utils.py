@@ -93,7 +93,7 @@ class Color:
         """
         The hexadecimal representation of the color
         """
-        return "{0.r:02X}{0.g:02X}{0.b:02X}".format(self)
+        return f"{self.r:02X}{self.g:02X}{self.b:02X}"
 
     def __str__(self):
         return self.name

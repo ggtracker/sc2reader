@@ -71,9 +71,7 @@ def main():
                         }
                         if human_pids != event_pids:
                             print(
-                                "Event Pid problem!  pids={pids} but event pids={event_pids}".format(
-                                    pids=human_pids, event_pids=event_pids
-                                )
+                                f"Event Pid problem!  pids={human_pids} but event pids={event_pids}"
                             )
                             print(
                                 " with {path}: {build} - {real_type} on {map_name} - Played {start_time}".format(
@@ -82,9 +80,7 @@ def main():
                             )
                         elif player_pids != ability_pids:
                             print(
-                                "Ability Pid problem!  pids={pids} but event pids={event_pids}".format(
-                                    pids=player_pids, event_pids=ability_pids
-                                )
+                                f"Ability Pid problem!  pids={player_pids} but event pids={ability_pids}"
                             )
                             print(
                                 " with {path}: {build} - {real_type} on {map_name} - Played {start_time}".format(
@@ -98,9 +94,7 @@ def main():
                                 )
                             )
                             print(
-                                "Units were: {units}".format(
-                                    units={obj.name for obj in replay.objects.values()}
-                                )
+                                f"Units were: {({obj.name for obj in replay.objects.values()})}"
                             )
 
             except sc2reader.exceptions.ReadError as e:

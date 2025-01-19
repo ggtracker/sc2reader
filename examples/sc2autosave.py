@@ -373,9 +373,7 @@ def reset(args):
         exit("Cannot reset, destination must be directory: {0}", args.dest)
 
     print(
-        "About to reset directory: {}\nAll files and subdirectories will be removed.".format(
-            args.dest
-        )
+        f"About to reset directory: {args.dest}\nAll files and subdirectories will be removed."
     )
     choice = raw_input("Proceed anyway? (y/n) ")
     if choice.lower() == "y":
