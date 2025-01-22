@@ -38,9 +38,7 @@ class GameEvent(Event):
         if getattr(self, "pid", 16) == 16:
             player_name = "Global"
         elif self.player and not self.player.name:
-            player_name = "Player {} - ({})".format(
-                self.player.pid, self.player.play_race
-            )
+            player_name = f"Player {self.player.pid} - ({self.player.play_race})"
         elif self.player:
             player_name = self.player.name
         else:
@@ -244,9 +242,7 @@ class CommandEvent(GameEvent):
             string += "Right Click"
 
         if self.ability_type == "TargetUnit":
-            string += "; Target: {} [{:0>8X}]".format(
-                self.target.name, self.target_unit_id
-            )
+            string += f"; Target: {self.target.name} [{self.target_unit_id:0>8X}]"
 
         if self.ability_type in ("TargetPoint", "TargetUnit"):
             string += f"; Location: {str(self.location)}"
@@ -643,7 +639,7 @@ class CameraEvent(GameEvent):
         self.yaw = data["yaw"]
 
     def __str__(self):
-        return self._str_prefix() + "{} at ({}, {})".format(self.name, self.x, self.y)
+        return self._str_prefix() + f"{self.name} at ({self.x}, {self.y})"
 
 
 @loggable
@@ -686,13 +682,7 @@ class ResourceTradeEvent(GameEvent):
     def __str__(self):
         return (
             self._str_prefix()
-            + " transfer {} minerals, {} gas, {} terrazine, and {} custom to {}".format(
-                self.minerals,
-                self.vespene,
-                self.terrazine,
-                self.custom_resource,
-                self.recipient,
-            )
+            + f" transfer {self.minerals} minerals, {self.vespene} gas, {self.terrazine} terrazine, and {self.custom_resource} custom to {self.recipient}"
         )
 
 
@@ -722,9 +712,7 @@ class ResourceRequestEvent(GameEvent):
     def __str__(self):
         return (
             self._str_prefix()
-            + " requests {} minerals, {} gas, {} terrazine, and {} custom".format(
-                self.minerals, self.vespene, self.terrazine, self.custom_resource
-            )
+            + f" requests {self.minerals} minerals, {self.vespene} gas, {self.terrazine} terrazine, and {self.custom_resource} custom"
         )
 
 

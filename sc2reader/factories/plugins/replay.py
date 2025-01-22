@@ -155,12 +155,7 @@ def SelectionTracker(replay):
                 selections[event.control_group] = control_group
                 if debug:
                     logger.info(
-                        "[{}] {} selected {} units: {}".format(
-                            Length(seconds=event.second),
-                            person.name,
-                            len(selections[0x0A].objects),
-                            selections[0x0A],
-                        )
+                        f"[{Length(seconds=event.second)}] {person.name} selected {len(selections[0x0A].objects)} units: {selections[0x0A]}"
                     )
 
             elif event.name == "SetControlGroupEvent":
@@ -168,9 +163,7 @@ def SelectionTracker(replay):
                 selections[event.control_group] = selections[0x0A].copy()
                 if debug:
                     logger.info(
-                        "[{}] {} set hotkey {} to current selection".format(
-                            Length(seconds=event.second), person.name, event.hotkey
-                        )
+                        f"[{Length(seconds=event.second)}] {person.name} set hotkey {event.hotkey} to current selection"
                     )
 
             elif event.name == "AddToControlGroupEvent":
@@ -181,9 +174,7 @@ def SelectionTracker(replay):
                 selections[event.control_group] = control_group
                 if debug:
                     logger.info(
-                        "[{}] {} added current selection to hotkey {}".format(
-                            Length(seconds=event.second), person.name, event.hotkey
-                        )
+                        f"[{Length(seconds=event.second)}] {person.name} added current selection to hotkey {event.hotkey}"
                     )
 
             elif event.name == "GetControlGroupEvent":
@@ -193,13 +184,7 @@ def SelectionTracker(replay):
                 selections[0xA] = control_group
                 if debug:
                     logger.info(
-                        "[{}] {} retrieved hotkey {}, {} units: {}".format(
-                            Length(seconds=event.second),
-                            person.name,
-                            event.control_group,
-                            len(selections[0x0A].objects),
-                            selections[0x0A],
-                        )
+                        f"[{Length(seconds=event.second)}] {person.name} retrieved hotkey {event.control_group}, {len(selections[0x0A].objects)} units: {selections[0x0A]}"
                     )
 
             else:

@@ -601,9 +601,7 @@ class GameEventsReader_Base:
                 # Otherwise throw a read error
                 else:
                     raise ReadError(
-                        "Event type {} unknown at position {}.".format(
-                            hex(event_type), hex(event_start)
-                        ),
+                        f"Event type {hex(event_type)} unknown at position {hex(event_start)}.",
                         event_type,
                         event_start,
                         replay,
@@ -617,9 +615,7 @@ class GameEventsReader_Base:
             return game_events
         except ParseError as e:
             raise ReadError(
-                "Parse error '{}' unknown at position {}.".format(
-                    e.msg, hex(event_start)
-                ),
+                f"Parse error '{e.msg}' unknown at position {hex(event_start)}.",
                 event_type,
                 event_start,
                 replay,
@@ -628,9 +624,7 @@ class GameEventsReader_Base:
             )
         except EOFError as e:
             raise ReadError(
-                "EOFError error '{}' unknown at position {}.".format(
-                    e.msg, hex(event_start)
-                ),
+                f"EOFError error '{e.msg}' unknown at position {hex(event_start)}.",
                 event_type,
                 event_start,
                 replay,

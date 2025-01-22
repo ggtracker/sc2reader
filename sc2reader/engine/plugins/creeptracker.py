@@ -229,7 +229,7 @@ class creep_tracker:
         ## this function takes index and value of CGU times and returns
         ## the cgu units with the maximum length
         for cgu_per_minute in cgu_in_minutes:
-            indexes = map(lambda x: x[0], cgu_per_minute)
+            indexes = (x[0] for x in cgu_per_minute)
             cgu_units = list()
             for index in indexes:
                 cgu_units.append(self.creep_gen_units[player_id][index])
@@ -247,7 +247,7 @@ class creep_tracker:
         cgu_unit_max_per_minute = self.cgu_in_min_to_cgu_units(
             player_id, cgu_per_minute1
         )
-        minutes = map(lambda x: int(x[0][1] // 60) * 60, cgu_per_minute2)
+        minutes = (int(x[0][1] // 60) * 60 for x in cgu_per_minute2)
         self.creep_gen_units[player_id] = list(cgu_unit_max_per_minute)
         self.creep_gen_units_times[player_id] = list(minutes)
 
@@ -255,8 +255,8 @@ class creep_tracker:
         ## iterates through all cgus and and calculate the area
         for index, cgu_per_player in enumerate(self.creep_gen_units[player_id]):
             # convert cgu list into centre of circles and radius
-            cgu_radius = map(
-                lambda x: (x[1], self.unit_name_to_radius[x[2]]), cgu_per_player
+            cgu_radius = (
+                (x[1], self.unit_name_to_radius[x[2]]) for x in cgu_per_player
             )
             # convert event coords to minimap coords
             cgu_radius = self.convert_cgu_radius_event_to_map_coord(cgu_radius)
@@ -286,9 +286,9 @@ class creep_tracker:
             radius = cgu[1]
             ## subtract all radius_to_coordinates with centre of
             ## cgu radius to change centre of circle
-            cgu_map_position = map(
-                lambda x: (x[0] + point[0], x[1] + point[1]),
-                self.radius_to_coordinates[radius],
+            cgu_map_position = (
+                (x[0] + point[0], x[1] + point[1])
+                for x in self.radius_to_coordinates[radius]
             )
             total_points_on_map = total_points_on_map | Set(cgu_map_position)
         return total_points_on_map
