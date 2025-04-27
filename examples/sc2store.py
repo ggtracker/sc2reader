@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-import cPickle
 import os
+import pickle
 import shutil
-import sys
 import sqlite3
+import sys
 import time
 
 import sc2reader

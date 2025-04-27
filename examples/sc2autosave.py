@@ -159,18 +159,71 @@ POST-Parse filtering vs preparse filtering?
 POST-Parse, how to do it?!?!?!?!
 """
 import argparse
-import cPickle
 import os
+import pickle
+import re
 import shutil
 import sys
+import textwrap
 import time
 
 import sc2reader
 
-try:
-    raw_input  # Python 2
-except NameError:
-    raw_input = input  # Python 3
+
+class Formatter(argparse.RawTextHelpFormatter):
+    """FlexiFormatter which respects new line formatting and wraps the rest
+
+    Example:
+        >>> parser = argparse.ArgumentParser(formatter_class=FlexiFormatter)
+        >>> parser.add_argument('a',help='''\
+        ...     This argument's help text will have this first long line\
+        ...     wrapped to fit the target window size so that your text\
+        ...     remains flexible.
+        ...
+        ...         1. This option list
+        ...         2. is still persisted
+        ...         3. and the option strings get wrapped like this\
+        ...            with an indent for readability.
+        ...
+        ...     You must use backslashes at the end of lines to indicate that\
+        ...     you want the text to wrap instead of preserving the newline.
+        ... ''')
+
+    Only the name of this class is considered a public API. All the methods
+    provided by the class are considered an implementation detail.
+    """
+
+    @classmethod
+    def new(cls, **options):
+        return lambda prog: Formatter(prog, **options)
+
+    def _split_lines(self, text, width):
+        lines = list()
+        main_indent = len(re.match(r"( *)", text).group(1))
+        # Wrap each line individually to allow for partial formatting
+        for line in text.splitlines():
+            # Get this line's indent and figure out what indent to use
+            # if the line wraps. Account for lists of small variety.
+            indent = len(re.match(r"( *)", line).group(1))
+            list_match = re.match(r"( *)(([*-+>]+|\w+\)|\w+\.) +)", line)
+            if list_match:
+                sub_indent = indent + len(list_match.group(2))
+            else:
+                sub_indent = indent
+
+            # Textwrap will do all the hard work for us
+            line = self._whitespace_matcher.sub(" ", line).strip()
+            new_lines = textwrap.wrap(
+                text=line,
+                width=width,
+                initial_indent=" " * (indent - main_indent),
+                subsequent_indent=" " * (sub_indent - main_indent),
+            )
+
+            # Blank lines get eaten by textwrap, put it back with [' ']
+            lines.extend(new_lines or [" "])
+
+        return lines
 
 
 def run(args):
@@ -375,8 +428,7 @@ def reset(args):
     print(
         f"About to reset directory: {args.dest}\nAll files and subdirectories will be removed."
     )
-    choice = raw_input("Proceed anyway? (y/n) ")
-    if choice.lower() == "y":
+    if input("Proceed anyway? (y/n) ").strip().lower() == "y":
         args.log.write(f"Removing old directory: {args.dest}\n")
         if not args.dryrun:
             print(args.dest)
@@ -410,7 +462,7 @@ def setup(args):
     args.log.write(f"Loading state from file: {data_file}\n")
     if os.path.isfile(data_file) and not args.reset:
         with open(data_file) as file:
-            return cPickle.load(file)
+            return pickle.load(file)
     else:
         return sc2reader.utils.AttributeDict(last_sync=0)
 
@@ -420,7 +472,7 @@ def save_state(state, args):
     data_file = os.path.join(args.dest, "sc2autosave.dat")
     if not args.dryrun:
         with open(data_file, "w") as file:
-            cPickle.dump(state, file)
+            pickle.dump(state, file)
     else:
         args.log.write(f"Writing state to file: {data_file}\n")
 
@@ -429,7 +481,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Automatically copy new replays to directory",
         fromfile_prefix_chars="@",
-        formatter_class=sc2reader.scripts.utils.Formatter.new(max_help_position=35),
+        formatter_class=Formatter.new(max_help_position=35),
         epilog="And that's all folks",
     )
 
