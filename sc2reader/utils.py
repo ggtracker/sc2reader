@@ -1,11 +1,11 @@
 import binascii
-import os
 import json
+import os
 from datetime import timedelta, datetime
 
-from sc2reader.log_utils import loggable
-from sc2reader.exceptions import MPQError
 from sc2reader.constants import COLOR_CODES, COLOR_CODES_INV
+from sc2reader.exceptions import MPQError
+from sc2reader.log_utils import loggable
 
 
 class DepotFile:

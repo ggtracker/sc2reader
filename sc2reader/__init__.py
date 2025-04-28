@@ -1,21 +1,21 @@
 """
-    sc2reader
-    ~~~~~~~~~~~
+sc2reader
+~~~~~~~~~~~
 
-    A library for loading data from Starcraft II game resources.
+A library for loading data from Starcraft II game resources.
 
-    SC2Factory methods called on the package will be delegated to the default
-    SC2Factory. To default to a cached factory set one or more of the following
-    variables in your environment:
+SC2Factory methods called on the package will be delegated to the default
+SC2Factory. To default to a cached factory set one or more of the following
+variables in your environment:
 
-        SC2READER_CACHE_DIR = '/absolute/path/to/existing/cache/directory/'
-        SC2READER_CACHE_MAX_SIZE = MAXIMUM_CACHE_ENTRIES_TO_HOLD_IN_MEMORY
+    SC2READER_CACHE_DIR = '/absolute/path/to/existing/cache/directory/'
+    SC2READER_CACHE_MAX_SIZE = MAXIMUM_CACHE_ENTRIES_TO_HOLD_IN_MEMORY
 
-    You can also set the default factory via setFactory, useFileCache, useDictCache,
-    or useDoubleCache functions.
+You can also set the default factory via setFactory, useFileCache, useDictCache,
+or useDoubleCache functions.
 
-    :copyright: (c) 2011 by Graylin Kim.
-    :license: MIT, see LICENSE for more details.
+:copyright: (c) 2011 by Graylin Kim.
+:license: MIT, see LICENSE for more details.
 """
 
 __version__ = "1.8.0"
