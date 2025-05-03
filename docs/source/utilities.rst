@@ -26,19 +26,6 @@ Length
     :members:
 
 
-PersonDict
----------------
-
-.. autoclass:: PersonDict
-    :members:
-
-
-AttributeDict
-------------------
-
-.. autoclass:: AttributeDict
-    :members:
-
 get_files
 ---------------
 

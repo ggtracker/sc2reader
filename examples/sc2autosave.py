@@ -166,6 +166,7 @@ import shutil
 import sys
 import textwrap
 import time
+from functools import cmp_to_key
 
 import sc2reader
 
@@ -268,6 +269,7 @@ def run(args):
             # Apply the aspects to the rename formatting.
             #'/' is a special character for creation of subdirectories.
             # TODO: Handle duplicate replay names, its possible..
+
             path_parts = args.rename.format(**aspects).split("/")
             filename = path_parts.pop() + ".SC2Replay"
 
@@ -281,9 +283,9 @@ def run(args):
 
             # Log the action and run it if we are live
             msg = "{0}:\n\tSource: {1}\n\tDest: {2}\n"
-            args.log.write(msg.format(args.action.type, source_path, dest_path))
+            args.log.write(msg.format(args.action["type"], source_path, dest_path))
             if not args.dryrun:
-                args.action.run(path, new_path)
+                args.action["run"](path, new_path)
 
         # After every batch completes, save the state and flush the log
         # TODO: modify the state to include a list of remaining files
@@ -368,19 +370,19 @@ def create_compare_funcs(args):
 
 
 def generate_aspects(args, replay):
-    teams = sorted(replay.teams, args.team_compare)
+    teams = sorted(replay.teams, key=cmp_to_key(args.team_compare))
     matchups, team_strings = list(), list()
     for team in teams:
-        team.players = sorted(team.players, args.player_compare)
+        team.players = sorted(team.players, key=cmp_to_key(args.player_compare))
         composition = sorted(p.play_race[0].upper() for p in team.players)
         matchups.append("".join(composition))
         string = ", ".join(p.format(args.player_format) for p in team.players)
         team_strings.append(string)
 
-    return sc2reader.utils.AttributeDict(
+    return dict(
         result=teams[0].result,
         length=replay.length,
-        map=replay.map,
+        map=replay.map_name.replace(":", ""),
         type=replay.type,
         date=replay.date.strftime(args.date_format),
         matchup="v".join(matchups),
@@ -412,7 +414,7 @@ def scan(args, state):
         depth=args.depth,
         followlinks=args.follow_links,
     )
-    return filter(lambda f: os.path.getctime(f) > state.last_sync, files)
+    return filter(lambda f: os.path.getctime(f) > state["last_sync"], files)
 
 
 def exit(msg, *args, **kwargs):
@@ -439,7 +441,7 @@ def reset(args):
 
 def setup(args):
     args.team_compare, args.player_compare = create_compare_funcs(args)
-    args.action = sc2reader.utils.AttributeDict(
+    args.action = dict(
         type=args.action, run=shutil.copy if args.action == "COPY" else shutil.move
     )
     if not os.path.exists(args.source):
@@ -461,17 +463,17 @@ def setup(args):
 
     args.log.write(f"Loading state from file: {data_file}\n")
     if os.path.isfile(data_file) and not args.reset:
-        with open(data_file) as file:
+        with open(data_file, "rb") as file:
             return pickle.load(file)
     else:
-        return sc2reader.utils.AttributeDict(last_sync=0)
+        return dict(last_sync=0)
 
 
 def save_state(state, args):
-    state.last_sync = time.time()
+    state["last_sync"] = time.time()
     data_file = os.path.join(args.dest, "sc2autosave.dat")
     if not args.dryrun:
-        with open(data_file, "w") as file:
+        with open(data_file, "wb") as file:
             pickle.dump(state, file)
     else:
         args.log.write(f"Writing state to file: {data_file}\n")
