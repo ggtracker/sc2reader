@@ -327,4 +327,3 @@ and kept this project going.
 .. _phpsc2replay: http://code.google.com/p/phpsc2replay/
 .. _sc2replay-csharp: https://github.com/ascendedguard/sc2replay-csharp
 .. _s2protocol: https://github.com/Blizzard/s2protocol
-

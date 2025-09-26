@@ -214,4 +214,3 @@ Changed Stuff (non-backwards compatible!):
    * is_build flag marking abilities that create units
    * build_unit indicating the unit type that is built
    * build_time indicating the build time for the ability
-

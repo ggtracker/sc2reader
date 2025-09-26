@@ -23,4 +23,3 @@ Game Summary
 
 .. autoclass:: GameSummary
     :members:
-

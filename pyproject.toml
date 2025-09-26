@@ -78,3 +78,6 @@ lint.ignore = [
   "F841", # Run `ruff --select=F841 --fix .`
 ]
 lint.mccabe.max-complexity = 34
+
+[tool.codespell]
+ignore-words-list = "queenland"
