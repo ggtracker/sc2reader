@@ -321,10 +321,9 @@ class BitPackedDecoder:
         """
         result = 0
         bits = count
-        bit_shift = self._bit_shift
 
         # If we've got a byte in progress use it first
-        if bit_shift != 0:
+        if (bit_shift := self._bit_shift) != 0:
             bits_left = 8 - bit_shift
 
             if bits_left < bits:

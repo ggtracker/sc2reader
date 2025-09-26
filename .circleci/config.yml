@@ -2,7 +2,6 @@ version: 2.1
 
 build_and_test: &build_and_test_steps
   - checkout
-  # Do not use `sudo pip`
   # pipx is already installed, but `pipx list` is empty
   - run: python --version ; pip --version ; pipx --version ; pwd ; ls -l
   - run: pip install pytest -r requirements.txt
@@ -11,18 +10,14 @@ build_and_test: &build_and_test_steps
 
 
 jobs:
-  StyleCheck:
+  pre-commit:
     docker:
       - image: cimg/python:3.14
     steps:
       - checkout
-      - run: python --version ; pip --version ; pipx --version ; pwd ; ls -l
-      - run: pipx run codespell -L queenland,uint,assertin
-      - run: pipx run ruff check
-      - run: pipx run black . --check
+      - run: pipx run pre-commit run --all-files --show-diff-on-failure
 
-
-  Python3:
+  pytest:
     docker:
       - image: cimg/python:3.14
     steps: *build_and_test_steps
@@ -31,5 +26,5 @@ jobs:
 workflows:
   build:
     jobs:
-      - StyleCheck
-      - Python3
+      - pre-commit
+      - pytest

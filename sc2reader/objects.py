@@ -558,8 +558,7 @@ class MapInfo:
         # According to http://www.galaxywiki.net/MapInfo_(File_Format)
         # With a couple small changes for version 0x20+
         data = ByteDecoder(contents, endian="LITTLE")
-        magic = data.read_string(4)
-        if magic != "MapI":
+        if (magic := data.read_string(4)) != "MapI":
             self.logger.warning(f"Invalid MapInfo file: {magic}")
             return
 
