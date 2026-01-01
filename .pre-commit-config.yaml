@@ -1,0 +1,11 @@
+# Learn more about this config here: https://pre-commit.com/
+
+# To enable these pre-commit hooks, run:
+# `pipx install pre-commit` or `brew install pre-commit`
+# Then, in the project root directory, run `pre-commit install`
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
