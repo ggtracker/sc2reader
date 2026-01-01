@@ -14,16 +14,15 @@ Who Uses sc2reader?
 
 sc2reader is currently powering:
 
-* Websites: `gggreplays.com`_, `gamereplays.org`_, `spawningtool.com`_
+* Websites: `spawningtool.com`_, `gamereplays.org`_ 
 * Tools: `The Core`_
 * Experiments: `Midi Conversion`_
 
 If you use sc2reader and you would like your tool, site, project, or implementation listed above, drop us a line on our `mailing list`_.
 
 
-.. _gggreplays.com: http://gggreplays.com
-.. _gamereplays.org: http://www.gamereplays.org/starcraft2/
 .. _spawningtool.com: https://lotv.spawningtool.com
+.. _gamereplays.org: http://www.gamereplays.org/starcraft2/
 .. _The Core: http://www.teamliquid.net/forum/viewmessage.php?topic_id=341878
 .. _Midi Conversion: https://github.com/obohrer/sc2midi
 
