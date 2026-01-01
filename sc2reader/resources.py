@@ -895,8 +895,7 @@ class Replay(Resource):
             return None
 
     def _read_data(self, data_file, reader):
-        data = utils.extract_data_file(data_file, self.archive)
-        if data:
+        if data := utils.extract_data_file(data_file, self.archive):
             self.raw_data[data_file] = reader(data, self)
         elif self.opt["debug"] and data_file not in [
             "replay.message.events",
@@ -966,12 +965,10 @@ class Map(Resource):
 
         #: A reference to the map's :class:`~sc2reader.objects.MapInfo` object
         self.map_info = None
-        map_info_file = self.archive.read_file("MapInfo")
-        if map_info_file:
+        if map_info_file := self.archive.read_file("MapInfo"):
             self.map_info = MapInfo(map_info_file)
 
-        doc_info_file = self.archive.read_file("DocumentInfo")
-        if doc_info_file:
+        if doc_info_file := self.archive.read_file("DocumentInfo"):
             doc_info = ElementTree.fromstring(doc_info_file.decode("utf8"))
 
             icon_path_node = doc_info.find("Icon/Value")

@@ -13,4 +13,3 @@ All of the gamplay and state information contained in the replay is packed into 
 	game
 	message
 	tracker
-

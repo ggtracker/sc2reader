@@ -14,7 +14,7 @@ Who Uses sc2reader?
 
 sc2reader is currently powering:
 
-* Websites: `spawningtool.com`_, `gamereplays.org`_ 
+* Websites: `spawningtool.com`_, `gamereplays.org`_
 * Tools: `The Core`_
 * Experiments: `Midi Conversion`_
 
@@ -326,4 +326,3 @@ and kept this project going.
 .. _phpsc2replay: http://code.google.com/p/phpsc2replay/
 .. _sc2replay-csharp: https://github.com/ascendedguard/sc2replay-csharp
 .. _s2protocol: https://github.com/Blizzard/s2protocol
-
