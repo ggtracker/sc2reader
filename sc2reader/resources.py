@@ -1,5 +1,5 @@
 from collections import defaultdict, namedtuple
-from datetime import datetime
+from datetime import datetime, timezone
 import hashlib
 from xml.etree import ElementTree
 import zlib
@@ -413,7 +413,7 @@ class Replay(Resource):
         self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
         self.end_time = datetime.fromtimestamp(
             self.unix_timestamp, 
-            datetime.UTC
+            timezone.utc
         )
 
         # The utc_adjustment is either the adjusted windows timestamp OR
@@ -434,7 +434,7 @@ class Replay(Resource):
         )
         self.start_time = datetime.fromtimestamp(
             self.unix_timestamp - self.real_length.seconds,
-            datetime.UTC
+            timezone.utc
         )
         self.date = self.end_time  # backwards compatibility
 
@@ -1094,7 +1094,7 @@ class GameSummary(Resource):
 
         self.end_time = datetime.fromtimestamp(
             self.parts[0][8], 
-            datetime.UTC
+            timezone.utc
         )
         self.game_speed = LOBBY_PROPERTIES[0xBB8][1][self.parts[0][0][1].decode("utf8")]
         self.game_length = utils.Length(seconds=self.parts[0][7])
@@ -1105,7 +1105,7 @@ class GameSummary(Resource):
         )
         self.start_time = datetime.fromtimestamp(
             self.parts[0][8] - self.real_length.seconds,
-            datetime.UTC
+            timezone.utc
         )
 
         self.load_map_info()
