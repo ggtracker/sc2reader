@@ -209,7 +209,7 @@ or with setuptools (specify a valid x.x.x)::
     wget http://pypi.python.org/packages/source/s/sc2reader/sc2reader-x.x.x.tar.gz
     tar -xzf sc2reader-x.x.x.tar.gz
     cd sc2reader-x.x.x
-    python3 setup.py install
+    pip install .
 
 Releases to PyPi can be very delayed (sorry!), for the latest and greatest you are encouraged to install from Github upstream.
 
@@ -230,7 +230,7 @@ or with setuptools::
     wget -O sc2reader-upstream.tar.gz https://github.com/ggtracker/sc2reader/tarball/upstream
     tar -xzf sc2reader-upstream.tar.gz
     cd sc2reader-upstream
-    python3 setup.py install
+    pip install .
 
 .. _circle-ci: https://circleci.com/
 .. _coveralls.io: https://coveralls.io
@@ -245,7 +245,7 @@ Contributors should install from an active git repository using setuptools in `d
 
     git clone https://github.com/ggtracker/sc2reader.git
     cd sc2reader
-    python3 setup.py develop
+    pip install -e .
 
 Please review the `CONTRIBUTING.md`_ file and get in touch with us before doing too much work. It'll make everyone happier in the long run.
 
