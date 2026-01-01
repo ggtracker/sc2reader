@@ -411,7 +411,10 @@ class Replay(Resource):
 
         self.windows_timestamp = details["file_time"]
         self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
-        self.end_time = datetime.utcfromtimestamp(self.unix_timestamp)
+        self.end_time = datetime.fromtimestamp(
+            self.unix_timestamp, 
+            datetime.UTC
+        )
 
         # The utc_adjustment is either the adjusted windows timestamp OR
         # the value required to get the adjusted timestamp. We know the upper
@@ -429,8 +432,9 @@ class Replay(Resource):
             seconds=self.length.seconds
             // GAME_SPEED_FACTOR[self.expansion].get(self.speed, 1.0)
         )
-        self.start_time = datetime.utcfromtimestamp(
-            self.unix_timestamp - self.real_length.seconds
+        self.start_time = datetime.fromtimestamp(
+            self.unix_timestamp - self.real_length.seconds,
+            datetime.UTC
         )
         self.date = self.end_time  # backwards compatibility
 
@@ -1088,7 +1092,10 @@ class GameSummary(Resource):
         else:
             self.expansion = ""
 
-        self.end_time = datetime.utcfromtimestamp(self.parts[0][8])
+        self.end_time = datetime.fromtimestamp(
+            self.parts[0][8], 
+            datetime.UTC
+        )
         self.game_speed = LOBBY_PROPERTIES[0xBB8][1][self.parts[0][0][1].decode("utf8")]
         self.game_length = utils.Length(seconds=self.parts[0][7])
         self.real_length = utils.Length(
@@ -1096,8 +1103,9 @@ class GameSummary(Resource):
                 self.parts[0][7] / GAME_SPEED_FACTOR[self.expansion][self.game_speed]
             )
         )
-        self.start_time = datetime.utcfromtimestamp(
-            self.parts[0][8] - self.real_length.seconds
+        self.start_time = datetime.fromtimestamp(
+            self.parts[0][8] - self.real_length.seconds,
+            datetime.UTC
         )
 
         self.load_map_info()
