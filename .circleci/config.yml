@@ -1,9 +1,9 @@
-version: 2.0
+version: 2.1
 
 build_and_test: &build_and_test_steps
   - checkout
   # Do not use `sudo pip`
-  # pipx is already installed but `pipx list` is empty
+  # pipx is already installed, but `pipx list` is empty
   - run: python --version ; pip --version ; pipx --version ; pwd ; ls -l
   - run: pip install pytest -r requirements.txt
   - run: pip install --editable .
@@ -13,24 +13,22 @@ build_and_test: &build_and_test_steps
 jobs:
   StyleCheck:
     docker:
-      - image: cimg/python:3.11
+      - image: cimg/python:3.14
     steps:
       - checkout
-      - run: python --version ; pip --version ; pwd ; ls -l
-      - run: pip install black codespell ruff
-      - run: codespell -L queenland,uint,assertin
-      - run: ruff check
-      - run: black . --check
+      - run: python --version ; pip --version ; pipx --version ; pwd ; ls -l
+      - run: pipx run codespell -L queenland,uint,assertin
+      - run: pipx run ruff check
+      - run: pipx run black . --check
 
 
   Python3:
     docker:
-      - image: cimg/python:3.11
+      - image: cimg/python:3.14
     steps: *build_and_test_steps
 
 
 workflows:
-  version: 2
   build:
     jobs:
       - StyleCheck
