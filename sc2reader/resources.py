@@ -412,7 +412,7 @@ class Replay(Resource):
         self.windows_timestamp = details["file_time"]
         self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
         self.end_time = datetime.fromtimestamp(
-            self.unix_timestamp, 
+            self.unix_timestamp,
             timezone.utc
         )
 
@@ -1093,7 +1093,7 @@ class GameSummary(Resource):
             self.expansion = ""
 
         self.end_time = datetime.fromtimestamp(
-            self.parts[0][8], 
+            self.parts[0][8],
             timezone.utc
         )
         self.game_speed = LOBBY_PROPERTIES[0xBB8][1][self.parts[0][0][1].decode("utf8")]
