@@ -14,7 +14,7 @@ Who Uses sc2reader?
 
 sc2reader is currently powering:
 
-* Websites: `spawningtool.com`_, `gamereplays.org`_ 
+* Websites: `spawningtool.com`_, `gamereplays.org`_
 * Tools: `The Core`_
 * Experiments: `Midi Conversion`_
 
