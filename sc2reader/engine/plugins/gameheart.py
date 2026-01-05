@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sc2reader.utils import Length, get_real_type
 from sc2reader.objects import Observer, Team
 from sc2reader.engine.events import PluginExit
@@ -65,8 +65,9 @@ class GameHeartNormalizer:
         replay.real_length = Length(
             seconds=int(replay.game_length.seconds / GAME_SPEED_FACTOR[replay.speed])
         )
-        replay.start_time = datetime.utcfromtimestamp(
-            replay.unix_timestamp - replay.real_length.seconds
+        replay.start_time = datetime.fromtimestamp(
+            replay.unix_timestamp - replay.real_length.seconds,
+            timezone.utc
         )
 
     def fix_events(self, replay, start_frame):
