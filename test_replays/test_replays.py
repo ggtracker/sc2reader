@@ -1,4 +1,5 @@
 import datetime
+from datetime import timezone
 import json
 from xml.dom import minidom
 
@@ -193,15 +194,15 @@ class TestReplays(unittest.TestCase):
 
         # Played at 20 Feb 2011 22:44:48 UTC+2
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/1.SC2Replay")
-        self.assertEqual(replay.end_time, datetime.datetime(2011, 2, 20, 20, 44, 47))
+        self.assertEqual(replay.end_time, datetime.datetime(2011, 2, 20, 20, 44, 47, tzinfo=timezone.utc))
 
         # Played at 21 Feb 2011 00:42:13 UTC+2
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/2.SC2Replay")
-        self.assertEqual(replay.end_time, datetime.datetime(2011, 2, 20, 22, 42, 12))
+        self.assertEqual(replay.end_time, datetime.datetime(2011, 2, 20, 22, 42, 12, tzinfo=timezone.utc))
 
         # Played at 25 Feb 2011 16:36:28 UTC+2
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/3.SC2Replay")
-        self.assertEqual(replay.end_time, datetime.datetime(2011, 2, 25, 14, 36, 26))
+        self.assertEqual(replay.end_time, datetime.datetime(2011, 2, 25, 14, 36, 26, tzinfo=timezone.utc))
 
     def test_hots_pids(self):
         for replayfilename in [
