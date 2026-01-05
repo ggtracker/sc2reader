@@ -1,31 +1,38 @@
-version: 2.1
+# https://circleci.com/developer/orbs/orb/circleci/python#usage-work-with-uv
 
-build_and_test: &build_and_test_steps
-  - checkout
-  # Do not use `sudo pip`
-  # pipx is already installed but `pipx list` is empty
-  - run: python --version ; pip --version ; pipx --version ; pwd ; ls -l
-  - run: pip install pytest -r requirements.txt
-  - run: pip install --editable .
-  - run: pytest
-
+version: '2.1'
+orbs:
+  python: circleci/python@3.3.0
 
 jobs:
   pre-commit:
-    docker:
-      - image: cimg/python:3.11
+    executor:
+      name: python/default
+      tag: "3.14"
     steps:
       - checkout
-      - run: pipx run pre-commit run --all-files --show-diff-on-failure
+      - python/install-packages:
+          pkg-manager: uv
+      - run:
+          command: |
+            uvx pre-commit run --all-files --show-diff-on-failure
 
   pytest:
-    docker:
-      - image: cimg/python:3.13
-    steps: *build_and_test_steps
-
+    executor:
+      name: python/default
+      tag: "3.14"
+    steps:
+      - checkout
+      - python/install-packages:
+          pkg-manager: uv
+      - run:
+          command: |
+            uv venv --allow-existing
+            pip install --editable ".[testing]"
+            pytest
 
 workflows:
-  build:
+  main:
     jobs:
       - pre-commit
       - pytest
