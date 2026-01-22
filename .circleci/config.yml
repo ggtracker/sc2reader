@@ -6,8 +6,8 @@ orbs:
 
 jobs:
   pre-commit:
-    # executor:
-    #  name: python/default
+    executor:
+      name: python/default
     #  tag: "3.14"
     steps:
       - checkout
@@ -18,8 +18,8 @@ jobs:
             uvx pre-commit run --all-files --show-diff-on-failure
 
   pytest:
-    # executor:
-    #  name: python/default
+    executor:
+      name: python/default
     #  tag: "3.14"
     steps:
       - checkout
