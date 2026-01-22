@@ -2,13 +2,13 @@
 
 version: '2.1'
 orbs:
-  python: circleci/python@3.3.0
+  python: circleci/python@4.0.0
 
 jobs:
   pre-commit:
-    executor:
-      name: python/default
-      tag: "3.14"
+    # executor:
+    #  name: python/default
+    #  tag: "3.14"
     steps:
       - checkout
       - python/install-packages:
@@ -18,9 +18,9 @@ jobs:
             uvx pre-commit run --all-files --show-diff-on-failure
 
   pytest:
-    executor:
-      name: python/default
-      tag: "3.14"
+    # executor:
+    #  name: python/default
+    #  tag: "3.14"
     steps:
       - checkout
       - python/install-packages:
