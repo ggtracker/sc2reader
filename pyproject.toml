@@ -61,17 +61,12 @@ scripts.sc2replayer = "sc2reader.scripts.sc2replayer:main"
 include-package-data = true
 zip-safe = true
 platforms = [ "any" ]
-
-[tool.setuptools.dynamic]
-readme = { file = [ "README.rst", "CHANGELOG.rst" ] }
-version = { attr = "sc2reader.__version__" }
-
-[tool.setuptools.packages]
-find = { namespaces = false }
+dynamic.readme = { file = [ "README.rst", "CHANGELOG.rst" ] }
+dynamic.version = { attr = "sc2reader.__version__" }
+packages.find = { namespaces = false }
 
 [tool.ruff]
 line-length = 129
-
 lint.ignore = [
   "F401", # module imported but unused; consider using `importlib.util.find_spec` to test for availability
   "F403", # Run `removestar` on this codebase
