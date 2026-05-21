@@ -1,7 +1,7 @@
 import binascii
 import json
 import os
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 
 from sc2reader.constants import COLOR_CODES, COLOR_CODES_INV
 from sc2reader.exceptions import MPQError
@@ -201,8 +201,7 @@ def get_resource_url(region, hash, type):
     if region == "sea":
         region = "us"
     elif region == "cn":
-        scheme = "http"
-        domain = "battlenet.com.cn"
+        domain = "necdn.leihuo.netease.com"
     return url_template.format(scheme, region, domain, hash, type)
 
 
