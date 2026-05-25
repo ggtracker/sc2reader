@@ -137,7 +137,7 @@ ForceField,ForceField,CancelForceField,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 ForgeResearch,UpgradeGroundWeapons1,UpgradeGroundWeapons2,UpgradeGroundWeapons3,UpgradeGroundArmor1,UpgradeGroundArmor2,UpgradeGroundArmor3,UpgradeShields1,UpgradeShields2,UpgradesShields3,,,,,,,,,,,,,,,,,,,,,,CancelForgeResearch,
 Frenzy,Frenzy,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 FungalGrowth,FungalGrowth,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-FusionCoreResearch,ResearchWeaponRefit,ResearchBehemothReactor,ResearchMedivacIncreaseSpeedBoost,,,,,,,,,,,,,,,,,,,,,,,,,,,,CancelFusionCoreResearch,
+FusionCoreResearch,ResearchWeaponRefit,ResearchBehemothReactor,ResearchMedivacIncreaseSpeedBoost,ResearchMedivacCaduceusReactor,,,,,,,,,,,,,,,,,,,,,,,,,,,CancelFusionCoreResearch,
 GatewayTrain,TrainZealot,TrainStalker,,TrainHighTemplar,TrainDarkTemplar,TrainSentry,TrainAdept,,,,,,,,,,,,,,,,,,,,,,,,CancelGatewayTrain,
 GenerateCreep,GenerateCreep,StopGenerateCreep,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 GhostAcademyResearch,ResearchPersonalCloaking,ResearchMoebiusReactor,ResearchEnhancedShockwaves,,,,,,,,,,,,,,,,,,,,,,,,,,,,CancelGhostAcademyResearch,
@@ -301,7 +301,7 @@ StarportLand,LandStarport,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 StarportLiftOff,LiftStarport,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 StarportReactorMorph,StarportReactorMorph,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 StarportTechLabMorph,StarportTechLabMorph,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-StarportTechLabResearch,ResearchCloakingField,,ResearchCaduceusReactor,ResearchCorvidReactor,,,ResearchSeekerMissile,ResearchDurableMaterials,,ResearchBansheeSpeed,,,,ResearchRavenRecalibratedExplosives,ResearchMedivacIncreaseSpeedBoost,ResearchLiberatorAGRangeUpgrade,ResearchRavenEnhancedMunitions,,,,,,,,,,,,,,CancelStarportTechLabResearch,
+StarportTechLabResearch,ResearchCloakingField,,ResearchCaduceusReactor,ResearchCorvidReactor,,,ResearchSeekerMissile,ResearchDurableMaterials,,ResearchBansheeSpeed,,,,ResearchRavenRecalibratedExplosives,ResearchMedivacIncreaseSpeedBoost,ResearchLiberatorAGRangeUpgrade,ResearchRavenEnhancedMunitions,ResearchInterferenceMatrix,,,,,,,,,,,,,CancelStarportTechLabResearch,
 StarportTrain,TrainMedivac,TrainBanshee,TrainRaven,TrainBattlecruiser,TrainViking,,TrainLiberator,,,,,,,,,,,,,,,,,,,,,,,,CancelStarportTrain,
 Stimpack,UseStimpack,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 StimpackMarauder,UseStimpack,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
@@ -867,3 +867,8 @@ BattlecruiserMove,Move,Patrol,HoldPos
 AmorphousArmorcloud,AmorphousArmorcloud
 BatteryOvercharge,BatteryOvercharge
 MorphToBaneling,MorphToBaneling,Cancel
+ShieldBatteryRechargeEx5,ShieldBatteryRechargeEx5,Cancel
+HydraliskFrenzy,HydraliskFrenzy
+SalvageEffect,SalvageEffect
+EnergyRecharge,EnergyRecharge
+MothershipCloak,MothershipCloak
