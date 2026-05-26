@@ -705,6 +705,7 @@ class TestReplays(unittest.TestCase):
             "test_replays/5.0.15/96516_0.SC2Replay",
             "test_replays/5.0.15/96516_1.SC2Replay",
             "test_replays/5.0.15/96999_0.SC2Replay",
+            "test_replays/5.0.15/96999_1_133E.SC2Replay",
         ]:
             factory = sc2reader.factories.SC2Factory()
             factory.load_replay(replayfilename)
