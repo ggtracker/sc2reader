@@ -696,7 +696,7 @@ class TestReplays(unittest.TestCase):
         replay = sc2reader.load_replay(
             "test_replays/5.0.0.80949/2020-07-28 - (T)Ocrucius VS (Z)Rairden.SC2Replay"
         )
-    
+
     def test_5_0_15(self):
         for replayfilename in [
             "test_replays/5.0.15/95405_0.SC2Replay",
@@ -708,7 +708,7 @@ class TestReplays(unittest.TestCase):
         ]:
             factory = sc2reader.factories.SC2Factory()
             factory.load_replay(replayfilename)
-        
+
 
     def test_anonymous_replay(self):
         replayfilename = "test_replays/4.1.2.60604/1.SC2Replay"
