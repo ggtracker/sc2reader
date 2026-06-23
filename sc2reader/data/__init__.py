@@ -478,6 +478,7 @@ for version in (
     "80949",
     "89720",
     "96883",
+    "97364",
 ):
     lotv_builds[version] = load_build("LotV", version)
 
