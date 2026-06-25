@@ -18,7 +18,7 @@ or useDoubleCache functions.
 :license: MIT, see LICENSE for more details.
 """
 
-__version__ = "1.8.0"
+__version__ = "1.9.0"
 
 import os
 import sys
