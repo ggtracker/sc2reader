@@ -1,6 +1,24 @@
 CHANGELOG
 ============
 
+1.9.0 - June 24, 2026
+---------------------
+* Drop support for legacy Python #174
+* Migrate from setup.py to pyproject.toml (PEP 621) #193
+* Lint with ruff instead of flake8 #195 #196 #207
+* Add region_id attribute to Entity #191
+* Add mmr to User class #190
+* Add observer URL support #189
+* Identify all control group event types #187
+* Add DialogControlEvent type #201
+* Fix division by zero on instant-leave replays #198
+* Fix examples/sc2autosave.py for Python 3 #209 #210
+* Fix utcfromtimestamp deprecation warnings
+* Update CDN host for the CN server #226
+* Fix missing CancelAddon abilities #227
+* Add balance data through 5.0.16.97364 (89720, 5.0.15, 5.0.16) #181 #227 #228
+
+
 1.8.0 - May 4, 2022
 -------------------
 * Fix various typos in docs #146
