@@ -58,12 +58,12 @@ scripts.sc2printer = "sc2reader.scripts.sc2printer:main"
 scripts.sc2replayer = "sc2reader.scripts.sc2replayer:main"
 
 [tool.setuptools]
+packages.find = { namespaces = false }
 include-package-data = true
-zip-safe = true
-platforms = [ "any" ]
 dynamic.readme = { file = [ "README.rst", "CHANGELOG.rst" ] }
 dynamic.version = { attr = "sc2reader.__version__" }
-packages.find = { namespaces = false }
+platforms = [ "any" ]
+zip-safe = true
 
 [tool.ruff]
 line-length = 129
