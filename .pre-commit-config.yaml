@@ -8,8 +8,6 @@ ci:
   autoupdate_schedule: monthly
   skip: [ruff-check]  # Modern ruff-check prohibits legacy Python 2 syntax
 
-
-
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
