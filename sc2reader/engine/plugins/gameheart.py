@@ -66,8 +66,7 @@ class GameHeartNormalizer:
             seconds=int(replay.game_length.seconds / GAME_SPEED_FACTOR[replay.speed])
         )
         replay.start_time = datetime.fromtimestamp(
-            replay.unix_timestamp - replay.real_length.seconds,
-            timezone.utc
+            replay.unix_timestamp - replay.real_length.seconds, timezone.utc
         )
 
     def fix_events(self, replay, start_frame):

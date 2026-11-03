@@ -411,10 +411,7 @@ class Replay(Resource):
 
         self.windows_timestamp = details["file_time"]
         self.unix_timestamp = utils.windows_to_unix(self.windows_timestamp)
-        self.end_time = datetime.fromtimestamp(
-            self.unix_timestamp,
-            timezone.utc
-        )
+        self.end_time = datetime.fromtimestamp(self.unix_timestamp, timezone.utc)
 
         # The utc_adjustment is either the adjusted windows timestamp OR
         # the value required to get the adjusted timestamp. We know the upper
@@ -433,8 +430,7 @@ class Replay(Resource):
             // GAME_SPEED_FACTOR[self.expansion].get(self.speed, 1.0)
         )
         self.start_time = datetime.fromtimestamp(
-            self.unix_timestamp - self.real_length.seconds,
-            timezone.utc
+            self.unix_timestamp - self.real_length.seconds, timezone.utc
         )
         self.date = self.end_time  # backwards compatibility
 
@@ -881,12 +877,12 @@ class Replay(Resource):
             lambda r: r.expansion == "LotV" and 89634 <= r.build < 95122,
         )
         self.register_datapack(
-            datapacks["LotV"]["96883"],
-            lambda r: r.expansion == "LotV" and 95122 <= r.build < 97364, # first build of 5.0.15 was 95122
+            datapacks["LotV"]["96883"],  # first build of 5.0.15 was 95122
+            lambda r: r.expansion == "LotV" and 95122 <= r.build < 97364,
         )
         self.register_datapack(
-            datapacks["LotV"]["97364"],
-            lambda r: r.expansion == "LotV" and 97364 <= r.build, # first build of 5.0.16 was 97364
+            datapacks["LotV"]["97364"],  # first build of 5.0.16 was 97364
+            lambda r: r.expansion == "LotV" and 97364 <= r.build,
         )
 
     # Internal Methods
@@ -1100,10 +1096,7 @@ class GameSummary(Resource):
         else:
             self.expansion = ""
 
-        self.end_time = datetime.fromtimestamp(
-            self.parts[0][8],
-            timezone.utc
-        )
+        self.end_time = datetime.fromtimestamp(self.parts[0][8], timezone.utc)
         self.game_speed = LOBBY_PROPERTIES[0xBB8][1][self.parts[0][0][1].decode("utf8")]
         self.game_length = utils.Length(seconds=self.parts[0][7])
         self.real_length = utils.Length(
@@ -1112,8 +1105,7 @@ class GameSummary(Resource):
             )
         )
         self.start_time = datetime.fromtimestamp(
-            self.parts[0][8] - self.real_length.seconds,
-            timezone.utc
+            self.parts[0][8] - self.real_length.seconds, timezone.utc
         )
 
         self.load_map_info()

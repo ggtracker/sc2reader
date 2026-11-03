@@ -31,6 +31,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
   "Topic :: Games/Entertainment",
@@ -66,7 +67,6 @@ platforms = [ "any" ]
 zip-safe = true
 
 [tool.ruff]
-line-length = 129
 lint.ignore = [
   "F401", # module imported but unused; consider using `importlib.util.find_spec` to test for availability
   "F403", # Run `removestar` on this codebase
