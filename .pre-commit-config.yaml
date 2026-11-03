@@ -61,7 +61,7 @@ repos:
     rev: v0.15.22
     hooks:
       - id: ruff-check
-      # - id: ruff-format
+      - id: ruff-format
 
   - repo: https://github.com/tox-dev/pyproject-fmt
     rev: v2.30.3

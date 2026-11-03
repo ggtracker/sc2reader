@@ -78,9 +78,9 @@ def generate_build_data(balance_data_path):
                         ability_lookup[build_ability_name].append("")
 
                     build_command_name = f"Build{built_unit_id}"
-                    ability_lookup[build_ability_name][
-                        command_index
-                    ] = build_command_name
+                    ability_lookup[build_ability_name][command_index] = (
+                        build_command_name
+                    )
 
         train_unit_elements = root.findall("./trains/unit")
         if train_unit_elements:
@@ -120,9 +120,9 @@ def generate_build_data(balance_data_path):
                             ):
                                 ability_lookup[train_ability_name].append("")
 
-                            ability_lookup[train_ability_name][
-                                command_index
-                            ] = train_ability_name
+                            ability_lookup[train_ability_name][command_index] = (
+                                train_ability_name
+                            )
                     else:
                         command_index_str = element.get("index")
 
@@ -136,9 +136,9 @@ def generate_build_data(balance_data_path):
                                 ability_lookup[train_ability_name].append("")
 
                             train_command_name = f"Train{trained_unit_name}"
-                            ability_lookup[train_ability_name][
-                                command_index
-                            ] = train_command_name
+                            ability_lookup[train_ability_name][command_index] = (
+                                train_command_name
+                            )
 
         research_upgrade_elements = root.findall("./researches/upgrade")
         if research_upgrade_elements:
@@ -162,9 +162,9 @@ def generate_build_data(balance_data_path):
                         ability_lookup[research_ability_name].append("")
 
                     research_command_name = f"Research{researched_upgrade_id}"
-                    ability_lookup[research_ability_name][
-                        command_index
-                    ] = research_command_name
+                    ability_lookup[research_ability_name][command_index] = (
+                        research_command_name
+                    )
 
     sorted_units = collections.OrderedDict(
         sorted(units.items(), key=lambda x: int(x[0]))

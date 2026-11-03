@@ -94,7 +94,7 @@ def main():
                                 )
                             )
                             print(
-                                f"Units were: {({obj.name for obj in replay.objects.values()})}"
+                                f"Units were: { ({obj.name for obj in replay.objects.values()}) }"
                             )
 
             except sc2reader.exceptions.ReadError as e:

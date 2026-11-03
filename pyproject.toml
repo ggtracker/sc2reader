@@ -67,7 +67,6 @@ platforms = [ "any" ]
 zip-safe = true
 
 [tool.ruff]
-line-length = 129
 lint.ignore = [
   "F401", # module imported but unused; consider using `importlib.util.find_spec` to test for availability
   "F403", # Run `removestar` on this codebase

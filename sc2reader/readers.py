@@ -263,7 +263,9 @@ class InitDataReader:
                                 data.read_bits(
                                     17
                                     if replay.base_build >= 34784
-                                    else 6 if replay.base_build >= 24764 else 5
+                                    else 6
+                                    if replay.base_build >= 24764
+                                    else 5
                                 )
                             )
                         ],
@@ -279,7 +281,9 @@ class InitDataReader:
                                     data.read_bits(
                                         16
                                         if replay.base_build >= 77379
-                                        else 13 if replay.base_build >= 70154 else 9
+                                        else 13
+                                        if replay.base_build >= 70154
+                                        else 9
                                     )
                                 )
                             ]
