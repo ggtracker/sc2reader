@@ -8,7 +8,7 @@ jobs:
   pre-commit:
     executor:
       name: python/default
-    #  tag: "3.14"
+      tag: "3.15"
     steps:
       - checkout
       - python/install-packages:
@@ -20,7 +20,7 @@ jobs:
   pytest:
     executor:
       name: python/default
-    #  tag: "3.14"
+      tag: "3.15"
     steps:
       - checkout
       - python/install-packages:

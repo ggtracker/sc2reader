@@ -6,7 +6,6 @@
 
 ci:
   autoupdate_schedule: monthly
-  skip: [ruff-check]  # Modern ruff-check prohibits legacy Python 2 syntax
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -58,7 +57,8 @@ repos:
           - tomli
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.22
+    # Do NOT upgrade because modern ruff-check prohibits legacy Python 2 syntax
+    rev: v0.15.22  # frozen: v0.15
     hooks:
       - id: ruff-check
       - id: ruff-format
