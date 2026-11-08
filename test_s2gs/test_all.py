@@ -18,6 +18,12 @@ class TestSummaries(unittest.TestCase):
         self.assertEqual(summary.players[0].build_order[0].order, "Probe")
         self.assertEqual(summary.expansion, "WoL")
 
+    def test_str_without_play_races(self):
+        # No play race is recorded for the players in this summary; see #232
+        summary = sc2reader.load_game_summary("test_s2gs/s2gs1.s2gs")
+        self.assertEqual([p.play_race for p in summary.players], [None, None])
+        self.assertTrue(str(summary).endswith(" NvN"))
+
     def test_a_LotV_s2gs(self):
         summary = sc2reader.load_game_summary("test_s2gs/lotv.s2gs")
         self.assertEqual(summary.players[0].resource_collection_rate, 1619)

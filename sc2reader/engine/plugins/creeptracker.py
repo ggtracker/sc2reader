@@ -36,7 +36,7 @@ class CreepTracker:
                 replay.load_map()
             self.creepTracker = creep_tracker(replay)
             for player in replay.players:
-                if player.play_race[0] == "Z":
+                if player.play_race[:1] == "Z":
                     self.creepTracker.init_cgu_lists(player.pid)
         except Exception as e:
             print(f"Whoa! {e}")
@@ -82,7 +82,7 @@ class CreepTracker:
             if len(replay.tracker_events) == 0:
                 return
             for player in replay.players:
-                if player.play_race[0] == "Z":
+                if player.play_race[:1] == "Z":
                     self.creepTracker.reduce_cgu_per_minute(player.pid)
                     player.creep_spread_by_minute = (
                         self.creepTracker.get_creep_spread_area(player.pid)
