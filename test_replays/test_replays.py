@@ -113,6 +113,14 @@ class TestReplays(unittest.TestCase):
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/7.SC2Replay")
         self.assertEqual(replay.type, "2v2")
 
+    def test_raceless_player(self):
+        # Players on some custom maps have no race; see issue #232
+        replay = sc2reader.load_replay("test_replays/1.2.2.17811/7.SC2Replay")
+        player = replay.teams[0].players[0]
+        player.play_race = ""
+        self.assertIn("N", replay.teams[0].lineup)
+        self.assertEqual(len(replay.teams[0].lineup), len(replay.teams[0].players))
+
     def test_3v3(self):
         replay = sc2reader.load_replay("test_replays/1.2.2.17811/3.SC2Replay")
         self.assertEqual(replay.type, "3v3")

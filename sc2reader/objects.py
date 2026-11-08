@@ -43,9 +43,10 @@ class Team:
     def lineup(self):
         """
         A string representation of the team play races like PP or TPZZ. Random
-        pick races are not reflected in this string
+        pick races are not reflected in this string. Players without a race,
+        as on some custom maps, are shown as N.
         """
-        return "".join(sorted(p.play_race[0].upper() for p in self.players))
+        return "".join(sorted((p.play_race or "N")[0].upper() for p in self.players))
 
     @property
     def hash(self):  # noqa: F811

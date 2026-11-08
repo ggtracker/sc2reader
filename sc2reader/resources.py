@@ -1439,7 +1439,8 @@ class GameSummary(Resource):
             self.start_time,
             self.game_length,
             "v".join(
-                "".join(p.play_race[0] for p in team.players) for team in self.teams
+                "".join((p.play_race or "N")[0] for p in team.players)
+                for team in self.teams
             ),
         )
 
